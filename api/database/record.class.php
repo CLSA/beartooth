@@ -3,23 +3,23 @@
  * record.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\exception as exc;
+namespace beartooth\database;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\exception as exc;
 
 /**
  * record: abstract database table object
  *
  * The record class represents tables in the database.  Each table has its own class which
  * extends this class.  Furthermore, each table must have a single 'id' column as its primary key.
- * @package sabretooth\database
+ * @package beartooth\database
  */
-abstract class record extends \sabretooth\base_object
+abstract class record extends \beartooth\base_object
 {
   /**
    * Constructor
@@ -410,7 +410,7 @@ abstract class record extends \sabretooth\base_object
         if( 0 < count( $args ) &&
             !is_null( $args[0] ) &&
             is_object( $args[0] ) &&
-            'sabretooth\\database\\modifier' != get_class( $args[0] ) )
+            'beartooth\\database\\modifier' != get_class( $args[0] ) )
           throw new exc\argument( 'args', $args, __METHOD );
         
         // determine the sub action and whether to invert the result
@@ -475,7 +475,7 @@ abstract class record extends \sabretooth\base_object
     $record = NULL;
     if( !is_null( $this->column_values[$foreign_key_name] ) )
     {
-      $class_name = '\\sabretooth\\database\\'.$record_type;
+      $class_name = '\\beartooth\\database\\'.$record_type;
       $record = new $class_name( $this->column_values[$foreign_key_name] );
     }
 
@@ -499,7 +499,7 @@ abstract class record extends \sabretooth\base_object
   {
     $table_name = static::get_table_name();
     $primary_key_name = $table_name.'.'.static::get_primary_key_name();
-    $foreign_class_name = '\\sabretooth\\database\\'.$record_type;
+    $foreign_class_name = '\\beartooth\\database\\'.$record_type;
 
     // check the primary key value
     $primary_key_value = $this->column_values[ static::get_primary_key_name() ];
@@ -739,7 +739,7 @@ abstract class record extends \sabretooth\base_object
     }
     else if( relationship::ONE_TO_MANY == $relationship )
     {
-      $foreign_class_name = '\\sabretooth\\database\\'.$record_type;
+      $foreign_class_name = '\\beartooth\\database\\'.$record_type;
       $record = new $foreign_class_name( $id );
       $record->delete();
     }
@@ -806,7 +806,7 @@ abstract class record extends \sabretooth\base_object
   public static function get_relationship( $record_type )
   {
     $type = relationship::NONE;
-    $class_name = '\\sabretooth\\database\\'.$record_type;
+    $class_name = '\\beartooth\\database\\'.$record_type;
     if( $class_name::column_exists( static::get_table_name().'_id' ) )
     { // the record_type has a foreign key for this record
       $type = static::column_exists( $record_type.'_id' )
@@ -860,7 +860,7 @@ abstract class record extends \sabretooth\base_object
           $foreign_key_name = $table.'_id';
           if( static::column_exists( $foreign_key_name ) )
           {
-            $class_name = '\\sabretooth\\database\\'.$table;
+            $class_name = '\\beartooth\\database\\'.$table;
             // add the table to the list to select and join it in the modifier
             $table_list[] = $table;
             $modifier->where(

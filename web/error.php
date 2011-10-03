@@ -1,8 +1,8 @@
 <?php
 if( !isset( $result_array ) || !is_array( $result_array ) )
 {
-  $code = class_exists( '\sabretooth\util' )
-        ? sabretooth\util::convert_number_to_code( SYSTEM_BASE_ERROR_NUMBER )
+  $code = class_exists( '\beartooth\util' )
+        ? beartooth\util::convert_number_to_code( SYSTEM_BASE_ERROR_NUMBER )
         : 0;
   $result_array = array( 'error_type' => 'System',
                          'error_code' => $code,
@@ -22,7 +22,7 @@ $code = substr( $result_array['error_type'], 0, 1 ).'.'.$result_array['error_cod
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-  <title>Sabretooth</title>
+  <title>Beartooth</title>
   <link href="css/main.css" rel="stylesheet" />
   <style type="text/css">
     body { margin: 10px; }

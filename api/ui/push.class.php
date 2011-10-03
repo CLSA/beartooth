@@ -3,20 +3,20 @@
  * push.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * The base class of all push operations
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
 abstract class push extends operation
 {

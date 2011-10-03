@@ -3,11 +3,11 @@
  * singleton.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth
+ * @package beartooth
  * @filesource
  */
 
-namespace sabretooth;
+namespace beartooth;
 
 /**
  * singleton: a class that only allows for a single, static object
@@ -15,7 +15,7 @@ namespace sabretooth;
  * This is an object factory that creates singletons.  Any class that extends this base class can
  * be instantiated by calling the {@link self} method.  That method will return one and only
  * one instance per class.
- * @package sabretooth
+ * @package beartooth
  */
 abstract class singleton
 {

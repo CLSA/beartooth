@@ -1,16 +1,16 @@
 <?php
 /**
- * sabretooth.local.ini.php
+ * beartooth.local.ini.php
  * 
- * Defines local initialization settings for sabretooth, overriding default settings found in
- * sabretooth.ini.php
+ * Defines local initialization settings for beartooth, overriding default settings found in
+ * beartooth.ini.php
  */
 
-namespace sabretooth;
+namespace beartooth;
 global $SETTINGS;
 
 // The file path to the application
-$SETTINGS[ 'path' ][ 'SABRETOOTH' ] = '/path/to/app';
+$SETTINGS[ 'path' ][ 'BEARTOOTH' ] = '/path/to/app';
 
 // The path to the log file
 $SETTINGS[ 'path' ][ 'LOG_FILE' ] = '/path/to/log/file';

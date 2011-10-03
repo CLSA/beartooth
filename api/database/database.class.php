@@ -4,14 +4,14 @@
  * For now see {@link connect} for the current hack/solution.
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\exception as exc;
+namespace beartooth\database;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\exception as exc;
 
 /**
  * @category external
@@ -20,9 +20,9 @@ require_once ADODB_PATH.'/adodb.inc.php';
 
 /**
  * The database class represents a database connection and information.
- * @package sabretooth\database
+ * @package beartooth\database
  */
-class database extends \sabretooth\base_object
+class database extends \beartooth\base_object
 {
   /**
    * Constructor
@@ -133,7 +133,7 @@ class database extends \sabretooth\base_object
   public function __destruct()
   {
     // only complete a transaction for the main database (this is an ADOdb limitation)
-    if( class_exists( '\sabretooth\business\setting_manager' ) &&
+    if( class_exists( '\beartooth\business\setting_manager' ) &&
         bus\setting_manager::exists() &&
         bus\setting_manager::self()->get_setting( 'db', 'database' ) == $this->name )
       $this->connection->CompleteTrans();

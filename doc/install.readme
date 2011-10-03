@@ -1,6 +1,6 @@
 A) DEPENDENCIES
 ===============
-The following software must be installed prior to installing sabretooth:
+The following software must be installed prior to installing beartooth:
 
 - LAMP setup with PHP 5.3.2+
 - PECL Http
@@ -25,7 +25,7 @@ recommended for development.
 
 B) SETUP DATABASE
 =================
-To create your Sabretooth database run the schema, initial_data and sample_data sql scripts found
+To create your Beartooth database run the schema, initial_data and sample_data sql scripts found
 in the web/ directory:
 
 cat schema.sql initial_data.sql sample_data.sql | mysql -u <username> -p <database>
@@ -36,24 +36,24 @@ You should edit sample_data.sql so that it has at least one user with the admini
 
 C) SETUP INI FILE
 =================
-Sabretooth needs to know where to find things, passwords, etc.  This is all done in a local ini
-file.  To set yours up go into Sabretooth's web/ directory and copy the sample local ini file to
+Beartooth needs to know where to find things, passwords, etc.  This is all done in a local ini
+file.  To set yours up go into Beartooth's web/ directory and copy the sample local ini file to
 your working local ini file:
 
-cp sabretooth.local.ini.php.sample sabretooth.local.ini.php
+cp beartooth.local.ini.php.sample beartooth.local.ini.php
 
-Then edit sabretooth.local.ini.php with whatever values you need.  Make sure the database name,
+Then edit beartooth.local.ini.php with whatever values you need.  Make sure the database name,
 username and password are set according to what was mentioned in the previous step.
 
 
 D) SETUP WEBROOT
 ================
-Create a symbolic link to Sabretooth's web/ directory in a web-accessible place:
+Create a symbolic link to Beartooth's web/ directory in a web-accessible place:
 
 cd /var/www/<username>
-ln -s /path/to/sabretooth/web sabretooth
+ln -s /path/to/beartooth/web beartooth
 
-Sabretooth uses HTTP authentication to manage the logging in/out of users.  Make sure that your
+Beartooth uses HTTP authentication to manage the logging in/out of users.  Make sure that your
 webserver is configured to require HTTP authentication for the root web directory.
 
 Copy the aux/reload.html file to the root of your web server.  This is necessary in order to
@@ -61,13 +61,13 @@ automatically proceed to the next phase of a questionnaire when a current phase 
 
 Also, when running in production mode (development_mode is false) all errors are appended to a
 log file.  Make sure that the webserver has write access to the file pointed to by the LOG_FILE
-setting found in sabretooth.local.ini.php
+setting found in beartooth.local.ini.php
 
 E) SETUP LIMESURVEY
 ===================
 Add all of the text in aux/survey_runtime.js to limesurvey's scripts/survey_runtime.js file.
-This change to limesurvey assused that sabretooth is installed in the same parent directory
-as limesurvey (ie: ../sabretooth)  If this is not the case be sure to change the sabretooth_url
+This change to limesurvey assused that beartooth is installed in the same parent directory
+as limesurvey (ie: ../beartooth)  If this is not the case be sure to change the beartooth_url
 variable in aux/survey_runtime.js
 
 WARNING: Some limesurvey templates are not compatible with the javascript which is added by this

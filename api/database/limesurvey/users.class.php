@@ -3,19 +3,19 @@
  * users.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database\limesurvey;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\database\limesurvey;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * users: record
  *
- * @package sabretooth\database
+ * @package beartooth\database
  */
 class users extends record
 {

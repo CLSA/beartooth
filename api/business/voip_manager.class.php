@@ -3,23 +3,23 @@
  * voip_manager.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\business
+ * @package beartooth\business
  * @filesource
  */
 
-namespace sabretooth\business;
-use sabretooth\log, sabretooth\util;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\business;
+use beartooth\log, beartooth\util;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 require_once SHIFT8_PATH.'/library/Shift8.php';
 
 /**
  * Manages VoIP communications.
  * 
- * @package sabretooth\business
+ * @package beartooth\business
  */
-class voip_manager extends \sabretooth\singleton
+class voip_manager extends \beartooth\singleton
 {
   /**
    * Constructor.
@@ -138,7 +138,7 @@ class voip_manager extends \sabretooth\singleton
     // check that the phone is valid
     if( is_null( $db_phone ) ||
         !is_object( $db_phone ) ||
-        'sabretooth\\database\\phone' != get_class( $db_phone ) )
+        'beartooth\\database\\phone' != get_class( $db_phone ) )
       throw new exc\argument( 'db_phone', $db_phone, __METHOD__ );
 
     // check that the phone number has exactly 10 digits

@@ -3,15 +3,15 @@
  * widget.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * The base class of all widgets.
@@ -20,7 +20,7 @@ use sabretooth\exception as exc;
  * the variables needed by the template in order to be rendered.
  * The constructor of every class which extends widget must define the names of the variables needed
  * by in the template by calling {@link add_variable_names}
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
 abstract class widget extends operation
 {

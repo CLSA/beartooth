@@ -3,13 +3,13 @@
  * notice.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\exception
+ * @package beartooth\exception
  * @filesource
  */
 
-namespace sabretooth\exception;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
+namespace beartooth\exception;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
 
 /**
  * notice: notice exceptions
@@ -17,7 +17,7 @@ use sabretooth\business as bus;
  * This is a special exception that is used to directly report to the user.
  * The unaltered error message will be noticeed to the user.  If there is a previous exception
  * its error code will also be noticeed.
- * @package sabretooth\exception
+ * @package beartooth\exception
  */
 class notice extends base_exception
 {
@@ -33,7 +33,7 @@ class notice extends base_exception
   public function __construct( $message, $context, $previous = NULL )
   {
     $message = is_object( $message ) &&
-               is_a( $message, '\\sabretooth\\exception\\base_exception' )
+               is_a( $message, '\\beartooth\\exception\\base_exception' )
              ? $message->get_raw_message()
              : $message;
     parent::__construct( $message, $context, $previous );

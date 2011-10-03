@@ -8,7 +8,7 @@
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @throws exception\runtime
  */
-namespace sabretooth;
+namespace beartooth;
 ob_start();
 
 // the array to return, encoded as JSON if there is an error
@@ -20,7 +20,7 @@ try
   chdir( '..' );
 
   // load web-script common code
-  require_once 'sabretooth.inc.php';
+  require_once 'beartooth.inc.php';
   
   $base_url_path = substr( $_SERVER['PHP_SELF'], 0, strrpos( $_SERVER['PHP_SELF'], '/' ) + 1 );
   $widget_url = str_replace( $base_url_path, '', $_SERVER['REDIRECT_URL'] );
@@ -83,11 +83,11 @@ try
   if( is_null( $widget['name'] ) )
     throw new exception\runtime( 'Unable to determine widget name.', 'WIDGET__SCRIPT' );
   
-  $widget_class = '\\sabretooth\\ui\\widget\\'.$widget['name'];
+  $widget_class = '\\beartooth\\ui\\widget\\'.$widget['name'];
   
   // create the widget using the provided args then finish it
   $operation = new $widget_class( $widget['args'] );
-  if( !is_subclass_of( $operation, 'sabretooth\\ui\\widget' ) )
+  if( !is_subclass_of( $operation, 'beartooth\\ui\\widget' ) )
     throw new exception\runtime(
       'Invoked widget "'.$widget_class.'" is invalid.', 'WIDGET__SCRIPT' );
 
@@ -139,7 +139,7 @@ catch( \Exception $e )
   $result_array['error_code'] = $code;
   $result_array['error_message'] = $e->getMessage();
 
-  if( class_exists( 'sabretooth\log' ) ) log::err( "Last minute ".$e );
+  if( class_exists( 'beartooth\log' ) ) log::err( "Last minute ".$e );
 }
 
 // flush any output

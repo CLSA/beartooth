@@ -3,14 +3,14 @@
  * session.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\business
+ * @package beartooth\business
  * @filesource
  */
 
-namespace sabretooth\business;
-use sabretooth\log, sabretooth\util;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\business;
+use beartooth\log, beartooth\util;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * session: handles all session-based information
@@ -18,9 +18,9 @@ use sabretooth\exception as exc;
  * The session class is used to track all information from the time a user logs into the system
  * until they log out.
  * This class is a singleton, instead of using the new operator call {@singleton() 
- * @package sabretooth\business
+ * @package beartooth\business
  */
-final class session extends \sabretooth\singleton
+final class session extends \beartooth\singleton
 {
   /**
    * Constructor.
@@ -319,7 +319,7 @@ final class session extends \sabretooth\singleton
   
   /**
    * Get the user's current assignment.
-   * Should only be called if the user is an operator, otherwise an \sabretooth\exception will be thrown.
+   * Should only be called if the user is an operator, otherwise an \beartooth\exception will be thrown.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\assignment
@@ -348,7 +348,7 @@ final class session extends \sabretooth\singleton
 
   /**
    * Get the user's current phone call.
-   * Should only be called if the user is an operator, otherwise an \sabretooth\exception will be thrown.
+   * Should only be called if the user is an operator, otherwise an \beartooth\exception will be thrown.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\phone_call

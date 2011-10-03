@@ -3,11 +3,11 @@
  * util.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth
+ * @package beartooth
  * @filesource
  */
 
-namespace sabretooth;
+namespace beartooth;
 
 /**
  * util: utility class of static methods
@@ -15,7 +15,7 @@ namespace sabretooth;
  * This class is where all utility functions belong.  The class is final so that it cannot be
  * instantiated nor extended (and it shouldn't be!).  All methods within the class are static.
  * NOTE: only functions which do not logically belong in any class should be included here.
- * @package sabretooth
+ * @package beartooth
  */
 final class util
 {

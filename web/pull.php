@@ -9,7 +9,7 @@
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @throws exception\runtime
  */
-namespace sabretooth;
+namespace beartooth;
 ob_start();
  
 // the array to return, encoded as JSON
@@ -18,7 +18,7 @@ $result_array = array( 'success' => true );
 try
 {
   // load web-script common code
-  require_once 'sabretooth.inc.php';
+  require_once 'beartooth.inc.php';
   
   $base_url_path = substr( $_SERVER['PHP_SELF'], 0, strrpos( $_SERVER['PHP_SELF'], '/' ) + 1 );
   $pull_url = str_replace( $base_url_path, '', $_SERVER['REDIRECT_URL'] );
@@ -29,12 +29,12 @@ try
     throw new exception\runtime( 'Invalid pull URL "'.$pull_url.'".', 'PULL__SCRIPT' );
 
   $pull_name = $pull_tokens[0].'_'.$pull_tokens[1];
-  $pull_class = 'sabretooth\\ui\\pull\\'.$pull_name;
+  $pull_class = 'beartooth\\ui\\pull\\'.$pull_name;
   $pull_args = isset( $_GET ) ? $_GET : NULL;
 
   // create the operation using the url and GET variables then execute it
   $operation = new $pull_class( $pull_args );
-  if( !is_subclass_of( $operation, 'sabretooth\\ui\\pull' ) )
+  if( !is_subclass_of( $operation, 'beartooth\\ui\\pull' ) )
     throw new exception\runtime(
       'Invoked operation "'.$pull_class.'" is invalid.', 'PULL__SCRIPT' );
   
@@ -62,7 +62,7 @@ catch( \Exception $e )
   $result_array['error_code'] = $code;
   $result_array['error_message'] = $e->getMessage();
 
-  if( class_exists( 'sabretooth\log' ) ) log::err( "Last minute ".$e );
+  if( class_exists( 'beartooth\log' ) ) log::err( "Last minute ".$e );
 }
 
 // flush any output

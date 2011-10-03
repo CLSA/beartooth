@@ -3,19 +3,19 @@
  * runtime.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\exception
+ * @package beartooth\exception
  * @filesource
  */
 
-namespace sabretooth\exception;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
+namespace beartooth\exception;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
 
 /**
  * runtime: runtime exceptions
  * 
  * All generic exceptions which only occur at runtime use this class to throw exceptions.
- * @package sabretooth\exception
+ * @package beartooth\exception
  */
 class runtime extends base_exception
 {

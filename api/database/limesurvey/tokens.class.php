@@ -3,20 +3,20 @@
  * tokens.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database\limesurvey;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\database\limesurvey;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * Access to limesurvey's tokens_SID tables.
  * 
- * @package sabretooth\database
+ * @package beartooth\database
  */
 class tokens extends sid_record
 {
@@ -37,7 +37,7 @@ class tokens extends sid_record
     $db_interview = bus\session::self()->get_current_assignment()->get_interview();
     $token_part = substr( static::determine_token_string( $db_interview ), 0, -1 );
     
-    // try getting the attributes from mastodon or sabretooth
+    // try getting the attributes from mastodon or beartooth
     if( $mastodon_manager->is_enabled() )
     {
       $participant_info = $mastodon_manager->pull(
@@ -83,7 +83,7 @@ class tokens extends sid_record
       $consent_mod->where( 'event', 'like', 'written %' );
       $written_consent = 0 < $db_participant->get_consent_count( $consent_mod );
 
-      // sabretooth doesn't track the following information
+      // beartooth doesn't track the following information
       $participant_info->data->date_of_birth = "";
       $participant_info->data->email = "";
       $participant_info->data->hin_access = "";

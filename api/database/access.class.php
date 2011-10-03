@@ -3,19 +3,19 @@
  * access.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\exception as exc;
+namespace beartooth\database;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\exception as exc;
 
 /**
  * access: record
  *
- * @package sabretooth\database
+ * @package beartooth\database
  */
 class access extends record
 {
@@ -33,15 +33,15 @@ class access extends record
   public static function exists( $db_user, $db_site, $db_role )
   {
     // validate arguments
-    if( !is_object( $db_user ) || !is_a( $db_user, '\\sabretooth\\database\\user' ) )
+    if( !is_object( $db_user ) || !is_a( $db_user, '\\beartooth\\database\\user' ) )
     {
       throw new exc\argument( 'user', $db_user, __METHOD__ );
     }
-    else if( !is_object( $db_role ) || !is_a( $db_role, '\\sabretooth\\database\\role' ) )
+    else if( !is_object( $db_role ) || !is_a( $db_role, '\\beartooth\\database\\role' ) )
     {
       throw new exc\argument( 'role', $db_role, __METHOD__ );
     }
-    else if( !is_object( $db_site ) || !is_a( $db_site, '\\sabretooth\\database\\site' ) )
+    else if( !is_object( $db_site ) || !is_a( $db_site, '\\beartooth\\database\\site' ) )
     {
       throw new exc\argument( 'site', $db_site, __METHOD__ );
     }

@@ -1,4 +1,4 @@
-Sabretooth's Queueing System
+Beartooth's Queueing System
 -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 TODO: needs to be re-written

@@ -3,19 +3,19 @@
  * base_access.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\exception as exc;
+namespace beartooth\database;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\exception as exc;
 
 /**
  * A base class for all classes joined together by the access table.
  * 
- * @package sabretooth\database
+ * @package beartooth\database
  */
 abstract class base_access extends record
 {
@@ -205,13 +205,13 @@ abstract class base_access extends record
     
     // define the modifier
     $modifier = 1 == count( $args ) &&
-                'sabretooth\\database\\modifier' == get_class( $args[0] )
+                'beartooth\\database\\modifier' == get_class( $args[0] )
               ? $args[0]
               : new modifier();
 
     $modifier->where( $subject_name.'_id', '=', $this->id );
     
-    $class_name = '\\sabretooth\\database\\'.$related_name;
+    $class_name = '\\beartooth\\database\\'.$related_name;
     return 'list' == $action
            ? $class_name::select( $modifier )
            : $class_name::count( $modifier );

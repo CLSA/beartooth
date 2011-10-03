@@ -3,21 +3,21 @@
  * consent_new.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * push: consent new
  *
  * Create a new consent.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
 class consent_new extends base_new
 {

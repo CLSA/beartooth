@@ -3,11 +3,11 @@
  * log.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth
+ * @package beartooth
  * @filesource
  */
 
-namespace sabretooth;
+namespace beartooth;
 
 /**
  * @category external
@@ -25,7 +25,7 @@ require_once 'FirePHPCore/FirePHP.class.php';
  * log::err( "There is an error here." );
  * log::emerg( "The server is on fire!!" );
  * </code>
- * @package sabretooth
+ * @package beartooth
  */
 final class log extends singleton
 {
@@ -192,7 +192,7 @@ final class log extends singleton
   private function send( $message, $type )
   {
     // make sure we have a session
-    if( !class_exists( 'sabretooth\business\session' ) || !business\session::exists() ) return;
+    if( !class_exists( 'beartooth\business\session' ) || !business\session::exists() ) return;
 
     // if in devel mode log everything to firephp
     if( util::in_devel_mode() )
@@ -402,6 +402,6 @@ final class log extends singleton
 }
 
 // define a custom error handlers
-set_error_handler( array( '\sabretooth\log', 'error_handler' ) );
-register_shutdown_function( array( '\sabretooth\log', 'fatal_error_handler' ) );
+set_error_handler( array( '\beartooth\log', 'error_handler' ) );
+register_shutdown_function( array( '\beartooth\log', 'fatal_error_handler' ) );
 ?>

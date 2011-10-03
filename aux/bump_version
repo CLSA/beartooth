@@ -6,7 +6,7 @@
  * @param string version
  */
 
-$filename = 'web/sabretooth.ini.php';
+$filename = 'web/beartooth.ini.php';
 
 // validate arguments
 if( 2 != $argc )

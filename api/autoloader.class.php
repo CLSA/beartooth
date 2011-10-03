@@ -3,15 +3,15 @@
  * autoloader.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth
+ * @package beartooth
  * @filesource
  */
 
-namespace sabretooth;
+namespace beartooth;
 
 /**
  * Autoloader class which automatically includes project class files.
- * @package sabretooth
+ * @package beartooth
  */
 class autoloader
 {
@@ -30,7 +30,7 @@ class autoloader
 
   /**
    * This method is called by PHP whenever an undefined class is used.
-   * If the class is in the sabretooth\ namespace it attemps to load it from the api/ directory.
+   * If the class is in the beartooth\ namespace it attemps to load it from the api/ directory.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @static
    * @throws exception\runtime
@@ -38,8 +38,8 @@ class autoloader
    */
   static public function autoload( $class )
   {
-    // only work on classes starting with sabretooth\
-    if( 0 !== strpos( $class, 'sabretooth\\' ) ) return;
+    // only work on classes starting with beartooth\
+    if( 0 !== strpos( $class, 'beartooth\\' ) ) return;
 
     // build the path based on the class' name and namespace
     $file_base = API_PATH.str_replace( '\\', '/', substr( $class, strpos( $class, '\\' ) ) );

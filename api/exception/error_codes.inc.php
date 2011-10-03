@@ -4,11 +4,11 @@
  * 
  * This file is where all error codes are defined.
  * All error code are named after the class and function they occur in.
- * @package sabretooth\exception
+ * @package beartooth\exception
  * @filesource
  */
 
-namespace sabretooth\exception;
+namespace beartooth\exception;
 
 /**
  * Error number category defines.

@@ -3,15 +3,15 @@
  * base_list_widget.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * Base class for all listing widgets.
@@ -22,9 +22,9 @@ use sabretooth\exception as exc;
  * methods: determine_<subject>_list() and determine_<subject>_count(), where <subject> is
  * the record type being listed, to override the basic functionality performed by this class.
  * @abstract
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-abstract class base_list_widget extends \sabretooth\ui\widget
+abstract class base_list_widget extends \beartooth\ui\widget
 {
   /**
    * Constructor
@@ -247,7 +247,7 @@ abstract class base_list_widget extends \sabretooth\ui\widget
     }
     else
     {
-      $class_name = '\\sabretooth\\database\\'.$this->get_subject();
+      $class_name = '\\beartooth\\database\\'.$this->get_subject();
       return $class_name::count( $modifier );
     }
   }
@@ -274,7 +274,7 @@ abstract class base_list_widget extends \sabretooth\ui\widget
     }
     else
     {
-      $class_name = '\\sabretooth\\database\\'.$this->get_subject();
+      $class_name = '\\beartooth\\database\\'.$this->get_subject();
       return $class_name::select( $modifier );
     }
   }

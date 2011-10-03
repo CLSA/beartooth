@@ -3,19 +3,19 @@
  * permission.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\exception
+ * @package beartooth\exception
  * @filesource
  */
 
-namespace sabretooth\exception;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
+namespace beartooth\exception;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
 
 /**
  * permission: permission exceptions
  * 
  * All exceptions which are due to denied permissions, use this class to throw exceptions.
- * @package sabretooth\exception
+ * @package beartooth\exception
  */
 class permission extends base_exception
 {
@@ -32,7 +32,7 @@ class permission extends base_exception
     $this->operation = $db_operation;
     $message = is_null( $db_operation ) ||
                !is_object( $db_operation ) ||
-               !is_a( $db_operation, 'sabretooth\\database\\operation' )
+               !is_a( $db_operation, 'beartooth\\database\\operation' )
              ? 'operation (unknown) denied'
              : sprintf( 'operation "%s %s %s" denied.',
                         $db_operation->type,

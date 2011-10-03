@@ -6,7 +6,7 @@
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  */
-namespace sabretooth;
+namespace beartooth;
 
 // the array to return, encoded as JSON if there is an error
 $result_array = array( 'success' => true );
@@ -27,7 +27,7 @@ if( array_key_exists( 'logout', $_COOKIE ) && $_COOKIE['logout'] )
 try
 {
   // load web-script common code
-  require_once 'sabretooth.inc.php';
+  require_once 'beartooth.inc.php';
 
   // setup Twig
   require_once 'Twig/Autoloader.php';
@@ -91,7 +91,7 @@ catch( \Twig_Error $e )
 }
 catch( \Exception $e )
 {
-  $code = class_exists( 'sabretooth\util' )
+  $code = class_exists( 'beartooth\util' )
         ? util::convert_number_to_code( SYSTEM_BASE_ERROR_NUMBER )
         : 0;
   $result_array['success'] = false;
@@ -99,7 +99,7 @@ catch( \Exception $e )
   $result_array['error_code'] = $code;
   $result_array['error_message'] = $e->getMessage();
   
-  if( class_exists( 'sabretooth\log' ) ) log::err( "Last minute ".$e );
+  if( class_exists( 'beartooth\log' ) ) log::err( "Last minute ".$e );
 }
 
 if( true == $result_array['success'] )

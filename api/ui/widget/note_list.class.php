@@ -3,22 +3,22 @@
  * note_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * widget note list
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class note_list extends \sabretooth\ui\widget
+class note_list extends \beartooth\ui\widget
 {
   /**
    * Constructor
@@ -47,9 +47,9 @@ class note_list extends \sabretooth\ui\widget
     // make sure there is a valid note category
     $category = $this->get_argument( 'category' );
     $category_id = $this->get_argument( 'category_id' );
-    $category_class = '\\sabretooth\\database\\'.$category;
+    $category_class = '\\beartooth\\database\\'.$category;
     $db_record = new $category_class( $category_id );
-    if( !is_a( $db_record, '\\sabretooth\\database\\has_note' ) )
+    if( !is_a( $db_record, '\\beartooth\\database\\has_note' ) )
       throw new exc\runtime(
         sprintf( 'Tried to list notes for %s which cannot have notes.', $category ),
         __METHOD__ );

@@ -3,24 +3,24 @@
  * base_record_push.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * Base class for all push operations pertaining to a single record.
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
 abstract class base_record_push
-  extends \sabretooth\ui\push
-  implements \sabretooth\ui\contains_record
+  extends \beartooth\ui\push
+  implements \beartooth\ui\contains_record
 {
   /**
    * Constructor.
@@ -33,7 +33,7 @@ abstract class base_record_push
   public function __construct( $subject, $name, $args )
   {
     parent::__construct( $subject, $name, $args );
-    $class_name = '\\sabretooth\\database\\'.$this->get_subject();
+    $class_name = '\\beartooth\\database\\'.$this->get_subject();
     $this->set_record( new $class_name( $this->get_argument( 'id', NULL ) ) );
   }
   

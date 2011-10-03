@@ -3,19 +3,19 @@
  * base_exception.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\exception
+ * @package beartooth\exception
  * @filesource
  */
 
-namespace sabretooth\exception;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
+namespace beartooth\exception;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
 
 /**
  * base_exception: base exception class
  *
- * The base_exception class from which all other sabretooth exceptions extend
- * @package sabretooth\exception
+ * The base_exception class from which all other beartooth exceptions extend
+ * @package beartooth\exception
  */
 class base_exception extends \Exception
 {
@@ -33,7 +33,7 @@ class base_exception extends \Exception
     $this->raw_message = $message;
 
     $who = 'unknown';
-    if( class_exists( 'sabretooth\business\session' ) && $session->is_initialized() )
+    if( class_exists( 'beartooth\business\session' ) && $session->is_initialized() )
     {
       $user_name = $session->get_user()->name;
       $role_name = $session->get_role()->name;

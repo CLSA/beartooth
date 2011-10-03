@@ -3,14 +3,14 @@
  * report.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\business
+ * @package beartooth\business
  * @filesource
  */
 
-namespace sabretooth\business;
-use sabretooth\log, sabretooth\util;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\business;
+use beartooth\log, beartooth\util;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 include 'PHPExcel/PHPExcel.php';
 include 'PHPExcel/PHPExcel/Writer/Excel2007.php';
@@ -18,9 +18,9 @@ include 'PHPExcel/PHPExcel/Writer/Excel2007.php';
 /**
  * Creates a report.
  * 
- * @package sabretooth\business
+ * @package beartooth\business
  */
-class report extends \sabretooth\base_object
+class report extends \beartooth\base_object
 {
   /**
    * Constructor.

@@ -2,7 +2,7 @@
 # 
 # build_docs
 # 
-# Builds API documentation for Sabretooth using phpDocumentor.
+# Builds API documentation for Beartooth using phpDocumentor.
 # @author Patrick Emond <emondpd@mcmaster.ca>
 
 if [ ! -d "phpdoc" ]; then
@@ -14,4 +14,4 @@ else
 fi
 
 # generate the documentation
-phpdoc -o "HTML:frames:earthli" -ti "Sabretooth API Documentation" -d ../api/ -t phpdoc/
+phpdoc -o "HTML:frames:earthli" -ti "Beartooth API Documentation" -d ../api/ -t phpdoc/

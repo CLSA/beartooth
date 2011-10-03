@@ -8,7 +8,7 @@
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @throws exception\runtime
  */
-namespace sabretooth;
+namespace beartooth;
 ob_start();
  
 // the array to return, encoded as JSON
@@ -17,7 +17,7 @@ $result_array = array( 'success' => true );
 try
 {
   // load web-script common code
-  require_once 'sabretooth.inc.php';
+  require_once 'beartooth.inc.php';
   
   $base_url_path = substr( $_SERVER['PHP_SELF'], 0, strrpos( $_SERVER['PHP_SELF'], '/' ) + 1 );
   $push_url = str_replace( $base_url_path, '', $_SERVER['REDIRECT_URL'] ); 
@@ -28,12 +28,12 @@ try
     throw new exception\runtime( 'Invalid push URL "'.$push_url.'".', 'PULL__SCRIPT' ); 
 
   $push_name = $push_tokens[0].'_'.$push_tokens[1];
-  $push_class = 'sabretooth\\ui\\push\\'.$push_name;
+  $push_class = 'beartooth\\ui\\push\\'.$push_name;
   $push_args = isset( $_POST ) ? $_POST : NULL;
          
   // create the operation using the url and POST variables then execute it
   $operation = new $push_class( $push_args );
-  if( !is_subclass_of( $operation, 'sabretooth\\ui\\push' ) )
+  if( !is_subclass_of( $operation, 'beartooth\\ui\\push' ) )
     throw new exception\runtime(
       'Invoked operation "'.$push_class.'" is invalid.', 'PUSH__SCRIPT' );
   
@@ -59,7 +59,7 @@ catch( \Exception $e )
   $result_array['error_code'] = $code;
   $result_array['error_message'] = $e->getMessage();
 
-  if( class_exists( 'sabretooth\log' ) ) log::err( "Last minute ".$e );
+  if( class_exists( 'beartooth\log' ) ) log::err( "Last minute ".$e );
 }
 
 // flush any output

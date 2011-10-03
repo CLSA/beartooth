@@ -3,19 +3,19 @@
  * note.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\exception as exc;
+namespace beartooth\database;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\exception as exc;
 
 /**
  * A base class for all records which have notes.
  *
- * @package sabretooth\database
+ * @package beartooth\database
  */
 abstract class has_note extends record
 {
@@ -30,7 +30,7 @@ abstract class has_note extends record
   {
     $table_name = static::get_table_name();
     $subject_key_name = $table_name.'_'.static::get_primary_key_name();
-    $note_class_name = '\\sabretooth\\database\\'.$table_name.'_note';
+    $note_class_name = '\\beartooth\\database\\'.$table_name.'_note';
 
     if ( is_null( $modifier ) ) $modifier = new modifier();
     $modifier->where( $subject_key_name, '=', $this->id );
@@ -48,7 +48,7 @@ abstract class has_note extends record
   {
     $table_name = static::get_table_name();
     $subject_key_name = $table_name.'_'.static::get_primary_key_name();
-    $note_class_name = '\\sabretooth\\database\\'.$table_name.'_note';
+    $note_class_name = '\\beartooth\\database\\'.$table_name.'_note';
 
     if ( is_null( $modifier ) ) $modifier = new modifier();
     $modifier->where( $subject_key_name, '=', $this->id );
@@ -69,7 +69,7 @@ abstract class has_note extends record
     $date_obj = util::get_datetime_object();
     $table_name = static::get_table_name();
     $subject_key_name = $table_name.'_'.static::get_primary_key_name();
-    $note_class_name = '\\sabretooth\\database\\'.$table_name.'_note';
+    $note_class_name = '\\beartooth\\database\\'.$table_name.'_note';
     $db_note = new $note_class_name();
     $db_note->user_id = $user->id;
     $db_note->$subject_key_name = $this->id;
@@ -88,7 +88,7 @@ abstract class has_note extends record
    */
   static public function get_note( $id = NULL )
   {
-    $note_class_name = '\\sabretooth\\database\\'.static::get_table_name().'_note';
+    $note_class_name = '\\beartooth\\database\\'.static::get_table_name().'_note';
     return new $note_class_name( $id );
   }
 }

@@ -3,22 +3,22 @@
  * base_calendar.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * base widget for all calendars
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-abstract class base_calendar extends \sabretooth\ui\widget
+abstract class base_calendar extends \beartooth\ui\widget
 {
   /**
    * Constructor

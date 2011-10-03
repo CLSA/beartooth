@@ -3,24 +3,24 @@
  * voip_play.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * push: voip play
  *
  * Changes the current user's theme.
  * Arguments must include 'theme'.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class voip_play extends \sabretooth\ui\push
+class voip_play extends \beartooth\ui\push
 {
   /**
    * Constructor.

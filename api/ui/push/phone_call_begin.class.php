@@ -3,23 +3,23 @@
  * phone_call_begin.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * push: phone_call begin
  *
  * Assigns a participant to a phone call.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class phone_call_begin extends \sabretooth\ui\push
+class phone_call_begin extends \beartooth\ui\push
 {
   /**
    * Constructor.

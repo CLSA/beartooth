@@ -3,19 +3,19 @@
  * mastodon.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\exception
+ * @package beartooth\exception
  * @filesource
  */
 
-namespace sabretooth\exception;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
+namespace beartooth\exception;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
 
 /**
  * mastodon: mastodon exceptions
  * 
  * This is a special exception that is used to duplicate an exception received from mastodon.
- * @package sabretooth\exception
+ * @package beartooth\exception
  */
 class mastodon extends base_exception
 {

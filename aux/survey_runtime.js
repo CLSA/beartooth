@@ -1,4 +1,4 @@
-// The following was added in order to integrate with Sabretooth
+// The following was added in order to integrate with Beartooth
 /* NOTE: for now this is dissabled because it was causing error in certain situations
          (attempt to run compile-and-go script on a cleared scope)
 jQuery(document).ready( function() {

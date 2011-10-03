@@ -3,20 +3,20 @@
  * database.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\exception
+ * @package beartooth\exception
  * @filesource
  */
 
-namespace sabretooth\exception;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
+namespace beartooth\exception;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
 
 /**
  * database: database/sql exceptions
  *
  * All exceptions which are due to the database, including connection errors and queries, use this
  * class to throw exceptions.
- * @package sabretooth\exception
+ * @package beartooth\exception
  */
 class database extends base_exception
 {

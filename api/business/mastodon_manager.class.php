@@ -7,17 +7,17 @@
  * @filesource
  */
 
-namespace sabretooth\business;
-use sabretooth\log, sabretooth\util;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\business;
+use beartooth\log, beartooth\util;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * Manages communication with the mastodon service.
  * 
- * @package sabretooth\business
+ * @package beartooth\business
  */
-class mastodon_manager extends \sabretooth\singleton
+class mastodon_manager extends \beartooth\singleton
 {
   /**
    * Constructor.

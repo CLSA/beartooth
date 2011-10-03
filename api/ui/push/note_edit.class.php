@@ -3,23 +3,23 @@
  * note_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * push: note edit
  * 
  * Add a edit note to the provided category.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class note_edit extends \sabretooth\ui\push
+class note_edit extends \beartooth\ui\push
 {
   /**
    * Constructor.
@@ -42,7 +42,7 @@ class note_edit extends \sabretooth\ui\push
   {
     // make sure there is a valid note category
     $category = $this->get_argument( 'category' );
-    $category_class = '\\sabretooth\\database\\'.$category;
+    $category_class = '\\beartooth\\database\\'.$category;
     $db_note = $category_class::get_note( $this->get_argument( 'id' ) );
     
     $sticky = $this->get_argument( 'sticky', NULL );

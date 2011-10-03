@@ -3,17 +3,17 @@
  * base_object.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth
+ * @package beartooth
  * @filesource
  */
 
-namespace sabretooth;
+namespace beartooth;
 
 /**
  * base_object: master base object
  *
- * The base_object class from which all other sabretooth classes extend
- * @package sabretooth
+ * The base_object class from which all other beartooth classes extend
+ * @package beartooth
  */
 abstract class base_object
 {

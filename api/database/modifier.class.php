@@ -3,23 +3,23 @@
  * modifier.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\exception as exc;
+namespace beartooth\database;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\exception as exc;
 
 /**
  * This class is used to modify an SQL select statement.
  * 
  * To use this class create an instance, set whichever modifiers are needed then pass it to
  * select-like methods to limit/group/order/etc the query.
- * @package sabretooth\database
+ * @package beartooth\database
  */
-class modifier extends \sabretooth\base_object
+class modifier extends \beartooth\base_object
 {
   /**
    * Add a where statement to the modifier.

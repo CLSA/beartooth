@@ -3,15 +3,15 @@
  * contains_record.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui;
+namespace beartooth\ui;
 
 /**
  * Interface that specifies that a class is directly related to a single record.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
 interface contains_record
 {

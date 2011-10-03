@@ -3,21 +3,21 @@
  * base_add_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * Base class for all "add list" to record widgets
  * 
  * @abstract
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
 abstract class base_add_list extends base_record_widget
 {
@@ -40,7 +40,7 @@ abstract class base_add_list extends base_record_widget
     $this->get_argument( 'id' );
 
     // build the list widget
-    $class_name = '\\sabretooth\\ui\\widget\\'.$child.'_list';
+    $class_name = '\\beartooth\\ui\\widget\\'.$child.'_list';
     $this->list_widget = new $class_name( $args );
     $this->list_widget->set_parent( $this, 'edit' );
 

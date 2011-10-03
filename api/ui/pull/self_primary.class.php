@@ -3,22 +3,22 @@
  * self_primary.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\pull;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\pull;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * pull: self primary
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class self_primary extends \sabretooth\ui\pull
+class self_primary extends \beartooth\ui\pull
 {
   /**
    * Constructor

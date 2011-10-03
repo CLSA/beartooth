@@ -3,23 +3,23 @@
  * operator_end_break.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * push: operator end_break
  *
  * Start the current user on a break (away_time)
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class operator_end_break extends \sabretooth\ui\push
+class operator_end_break extends \beartooth\ui\push
 {
   /**
    * Constructor.

@@ -3,21 +3,21 @@
  * base_add_record.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * Base class for all "add record" to record widgets
  * 
  * @abstract
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
 abstract class base_add_record extends base_record_widget
 {
@@ -41,7 +41,7 @@ abstract class base_add_record extends base_record_widget
     $this->get_argument( 'id' );
 
     // build the child add widget
-    $class_name = '\\sabretooth\\ui\\widget\\'.$child.'_add';
+    $class_name = '\\beartooth\\ui\\widget\\'.$child.'_add';
     $this->add_widget = new $class_name( $args );
     $this->add_widget->set_parent( $this, 'edit' );
 

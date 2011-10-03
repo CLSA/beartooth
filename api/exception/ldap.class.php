@@ -3,19 +3,19 @@
  * ldap.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\exception
+ * @package beartooth\exception
  * @filesource
  */
 
-namespace sabretooth\exception;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
+namespace beartooth\exception;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
 
 /**
  * ldap: ldap file exception
  * 
  * This exception is thrown when trying to include a file that doesn't exist
- * @package sabretooth\exception
+ * @package beartooth\exception
  */
 class ldap extends base_exception
 {

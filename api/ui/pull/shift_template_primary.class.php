@@ -3,17 +3,17 @@
  * shift_template_primary.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\pull;
-use sabretooth\log, sabretooth\util;
+namespace beartooth\ui\pull;
+use beartooth\log, beartooth\util;
 
 /**
  * pull: shift_template primary
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
 class shift_template_primary extends base_primary
 {

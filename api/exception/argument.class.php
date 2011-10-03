@@ -3,20 +3,20 @@
  * argument.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\exception
+ * @package beartooth\exception
  * @filesource
  */
 
-namespace sabretooth\exception;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
+namespace beartooth\exception;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
 
 /**
  * argument: bad or missing argument exception
  *
  * This exception is thrown anytime a function or method is expecting an argument which are invalid
  * or missing.
- * @package sabretooth\exception
+ * @package beartooth\exception
  */
 class argument extends base_exception
 {

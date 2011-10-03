@@ -3,23 +3,23 @@
  * voip_call.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\business
+ * @package beartooth\business
  * @filesource
  */
 
-namespace sabretooth\business;
-use sabretooth\log, sabretooth\util;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\business;
+use beartooth\log, beartooth\util;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 require_once SHIFT8_PATH.'/library/Shift8.php';
 
 /**
  * The details of a voip call.
  * 
- * @package sabretooth\business
+ * @package beartooth\business
  */
-class voip_call extends \sabretooth\base_object
+class voip_call extends \beartooth\base_object
 {
   /**
    * Constructor.

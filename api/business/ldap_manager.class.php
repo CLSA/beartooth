@@ -3,21 +3,21 @@
  * ldap_manager.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\business
+ * @package beartooth\business
  * @filesource
  */
 
-namespace sabretooth\business;
-use sabretooth\log, sabretooth\util;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\business;
+use beartooth\log, beartooth\util;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * Manages LDAP entries
  * 
- * @package sabretooth\business
+ * @package beartooth\business
  */
-class ldap_manager extends \sabretooth\singleton
+class ldap_manager extends \beartooth\singleton
 {
   /**
    * Constructor.

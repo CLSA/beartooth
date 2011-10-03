@@ -3,24 +3,24 @@
  * self_set_role.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\database as db;
+use beartooth\exception as exc;
 
 /**
  * push: self set_role
  * 
  * Changes the current user's role.
  * Arguments must include 'role'.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class self_set_role extends \sabretooth\ui\push
+class self_set_role extends \beartooth\ui\push
 {
   /**
    * Constructor.

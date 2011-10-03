@@ -3,19 +3,19 @@
  * has_rank.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\exception as exc;
+namespace beartooth\database;
+use beartooth\log, beartooth\util;
+use beartooth\business as bus;
+use beartooth\exception as exc;
 
 /**
  * A base class for all records which have a unique, ordered rank.
  *
- * @package sabretooth\database
+ * @package beartooth\database
  */
 abstract class has_rank extends record
 {
