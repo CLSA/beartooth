@@ -56,7 +56,7 @@ class appointment_feed extends base_feed
       // assume appointments to be one hour long
       $end_datetime_obj->modify( '+1 hour' );
 
-      $db_participant = $db_appointment->get_participant();
+      $db_participant = $db_appointment->get_address()->get_participant();
       $event_list[] = array(
         'id' => $db_appointment->id,
         'title' => is_null( $db_participant->uid ) || 0 == strlen( $db_participant->uid ) ?

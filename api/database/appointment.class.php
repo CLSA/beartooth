@@ -33,28 +33,6 @@ class appointment extends record
   }
   
   /**
-   * Overrides the parent save method.
-   * @author Patrick Emond
-   * @access public
-   */
-  public function save()
-  {
-    // make sure there is a maximum of 1 unassigned appointment
-    if( is_null( $this->assignment_id ) )
-    {
-      $modifier = new modifier();
-      $modifier->where( 'participant_id', '=', $this->participant_id );
-      $modifier->where( 'assignment_id', '=', NULL );
-      if( !is_null( $this->id ) ) $modifier->where( 'id', '!=', $this->id );
-      if( 0 < static::count( $modifier ) )
-        throw new exc\runtime(
-          'Cannot have more than one unassigned appointment per participant.', __METHOD__ );
-    }
-
-    parent::save();
-  }
-  
-  /**
    * Determines whether there are operator slots available during this appointment's date/time
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
@@ -64,11 +42,11 @@ class appointment extends record
    */
   public function validate_date()
   {
-    if( is_null( $this->participant_id ) )
+    if( is_null( $this->address_id ) )
       throw new exc\runtime(
-        'Cannot validate appointment date, participant id is not set.', __METHOD__ );
+        'Cannot validate appointment date, address id is not set.', __METHOD__ );
 
-    $db_participant = new participant( $this->participant_id );
+    $db_participant = $this->get_address()->get_participant();
     $db_site = $db_participant->get_primary_site();
     if( is_null( $db_site ) )
       throw new exc\runtime(
@@ -218,14 +196,12 @@ class appointment extends record
     // if there is no site restriction then just use the parent method
     if( is_null( $db_site ) ) return parent::select( $modifier, $count );
     
-    $select_tables = 'appointment, participant_primary_address, participant, address';
+    $select_tables = 'appointment, address, participant';
     
     // straight join the tables
     if( is_null( $modifier ) ) $modifier = new modifier();
-    $modifier->where(
-      'appointment.participant_id', '=', 'participant_primary_address.participant_id', false );
-    $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
-    $modifier->where( 'appointment.participant_id', '=', 'participant.id', false );
+    $modifier->where( 'appointment.address_id', '=', 'address.id', false );
+    $modifier->where( 'address.participant_id', '=', 'participant.id', false );
 
     $sql = sprintf( ( $count ? 'SELECT COUNT( %s.%s ) ' : 'SELECT %s.%s ' ).
                     'FROM %s '.
@@ -273,11 +249,7 @@ class appointment extends record
    *   reached: the appointment was met and the participant was reached
    *   not reached: the appointment was met but the participant was not reached
    *   upcoming: the appointment's date/time has not yet occurred
-   *   assignable: the appointment is ready to be assigned, but hasn't been
-   *   missed: the appointment was missed (never assigned) and the call window has passed
-   *   incomplete: the appointment was assigned but the assignment never closed (an error)
-   *   assigned: the appointment is currently assigned
-   *   in progress: the appointment is currently assigned and currently in a call
+   *   missed: the appointment was missed
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return string
    * @access public
@@ -293,56 +265,10 @@ class appointment extends record
     // if the appointment's reached column is set, nothing else matters
     if( !is_null( $this->reached ) ) return $this->reached ? 'reached' : 'not reached';
 
-    $status = 'unknown';
-    
-    // settings are in minutes, time() is in seconds, so multiply by 60
-    $pre_window_time = 60 * bus\setting_manager::self()->get_setting(
-                              'appointment', 'call pre-window' );
-    $post_window_time = 60 * bus\setting_manager::self()->get_setting(
-                               'appointment', 'call post-window' );
     $now = util::get_datetime_object()->getTimestamp();
     $appointment = util::get_datetime_object( $this->datetime )->getTimestamp();
 
-    // get the status of the appointment
-    $db_assignment = $this->get_assignment();
-    if( !$ignore_assignments && !is_null( $db_assignment ) )
-    {
-      if( !is_null( $db_assignment->end_datetime ) )
-      { // assignment closed but appointment never completed
-        log::crit(
-          sprintf( 'Appointment %d has assignment which is closed but no status was set.',
-                   $this->id ) );
-        $status = 'incomplete';
-      }
-      else // assignment active
-      {
-        $modifier = new modifier();
-        $modifier->where( 'end_datetime', '=', NULL );
-        $open_phone_calls = $db_assignment->get_phone_call_count( $modifier );
-        if( 0 < $open_phone_calls )
-        { // assignment currently on call
-          $status = "in progress";
-        }
-        else
-        { // not on call
-          $status = "assigned";
-        }
-      }
-    }
-    else if( $now < $appointment - $pre_window_time )
-    {
-      $status = 'upcoming';
-    }
-    else if( $now < $appointment + $post_window_time )
-    {
-      $status = 'assignable';
-    }
-    else
-    {
-      $status = 'missed';
-    }
-
-    return $status;
+    return $now < $appointment ? 'upcoming' : 'missed';
   }
 }
 ?>

@@ -101,28 +101,6 @@ class assignment_begin extends \beartooth\ui\push
     $db_assignment->interview_id = $db_interview->id;
     $db_assignment->queue_id = $db_origin_queue->id;
     $db_assignment->save();
-
-    if( $db_origin_queue->from_appointment() )
-    { // if this is an appointment queue, mark the appointment now associated with the appointment
-      // this should always be the appointment with the earliest date
-      $appointment_mod = new db\modifier();
-      $appointment_mod->where( 'assignment_id', '=', NULL );
-      $appointment_mod->order( 'datetime' );
-      $appointment_mod->limit( 1 );
-      $appointment_list = $db_participant->get_appointment_list( $appointment_mod );
-
-      if( 0 == count( $appointment_list ) )
-      {
-        log::crit(
-          'Participant queue is from an appointment but no appointment is found.', __METHOD__ );
-      }
-      else
-      {
-        $db_appointment = current( $appointment_list );
-        $db_appointment->assignment_id = $db_assignment->id;
-        $db_appointment->save();
-      }
-    }
   }
 }
 ?>

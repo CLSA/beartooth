@@ -67,11 +67,6 @@ class queue extends record
       'qnaire waiting',
       'assigned',
       'not assigned',
-      'appointment',
-      'upcoming appointment',
-      'assignable appointment',
-      'missed appointment',
-      'no appointment',
       'new participant',
       'new participant outside calling time',
       'new participant within calling time',
@@ -220,20 +215,6 @@ class queue extends record
     $this->db_site = $db_site;
   }
   
-  /**
-   * Get whether this queue is related to an appointment
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @return boolean
-   * @access public
-   */
-  public function from_appointment()
-  {
-    return in_array( $this->name, array( 'appointment',
-                                         'upcoming appointment',
-                                         'assignable appointment',
-                                         'missed appointment' ) );
-  }
-
   /**
    * Gets the parts of the query for a particular queue.
    * @author Patrick Emond <emondpd@mcmaster.ca>
@@ -504,64 +485,9 @@ class queue extends record
       $parts['where'][] = 'participant.assigned = false';
       return $parts;
     }
-    else if( 'appointment' == $queue )
-    {
-      $parts = self::get_query_parts( 'not assigned' );
-      // link to appointment table and make sure the appointment hasn't been assigned
-      // (by design, there can only ever one unassigned appointment per participant)
-      $parts['from'][] = 'appointment';
-      $parts['where'][] = 'appointment.participant_id = participant.id';
-      $parts['where'][] = 'appointment.assignment_id IS NULL';
-      return $parts;
-    }
-    else if( 'upcoming appointment' == $queue )
-    {
-      $parts = self::get_query_parts( 'appointment' );
-      // appointment time (in UTC) is in the future
-      $parts['where'][] = sprintf(
-        $check_time ? '%s < appointment.datetime - INTERVAL <APPOINTMENT_PRE_WINDOW> MINUTE'
-                    : 'DATE( %s ) < DATE( appointment.datetime )',
-        $viewing_date );
-      return $parts;
-    }
-    else if( 'assignable appointment' == $queue )
-    {
-      $parts = self::get_query_parts( 'appointment' );
-      // appointment time (in UTC) is in the calling window
-      $parts['where'][] = sprintf(
-        $check_time ? '%s >= appointment.datetime - INTERVAL <APPOINTMENT_PRE_WINDOW> MINUTE AND '.
-                      '%s <= appointment.datetime + INTERVAL <APPOINTMENT_POST_WINDOW> MINUTE'
-                    : 'DATE( %s ) = DATE( appointment.datetime )',
-        $viewing_date,
-        $viewing_date );
-      return $parts;
-    }
-    else if( 'missed appointment' == $queue )
-    {
-      $parts = self::get_query_parts( 'appointment' );
-      // appointment time (in UTC) is in the past
-      $parts['where'][] = sprintf(
-        $check_time ? '%s > appointment.datetime + INTERVAL <APPOINTMENT_POST_WINDOW> MINUTE'
-                    : 'DATE( %s ) > DATE( appointment.datetime )',
-        $viewing_date );
-      return $parts;
-    }
-    else if( 'no appointment' == $queue )
-    {
-      $parts = self::get_query_parts( 'not assigned' );
-      // make sure there is no unassigned appointment.  By design there can only be one of per
-      // participant, so if the appointment is null then the participant has no pending
-      // appointments.
-      $parts['join'][] =
-        'LEFT JOIN appointment '.
-        'ON appointment.participant_id = participant.id '.
-        'AND appointment.assignment_id IS NULL';
-      $parts['where'][] = 'appointment.id IS NULL';
-      return $parts;
-    }
     else if( 'new participant' == $queue )
     {
-      $parts = self::get_query_parts( 'no appointment' );
+      $parts = self::get_query_parts( 'not assigned' );
       // If there is a start_qnaire_date then the current qnaire has never been started,
       // the exception is for participants who have never been assigned
       $parts['where'][] =
@@ -634,7 +560,7 @@ class queue extends record
     }
     else if( 'old participant' == $queue )
     {
-      $parts = self::get_query_parts( 'no appointment' );
+      $parts = self::get_query_parts( 'not assigned' );
       // add the last phone call's information
       $parts['from'][] = 'phone_call';
       $parts['from'][] = 'assignment_last_phone_call';
@@ -775,10 +701,6 @@ class queue extends record
 
     // fill in the settings
     $setting_manager = bus\setting_manager::self();
-    $setting = $setting_manager->get_setting( 'appointment', 'call pre-window' );
-    $sql = str_replace( '<APPOINTMENT_PRE_WINDOW>', $setting, $sql );
-    $setting = $setting_manager->get_setting( 'appointment', 'call post-window' );
-    $sql = str_replace( '<APPOINTMENT_POST_WINDOW>', $setting, $sql );
     $setting = $setting_manager->get_setting( 'calling', 'start time' );
     $sql = str_replace( '<CALLING_START_TIME>', $setting, $sql );
     $setting = $setting_manager->get_setting( 'calling', 'end time' );

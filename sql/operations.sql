@@ -41,7 +41,7 @@ VALUES( "push", "appointment", "delete", true, "Removes a participant's appointm
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "appointment", "edit", true, "Edits the details of a participant's appointment." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "appointment", "new", true, "Creates new appointment enry for a participant." );
+VALUES( "push", "appointment", "new", true, "Creates new appointment entry for a participant." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "appointment", "add", true, "View a form for creating new appointments for a participant." );
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -89,7 +89,7 @@ VALUES( "push", "consent", "delete", true, "Removes a participant's consent entr
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "consent", "edit", true, "Edits the details of a participant's consent entry." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "consent", "new", true, "Creates new consent enry for a participant." );
+VALUES( "push", "consent", "new", true, "Creates new consent entry for a participant." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "consent", "add", true, "View a form for creating new consent entry for a participant." );
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -112,14 +112,6 @@ VALUES( "widget", "note", "list", false, "Lists a participant's note entries." )
 -- operation
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "operation", "list", true, "List operations in the system." );
-
--- operator
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "operator", "assignment", true, "Displays the operator's assignment manager." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "operator", "begin_break", true, "Register the start of a break." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "operator", "end_break", true, "Register the end of a break." );
 
 -- participant
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -405,7 +397,7 @@ VALUES( "push", "site", "delete_shift", true, "Remove shifts from a site." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "site", "add_access", true, "View users to grant access to the site." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "site", "calendar", true, "A calendar listing the number of operators free for an appointment." );
+VALUES( "widget", "site", "calendar", true, "A calendar listing the number of interviewers free for an appointment." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "site", "new_access", true, "Grant access to a site." );
 INSERT INTO operation( type, subject, name, restricted, description )

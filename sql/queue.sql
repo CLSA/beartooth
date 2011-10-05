@@ -229,66 +229,6 @@ parent_queue_id = (
 description = "Eligible participants who are not assigned to an operator.";
 
 INSERT INTO queue SET
-name = "appointment",
-title = "Participants with appointments",
-rank = NULL,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "not assigned" ) AS tmp ),
-description = "Participants who have an (unassigned) appointment.";
-
-INSERT INTO queue SET
-name = "upcoming appointment",
-title = "Appointment upcoming",
-rank = NULL,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "appointment" ) AS tmp ),
-description = "Participants who have an appointment in the future.";
-
-INSERT INTO queue SET
-name = "assignable appointment",
-title = "Appointment assignnable",
-rank = 1,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "appointment" ) AS tmp ),
-description = "Participants who have an immediate appointment which is ready to be assigned.";
-
-INSERT INTO queue SET
-name = "missed appointment",
-title = "Appointment missed",
-rank = 2,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "appointment" ) AS tmp ),
-description = "Participants who have an appointment which was missed.";
-
-INSERT INTO queue SET
-name = "no appointment",
-title = "Participants without appointments",
-rank = NULL,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "not assigned" ) AS tmp ),
-description = "Participants who do not have an appointment.";
-
-INSERT INTO queue SET
 name = "new participant",
 title = "Never assigned participants",
 rank = NULL,
@@ -297,7 +237,7 @@ parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
-    WHERE name = "no appointment" ) AS tmp ),
+    WHERE name = "not assigned" ) AS tmp ),
 description = "Participants who have never been assigned to an operator.";
 
 INSERT INTO queue SET
@@ -339,7 +279,7 @@ description = "New participants who are not available.";
 INSERT INTO queue SET
 name = "new participant available",
 title = "New participants, available",
-rank = 21,
+rank = 19,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -351,7 +291,7 @@ description = "New participants who are available.";
 INSERT INTO queue SET
 name = "new participant always available",
 title = "New participants always available",
-rank = 22,
+rank = 20,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -369,7 +309,7 @@ parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
-    WHERE name = "no appointment" ) AS tmp ),
+    WHERE name = "not assigned" ) AS tmp ),
 description = "Participants who have been previously assigned.";
 
 INSERT INTO queue SET
@@ -452,7 +392,7 @@ back time has been reached and the participant is within valid calling times.";
 INSERT INTO queue SET
 name = "contacted available",
 title = "Last call: contacted (available)",
-rank = 3,
+rank = 1,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -465,7 +405,7 @@ back time has been reached and the participant is within valid calling times.";
 INSERT INTO queue SET
 name = "contacted always available",
 title = "Last call: contacted (always available)",
-rank = 4,
+rank = 2,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -555,7 +495,7 @@ back time has been reached and the participant is within valid calling times.";
 INSERT INTO queue SET
 name = "busy available",
 title = "Last call: busy (available)",
-rank = 5,
+rank = 3,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -568,7 +508,7 @@ back time has been reached and the participant is within valid calling times.";
 INSERT INTO queue SET
 name = "busy always available",
 title = "Last call: busy (always available)",
-rank = 6,
+rank = 4,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -658,7 +598,7 @@ back time has been reached and the participant is within valid calling times.";
 INSERT INTO queue SET
 name = "fax available",
 title = "Last call: fax (available)",
-rank = 7,
+rank = 5,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -671,7 +611,7 @@ back time has been reached and the participant is within valid calling times.";
 INSERT INTO queue SET
 name = "fax always available",
 title = "Last call: fax (always available)",
-rank = 8,
+rank = 6,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -761,7 +701,7 @@ call back time has been reached and the participant is within valid calling time
 INSERT INTO queue SET
 name = "not reached available",
 title = "Last call: not reached (available)",
-rank = 9,
+rank = 7,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -774,7 +714,7 @@ back time has been reached and the participant is within valid calling times.";
 INSERT INTO queue SET
 name = "not reached always available",
 title = "Last call: not reached (always available)",
-rank = 10,
+rank = 8,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -864,7 +804,7 @@ back time has been reached and the participant's local time is within valid call
 INSERT INTO queue SET
 name = "no answer available",
 title = "Last call: no answer (available)",
-rank = 11,
+rank = 9,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -877,7 +817,7 @@ back time has been reached and the participant's local time is within valid call
 INSERT INTO queue SET
 name = "no answer always available",
 title = "Last call: no answer (always available)",
-rank = 12,
+rank = 10,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -970,7 +910,7 @@ calling times.";
 INSERT INTO queue SET
 name = "machine message available",
 title = "Last call: answering machine, message left (available)",
-rank = 13,
+rank = 11,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -984,7 +924,7 @@ calling times.";
 INSERT INTO queue SET
 name = "machine message always available",
 title = "Last call: answering machine, message left (always available)",
-rank = 14,
+rank = 12,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -1078,7 +1018,7 @@ calling times.";
 INSERT INTO queue SET
 name = "machine no message available",
 title = "Last call: answering machine, message not left (available)",
-rank = 15,
+rank = 13,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -1092,7 +1032,7 @@ calling times.";
 INSERT INTO queue SET
 name = "machine no message always available",
 title = "Last call: answering machine, message not left (always available)",
-rank = 16,
+rank = 14,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -1183,7 +1123,7 @@ back time has been reached and the participant's local time is within valid call
 INSERT INTO queue SET
 name = "hang up available",
 title = "Last call: hang up (available)",
-rank = 17,
+rank = 15,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -1196,7 +1136,7 @@ back time has been reached and the participant's local time is within valid call
 INSERT INTO queue SET
 name = "hang up always available",
 title = "Last call: hang up (always available)",
-rank = 18,
+rank = 16,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -1286,7 +1226,7 @@ call back time has been reached and the participant's local time within of valid
 INSERT INTO queue SET
 name = "soft refusal available",
 title = "Last call: soft refusal (available)",
-rank = 19,
+rank = 17,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -1299,7 +1239,7 @@ back time has been reached and the participant's local time within of valid call
 INSERT INTO queue SET
 name = "soft refusal always available",
 title = "Last call: soft refusal (always available)",
-rank = 20,
+rank = 18,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
