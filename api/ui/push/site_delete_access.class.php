@@ -45,7 +45,7 @@ class site_delete_access extends base_delete_record
     $db_site = new db\site( $this->get_argument('id') );
     unset( $args['id'] );
     $args['noid']['site.name'] = $db_site->name;
-    $args['noid']['site.cohort'] = 'tracking';
+    $args['noid']['site.cohort'] = 'comprehensive';
     
     // replace the access id with identifying names of the unique key
     $db_access = new db\access( $this->get_argument('remove_id') );

@@ -48,10 +48,12 @@ class phone_list extends base_list_widget
   {
     parent::finish();
     
-    // only allow admins and supervisors to make direct calls
+    // only allow admins, coordinators and interviewers to make direct calls
     $role_name = bus\session::self()->get_role()->name;
     $this->set_variable( 'allow_connect',
-                         'administrator' == $role_name || 'supervisor' == $role_name );
+                         'administrator' == $role_name ||
+                         'coordinator' == $role_name ||
+                         'interviewer' == $role_name );
     $this->set_variable( 'sip_enabled',
       bus\voip_manager::self()->get_sip_enabled() );
 

@@ -47,7 +47,7 @@ class access_delete extends base_delete
     $args['noid']['user.name'] = $db_access->get_user()->name;
     $args['noid']['role.name'] = $db_access->get_role()->name;
     $args['noid']['site.name'] = $db_access->get_site()->name;
-    $args['noid']['site.cohort'] = 'tracking';
+    $args['noid']['site.cohort'] = 'comprehensive';
 
     parent::finish();
 

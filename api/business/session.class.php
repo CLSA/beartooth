@@ -224,7 +224,7 @@ final class session extends \beartooth\singleton
     {
       throw new exc\notice(
         'Your account has been deactivated.<br>'.
-        'Please contact a supervisor to regain access to the system.', __METHOD__ );
+        'Please contact a coordinator to regain access to the system.', __METHOD__ );
     }
     else
     {
@@ -249,7 +249,7 @@ final class session extends \beartooth\singleton
         if( 0 == count( $site_list ) )
           throw new exc\notice(
             'Your account does not have access to any site.<br>'.
-            'Please contact a supervisor to be granted access to a site.', __METHOD__ );
+            'Please contact a coordinator to be granted access to a site.', __METHOD__ );
         
         // if the user has logged in before, use whatever site/role they last used
         $activity_mod = new db\modifier();
@@ -588,18 +588,9 @@ final class session extends \beartooth\singleton
   {
     if( 'main' == $slot )
     {
-      if( 'operator' == $this->get_role()->name )
-      { // operators always start at the assignment widget
-        $_SESSION['slot'][$slot]['stack']['index'] = 0;
-        $_SESSION['slot'][$slot]['stack']['widgets'] =
-          array( array( 'name' => 'operator_assignment', 'args' => NULL ) );
-      }
-      else
-      { // by default, if there is no widget in the main slot then start with home
-        $_SESSION['slot'][$slot]['stack']['index'] = 0;
-        $_SESSION['slot'][$slot]['stack']['widgets'] =
-          array( array( 'name' => 'self_home', 'args' => NULL ) );
-      }
+      $_SESSION['slot'][$slot]['stack']['index'] = 0;
+      $_SESSION['slot'][$slot]['stack']['widgets'] =
+        array( array( 'name' => 'self_home', 'args' => NULL ) );
     }
     else if( 'settings' == $slot )
     {

@@ -33,7 +33,7 @@ class daily_shift_report extends base_report
     parent::__construct( 'daily_shift', $args );
 
     $this->set_variable( 'description',
-      'This report is for supervisors to complete at the end of their shift for remittance to the '.
+      'This report is for coordinators to complete at the end of their shift for remittance to the '.
       'NCC on a daily basis. The report includes operator activity data with operators '.
       'subclassified by language.  Areas are provided for questions/concerns and additional '.
       'comments.' );

@@ -74,7 +74,7 @@ class note_list extends \beartooth\ui\widget
 
     // allow supervisers and admins to modify notes
     $role_name = bus\session::self()->get_role()->name;
-    if( 'administrator' == $role_name || 'supervisor' == $role_name )
+    if( 'administrator' == $role_name || 'coordinator' == $role_name )
     {
       $this->set_variable( 'stickable', true );
       $this->set_variable( 'removable', true );

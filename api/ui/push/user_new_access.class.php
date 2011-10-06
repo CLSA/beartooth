@@ -59,7 +59,7 @@ class user_new_access extends base_new_record
     foreach( $this->get_argument( 'site_id_list' ) as $site_id )
     {
       $db_site = new db\site( $site_id );
-      $site_name_list[] = array( 'name' => $db_site->name, 'cohort' => 'tracking' );
+      $site_name_list[] = array( 'name' => $db_site->name, 'cohort' => 'comprehensive' );
     }
 
     unset( $args['role_id_list'] );

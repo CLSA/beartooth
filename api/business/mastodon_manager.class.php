@@ -70,7 +70,7 @@ class mastodon_manager extends \beartooth\singleton
     $request->setUrl( $this->base_url.'self/set_site' );
     $request->setMethod( \HttpRequest::METH_POST );
     $request->setPostFields(
-      array( 'noid' => array( 'site.name' => $db_site->name, 'site.cohort' => 'tracking' ) ) );
+      array( 'noid' => array( 'site.name' => $db_site->name, 'site.cohort' => 'comprehensive' ) ) );
     static::send( $request );
 
     // set the role

@@ -36,14 +36,14 @@ class daily_shift_report extends base_report
 
   public function finish()
   {
-    // get the current user's role, if it isnt a supervisor then bailout 
+    // get the current user's role, if it isnt a coordinator then bailout 
 
     $db_role = bus\session::self()->get_role();
 
-    if( 'supervisor' != $db_role->name )
+    if( 'coordinator' != $db_role->name )
     {
-      log::err( 'Only supervisors can generate their report' );
-    //  $this->add_title('for supervisors only you are a'.$db_role->name );
+      log::err( 'Only coordinators can generate their report' );
+    //  $this->add_title('for coordinators only you are a'.$db_role->name );
     }
 
     $db_current_user = bus\session::self()->get_user();
@@ -54,15 +54,15 @@ class daily_shift_report extends base_report
     $title .= ' for '.$db_current_site->name;
     $this->add_title( $title );
 
-    // the report is only generated at the end of a site supervisor's shift
+    // the report is only generated at the end of a site coordinator's shift
     $datetime_obj = util::get_datetime_object();    
     $date_str = $datetime_obj->format( 'l, F jS, Y' );
 
     $this->add_title( $date_str );
     
-    // a table for the supervisor
+    // a table for the coordinator
 
-    $contents_supervisor = array(
+    $contents_coordinator = array(
       'Date' => $date_str,
       'Shift' => 'TBD',
       'Supervisor' => $db_current_user->name,
@@ -163,15 +163,15 @@ class daily_shift_report extends base_report
     $contents_shift['Shift CPH'] = $denom > 0 ? 
                                    $contents_shift['Completes']/$denom : 'NA';
 
-    $contents_supervisor = array( 
-      array_keys( $contents_supervisor ), 
-      array_values( $contents_supervisor ) );
+    $contents_coordinator = array( 
+      array_keys( $contents_coordinator ), 
+      array_values( $contents_coordinator ) );
 
     $contents_shift = array( 
       array_keys( $contents_shift ), 
       array_values( $contents_shift ) );
 
-    $this->add_table( 'Supervisor', NULL, $contents_supervisor, NULL );
+    $this->add_table( 'Supervisor', NULL, $contents_coordinator, NULL );
     $this->add_table( 'Shift', NULL, $contents_shift, NULL );
     $header = array(
       "Interviewer",
@@ -243,7 +243,7 @@ class daily_shift_report extends base_report
      array( 'Training Hours is automatically populated; do not overwrite' ),
      array( 'Shift CPH is automatically populated; do not overwrite' ),
      array( 'Interviewer = record the names of the interviewers that were assigned the shift. '.
-     'Also include the supervisor if s/he made any calls' ),
+     'Also include the coordinator if s/he made any calls' ),
      array( 'Start Time = the time the interviewer actually started his/her shift' ),
      array( 'End Time = the time the interviewer actually ended his/her shift' ),
      array( 'Calling Hours = the total shift time less any training and/or downtime hours '.

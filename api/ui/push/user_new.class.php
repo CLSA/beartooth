@@ -92,7 +92,7 @@ class user_new extends base_new
 
       // add the site, cohort and role to the arguments for mastodon
       $args['noid']['site.name'] = $db_site->name;
-      $args['noid']['site.cohort'] = 'tracking';
+      $args['noid']['site.cohort'] = 'comprehensive';
       $args['noid']['role.name'] = $db_role->name;
     }
 

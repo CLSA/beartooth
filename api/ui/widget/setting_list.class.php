@@ -32,12 +32,12 @@ class setting_list extends base_list_widget
   {
     parent::__construct( 'setting', $args );
     
-    $is_supervisor = 'supervisor' == bus\session::self()->get_role()->name;
+    $is_coordinator = 'coordinator' == bus\session::self()->get_role()->name;
 
     $this->add_column( 'category', 'string', 'Category', true );
     $this->add_column( 'name', 'string', 'Name', true );
     $this->add_column( 'value', 'string', 'Default', false );
-    if( $is_supervisor ) $this->add_column( 'site_value', 'string', 'Value', false );
+    if( $is_coordinator ) $this->add_column( 'site_value', 'string', 'Value', false );
     $this->add_column( 'description', 'text', 'Description', true, 'left' );
   }
 
@@ -51,12 +51,12 @@ class setting_list extends base_list_widget
   {
     parent::finish();
     
-    $is_supervisor = 'supervisor' == bus\session::self()->get_role()->name;
+    $is_coordinator = 'coordinator' == bus\session::self()->get_role()->name;
 
 
     foreach( $this->get_record_list() as $record )
     {
-      if( $is_supervisor )
+      if( $is_coordinator )
       { // include the site's value
         $modifier = new db\modifier();
         $modifier->where( 'site_id', '=', bus\session::self()->get_site()->id );

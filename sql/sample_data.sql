@@ -5,23 +5,29 @@
 SET AUTOCOMMIT=0;
 
 INSERT INTO site( name, timezone ) VALUES
-( 'Dalhousie', 'Canada/Atlantic' ),
-( 'McMaster', 'Canada/Eastern' ),
-( 'Manitoba', 'Canada/Central' ),
-( 'Sherbrooke', 'Canada/Eastern' ),
-( 'Victoria', 'Canada/Pacific' );
+( "Hamilton", "Canada/Eastern" ),
+( "McGill", "Canada/Eastern" ),
+( "Simon Fraser", "Canada/Pacific" ),
+( "Memorial", "Canada/Newfoundland" ),
+( "Ottawa", "Canada/Eastern" ),
+( "Sherbrooke", "Canada/Eastern" ),
+( "Dalhousie", "Canada/Atlantic" ),
+( "Calgary", "Canada/Central" ),
+( "Victoria", "Canada/Pacific" ),
+( "Manitoba", "Canada/Central" ),
+( "British Columbia", "Canada/Pacific" );
 
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Victoria" )
+UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Calgary" )
 WHERE abbreviation = "AB";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Victoria" )
+UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "British Columbia" )
 WHERE abbreviation = "BC";
 UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Manitoba" )
 WHERE abbreviation = "MB";
 UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Dalhousie" )
 WHERE abbreviation = "NB";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Dalhousie" )
+UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Memorial" )
 WHERE abbreviation = "NL";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Victoria" )
+UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "British Columbia" )
 WHERE abbreviation = "NT";
 UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Dalhousie" )
 WHERE abbreviation = "NS";
@@ -35,7 +41,7 @@ UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Sherbrooke" )
 WHERE abbreviation = "QC";
 UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Manitoba" )
 WHERE abbreviation = "SK";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Victoria" )
+UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "British Columbia" )
 WHERE abbreviation = "YT";
 
 -- Creates default/sample users

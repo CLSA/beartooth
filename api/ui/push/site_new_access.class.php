@@ -45,7 +45,7 @@ class site_new_access extends base_new_record
     $db_site = new db\site( $this->get_argument('id') );
     unset( $args['id'] );
     $args['noid']['site.name'] = $db_site->name;
-    $args['noid']['site.cohort'] = 'tracking';
+    $args['noid']['site.cohort'] = 'comprehensive';
     
     foreach( $this->get_argument( 'role_id_list' ) as $role_id )
     {

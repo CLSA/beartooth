@@ -51,7 +51,7 @@ class user_delete_access extends base_delete_record
     unset( $args['remove_id'] );
     $args['noid']['role.name'] = $db_access->get_role()->name;
     $args['noid']['site.name'] = $db_access->get_site()->name;
-    $args['noid']['site.cohort'] = 'tracking';
+    $args['noid']['site.cohort'] = 'comprehensive';
     
     parent::finish();
 

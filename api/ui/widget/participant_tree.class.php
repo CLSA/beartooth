@@ -32,7 +32,7 @@ class participant_tree extends \beartooth\ui\widget
   {
     parent::__construct( 'participant', 'tree', $args );
     $session = bus\session::self();
-    if( 'supervisor' == $session->get_role()->name )
+    if( 'coordinator' == $session->get_role()->name )
       $this->set_heading( $this->get_heading().' for '.$session->get_site()->name );
   }
 
@@ -48,7 +48,7 @@ class participant_tree extends \beartooth\ui\widget
     
     $session = bus\session::self();
     $is_administrator = 'administrator' == $session->get_role()->name;
-    $is_supervisor = 'supervisor' == $session->get_role()->name;
+    $is_coordinator = 'coordinator' == $session->get_role()->name;
     
     // if this is an admin, give them a list of sites to choose from
     if( $is_administrator )
@@ -85,8 +85,8 @@ class participant_tree extends \beartooth\ui\widget
     $modifier->order( 'parent_queue_id' );
     foreach( db\queue::select( $modifier ) as $db_queue )
     {
-      // restrict to the current site if the current user is a supervisor
-      if( $is_supervisor ) $db_queue->set_site( $session->get_site() );
+      // restrict to the current site if the current user is a coordinator
+      if( $is_coordinator ) $db_queue->set_site( $session->get_site() );
       else if( !is_null( $db_restrict_site ) ) $db_queue->set_site( $db_restrict_site );
 
       // handle queues which are not qnaire specific
