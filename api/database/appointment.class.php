@@ -46,7 +46,7 @@ class appointment extends record
       throw new exc\runtime(
         'Cannot validate appointment date, address id is not set.', __METHOD__ );
 
-    $db_participant = $this->get_address()->get_participant();
+    $db_participant = new participant( $this->participant_id );
     $db_site = $db_participant->get_primary_site();
     if( is_null( $db_site ) )
       throw new exc\runtime(

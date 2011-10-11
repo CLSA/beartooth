@@ -676,15 +676,22 @@ CREATE  TABLE IF NOT EXISTS `appointment` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `update_timestamp` TIMESTAMP NOT NULL ,
   `create_timestamp` TIMESTAMP NOT NULL ,
-  `address_id` INT UNSIGNED NOT NULL ,
+  `participant_id` INT UNSIGNED NOT NULL ,
+  `address_id` INT UNSIGNED NULL COMMENT 'NULL for site appointments' ,
   `datetime` DATETIME NOT NULL ,
   `reached` TINYINT(1)  NULL DEFAULT NULL COMMENT 'If the appointment was met, whether the participant was reached.' ,
   PRIMARY KEY (`id`) ,
   INDEX `dk_reached` (`reached` ASC) ,
   INDEX `fk_address_id` (`address_id` ASC) ,
+  INDEX `fk_participant_id1` (`participant_id` ASC) ,
   CONSTRAINT `fk_appointment_address_id`
     FOREIGN KEY (`address_id` )
     REFERENCES `address` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_participant_id1`
+    FOREIGN KEY (`participant_id` )
+    REFERENCES `participant` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

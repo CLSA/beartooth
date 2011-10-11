@@ -34,7 +34,9 @@ class appointment_add extends base_appointment_view
     
     // add items to the view
     $this->add_item( 'participant_id', 'hidden' );
-    $this->add_item( 'address_id', 'enum', 'Address' );
+    $this->add_item( 'address_id', 'enum', 'Address',
+      'For site interviews select "site", otherwise select which address the home interview '.
+      'will take place at.' );
     $this->add_item( 'datetime', 'datetime', 'Date' );
   }
 
@@ -59,7 +61,7 @@ class appointment_add extends base_appointment_view
     $modifier = new db\modifier();
     $modifier->where( 'active', '=', true );
     $modifier->order( 'rank' );
-    $address_list = array();
+    $address_list = array( 'NULL' => 'site' );
     foreach( $db_participant->get_address_list( $modifier ) as $db_address )
       $address_list[$db_address->id] = sprintf(
         '%s, %s, %s, %s',
@@ -77,7 +79,7 @@ class appointment_add extends base_appointment_view
 
     // set the view's items
     $this->set_item( 'participant_id', $this->parent->get_record()->id );
-    $this->set_item( 'address_id', '', true, $address_list );
+    $this->set_item( 'address_id', '', true, $address_list, true );
     $this->set_item( 'datetime', '', true, $datetime_limits );
 
     $this->set_variable( 

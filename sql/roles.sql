@@ -1347,6 +1347,10 @@ SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
     operation_id = ( SELECT id FROM operation WHERE
+      type = "widget" AND subject = "participant" AND name = "list" );
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
+    operation_id = ( SELECT id FROM operation WHERE
       type = "pull" AND subject = "participant" AND name = "primary" );
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
