@@ -93,7 +93,7 @@ class assignment_list extends site_restricted_list
   protected function determine_record_count( $modifier = NULL )
   {
     $session = bus\session::self();
-    if( 'operator' == $session->get_role()->name )
+    if( 'interviewer' == $session->get_role()->name )
     {
       if( is_null( $modifier ) ) $modifier = new db\modifier();
       $db_assignment = $session->get_current_assignment();
@@ -118,7 +118,7 @@ class assignment_list extends site_restricted_list
   protected function determine_record_list( $modifier = NULL )
   {
     $session = bus\session::self();
-    if( 'operator' == $session->get_role()->name )
+    if( 'interviewer' == $session->get_role()->name )
     {
       if( is_null( $modifier ) ) $modifier = new db\modifier();
       $db_assignment = $session->get_current_assignment();

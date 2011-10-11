@@ -45,7 +45,7 @@ class self_shortcuts extends \beartooth\ui\widget
     parent::finish();
     
     $voip_enabled = bus\setting_manager::self()->get_setting( 'voip', 'enabled' );
-    $is_operator = 'operator' == bus\session::self()->get_role()->name;
+    $is_interviewer = 'interviewer' == bus\session::self()->get_role()->name;
     
     // get the xor key and make sure it is at least as long as the password
     $xor_key = bus\setting_manager::self()->get_setting( 'voip', 'xor_key' );
@@ -67,10 +67,10 @@ class self_shortcuts extends \beartooth\ui\widget
       $voip_enabled && !bus\voip_manager::self()->get_sip_enabled() );
     $this->set_variable( 'dialpad', !is_null( bus\voip_manager::self()->get_call() ) );
     $this->set_variable( 'timer',
-      $is_operator && !is_null( bus\session::self()->get_current_phone_call() ) );
+      $is_interviewer && !is_null( bus\session::self()->get_current_phone_call() ) );
     $this->set_variable( 'calculator', true );
     $this->set_variable( 'timezone_calculator', true );
-    $this->set_variable( 'navigation', !$is_operator );
+    $this->set_variable( 'navigation', !$is_interviewer );
     $this->set_variable( 'refresh', true );
     $this->set_variable( 'home', false );
   }

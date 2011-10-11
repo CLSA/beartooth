@@ -40,13 +40,13 @@ class phone_call_end extends \beartooth\ui\push
   public function finish()
   {
     $session = bus\session::self();
-    $is_operator = 'operator' == $session->get_role()->name;
+    $is_interviewer = 'interviewer' == $session->get_role()->name;
 
     // disconnect voip
     $voip_call = bus\voip_manager::self()->get_call();
     if( !is_null( $voip_call ) ) $voip_call->hang_up();
 
-    if( $is_operator )
+    if( $is_interviewer )
     { // set the end time and status of the call
       $db_phone_call = $session->get_current_phone_call();
       if( !is_null( $db_phone_call ) )
@@ -66,7 +66,7 @@ class phone_call_end extends \beartooth\ui\push
           {
             $note = sprintf( 'This phone number has been disabled because a call was made to it '.
                              'on %s at %s '.
-                             'by operator id %d (%s) '.
+                             'by interviewer id %d (%s) '.
                              'with the result of "%s".',
                              util::get_formatted_date( $db_phone_call->end_datetime ),
                              util::get_formatted_time( $db_phone_call->end_datetime ),

@@ -43,7 +43,7 @@ class assignment_end extends \beartooth\ui\push
     $db_assignment = $session->get_current_assignment();
     if( !is_null( $db_assignment ) )
     {
-      // make sure the operator isn't on call
+      // make sure the interviewer isn't on call
       if( !is_null( $session->get_current_phone_call() ) )
         throw new exc\notice(
           'An assignment cannot be ended while in a call.', __METHOD__ );

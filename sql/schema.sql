@@ -728,28 +728,6 @@ COMMENT = 'Site-specific setting overriding the default.' ;
 
 
 -- -----------------------------------------------------
--- Table `away_time`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `away_time` ;
-
-CREATE  TABLE IF NOT EXISTS `away_time` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `update_timestamp` TIMESTAMP NOT NULL ,
-  `create_timestamp` TIMESTAMP NOT NULL ,
-  `user_id` INT UNSIGNED NOT NULL ,
-  `start_datetime` DATETIME NOT NULL ,
-  `end_datetime` DATETIME NULL DEFAULT NULL ,
-  PRIMARY KEY (`id`) ,
-  INDEX `fk_user_id` (`user_id` ASC) ,
-  CONSTRAINT `fk_away_time_user`
-    FOREIGN KEY (`user_id` )
-    REFERENCES `user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `shift_template`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `shift_template` ;
@@ -763,7 +741,6 @@ CREATE  TABLE IF NOT EXISTS `shift_template` (
   `end_time` TIME NOT NULL ,
   `start_date` DATE NOT NULL ,
   `end_date` DATE NULL ,
-  `operators` INT UNSIGNED NOT NULL ,
   `repeat_type` ENUM('weekly','day of month','day of week') NOT NULL DEFAULT "weekly" ,
   `repeat_every` INT NOT NULL DEFAULT 1 ,
   `monday` TINYINT(1)  NOT NULL DEFAULT false ,

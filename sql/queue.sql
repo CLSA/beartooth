@@ -214,7 +214,7 @@ parent_queue_id = (
     SELECT id
     FROM queue
     WHERE name = "qnaire" ) AS tmp ),
-description = "Eligible participants who are currently assigned to an operator.";
+description = "Eligible participants who are currently assigned to an interviewer.";
 
 INSERT INTO queue SET
 name = "not assigned",
@@ -226,7 +226,7 @@ parent_queue_id = (
     SELECT id
     FROM queue
     WHERE name = "qnaire" ) AS tmp ),
-description = "Eligible participants who are not assigned to an operator.";
+description = "Eligible participants who are not assigned to an interviewer.";
 
 INSERT INTO queue SET
 name = "new participant",
@@ -238,7 +238,7 @@ parent_queue_id = (
     SELECT id
     FROM queue
     WHERE name = "not assigned" ) AS tmp ),
-description = "Participants who have never been assigned to an operator.";
+description = "Participants who have never been assigned to an interviewer.";
 
 INSERT INTO queue SET
 name = "new participant outside calling time",

@@ -134,11 +134,11 @@ class tokens extends sid_record
         {
           $this->$key = true == $participant_info->data->hin_access ? "1" : "0";
         }
-        else if( 'operator first_name' == $value )
+        else if( 'interviewer first_name' == $value )
         {
           $this->$key = $db_user->first_name;
         }
-        else if( 'operator last_name' == $value )
+        else if( 'interviewer last_name' == $value )
         {
           $this->$key = $db_user->last_name;
         }

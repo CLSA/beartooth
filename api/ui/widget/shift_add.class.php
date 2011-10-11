@@ -96,7 +96,7 @@ class shift_add extends base_view
    */
   public function determine_user_count( $modifier = NULL )
   {
-    $db_role = db\role::get_unique_record( 'name', 'operator' );
+    $db_role = db\role::get_unique_record( 'name', 'interviewer' );
     if( is_null( $modifier ) ) $modifier = new db\modifier();
     $modifier->where( 'role_id', '=', $db_role->id );
     $modifier->where( 'site_id', '=', bus\session::self()->get_site()->id );
@@ -114,7 +114,7 @@ class shift_add extends base_view
    */
   public function determine_user_list( $modifier = NULL )
   {
-    $db_role = db\role::get_unique_record( 'name', 'operator' );
+    $db_role = db\role::get_unique_record( 'name', 'interviewer' );
     if( is_null( $modifier ) ) $modifier = new db\modifier();
     $modifier->where( 'role_id', '=', $db_role->id );
     $modifier->where( 'site_id', '=', bus\session::self()->get_site()->id );

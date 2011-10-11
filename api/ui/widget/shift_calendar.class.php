@@ -36,7 +36,7 @@ class shift_calendar extends base_calendar
 
     // determine the user id
     $this->user_id = $this->get_argument( 'user_id', NULL );
-    if( 'operator' == $session->get_role()->name ) $this->user_id = $session->get_user()->id;
+    if( 'interviewer' == $session->get_role()->name ) $this->user_id = $session->get_user()->id;
     
     if( is_null( $this->user_id ) )
     {
@@ -61,7 +61,7 @@ class shift_calendar extends base_calendar
     parent::finish();
     
     $this->set_variable( 'allow_all_day', false );
-    $this->set_variable( 'editable', 'operator' != bus\session::self()->get_role()->name );
+    $this->set_variable( 'editable', 'interviewer' != bus\session::self()->get_role()->name );
     $this->set_variable( 'user_id', $this->user_id );
   }
 

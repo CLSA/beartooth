@@ -47,7 +47,7 @@ class appointment_edit extends base_edit
     {
       $this->get_record()->datetime = $columns['datetime'];
       if( !$this->get_record()->validate_date() )
-        throw new exc\notice( 'There are no operators available during that time.', __METHOD__ );
+        throw new exc\notice( 'There are no openings during that time.', __METHOD__ );
     }
     
     // no errors, go ahead and make the change

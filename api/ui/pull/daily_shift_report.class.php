@@ -79,13 +79,13 @@ class daily_shift_report extends base_report
       'Paid Breaks' => 0,
       'Shift CPH' => 0 );
 
-    // a table for operators speaking english
+    // a table for interviewers speaking english
 
-    $contents_operators_en = array();
+    $contents_interviewers_en = array();
 
-    // a table for operators speaking french
+    // a table for interviewers speaking french
 
-    $contents_operators_fr = array();
+    $contents_interviewers_fr = array();
 
     $total_calling_hours_en = 0;
     $total_training_hours_en = 0;
@@ -101,19 +101,19 @@ class daily_shift_report extends base_report
     $user_mod->where( 'site_id', '=', $db_current_site->id );
     foreach( db\user::select( $user_mod ) as $db_user )
     {
-      // is the user an operator?
-      $is_operator = false;
+      // is the user an interviewer?
+      $is_interviewer = false;
       foreach( $db_user->get_role_list() as $db_user_role )
       {
-        if( $db_user_role->name == 'operator' ) 
+        if( $db_user_role->name == 'interviewer' ) 
         {
-          $is_operator = true;
+          $is_interviewer = true;
           break;
         }
       }
-      if( !$is_operator ) continue;
+      if( !$is_interviewer ) continue;
 
-      // make sure the operator has min/max time for this date range
+      // make sure the interviewer has min/max time for this date range
       $activity_mod = new db\modifier();
       $activity_mod->where( 'user_id', '=', $db_user->id );
       $activity_mod->where( 'site_id', '=', $db_current_site->id );
@@ -143,7 +143,7 @@ class daily_shift_report extends base_report
         if( $db_interview->completed ) $num_user_completes++;
       }
       
-      //TODO ask if user completes should be a column in the operators table
+      //TODO ask if user completes should be a column in the interviewers table
       $total_completes += $num_user_completes;
 
     }
@@ -203,8 +203,8 @@ class daily_shift_report extends base_report
       $total_shift_hours_fr, 
       '-' );
 
-    $this->add_table( 'English', $header, $contents_operator_en, $footer_en );
-    $this->add_table( 'French', $header, $contents_operator_fr, $footer_fr );
+    $this->add_table( 'English', $header, $contents_interviewer_en, $footer_en );
+    $this->add_table( 'French', $header, $contents_interviewer_fr, $footer_fr );
     
     $grand_totals = array (
       'TOTAL', 
@@ -246,8 +246,7 @@ class daily_shift_report extends base_report
      'Also include the coordinator if s/he made any calls' ),
      array( 'Start Time = the time the interviewer actually started his/her shift' ),
      array( 'End Time = the time the interviewer actually ended his/her shift' ),
-     array( 'Calling Hours = the total shift time less any training and/or downtime hours '.
-     '(breaks included)' ),
+     array( 'Calling Hours = the total shift time less any training and/or downtime hours' ),
      array( 'Training Hours = any time spent NOT on the phones or lost to downtime (incl. '.
      'briefings)' ),
      array( 'Downtime Hours = time lost due to technical issues. Note if the issues were '.

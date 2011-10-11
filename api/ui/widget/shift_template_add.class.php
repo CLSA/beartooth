@@ -41,7 +41,6 @@ class shift_template_add extends base_view
     $this->add_item( 'site_id', 'hidden' );
     $this->add_item( 'start_time', 'time', 'Start Time' );
     $this->add_item( 'end_time', 'time', 'End Time' );
-    $this->add_item( 'operators', 'number', 'Operators' );
     $this->add_item( 'start_date', 'date', 'Start Date' );
     $this->add_item( 'end_date', 'date', 'End Date' );
 
@@ -64,7 +63,6 @@ class shift_template_add extends base_view
     $this->set_item( 'site_id', bus\session::self()->get_site()->id, true );
     $this->set_item( 'start_time', $this->start_time, true );
     $this->set_item( 'end_time', $this->end_time, true );
-    $this->set_item( 'operators', 1, true );
     $this->set_item( 'start_date', $this->date, true );
     $this->set_item( 'end_date', '', false );
     

@@ -89,13 +89,13 @@ class user_view extends base_view
     
     $role_name = bus\session::self()->get_role()->name;
 
-    $is_operator = $this->get_record()->has_access(
+    $is_interviewer = $this->get_record()->has_access(
                      bus\session::self()->get_site(),
-                     db\role::get_unique_record( 'name', 'operator' ) );
+                     db\role::get_unique_record( 'name', 'interviewer' ) );
 
     // only show shift calendar if the current user is a coordinator and the viewed user is an
-    // operator at this site
-    $this->set_variable( 'view_shifts', $is_operator && 'coordinator' == $role_name );
+    // interviewer at this site
+    $this->set_variable( 'view_shifts', $is_interviewer && 'coordinator' == $role_name );
     
     // only show reset password button if current user is an administrator or coordinator
     $this->set_variable( 'reset_password',

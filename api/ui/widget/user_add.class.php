@@ -79,7 +79,7 @@ class user_add extends base_view
     $this->set_item( 'active', true, true );
     $value = $is_administrator ? current( $sites ) : $session->get_site()->id;
     $this->set_item( 'site_id', $value, true, $is_administrator ? $sites : NULL );
-    $this->set_item( 'role_id', array_search( 'operator', $roles ), true, $roles );
+    $this->set_item( 'role_id', array_search( 'interviewer', $roles ), true, $roles );
 
     $this->finish_setting_items();
   }

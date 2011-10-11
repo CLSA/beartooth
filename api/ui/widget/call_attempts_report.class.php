@@ -37,7 +37,7 @@ class call_attempts_report extends base_report
     $this->set_variable( 'description',
       'This report lists all participants who have been assigned at least once and have not '.
       'completed the given interview.  The report includes the participant\'s UID, date of the '.
-      'last time they were called and by which operator and the total number of times they '.
+      'last time they were called and by which interviewer and the total number of times they '.
       'have been called.' );
   }
 

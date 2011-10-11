@@ -6,7 +6,7 @@ SET AUTOCOMMIT=0;
 -- voip
 INSERT INTO setting( category, name, type, value, description )
 VALUES( "voip", "survey without sip", "boolean", "false",
-"Whether to allow operators to fill out surveys without an active SIP connection." );
+"Whether to allow interviewers to fill out surveys without an active SIP connection." );
 
 -- queue state
 INSERT INTO setting( category, name, type, value, description )

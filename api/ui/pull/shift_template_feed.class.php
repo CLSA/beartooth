@@ -123,9 +123,7 @@ class shift_template_feed extends base_feed
 
           $event_list[] = array(
             'id' => $db_shift_template->id,
-            'title' => sprintf( ' to %s: %d operators',
-              $end_time,
-              $db_shift_template->operators ),
+            'title' => sprintf( ' to %s', $end_time ),
             'allDay' => false,
             'start' => $event_start_datetime_obj->format( \DateTime::ISO8601 ),
             'end' => $event_end_datetime_obj->format( \DateTime::ISO8601 ) );

@@ -81,13 +81,13 @@ class site_feed extends base_feed
             intval( preg_replace( '/[^0-9]/', '',
               substr( $db_shift_template->start_time, 0, -3 ) ) );
           if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[ $start_time_as_int ] = 0;
-          $diffs[ $start_time_as_int ] += $db_shift_template->operators;
+          $diffs[ $start_time_as_int ] += 1;
 
           $end_time_as_int =
             intval( preg_replace( '/[^0-9]/', '',
               substr( $db_shift_template->end_time, 0, -3 ) ) );
           if( !array_key_exists( $end_time_as_int, $diffs ) ) $diffs[ $end_time_as_int ] = 0;
-          $diffs[ $end_time_as_int ] -= $db_shift_template->operators;
+          $diffs[ $end_time_as_int ] -= 1;
         }
 
         // unset diffs since it is a reference
@@ -158,7 +158,7 @@ class site_feed extends base_feed
     // use the 'diff' arrays to define the 'times' array
     foreach( $days as $date => $day )
     {
-      $num_operators = 0;
+      $num_openings = 0;
       $diffs = &$days[$date]['diffs'];
       $times = &$days[$date]['times'];
       
@@ -169,8 +169,8 @@ class site_feed extends base_feed
   
         foreach( $diffs as $time => $diff )
         {
-          $num_operators += $diff;
-          $times[$time] = $num_operators;
+          $num_openings += $diff;
+          $times[$time] = $num_openings;
         }
       }
 

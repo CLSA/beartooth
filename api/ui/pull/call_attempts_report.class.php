@@ -93,7 +93,7 @@ class call_attempts_report extends base_report
     $header = array(
       'Site',
       'UID',
-      'Last Operator',
+      'Last Interviewer',
       'Last Call',
       'Call Result',
       '# Calls' );

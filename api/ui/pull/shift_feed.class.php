@@ -36,7 +36,7 @@ class shift_feed extends base_feed
 
     // determine the user id
     $this->user_id = $this->get_argument( 'user_id', NULL );
-    if( 'operator' == $session->get_role()->name ) $this->user_id = $session->get_user()->id;
+    if( 'interviewer' == $session->get_role()->name ) $this->user_id = $session->get_user()->id;
   }
   
   /**

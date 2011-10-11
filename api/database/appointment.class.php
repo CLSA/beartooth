@@ -33,7 +33,7 @@ class appointment extends record
   }
   
   /**
-   * Determines whether there are operator slots available during this appointment's date/time
+   * Determines whether there are open slots available during this appointment's date/time
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return boolean
@@ -81,13 +81,13 @@ class appointment extends record
             intval( preg_replace( '/[^0-9]/', '',
               substr( $db_shift_template->start_time, 0, -3 ) ) );
           if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[$start_time_as_int] = 0;
-          $diffs[$start_time_as_int] += $db_shift_template->operators;
+          $diffs[$start_time_as_int] += 1;
 
           $end_time_as_int =
             intval( preg_replace( '/[^0-9]/', '',
               substr( $db_shift_template->end_time, 0, -3 ) ) );
           if( !array_key_exists( $end_time_as_int, $diffs ) ) $diffs[$end_time_as_int] = 0;
-          $diffs[$end_time_as_int] -= $db_shift_template->operators;
+          $diffs[$end_time_as_int] -= 1;
         }
       }
     }
@@ -143,14 +143,14 @@ class appointment extends record
     // use the 'diff' arrays to define the 'times' array
     $times = array();
     ksort( $diffs );
-    $num_operators = 0;
+    $num_openings = 0;
     foreach( $diffs as $time => $diff )
     {
-      $num_operators += $diff;
-      $times[$time] = $num_operators;
+      $num_openings += $diff;
+      $times[$time] = $num_openings;
     }
 
-    // end day with no operators (4800 is used because it is long after the end of the day)
+    // end day with no openings (4800 is used because it is long after the end of the day)
     $times[4800] = 0;
     
     // Now search the times array for any 0's inside the appointment time

@@ -111,7 +111,7 @@ class call_history_report extends base_report
     $header = array(
       'Site',
       'UID',
-      'Operator',
+      'Interviewer',
       'Assignment ID',
       'Date',
       'Call Start',

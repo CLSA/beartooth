@@ -36,7 +36,7 @@ class productivity_report extends base_report
 
   public function finish()
   {
-    $db_role = db\role::get_unique_record( 'name', 'operator' );
+    $db_role = db\role::get_unique_record( 'name', 'interviewer' );
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
     $site_mod = new db\modifier();
     if( $restrict_site_id ) 
@@ -78,7 +78,7 @@ class productivity_report extends base_report
     $db_qnaire = new db\qnaire( $this->get_argument( 'restrict_qnaire_id' ) );
     
     $this->add_title( 
-      sprintf( 'Operator productivity for '.
+      sprintf( 'Interviewer productivity for '.
                'the %s interview', $db_qnaire->name ) ) ;
     
     // we define the min and max datetime objects here, they get set in the next foreach loop, then
@@ -96,7 +96,7 @@ class productivity_report extends base_report
       $grand_total_calls = 0;
       foreach( db\user::select() as $db_user )
       {
-        // make sure the operator has min/max time for this date range
+        // make sure the interviewer has min/max time for this date range
         $activity_mod = new db\modifier();
         $activity_mod->where( 'user_id', '=', $db_user->id );
         $activity_mod->where( 'site_id', '=', $db_site->id );
@@ -244,7 +244,7 @@ class productivity_report extends base_report
       if( $single_date )
       {
         $header = array(
-          "Operator",
+          "Interviewer",
           "Completes",
           "Start Time",
           "End Time",
@@ -266,7 +266,7 @@ class productivity_report extends base_report
       else
       {
         $header = array(
-          "Operator",
+          "Interviewer",
           "Completes",
           "Total Time",
           "CompPH",

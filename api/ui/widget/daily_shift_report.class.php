@@ -34,7 +34,7 @@ class daily_shift_report extends base_report
 
     $this->set_variable( 'description',
       'This report is for coordinators to complete at the end of their shift for remittance to the '.
-      'NCC on a daily basis. The report includes operator activity data with operators '.
+      'NCC on a daily basis. The report includes interviewer activity data with interviewers '.
       'subclassified by language.  Areas are provided for questions/concerns and additional '.
       'comments.' );
 

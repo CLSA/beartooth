@@ -35,7 +35,6 @@ class shift_template_view extends base_view
     // add items to the view
     $this->add_item( 'start_time', 'time', 'Start Time' );
     $this->add_item( 'end_time', 'time', 'End Time' );
-    $this->add_item( 'operators', 'number', 'Operators' );
     $this->add_item( 'start_date', 'date', 'Start Date' );
     $this->add_item( 'end_date', 'date', 'End Date' );
   }
@@ -66,7 +65,6 @@ class shift_template_view extends base_view
     // set the view's items
     $this->set_item( 'start_time', $this->get_record()->start_time, true );
     $this->set_item( 'end_time', $this->get_record()->end_time, true );
-    $this->set_item( 'operators', 1, true );
     $this->set_item( 'start_date', $this->get_record()->start_date, true );
     $this->set_item( 'end_date', $this->get_record()->end_date, false );
     

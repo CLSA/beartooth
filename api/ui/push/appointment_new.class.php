@@ -54,7 +54,7 @@ class appointment_new extends base_new
     $force = $this->get_argument( 'force', false );
     
     if( !$force && !$this->get_record()->validate_date() )
-      throw new exc\notice( 'There are no operators available during that time.', __METHOD__ );
+      throw new exc\notice( 'There are no openings available during that time.', __METHOD__ );
     
     // no errors, go ahead and make the change
     parent::finish();

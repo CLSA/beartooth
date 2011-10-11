@@ -319,7 +319,7 @@ final class session extends \beartooth\singleton
   
   /**
    * Get the user's current assignment.
-   * Should only be called if the user is an operator, otherwise an \beartooth\exception will be thrown.
+   * Should only be called if the user is an interviewer, otherwise an exception will be thrown.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\assignment
@@ -327,9 +327,9 @@ final class session extends \beartooth\singleton
    */
   public function get_current_assignment()
   {
-    // make sure the user is an operator
-    if( 'operator' != $this->get_role()->name )
-      throw new exc\runtime( 'Tried to get assignment for non-operator.', __METHOD__ );
+    // make sure the user is an interviewer
+    if( 'interviewer' != $this->get_role()->name )
+      throw new exc\runtime( 'Tried to get assignment for non-interviewer.', __METHOD__ );
     
     // query for assignments which do not have a end time
     $modifier = new db\modifier();
@@ -339,7 +339,7 @@ final class session extends \beartooth\singleton
     // only one assignment should ever be open at a time, warn if this isn't the case
     if( 1 < count( $assignment_list ) )
       log::crit(
-        sprintf( 'Current operator (id: %d, name: %s), has more than one active assignment!',
+        sprintf( 'Current interviewer (id: %d, name: %s), has more than one active assignment!',
                  $this->get_user()->id,
                  $this->get_user()->name ) );
 
@@ -348,7 +348,7 @@ final class session extends \beartooth\singleton
 
   /**
    * Get the user's current phone call.
-   * Should only be called if the user is an operator, otherwise an \beartooth\exception will be thrown.
+   * Should only be called if the user is an interviewer, otherwise an exception will be thrown.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\phone_call
@@ -356,9 +356,9 @@ final class session extends \beartooth\singleton
    */
   public function get_current_phone_call()
   {
-    // make sure the user is an operator
-    if( 'operator' != $this->get_role()->name )
-      throw new exc\runtime( 'Tried to get phone call for non-operator.', __METHOD__ );
+    // make sure the user is an interviewer
+    if( 'interviewer' != $this->get_role()->name )
+      throw new exc\runtime( 'Tried to get phone call for non-interviewer.', __METHOD__ );
     
     // without an assignment there can be no current call
     $db_assignment = $this->get_current_assignment();
@@ -372,7 +372,7 @@ final class session extends \beartooth\singleton
     // only one phone call should ever be open at a time, warn if this isn't the case
     if( 1 < count( $phone_call_list ) )
       log::crit(
-        sprintf( 'Current operator (id: %d, name: %s), has more than one active phone call!',
+        sprintf( 'Current interviewer (id: %d, name: %s), has more than one active phone call!',
                  $this->get_user()->id,
                  $this->get_user()->name ) );
 
@@ -381,7 +381,7 @@ final class session extends \beartooth\singleton
 
   /**
    * Determines whether the user is allowed to make calls.  This depends on whether a SIP
-   * is detected and whether or not operators are allowed to make calls without using VoIP
+   * is detected and whether or not interviewers are allowed to make calls without using VoIP
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @access public
@@ -666,8 +666,8 @@ final class session extends \beartooth\singleton
    */
   public function get_survey_url()
   {
-    // only operators can fill out surveys
-    if( 'operator' != $this->role->name ) return false;
+    // only interviewers can fill out surveys
+    if( 'interviewer' != $this->role->name ) return false;
     
     // must have an assignment
     $db_assignment = $this->get_current_assignment();
