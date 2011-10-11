@@ -85,10 +85,6 @@ VALUES( "widget", "appointment", "calendar", true, "Shows appointments in a cale
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "appointment", "feed", true, "Retrieves a list of shifts for a given time-span." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "shift", "calendar", true, "Shows shifts in a calendar format." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "shift", "feed", true, "Retrieves a list of shifts for a given time-span." );
-INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "shift_template", "calendar", true, "Shows shift templates in a calendar format." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "shift_template", "feed", true, "Retrieves a list of shift templates for a given time-span." );
@@ -282,10 +278,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "participant_tree", "report", true, "Set up a participant tree report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "participant_tree", "report", true, "Download a participant tree report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "daily_shift", "report", true, "Set up a new daily shift report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "pull", "daily_shift", "report", true, "Download a new daily shift report." );
 
 -- role
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -349,20 +341,6 @@ VALUES( "widget", "setting", "list", true, "List settings in the system." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "setting", "primary", true, "Retrieves base setting information." );
 
--- shift
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "shift", "delete", true, "Removes a shift from the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "shift", "edit", true, "Edits a shift's details." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "shift", "new", true, "Add a new shift to the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "shift", "add", true, "View a form for creating a new shift." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "shift", "view", true, "View a shift's details." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "shift", "primary", true, "Retrieves base shift information." );
-
 -- shift_template
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "shift_template", "delete", true, "Removes a shift template from the system." );
@@ -388,10 +366,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "site", "view", true, "View a site's details." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "site", "list", true, "List sites in the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "site", "add_shift", true, "View users to add shifts to." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "site", "delete_shift", true, "Remove shifts from a site." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "site", "add_access", true, "View users to grant access to the site." );
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -436,10 +410,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "user", "view", true, "View a user's details." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "user", "list", true, "List users in the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "user", "add_shift", true, "View shift form for adding the user to a new shift." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "user", "delete_shift", true, "Remove shifts from a user." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "user", "add_access", true, "View sites to grant the user access to." );
 INSERT INTO operation( type, subject, name, restricted, description )

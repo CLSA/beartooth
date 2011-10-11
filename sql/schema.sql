@@ -480,35 +480,6 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `shift`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `shift` ;
-
-CREATE  TABLE IF NOT EXISTS `shift` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `update_timestamp` TIMESTAMP NOT NULL ,
-  `create_timestamp` TIMESTAMP NOT NULL ,
-  `site_id` INT UNSIGNED NOT NULL ,
-  `user_id` INT UNSIGNED NOT NULL ,
-  `start_datetime` DATETIME NOT NULL ,
-  `end_datetime` DATETIME NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  INDEX `fk_site_id` (`site_id` ASC) ,
-  INDEX `fk_user_id` (`user_id` ASC) ,
-  CONSTRAINT `fk_shift_site`
-    FOREIGN KEY (`site_id` )
-    REFERENCES `site` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_shift_user`
-    FOREIGN KEY (`user_id` )
-    REFERENCES `user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `access`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `access` ;

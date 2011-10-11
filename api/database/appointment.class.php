@@ -60,57 +60,33 @@ class appointment extends record
     $end_datetime_obj = clone $start_datetime_obj;
     $end_datetime_obj->add( new \DateInterval( $interval ) ); // appointments are one hour long
 
-    // determine whether to test for shifts or shift templates on the appointment day
+    // determine whether to test for shift templates on the appointment day
     $modifier = new modifier();
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'DATE( start_datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
     
     $diffs = array();
 
-    if( 0 == shift::count( $modifier ) )
-    { // determine slots using shift template
-      $modifier = new $modifier();
-      $modifier->where( 'site_id', '=', $db_site->id );
-      $modifier->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
-      
-      foreach( shift_template::select( $modifier ) as $db_shift_template )
-      {
-        if( $db_shift_template->match_date( $start_datetime_obj->format( 'Y-m-d' ) ) )
-        {
-          $start_time_as_int =
-            intval( preg_replace( '/[^0-9]/', '',
-              substr( $db_shift_template->start_time, 0, -3 ) ) );
-          if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[$start_time_as_int] = 0;
-          $diffs[$start_time_as_int] += 1;
-
-          $end_time_as_int =
-            intval( preg_replace( '/[^0-9]/', '',
-              substr( $db_shift_template->end_time, 0, -3 ) ) );
-          if( !array_key_exists( $end_time_as_int, $diffs ) ) $diffs[$end_time_as_int] = 0;
-          $diffs[$end_time_as_int] -= 1;
-        }
-      }
-    }
-    else // determine slots using shifts
+    // determine slots using shift template
+    $modifier = new $modifier();
+    $modifier->where( 'site_id', '=', $db_site->id );
+    $modifier->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
+    
+    foreach( shift_template::select( $modifier ) as $db_shift_template )
     {
-      $modifier = new $modifier();
-      $modifier->where( 'site_id', '=', $db_site->id );
-      $modifier->where( 'start_datetime', '<', $end_datetime_obj->format( 'Y-m-d H:i:s' ) );
-      $modifier->where( 'end_datetime', '>', $start_datetime_obj->format( 'Y-m-d H:i:s' ) );
-
-      foreach( shift::select( $modifier ) as $db_shift )
+      if( $db_shift_template->match_date( $start_datetime_obj->format( 'Y-m-d' ) ) )
       {
         $start_time_as_int =
           intval( preg_replace( '/[^0-9]/', '',
-            substr( $db_shift->start_datetime, -8, -3 ) ) );
+            substr( $db_shift_template->start_time, 0, -3 ) ) );
+        if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[$start_time_as_int] = 0;
+        $diffs[$start_time_as_int] += 1;
+
         $end_time_as_int =
           intval( preg_replace( '/[^0-9]/', '',
-            substr( $db_shift->end_datetime, -8, -3 ) ) );
-
-        if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[$start_time_as_int] = 0;
-        $diffs[$start_time_as_int]++;
+            substr( $db_shift_template->end_time, 0, -3 ) ) );
         if( !array_key_exists( $end_time_as_int, $diffs ) ) $diffs[$end_time_as_int] = 0;
-        $diffs[$end_time_as_int]--;
+        $diffs[$end_time_as_int] -= 1;
       }
     }
     

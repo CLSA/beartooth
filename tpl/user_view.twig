@@ -10,7 +10,7 @@
 {% block javascript %}
   
   {{ parent() }}
-  {% if view_shifts or reset_password %}
+  {% if reset_password %}
     <script type="text/javascript">
       $( function() {
         {% if reset_password %}
@@ -20,23 +20,6 @@
               "Are you sure you wish to reset this user's password?",
               function() { ajax_push( 'user', 'reset_password', { "id": {{ id }} } ); }
             );
-          } );
-        {% endif %}
-        
-        {% if view_shifts %}
-          // shift calendar button
-          $( "#{{ widget.full }}_calendar" ).click( function() {
-            slot_load( "{{ widget.full }}", "shift", "calendar", { user_id: {{ id }} } );
-            $( "#{{ widget.full }}_slot" ).dialog( "open" );
-          } );
-          
-          // shift calendar dialog
-          $( "#{{ widget.full }}_slot" ).dialog( { 
-            autoOpen: false,
-            title: "Shift calendar",
-            modal: false,
-            width: 800,
-            height: 600
           } );
         {% endif %}
       } );
@@ -50,11 +33,8 @@
 
   {{ parent() }}
   {% from 'macros.twig' import include_list %}
-  {% if view_shifts or reset_password %}
+  {% if reset_password %}
     <div class="spacer">
-      {% if view_shifts %}
-        <button id="{{ widget.full }}_calendar">Shift Calendar</button>
-      {% endif %}
       {% if reset_password %}
         <button id="{{ widget.full }}_password">Reset Password</button>
       {% endif %}

@@ -14,7 +14,7 @@ use beartooth\database as db;
 use beartooth\exception as exc;
 
 /**
- * widget site calendar
+ * widget shift template calendar
  * 
  * @package beartooth\ui
  */
@@ -23,7 +23,7 @@ class shift_template_calendar extends base_calendar
   /**
    * Constructor
    * 
-   * Defines all variables required by the site calendar.
+   * Defines all variables required by the shift template calendar.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param array $args An associative array of arguments to be processed by the widget
    * @access public

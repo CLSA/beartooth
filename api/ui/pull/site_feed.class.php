@@ -95,38 +95,6 @@ class site_feed extends base_feed
       }
     }
 
-    // fill in the shifts (which override shift templates for that day)
-    $modifier = new db\modifier();
-    $modifier->where( 'site_id', '=', $db_site->id );
-    $modifier->where( 'start_datetime', '<', $this->end_datetime );
-    $modifier->where( 'end_datetime', '>', $this->start_datetime );
-    $modifier->order( 'start_datetime' );
-    foreach( db\shift::select( $modifier ) as $db_shift )
-    {
-      $start_datetime_obj = util::get_datetime_object( $db_shift->start_datetime );
-      $end_datetime_obj = util::get_datetime_object( $db_shift->end_datetime );
-      $date = $start_datetime_obj->format( 'Y-m-d' );
-      
-      if( $days[$date]['template'] )
-      { // remove the shift templates for this day, replace with shift
-        $days[$date]['diffs'] = array();
-        $days[$date]['template'] = false;
-      }
-
-      $diffs = &$days[ $start_datetime_obj->format( 'Y-m-d' ) ]['diffs'];
-      
-      $start_time_as_int = intval( $start_datetime_obj->format( 'Gi' ) );
-      $end_time_as_int = intval( $end_datetime_obj->format( 'Gi' ) );
-      
-      if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[ $start_time_as_int ] = 0;
-      $diffs[ $start_time_as_int ]++;
-      if( !array_key_exists( $end_time_as_int, $diffs ) ) $diffs[ $end_time_as_int ] = 0;
-      $diffs[ $end_time_as_int ]--;
-
-      // unset diffs since it is a reference
-      unset( $diffs );
-    }
-
     // fill in the appointments which have not been completed
     $modifier = new db\modifier();
     $modifier->where( 'datetime', '>=', $this->start_datetime );
