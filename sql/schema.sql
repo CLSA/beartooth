@@ -213,7 +213,7 @@ CREATE  TABLE IF NOT EXISTS `assignment` (
   `user_id` INT UNSIGNED NOT NULL ,
   `site_id` INT UNSIGNED NOT NULL COMMENT 'The site from which the user was assigned.' ,
   `interview_id` INT UNSIGNED NOT NULL ,
-  `queue_id` INT UNSIGNED NOT NULL COMMENT 'The queue that the assignment came from.' ,
+  `queue_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'The queue that the assignment came from.' ,
   `start_datetime` DATETIME NOT NULL ,
   `end_datetime` DATETIME NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
