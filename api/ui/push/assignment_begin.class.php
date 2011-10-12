@@ -41,31 +41,7 @@ class assignment_begin extends \beartooth\ui\push
   {
     $session = bus\session::self();
 
-    // search through every queue for a new assignment until one is found
-    $queue_mod = new db\modifier();
-    $queue_mod->where( 'rank', '!=', NULL );
-    $queue_mod->order( 'rank' );
-    $db_origin_queue = NULL;
-    $db_participant = NULL;
-    $db_appointment_id = NULL;
-    foreach( db\queue::select( $queue_mod ) as $db_queue )
-    {
-      $participant_mod = new db\modifier();
-      $participant_mod->limit( 1 );
-      $db_queue->set_site( $session->get_site() );
-      $participant_list = $db_queue->get_participant_list( $participant_mod );
-      if( 1 == count( $participant_list ) )
-      {
-        $db_origin_queue = $db_queue;
-        $db_participant = current( $participant_list );
-
-        break;
-      }
-    }
-
-    if( is_null( $db_participant ) )
-      throw new exc\notice(
-        'There are no participants currently available.', __METHOD__ );
+    $db_participant = new db\participant( $this->get_argument( 'participant_id' ) );
     
     // make sure the qnaire has phases
     $db_qnaire = new db\qnaire( $db_participant->current_qnaire_id );
@@ -99,7 +75,7 @@ class assignment_begin extends \beartooth\ui\push
     $db_assignment->user_id = $session->get_user()->id;
     $db_assignment->site_id = $session->get_site()->id;
     $db_assignment->interview_id = $db_interview->id;
-    $db_assignment->queue_id = $db_origin_queue->id;
+    $db_assignment->queue_id = $this->get_argument( 'queue_id', NULL );
     $db_assignment->save();
   }
 }

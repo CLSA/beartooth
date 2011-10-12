@@ -58,6 +58,8 @@ try
   $variables = array( 'jquery_ui_css_path' => '/'.$theme.'/jquery-ui-'.$version.'.custom.css',
                       // this is false if the survey shouldn't be displayed
                       'survey_url' => $session->get_survey_url(),
+                      'show_menu' => 'interviewer' != $session->get_role()->name ||
+                                     is_null( $session->get_current_assignment() ),
                       'reset_password' => $reset_password );
   
   $result_array['output'] = $twig_template->render( $variables );

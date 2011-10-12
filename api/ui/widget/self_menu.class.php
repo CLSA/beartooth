@@ -88,7 +88,7 @@ class self_menu extends \beartooth\ui\widget
           'name' => $db_widget->name );
       
       // insert the participant tree after participant list
-      if( 'participant' == $db_widget->subject )
+      if( 'participant' == $db_widget->subject && 'interviewer' != $db_role->name )
         $lists[] = array( 'heading' => 'Participant Tree',
                           'subject' => 'participant',
                           'name' => 'tree' );

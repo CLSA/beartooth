@@ -51,7 +51,7 @@ final class session extends \beartooth\singleton
    * 
    * This method should be called immediately after initial construct of the session.
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @throws exception\runtime
+   * @throws exception\permission
    * @access public
    */
   public function initialize()
@@ -169,6 +169,7 @@ final class session extends \beartooth\singleton
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\site $db_site
    * @param database\role $db_role
+   * @throws exception\permission
    * @access public
    */
   public function set_site_and_role( $db_site, $db_role )
@@ -209,6 +210,7 @@ final class session extends \beartooth\singleton
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\user $db_user
+   * @throws exception\notice
    * @access public
    */
   public function set_user( $db_user )
@@ -323,6 +325,7 @@ final class session extends \beartooth\singleton
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\assignment
+   * @throws exception\runtime
    * @access public
    */
   public function get_current_assignment()
@@ -352,6 +355,7 @@ final class session extends \beartooth\singleton
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\phone_call
+   * @throws exception\runtime
    * @access public
    */
   public function get_current_phone_call()
@@ -569,11 +573,22 @@ final class session extends \beartooth\singleton
    */
   public function slot_current( $slot )
   {
-    // make sure the slot's stack has been created
-    $this->validate_slot( $slot ); 
-    // return the item at the current index
-    $index = $_SESSION['slot'][$slot]['stack']['index'];
-    return 0 <= $index ? $_SESSION['slot'][$slot]['stack']['widgets'][$index] : NULL;
+    if( 'main' == $slot &&
+        'interviewer' == $this->get_role()->name &&
+        $this->get_current_assignment() )
+    {
+      $slot = array( 'name' => 'interviewer_assignment', 'args' => NULL );
+    }
+    else
+    {
+      // make sure the slot's stack has been created
+      $this->validate_slot( $slot ); 
+      // return the item at the current index
+      $index = $_SESSION['slot'][$slot]['stack']['index'];
+      $slot = 0 <= $index ? $_SESSION['slot'][$slot]['stack']['widgets'][$index] : NULL;
+    }
+    
+    return $slot;
   }
 
   /**

@@ -113,6 +113,10 @@ VALUES( "widget", "consent", "list", true, "Lists a participant's consent entrie
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "consent", "primary", true, "Retrieves base consent information." );
 
+-- interviewer
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "interviewer", "assignment", true, "Displays the interviewer's assignment manager." );
+
 -- notes
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "note", "delete", true, "Removes a note from the system." );

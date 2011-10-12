@@ -126,6 +126,11 @@ class participant_view extends base_view
   public function finish()
   {
     parent::finish();
+    
+    // set whether or not to show the assign button
+    $allow_assign = 'interviewer' == bus\session::self()->get_role()->name &&
+                    0 < $this->get_record()->get_phone_count();
+    $this->set_variable( 'allow_assign', $allow_assign );
 
     // create enum arrays
     $languages = db\participant::get_enum_values( 'language' );
