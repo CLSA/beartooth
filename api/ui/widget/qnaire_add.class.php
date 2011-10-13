@@ -35,6 +35,7 @@ class qnaire_add extends base_view
     // define all columns defining this record
     $this->add_item( 'name', 'string', 'Name' );
     $this->add_item( 'rank', 'enum', 'Rank' );
+    $this->add_item( 'type', 'enum', 'Type' );
     $this->add_item( 'prev_qnaire_id', 'enum', 'Previous Questionnaire',
       'The questionnaire which must be finished before this one begins.' );
     $this->add_item( 'delay', 'number', 'Delay (weeks)',
@@ -63,6 +64,8 @@ class qnaire_add extends base_view
     end( $ranks );
     $last_rank_key = key( $ranks );
     reset( $ranks );
+    $types = db\qnaire::get_enum_types( 'type' );
+    $types = array_combine( $types, $types );
     $surveys = array();
     $modifier = new db\modifier();
     $modifier->where( 'active', '=', 'Y' );
@@ -74,6 +77,7 @@ class qnaire_add extends base_view
     // set the view's items
     $this->set_item( 'name', '', true );
     $this->set_item( 'rank', $last_rank_key, true, $ranks );
+    $this->set_item( 'type', key( $types ), true, $types );
     $this->set_item( 'prev_qnaire_id', key( $qnaires ), false, $qnaires );
     $this->set_item( 'delay', 52, true );
     $this->set_item( 'withdraw_sid', key( $surveys ), true, $surveys );

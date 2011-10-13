@@ -34,6 +34,7 @@ class qnaire_list extends base_list_widget
     
     $this->add_column( 'name', 'string', 'Name', true );
     $this->add_column( 'rank', 'number', 'Rank', true );
+    $this->add_column( 'type', 'string', 'Type', true );
     $this->add_column( 'prev_qnaire', 'string', 'Previous', false );
     $this->add_column( 'delay', 'number', 'Delay (weeks)', false );
     $this->add_column( 'phases', 'number', 'Stages', false );
@@ -62,6 +63,7 @@ class qnaire_list extends base_list_widget
       $this->add_row( $record->id,
         array( 'name' => $record->name,
                'rank' => $record->rank,
+               'type' => $record->type,
                'prev_qnaire' => $prev_qnaire,
                'delay' => $record->delay,
                'phases' => $record->get_phase_count() ) );

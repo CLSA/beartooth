@@ -67,9 +67,10 @@ LOAD DATA LOCAL INFILE "./phone_numbers.csv"
 INTO TABLE phone
 FIELDS TERMINATED BY ',' ENCLOSED BY '"';
 
-INSERT INTO qnaire ( name, rank, prev_qnaire_id, delay ) VALUES
-( 'Baseline', 1, NULL, 52 ),
-( 'Maintaining Contact', 2, 1, 78 ),
-( 'Follow Up', 3, 1, 156 );
+INSERT INTO qnaire ( name, rank, type, prev_qnaire_id, delay ) VALUES
+( 'Baseline Home', 1, 'home', NULL, 0 ),
+( 'Baseline Site', 2, 'site', 1, 0 ),
+( 'Follow Up Home', 3, 'home', 2, 156 ),
+( 'Follow Up Site', 4, 'site', 3, 0 );
 
 COMMIT;

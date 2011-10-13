@@ -35,6 +35,7 @@ class qnaire_view extends base_view
     // create an associative array with everything we want to display about the qnaire
     $this->add_item( 'name', 'string', 'Name' );
     $this->add_item( 'rank', 'enum', 'Rank' );
+    $this->add_item( 'type', 'enum', 'Type' );
     $this->add_item( 'prev_qnaire_id', 'enum', 'Previous Questionnaire',
       'The questionnaire which must be finished before this one begins.' );
     $this->add_item( 'delay', 'number', 'Delay (weeks)',
@@ -75,6 +76,8 @@ class qnaire_view extends base_view
     $ranks = array();
     for( $rank = 1; $rank <= ( $num_ranks + 1 ); $rank++ ) $ranks[] = $rank;
     $ranks = array_combine( $ranks, $ranks );
+    $types = db\qnaire::get_enum_values( 'type' );
+    $types = array_combine( $types, $types );
     $surveys = array();
     $modifier = new db\modifier();
     $modifier->where( 'active', '=', 'Y' );
@@ -86,6 +89,7 @@ class qnaire_view extends base_view
     // set the view's items
     $this->set_item( 'name', $this->get_record()->name, true );
     $this->set_item( 'rank', $this->get_record()->rank, true, $ranks );
+    $this->set_item( 'type', $this->get_record()->type, true, $types );
     $this->set_item( 'prev_qnaire_id', $this->get_record()->prev_qnaire_id, false, $qnaires );
     $this->set_item( 'delay', $this->get_record()->delay, true );
     $this->set_item( 'withdraw_sid', $this->get_record()->withdraw_sid, false, $surveys );
