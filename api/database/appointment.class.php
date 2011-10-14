@@ -31,10 +31,42 @@ class appointment extends record
     // appointments are not to the second, so remove the :00 at the end of the datetime field
     $this->datetime = substr( $this->datetime, 0, -3 );
   }
+
+  /**
+   * Overrides the parent save method.
+   * @author Patrick Emond
+   * @access public
+   */
+  public function save()
+  {
+    // make sure there is a maximum of 1 future home appointment and 1 future site appointment
+    $now_datetime_obj = util::get_datetime_object();
+    $modifier = new modifier();
+    $modifier->where( 'participant_id', '=', $this->participant_id );
+    $modifier->where( 'datetime', '>', $now_datetime_obj->format( 'Y-m-d H:i:s' ) );
+    $modifier->where( 'address_id', is_null( $this->address_id ) ? '=' : '!=', NULL );
+    if( !is_null( $this->id ) ) $modifier->where( 'id', '!=', $this->id );
+    $appointment_list = static::select( $modifier );
+    if( 0 < count( $appointment_list ) )
+    {
+      $db_appointment = current( $appointment_list );
+      throw new exc\notice(
+        sprintf( 'Unable to add the appointment since the participant already has an upcomming '.
+                 '%s appointment scheduled for %s.',
+                 is_null( $this->address_id ) ? 'site' : 'home',
+                 util::get_formatted_datetime( $db_appointment->datetime ) ),
+        __METHOD__ );
+    }
+
+    parent::save();
+  }
   
   /**
-   * Determines whether there are open slots available during this appointment's date/time
-   * 
+   * Determines whether there are open slots available during this appointment's date/time.
+   * The result will depend on whether the appointment has an address or not.  If not then
+   * it is considered to be a site interview (and so it refers to openings to the site
+   * calendar), otherwise it is considered to be a home interview (and so it refers to
+   * openings to the home calendar).
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return boolean
    * @throws exception\runtime
@@ -42,54 +74,52 @@ class appointment extends record
    */
   public function validate_date()
   {
-    if( is_null( $this->address_id ) )
-      throw new exc\runtime(
-        'Cannot validate appointment date, address id is not set.', __METHOD__ );
-
     $db_participant = new participant( $this->participant_id );
     $db_site = $db_participant->get_primary_site();
     if( is_null( $db_site ) )
       throw new exc\runtime(
         'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
     
+    $home = !is_null( $this->address_id );
+
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
-                         bus\setting_manager::self()->get_setting( 'appointment', 'duration' ) );
+                         bus\setting_manager::self()->get_setting(
+                           'appointment',
+                           $home ? 'home duration' : 'site duration' ) );
 
     $start_datetime_obj = util::get_datetime_object( $this->datetime );
     $end_datetime_obj = clone $start_datetime_obj;
-    $end_datetime_obj->add( new \DateInterval( $interval ) ); // appointments are one hour long
+    $end_datetime_obj->add( new \DateInterval( $interval ) );
 
-    // determine whether to test for shift templates on the appointment day
-    $modifier = new modifier();
-    $modifier->where( 'site_id', '=', $db_site->id );
-    $modifier->where( 'DATE( start_datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
-    
     $diffs = array();
-
-    // determine slots using shift template
-    $modifier = new $modifier();
-    $modifier->where( 'site_id', '=', $db_site->id );
-    $modifier->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
     
-    foreach( shift_template::select( $modifier ) as $db_shift_template )
+    if( !$home )
     {
-      if( $db_shift_template->match_date( $start_datetime_obj->format( 'Y-m-d' ) ) )
+      // determine site slots using shift template
+      $modifier = new $modifier();
+      $modifier->where( 'site_id', '=', $db_site->id );
+      $modifier->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
+      
+      foreach( shift_template::select( $modifier ) as $db_shift_template )
       {
-        $start_time_as_int =
-          intval( preg_replace( '/[^0-9]/', '',
-            substr( $db_shift_template->start_time, 0, -3 ) ) );
-        if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[$start_time_as_int] = 0;
-        $diffs[$start_time_as_int] += 1;
-
-        $end_time_as_int =
-          intval( preg_replace( '/[^0-9]/', '',
-            substr( $db_shift_template->end_time, 0, -3 ) ) );
-        if( !array_key_exists( $end_time_as_int, $diffs ) ) $diffs[$end_time_as_int] = 0;
-        $diffs[$end_time_as_int] -= 1;
+        if( $db_shift_template->match_date( $start_datetime_obj->format( 'Y-m-d' ) ) )
+        {
+          $start_time_as_int =
+            intval( preg_replace( '/[^0-9]/', '',
+              substr( $db_shift_template->start_time, 0, -3 ) ) );
+          if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[$start_time_as_int] = 0;
+          $diffs[$start_time_as_int] += 1;
+  
+          $end_time_as_int =
+            intval( preg_replace( '/[^0-9]/', '',
+              substr( $db_shift_template->end_time, 0, -3 ) ) );
+          if( !array_key_exists( $end_time_as_int, $diffs ) ) $diffs[$end_time_as_int] = 0;
+          $diffs[$end_time_as_int] -= 1;
+        }
       }
     }
-    
+
     // and how many appointments are during this time?
     $modifier = new modifier();
     $modifier->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
@@ -102,7 +132,6 @@ class appointment extends record
         $appointment_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
   
         $start_time_as_int = intval( $appointment_datetime_obj->format( 'Gi' ) );
-        // increment slot one hour later
         $appointment_datetime_obj->add( new \DateInterval( $interval ) );
         $end_time_as_int = intval( $appointment_datetime_obj->format( 'Gi' ) );
   
@@ -113,13 +142,13 @@ class appointment extends record
       }
     }
     
-    // if we have no diffs on this day, then we have no slots
-    if( 0 == count( $diffs ) ) return false;
+    // if we have no diffs on this day, then the site has no slots and home has 1 slot
+    if( 0 == count( $diffs ) ) return $home ? true : false;
 
     // use the 'diff' arrays to define the 'times' array
     $times = array();
     ksort( $diffs );
-    $num_openings = 0;
+    $num_openings = $home ? 1 : 0;
     foreach( $diffs as $time => $diff )
     {
       $num_openings += $diff;
@@ -127,14 +156,14 @@ class appointment extends record
     }
 
     // end day with no openings (4800 is used because it is long after the end of the day)
-    $times[4800] = 0;
+    $times[4800] = $home ? 1 : 0;
     
     // Now search the times array for any 0's inside the appointment time
     // NOTE: we need to include the time immediately prior to the appointment start time
     $start_time_as_int = intval( $start_datetime_obj->format( 'Gi' ) );
     $end_time_as_int = intval( $end_datetime_obj->format( 'Gi' ) );
     $match = false;
-    $last_slots = 0;
+    $last_slots = $home ? 1 : 0;
     $last_time = 0;
 
     foreach( $times as $time => $slots )
@@ -177,7 +206,7 @@ class appointment extends record
     // straight join the tables
     if( is_null( $modifier ) ) $modifier = new modifier();
     $modifier->where( 'appointment.address_id', '=', 'address.id', false );
-    $modifier->where( 'address.participant_id', '=', 'participant.id', false );
+    $modifier->where( 'appointment.participant_id', '=', 'participant.id', false );
 
     $sql = sprintf( ( $count ? 'SELECT COUNT( %s.%s ) ' : 'SELECT %s.%s ' ).
                     'FROM %s '.
@@ -219,13 +248,74 @@ class appointment extends record
     return static::select_for_site( $db_site, $modifier, true );
   }
 
+  /**
+   * Identical to the parent's select method but restrict to the current user's participants.
+   * TODO: this is currently the same as select_for_site, need to implement for user
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param modifier $modifier Modifications to the selection.
+   * @param boolean $count If true the total number of records instead of a list
+   * @return array( record ) | int
+   * @static
+   * @access public
+   */
+  public static function select_for_self( $modifier = NULL, $count = false )
+  {
+    // fake it by getting the user's site
+    $db_site = bus\session::self()->get_site();
+
+    $select_tables = 'appointment, address, participant';
+    
+    // straight join the tables
+    if( is_null( $modifier ) ) $modifier = new modifier();
+    $modifier->where( 'appointment.address_id', '=', 'address.id', false );
+    $modifier->where( 'appointment.participant_id', '=', 'participant.id', false );
+
+    $sql = sprintf( ( $count ? 'SELECT COUNT( %s.%s ) ' : 'SELECT %s.%s ' ).
+                    'FROM %s '.
+                    'WHERE ( participant.site_id = %d '.
+                    '  OR address.region_id IN '.
+                    '  ( SELECT id FROM region WHERE site_id = %d ) ) %s',
+                    static::get_table_name(),
+                    static::get_primary_key_name(),
+                    $select_tables,
+                    $db_site->id,
+                    $db_site->id,
+                    $modifier->get_sql( true ) );
+
+    if( $count )
+    {
+      return intval( static::db()->get_one( $sql ) );
+    }
+    else
+    {
+      $id_list = static::db()->get_col( $sql );
+      $records = array();
+      foreach( $id_list as $id ) $records[] = new static( $id );
+      return $records;
+    }
+  }
+
+  /**
+   * Identical to the parent's count method but restrict to the current user's participants.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param modifier $modifier Modifications to the count.
+   * @return int
+   * @static
+   * @access public
+   */
+  public static function count_for_self( $modifier = NULL )
+  {
+    return static::select_for_self( $modifier, true );
+  }
 
   /**
    * Get the state of the appointment as a string:
    *   reached: the appointment was met and the participant was reached
    *   not reached: the appointment was met but the participant was not reached
    *   upcoming: the appointment's date/time has not yet occurred
-   *   missed: the appointment was missed
+   *   passed: the appointment's date/time has passed
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return string
    * @access public
@@ -244,7 +334,7 @@ class appointment extends record
     $now = util::get_datetime_object()->getTimestamp();
     $appointment = util::get_datetime_object( $this->datetime )->getTimestamp();
 
-    return $now < $appointment ? 'upcoming' : 'missed';
+    return $now < $appointment ? 'upcoming' : 'passed';
   }
 }
 ?>

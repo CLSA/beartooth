@@ -791,7 +791,7 @@ CREATE TABLE IF NOT EXISTS `participant_last_assignment` (`participant_id` INT, 
 -- -----------------------------------------------------
 -- Placeholder table for view `participant_for_queue`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `participant_for_queue` (`id` INT, `active` INT, `uid` INT, `language` INT, `status` INT, `prior_contact_date` INT, `city` INT, `region_id` INT, `postcode` INT, `phone_number_count` INT, `last_consent` INT, `last_assignment_id` INT, `base_site_id` INT, `assigned` INT, `current_qnaire_id` INT, `start_qnaire_date` INT);
+CREATE TABLE IF NOT EXISTS `participant_for_queue` (`id` INT, `active` INT, `uid` INT, `language` INT, `status` INT, `prior_contact_date` INT, `city` INT, `region_id` INT, `postcode` INT, `phone_number_count` INT, `last_consent` INT, `last_assignment_id` INT, `base_site_id` INT, `assigned` INT, `current_qnaire_id` INT, `current_qnaire_type` INT, `start_qnaire_date` INT);
 
 -- -----------------------------------------------------
 -- Placeholder table for view `assignment_last_phone_call`
@@ -882,6 +882,10 @@ SELECT participant.id,
            ( SELECT id FROM qnaire WHERE rank = 1 ),
            IF( current_interview.completed, next_qnaire.id, current_qnaire.id )
        ) AS current_qnaire_id,
+       IF( current_interview.id IS NULL,
+           ( SELECT type FROM qnaire WHERE rank = 1 ),
+           IF( current_interview.completed, next_qnaire.type, current_qnaire.type )
+       ) AS current_qnaire_type,
        IF( current_interview.id IS NULL,
            IF( participant.prior_contact_date IS NULL,
                NULL,

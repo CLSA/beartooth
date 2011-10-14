@@ -18,8 +18,12 @@ ORDER BY rank;
 
 -- appointment
 INSERT INTO setting( category, name, type, value, description )
-VALUES( "appointment", "duration", "integer", "60",
-"The length of time an appointment is estimated to take, in minutes." );
+VALUES( "appointment", "home duration", "integer", "120",
+"The length of time a home appointment is estimated to take, in minutes." );
+
+INSERT INTO setting( category, name, type, value, description )
+VALUES( "appointment", "site duration", "integer", "120",
+"The length of time a site appointment is estimated to take, in minutes." );
 
 -- calling times
 INSERT INTO setting( category, name, type, value, description )

@@ -1,6 +1,6 @@
 <?php
 /**
- * self_timer.class.php
+ * home_calendar.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -14,28 +14,28 @@ use beartooth\database as db;
 use beartooth\exception as exc;
 
 /**
- * widget self timer
+ * widget home calendar
  * 
  * @package beartooth\ui
  */
-class self_timer extends \beartooth\ui\widget
+class home_calendar extends base_calendar
 {
   /**
    * Constructor
    * 
-   * Defines all variables which need to be set for the associated template.
+   * Defines all variables required by the home calendar.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param array $args An associative array of arguments to be processed by the widget
    * @access public
    */
   public function __construct( $args )
   {
-    parent::__construct( 'self', 'timer', $args );
-    $this->show_heading( false );
+    parent::__construct( 'home', $args );
+    $this->set_heading( 'Home appointment calendar' );
   }
-
+  
   /**
-   * Finish setting the variables in a widget.
+   * Set the rows array needed by the template.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @access public
@@ -43,8 +43,8 @@ class self_timer extends \beartooth\ui\widget
   public function finish()
   {
     parent::finish();
-
-    $this->set_variable( 'on_call', !is_null( bus\voip_manager::self()->get_call() ) );
+    $this->set_variable( 'allow_all_day', false );
+    $this->set_variable( 'editable', false );
   }
 }
 ?>

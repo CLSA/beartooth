@@ -65,8 +65,8 @@ class queue extends record
       'qnaire',
       'restricted',
       'qnaire waiting',
-      'assigned',
-      'not assigned',
+      'appointment',
+      'no appointment',
       'new participant',
       'new participant outside calling time',
       'new participant within calling time',
@@ -257,6 +257,26 @@ class queue extends record
       'OR queue_restriction.region_id = participant.region_id '.
       'OR queue_restriction.postcode = participant.postcode';
     
+    $appointment_join =
+      'LEFT JOIN appointment '.
+      'ON appointment.participant_id = participant.id '.
+      'AND '.sprintf( $check_time
+               ? '%s > appointment.datetime'
+               : 'DATE( %s ) > DATE( appointment.datetime )',
+               $viewing_date ).' '.
+      'AND '.
+      '( '.
+      '  ( '.
+      '    current_qnaire_type = "home" '.
+      '    AND appointment.address_id IS NOT NULL '.
+      '  ) '.
+      '  OR '.
+      '  ( '.
+      '    current_qnaire_type = "site" '.
+      '    AND appointment.address_id IS NULL '.
+      '  ) '.
+      ')';
+
     // checks to see if participant is not restricted
     $check_restriction_sql =
       '('.
@@ -452,44 +472,40 @@ class queue extends record
       $parts = self::get_query_parts( 'qnaire' );
       // make sure to only include participants who are not restricted
       $parts['join'][] = $restriction_join;
-      $parts['where'][] = ''.$check_restriction_sql;
+      $parts['where'][] = $check_restriction_sql;
       // the current qnaire cannot start before start_qnaire_date
       $parts['where'][] = 'participant.start_qnaire_date IS NOT NULL';
       $parts['where'][] = sprintf( 'DATE( participant.start_qnaire_date ) > DATE( %s )',
                                    $viewing_date );
       return $parts;
     }
-    else if( 'assigned' == $queue )
+    else if( 'appointment' == $queue )
     {
       $parts = self::get_query_parts( 'qnaire' );
       // make sure to only include participants who are not restricted
       $parts['join'][] = $restriction_join;
-      $parts['where'][] = ''.$check_restriction_sql;
-      // assigned participants
-      $parts['where'][] = 'participant.assigned = true';
+      $parts['join'][] = $appointment_join;
+      $parts['where'][] = $check_restriction_sql;
+      // participants with a future appointment
+      $parts['where'][] = 'appointment.id IS NOT NULL';
       return $parts;
     }
-    else if( 'not assigned' == $queue )
+    else if( 'no appointment' == $queue )
     {
       $parts = self::get_query_parts( 'qnaire' );
       // make sure to only include participants who are not restricted
       $parts['join'][] = $restriction_join;
-      $parts['where'][] = ''.$check_restriction_sql;
-      // the qnaire is ready to start if the start_qnaire_date is null or we have reached that date
-      $parts['where'][] = sprintf(
-        '('.
-        '  participant.start_qnaire_date IS NULL OR'.
-        '  DATE( participant.start_qnaire_date ) <= DATE( %s )'.
-        ')',
-        $viewing_date );
-      $parts['where'][] = 'participant.assigned = false';
+      $parts['where'][] = $check_restriction_sql;
+      $parts['join'][] = $appointment_join;
+      // participants without a future appointment
+      $parts['where'][] = 'appointment.id IS NULL';
       return $parts;
     }
     else if( 'new participant' == $queue )
     {
-      $parts = self::get_query_parts( 'not assigned' );
+      $parts = self::get_query_parts( 'no appointment' );
       // If there is a start_qnaire_date then the current qnaire has never been started,
-      // the exception is for participants who have never been assigned
+      // the exception is for participants who have no appointment
       $parts['where'][] =
         '('.
         '  participant.start_qnaire_date IS NOT NULL OR'.
@@ -560,7 +576,7 @@ class queue extends record
     }
     else if( 'old participant' == $queue )
     {
-      $parts = self::get_query_parts( 'not assigned' );
+      $parts = self::get_query_parts( 'no appointment' );
       // add the last phone call's information
       $parts['from'][] = 'phone_call';
       $parts['from'][] = 'assignment_last_phone_call';

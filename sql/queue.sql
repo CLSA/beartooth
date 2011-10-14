@@ -205,8 +205,8 @@ description = "Eligible participants who are waiting the scheduled cool-down per
 beginning the questionnaire.";
 
 INSERT INTO queue SET
-name = "assigned",
-title = "Currently assigned",
+name = "appointment",
+title = "Appointment scheduled",
 rank = NULL,
 qnaire_specific = true,
 parent_queue_id = (
@@ -214,11 +214,11 @@ parent_queue_id = (
     SELECT id
     FROM queue
     WHERE name = "qnaire" ) AS tmp ),
-description = "Eligible participants who are currently assigned to an interviewer.";
+description = "Participants whose interview has been scheduled.";
 
 INSERT INTO queue SET
-name = "not assigned",
-title = "Not assigned",
+name = "no appointment",
+title = "No appointment",
 rank = NULL,
 qnaire_specific = true,
 parent_queue_id = (
@@ -226,7 +226,7 @@ parent_queue_id = (
     SELECT id
     FROM queue
     WHERE name = "qnaire" ) AS tmp ),
-description = "Eligible participants who are not assigned to an interviewer.";
+description = "Participants whose interview has not been scheduled.";
 
 INSERT INTO queue SET
 name = "new participant",
@@ -237,7 +237,7 @@ parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
-    WHERE name = "not assigned" ) AS tmp ),
+    WHERE name = "no appointment" ) AS tmp ),
 description = "Participants who have never been assigned to an interviewer.";
 
 INSERT INTO queue SET
@@ -309,7 +309,7 @@ parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
-    WHERE name = "not assigned" ) AS tmp ),
+    WHERE name = "no appointment" ) AS tmp ),
 description = "Participants who have been previously assigned.";
 
 INSERT INTO queue SET

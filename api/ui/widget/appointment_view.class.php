@@ -38,7 +38,7 @@ class appointment_view extends base_appointment_view
       'will take place at.' );
     $this->add_item( 'datetime', 'datetime', 'Date' );
     $this->add_item( 'state', 'constant', 'State',
-      '(One of reached, not reached, upcoming or missed)' );
+      '(One of reached, not reached, upcoming or passed)' );
   }
 
   /**
@@ -57,18 +57,27 @@ class appointment_view extends base_appointment_view
     $modifier = new db\modifier();
     $modifier->where( 'active', '=', true );
     $modifier->order( 'rank' );
-    $address_list = array();
-    foreach( $db_participant->get_address_list( $modifier ) as $db_address )
-      $address_list[$db_address->id] = sprintf(
-        '%s, %s, %s, %s',
-        $db_address->address2 ? $db_address->address1.', '.$db_address->address2
-                              : $db_address->address1,
-        $db_address->city,
-        $db_address->get_region()->abbreviation,
-        $db_address->postcode );
+
+    // don't allow users to change the type (home/site) of appointment
+    if( is_null( $this->get_record()->address_id ) )
+    {
+      $address_list = array( 'NULL' => 'site' );
+    }
+    else
+    {
+      foreach( $db_participant->get_address_list( $modifier ) as $db_address )
+        $address_list[$db_address->id] = sprintf(
+          '%s, %s, %s, %s',
+          $db_address->address2 ? $db_address->address1.', '.$db_address->address2
+                                : $db_address->address1,
+          $db_address->city,
+          $db_address->get_region()->abbreviation,
+          $db_address->postcode );
+    }
     
     // set the view's items
-    $this->set_item( 'address_id', $this->get_record()->address_id, true, $address_list, true );
+    $this->set_item(
+      'address_id', $this->get_record()->address_id, true, $address_list, true );
     $this->set_item( 'datetime', $this->get_record()->datetime, true );
     $this->set_item( 'state', $this->get_record()->get_state(), false );
 

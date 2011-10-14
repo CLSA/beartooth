@@ -53,18 +53,17 @@ class appointment_list extends site_restricted_list
     foreach( $this->get_record_list() as $record )
     {
       $db_address = $record->get_address();
-      $address = is_null( $db_address )
-               ? 'site'
-               : sprintf(
-        '%s, %s, %s, %s',
-        $db_address->address2 ? $db_address->address1.', '.$db_address->address2
-                              : $db_address->address1,
-        $db_address->city,
-        $db_address->get_region()->abbreviation,
-        $db_address->postcode );
+      $address =
+        is_null( $db_address ) ? 'site' : sprintf(
+          '%s, %s, %s, %s',
+          $db_address->address2 ? $db_address->address1.', '.$db_address->address2
+                                : $db_address->address1,
+          $db_address->city,
+          $db_address->get_region()->abbreviation,
+          $db_address->postcode );
 
       $this->add_row( $record->id,
-        array( 'uid' => $db_address->get_participant()->uid,
+        array( 'uid' => $record->get_participant()->uid,
                'address' => $address,
                'datetime' => $record->datetime,
                'state' => $record->get_state() ) );

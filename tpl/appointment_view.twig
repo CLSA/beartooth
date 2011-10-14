@@ -11,7 +11,11 @@
   
   {{ parent() }}
   {% from 'macros.twig' import include_calendar %}
-  {{ include_calendar( 'site', site_calendar|default(false), true ) }}
+  {% if item.address_id %}
+    {{ include_calendar( 'home', home_calendar|default(false), true ) }}
+  {% else %}
+    {{ include_calendar( 'site', site_calendar|default(false), true ) }}
+  {% endif %}
 
 {% endblock record %}
 

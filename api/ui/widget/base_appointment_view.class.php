@@ -43,6 +43,17 @@ abstract class base_appointment_view extends base_view
     {
       $this->site_calendar = NULL;
     }
+    
+    try
+    {
+      // create the home calendar widget
+      $this->home_calendar = new home_calendar( $args );
+      $this->home_calendar->set_parent( $this );
+    }
+    catch( exc\permission $e )
+    {
+      $this->home_calendar = NULL;
+    }
   }
 
   /**
@@ -63,6 +74,12 @@ abstract class base_appointment_view extends base_view
         $this->site_calendar->finish();
         $this->set_variable( 'site_calendar', $this->site_calendar->get_variables() );
       }
+
+      if( !is_null( $this->home_calendar ) )
+      {
+        $this->home_calendar->finish();
+        $this->set_variable( 'home_calendar', $this->home_calendar->get_variables() );
+      }
     }
   }
 
@@ -72,5 +89,12 @@ abstract class base_appointment_view extends base_view
    * @access protected
    */
   protected $site_calendar = NULL;
+
+  /**
+   * Site calendar used to help find appointment availability
+   * @var home_calendar $home_calendar
+   * @access protected
+   */
+  protected $home_calendar = NULL;
 }
 ?>

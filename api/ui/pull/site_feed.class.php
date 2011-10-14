@@ -46,7 +46,9 @@ class site_feed extends base_feed
 
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
-                         bus\setting_manager::self()->get_setting( 'appointment', 'duration' ) );
+                         bus\setting_manager::self()->get_setting(
+                           'appointment',
+                           'site duration' ) );
 
     // start by creating an array with one element per day in the time span
     $start_datetime_obj = util::get_datetime_object( $this->start_datetime );
@@ -171,7 +173,7 @@ class site_feed extends base_feed
                        $minutes ? ':'.sprintf( '%02d', $minutes ) : '',
                        $hours > 12 ? 'p' : 'a' );
             $event_list[] = array(
-              'title' => sprintf( ' to %s: %d slots', $end_time_for_title, $available ),
+              'title' => sprintf( ' to %s', $end_time_for_title ),
               'allDay' => false,
               'start' => $date.' '.$start_time,
               'end' => $date.' '.$end_time );

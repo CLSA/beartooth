@@ -81,21 +81,17 @@ VALUES( "pull", "availability", "primary", true, "Retrieves base availability in
 
 -- calendar
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "appointment", "calendar", true, "Shows appointments in a calendar format." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "appointment", "feed", true, "Retrieves a list of shifts for a given time-span." );
-INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "shift_template", "calendar", true, "Shows shift templates in a calendar format." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "shift_template", "feed", true, "Retrieves a list of shift templates for a given time-span." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "home", "calendar", true, "A calendar listing the number of interviewers free for an appointment." );
+VALUES( "widget", "home", "calendar", true, "A calendar listing home appointments." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "home", "feed", true, "Retrieves a list of free home appointment times for a given time-span." );
+VALUES( "pull", "home", "feed", true, "Retrieves a list of home appointment times for a given time-span." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "site", "calendar", true, "A calendar listing the number of interviewers free for an appointment." );
+VALUES( "widget", "site", "calendar", true, "A calendar listing site appointment." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "site", "feed", true, "Retrieves a list of free site appointment times for a given time-span." );
+VALUES( "pull", "site", "feed", true, "Retrieves a list of site appointment times for a given time-span." );
 
 -- consent
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -320,8 +316,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "self", "password", false, "Dialog for changing the user's password." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "self", "set_password", false, "Changes the user's password." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "self", "timer", false, "A timer widget used to count time and play sounds." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "self", "dialing_pad", false, "A telephone dialing pad widget." );
 INSERT INTO operation( type, subject, name, restricted, description )
