@@ -44,7 +44,7 @@ class home_calendar extends base_calendar
   {
     parent::finish();
     $this->set_variable( 'allow_all_day', false );
-    $this->set_variable( 'editable', false );
+    $this->set_variable( 'editable', true );
   }
 }
 ?>

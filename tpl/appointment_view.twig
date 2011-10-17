@@ -10,11 +10,13 @@
 {% block record %}
   
   {{ parent() }}
-  {% from 'macros.twig' import include_calendar %}
-  {% if item.address_id %}
-    {{ include_calendar( 'home', home_calendar|default(false), true ) }}
-  {% else %}
-    {{ include_calendar( 'site', site_calendar|default(false), true ) }}
+  {% if not hide_calendar %}
+    {% from "macros.twig" import include_calendar %}
+    {% if item.address_id and "main" != slot %}
+      {{ include_calendar( "home", home_calendar|default(false), true ) }}
+    {% else %}
+      {{ include_calendar( "site", site_calendar|default(false), true ) }}
+    {% endif %}
   {% endif %}
 
 {% endblock record %}
@@ -22,7 +24,7 @@
 {% block post_record %}
 
   {{ parent() }}
-  {% from 'macros.twig' import confirm_buttons %}
-  {{ confirm_buttons( slot, widget.full, '', 'Back', 'right', true ) }}
+  {% from "macros.twig" import confirm_buttons %}
+  {{ confirm_buttons( slot, widget.full, "", "Back", "right", true ) }}
 
 {% endblock post_record %}

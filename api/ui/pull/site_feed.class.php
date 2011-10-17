@@ -111,7 +111,6 @@ class site_feed extends base_feed
         $diffs = &$days[ $appointment_datetime_obj->format( 'Y-m-d' ) ]['diffs'];
   
         $start_time_as_int = intval( $appointment_datetime_obj->format( 'Gi' ) );
-        // increment slot one hour later
         $appointment_datetime_obj->add( new \DateInterval( $interval ) );
         $end_time_as_int = intval( $appointment_datetime_obj->format( 'Gi' ) );
   
