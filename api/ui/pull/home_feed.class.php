@@ -49,7 +49,6 @@ class home_feed extends base_feed
     $modifier->where( 'datetime', '<', $this->end_datetime );
 
     $event_list = array();
-    $db_site = bus\session::self()->get_site();
     foreach( db\appointment::select_for_self( $modifier ) as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );

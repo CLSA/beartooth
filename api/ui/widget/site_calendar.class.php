@@ -31,7 +31,7 @@ class site_calendar extends base_calendar
   public function __construct( $args )
   {
     parent::__construct( 'site', $args );
-    $this->set_heading( 'Open appointment slots for '.bus\session::self()->get_site()->name );
+    $this->set_heading( 'Site appointment calendar' );
   }
   
   /**
@@ -44,7 +44,7 @@ class site_calendar extends base_calendar
   {
     parent::finish();
     $this->set_variable( 'allow_all_day', false );
-    $this->set_variable( 'editable', false );
+    $this->set_variable( 'editable', true );
   }
 }
 ?>

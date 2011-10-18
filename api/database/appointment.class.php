@@ -201,21 +201,20 @@ class appointment extends record
     // if there is no site restriction then just use the parent method
     if( is_null( $db_site ) ) return parent::select( $modifier, $count );
     
-    $select_tables = 'appointment, address, participant';
-    
     // straight join the tables
     if( is_null( $modifier ) ) $modifier = new modifier();
-    $modifier->where( 'appointment.address_id', '=', 'address.id', false );
     $modifier->where( 'appointment.participant_id', '=', 'participant.id', false );
 
-    $sql = sprintf( ( $count ? 'SELECT COUNT( %s.%s ) ' : 'SELECT %s.%s ' ).
-                    'FROM %s '.
+    $sql = sprintf( ( $count ? 'SELECT COUNT( DISTINCT %s.%s ) ' : 'SELECT DISTINCT %s.%s ' ).
+                    'FROM appointment, participant '.
+                    'LEFT JOIN address ON address.participant_id = participant.id '.
                     'WHERE ( participant.site_id = %d '.
-                    '  OR address.region_id IN '.
-                    '  ( SELECT id FROM region WHERE site_id = %d ) ) %s',
+                    '  OR ( '.
+                    '    address.region_id IS NOT NULL AND '.
+                    '    address.region_id IN '.
+                    '    ( SELECT id FROM region WHERE site_id = %d ) ) ) %s',
                     static::get_table_name(),
                     static::get_primary_key_name(),
-                    $select_tables,
                     $db_site->id,
                     $db_site->id,
                     $modifier->get_sql( true ) );
@@ -264,21 +263,18 @@ class appointment extends record
     // fake it by getting the user's site
     $db_site = bus\session::self()->get_site();
 
-    $select_tables = 'appointment, address, participant';
-    
     // straight join the tables
     if( is_null( $modifier ) ) $modifier = new modifier();
     $modifier->where( 'appointment.address_id', '=', 'address.id', false );
     $modifier->where( 'appointment.participant_id', '=', 'participant.id', false );
 
     $sql = sprintf( ( $count ? 'SELECT COUNT( %s.%s ) ' : 'SELECT %s.%s ' ).
-                    'FROM %s '.
+                    'FROM appointment, address, participant '.
                     'WHERE ( participant.site_id = %d '.
                     '  OR address.region_id IN '.
                     '  ( SELECT id FROM region WHERE site_id = %d ) ) %s',
                     static::get_table_name(),
                     static::get_primary_key_name(),
-                    $select_tables,
                     $db_site->id,
                     $db_site->id,
                     $modifier->get_sql( true ) );
