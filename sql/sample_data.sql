@@ -67,6 +67,29 @@ LOAD DATA LOCAL INFILE "./phone_numbers.csv"
 INTO TABLE phone
 FIELDS TERMINATED BY ',' ENCLOSED BY '"';
 
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 1 FROM address ORDER BY postcode LIMIT 0, 90;
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 2 FROM address ORDER BY postcode LIMIT 90, 90;
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 3 FROM address ORDER BY postcode LIMIT 180, 90;
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 4 FROM address ORDER BY postcode LIMIT 270, 90;
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 5 FROM address ORDER BY postcode LIMIT 360, 90;
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 6 FROM address ORDER BY postcode LIMIT 450, 90;
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 7 FROM address ORDER BY postcode LIMIT 540, 90;
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 8 FROM address ORDER BY postcode LIMIT 630, 90;
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 9 FROM address ORDER BY postcode LIMIT 720, 90;
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 10 FROM address ORDER BY postcode LIMIT 810, 90;
+INSERT INTO jurisdiction ( postcode, site_id )
+SELECT postcode, 11 FROM address ORDER BY postcode LIMIT 900, 100;
+
 INSERT INTO qnaire ( name, rank, type, prev_qnaire_id, delay ) VALUES
 ( 'Baseline Home', 1, 'home', NULL, 0 ),
 ( 'Baseline Site', 2, 'site', 1, 0 ),
