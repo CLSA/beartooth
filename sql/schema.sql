@@ -779,6 +779,50 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `jurisdiction`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `jurisdiction` ;
+
+CREATE  TABLE IF NOT EXISTS `jurisdiction` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `postcode` VARCHAR(7) NOT NULL ,
+  `site_id` INT UNSIGNED NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `fk_jurisdiction_site` (`site_id` ASC) ,
+  UNIQUE INDEX `uq_postcode` (`postcode` ASC) ,
+  CONSTRAINT `fk_jurisdiction_site`
+    FOREIGN KEY (`site_id` )
+    REFERENCES `site` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `coverage`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `coverage` ;
+
+CREATE  TABLE IF NOT EXISTS `coverage` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `postcode_mask` VARCHAR(7) NOT NULL ,
+  `access_id` INT UNSIGNED NOT NULL COMMENT 'This access should always be as an interviewer.' ,
+  PRIMARY KEY (`id`) ,
+  INDEX `fk_access_id` (`access_id` ASC) ,
+  UNIQUE INDEX `uq_postcode_mask` (`postcode_mask` ASC) ,
+  CONSTRAINT `fk_coverage_access`
+    FOREIGN KEY (`access_id` )
+    REFERENCES `access` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Placeholder table for view `participant_first_address`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `participant_first_address` (`participant_id` INT, `address_id` INT);
