@@ -37,25 +37,13 @@ class participant extends has_note
 
     // left join the participant_primary_address and address tables
     if( is_null( $modifier ) ) $modifier = new modifier();
-    $sql = sprintf( ( $count ? 'SELECT COUNT( %s.%s ) ' : 'SELECT %s.%s ' ).
-                    'FROM %s '.
-                    'LEFT JOIN participant_primary_address '.
-                    'ON %s.id = participant_primary_address.participant_id '.
-                    'LEFT JOIN address '.
-                    'ON participant_primary_address.address_id = address.id '.
-                    'WHERE ( %s.site_id = %d '.
-                    '  OR ( %s.site_id IS NULL '.
-                    '    AND address.region_id IN ( '.
-                    '      SELECT id FROM region WHERE site_id = %d ) ) ) %s',
-                    static::get_table_name(),
-                    static::get_primary_key_name(),
-                    static::get_table_name(),
-                    static::get_table_name(),
-                    static::get_table_name(),
-                    $db_site->id,
-                    static::get_table_name(),
-                    $db_site->id,
-                    $modifier->get_sql( true ) );
+    $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
+    $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
+    $modifier->where( 'jurisdiction.site_id', '=', $db_site->id );
+    $sql = sprintf(
+      ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant_primary_address.participant_id ' ).
+      'FROM participant_primary_address, address, jurisdiction %s',
+      $modifier->get_sql() );
 
     if( $count )
     {
@@ -223,17 +211,11 @@ class participant extends has_note
     
     $db_site = NULL;
 
-    if( !is_null( $this->site_id ) )
-    { // site is specifically defined
-      $db_site = $this->get_site();
-    }
-    else
-    {
-      $db_address = $this->get_primary_address();
-      if( !is_null( $db_address ) )
-      { // there is a primary address
-        $db_site = $db_address->get_region()->get_site();
-      }
+    $db_address = $this->get_primary_address();
+    if( !is_null( $db_address ) )
+    { // there is a primary address
+      $db_jurisdiction = jurisdiction::get_unique_record( 'postcode', $db_address->postcode );
+      if( !is_null( $db_address ) ) $db_site = $db_jurisdiction->get_site();
     }
 
     return $db_site;

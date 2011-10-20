@@ -39,7 +39,6 @@ class participant_view extends base_view
     $this->add_item( 'last_name', 'string', 'Last Name' );
     $this->add_item( 'language', 'enum', 'Preferred Language' );
     $this->add_item( 'status', 'enum', 'Condition' );
-    $this->add_item( 'site_id', 'enum', 'Prefered Site' );
     $this->add_item( 'prior_contact_date', 'constant', 'Prior Contact Date' );
     $this->add_item( 'current_qnaire_name', 'constant', 'Current Questionnaire' );
     $this->add_item( 'start_qnaire_date', 'constant', 'Delay Questionnaire Until' );
@@ -137,10 +136,6 @@ class participant_view extends base_view
     $languages = array_combine( $languages, $languages );
     $statuses = db\participant::get_enum_values( 'status' );
     $statuses = array_combine( $statuses, $statuses );
-    $sites = array();
-    foreach( db\site::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
-    $db_site = $this->get_record()->get_site();
-    $site_id = is_null( $db_site ) ? '' : $db_site->id;
     
     $start_qnaire_date = $this->get_record()->start_qnaire_date;
     if( is_null( $this->get_record()->current_qnaire_id ) )
@@ -164,7 +159,6 @@ class participant_view extends base_view
     $this->set_item( 'last_name', $this->get_record()->last_name );
     $this->set_item( 'language', $this->get_record()->language, false, $languages );
     $this->set_item( 'status', $this->get_record()->status, false, $statuses );
-    $this->set_item( 'site_id', $site_id, false, $sites );
     $this->set_item( 'prior_contact_date', $this->get_record()->prior_contact_date );
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );

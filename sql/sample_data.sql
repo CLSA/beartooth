@@ -17,33 +17,6 @@ INSERT INTO site( name, timezone ) VALUES
 ( "Manitoba", "Canada/Central" ),
 ( "British Columbia", "Canada/Pacific" );
 
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Calgary" )
-WHERE abbreviation = "AB";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "British Columbia" )
-WHERE abbreviation = "BC";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Manitoba" )
-WHERE abbreviation = "MB";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Dalhousie" )
-WHERE abbreviation = "NB";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Memorial" )
-WHERE abbreviation = "NL";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "British Columbia" )
-WHERE abbreviation = "NT";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Dalhousie" )
-WHERE abbreviation = "NS";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Manitoba" )
-WHERE abbreviation = "NU";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "McMaster" )
-WHERE abbreviation = "ON";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Dalhousie" )
-WHERE abbreviation = "PE";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Sherbrooke" )
-WHERE abbreviation = "QC";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "Manitoba" )
-WHERE abbreviation = "SK";
-UPDATE region SET site_id = ( SELECT id FROM site WHERE name = "British Columbia" )
-WHERE abbreviation = "YT";
-
 -- Creates default/sample users
 INSERT INTO user( name, first_name, last_name ) VALUES
 ( 'patrick', 'P.', 'Emond' ),

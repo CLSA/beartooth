@@ -160,7 +160,7 @@ class queue extends record
     if( is_null( $modifier ) ) $modifier = new modifier();
 
     // restrict to the site
-    if( !is_null( $this->db_site ) ) $modifier->where( 'base_site_id', '=', $this->db_site->id );
+    if( !is_null( $this->db_site ) ) $modifier->where( 'site_id', '=', $this->db_site->id );
     
     return static::db()->get_one(
       sprintf( '%s %s',
@@ -181,7 +181,7 @@ class queue extends record
     if( is_null( $modifier ) ) $modifier = new modifier();
 
     // restrict to the site
-    if( !is_null( $this->db_site ) ) $modifier->where( 'base_site_id', '=', $this->db_site->id );
+    if( !is_null( $this->db_site ) ) $modifier->where( 'site_id', '=', $this->db_site->id );
 
     $participant_ids = static::db()->get_col(
       sprintf( '%s %s',
@@ -252,7 +252,7 @@ class queue extends record
     // join to the queue_restriction table based on site, city, region or postcode
     $restriction_join = 
       'LEFT JOIN queue_restriction '.
-      'ON queue_restriction.site_id = participant.base_site_id '.
+      'ON queue_restriction.site_id = participant.site_id '.
       'OR queue_restriction.city = participant.city '.
       'OR queue_restriction.region_id = participant.region_id '.
       'OR queue_restriction.postcode = participant.postcode';
@@ -290,7 +290,7 @@ class queue extends record
       // tests to see if the site is being restricted but the participant isn't included
       '  OR ('.
       '    queue_restriction.site_id IS NOT NULL AND'.
-      '    queue_restriction.site_id != participant.base_site_id'.
+      '    queue_restriction.site_id != participant.site_id'.
       '  )'.
       // tests to see if the city is being restricted but the participant isn't included
       '  OR ('.
