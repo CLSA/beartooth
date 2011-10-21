@@ -1202,6 +1202,12 @@ SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "widget" AND subject = "coverage" AND name = "list" );
 
+-- interviewer
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "widget" AND subject = "interviewer" AND name = "list" );
+
 -- ALL reports
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id

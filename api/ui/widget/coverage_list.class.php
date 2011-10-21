@@ -40,6 +40,16 @@ class coverage_list extends base_list_widget
     $this->add_column( 'furthest', 'number', 'Furthest (km)', false );
     $this->add_column( 'jurisdiction_count', 'number', 'Jurisdictions', false );
     $this->add_column( 'participant_count', 'number', 'Participants', false );
+    
+    try
+    {
+      // create the interviewer sub-list widget
+      $this->interviewer_list = new interviewer_list( $args );
+    }
+    catch( exc\permission $e )
+    {
+      $this->interviewer_list = NULL;
+    }
   }
 
   /**
@@ -56,16 +66,17 @@ class coverage_list extends base_list_widget
 
     foreach( $this->get_record_list() as $record )
     {
-      $jurisdiction_mod = new db\modifier();
-      $jurisdiction_mod->where( 'site_id', '=', $db_site->id );
-      $jurisdiction_mod->where( 'postcode', 'LIKE', $record->postcode_mask );
       $nearest = $record->get_nearest_distance( $db_site );
       $nearest = is_null( $nearest ) ? 'N/A' : sprintf( '%0.1f', $nearest );
       $furthest = $record->get_furthest_distance( $db_site );
       $furthest = is_null( $furthest ) ? 'N/A' : sprintf( '%0.1f', $furthest );
 
+      $jurisdiction_mod = new db\modifier();
+      $jurisdiction_mod->where( 'site_id', '=', $db_site->id );
+      $jurisdiction_mod->where( 'jurisdiction.postcode', 'LIKE', $record->postcode_mask );
+
       $participant_mod = new db\modifier();
-      $participant_mod->where( 'postcode', 'LIKE', $record->postcode_mask );
+      $participant_mod->where( 'jurisdiction.postcode', 'LIKE', $record->postcode_mask );
 
       // format the postcode LIKE-based statement
       $postcode_mask = str_replace( '%', '', $record->postcode_mask );
@@ -83,6 +94,12 @@ class coverage_list extends base_list_widget
     }
 
     $this->finish_setting_rows();
+
+    if( !is_null( $this->interviewer_list ) )
+    {
+      $this->interviewer_list->finish();
+      $this->set_variable( 'interviewer_list', $this->interviewer_list->get_variables() );
+    }
   }
   
   /**
@@ -114,5 +131,12 @@ class coverage_list extends base_list_widget
     $modifier->where( 'access.site_id', '=', bus\session::self()->get_site()->id );
     return parent::determine_record_list( $modifier );
   }
+
+  /**
+   * The participant list widget.
+   * @var interviewer_list
+   * @access protected
+   */
+  protected $interviewer_list = NULL;
 }
 ?>

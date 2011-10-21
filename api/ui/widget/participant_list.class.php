@@ -72,6 +72,17 @@ class participant_list extends site_restricted_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
+    $db_role = bus\session::self()->get_role();
+    if( 'interviewer' == $db_role->name )
+    {
+      $db_user = bus\session::self()->get_user();
+      $db_site = bus\session::self()->get_site();
+      $db_access = db\access::get_unique_record(
+        array( 'user_id', 'site_id', 'role_id' ),
+        array( $db_user->id, $db_site->id, $db_role->id ) );
+      return db\participant::count_for_access( $db_access, $modifier );
+    }
+
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_count( $modifier )
          : db\participant::count_for_site( $this->db_restrict_site, $modifier );
@@ -87,6 +98,17 @@ class participant_list extends site_restricted_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
+    $db_role = bus\session::self()->get_role();
+    if( 'interviewer' == $db_role->name )
+    {
+      $db_user = bus\session::self()->get_user();
+      $db_site = bus\session::self()->get_site();
+      $db_access = db\access::get_unique_record(
+        array( 'user_id', 'site_id', 'role_id' ),
+        array( $db_user->id, $db_site->id, $db_role->id ) );
+      return db\participant::select_for_access( $db_access, $modifier );
+    }
+
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_list( $modifier )
          : db\participant::select_for_site( $this->db_restrict_site, $modifier );

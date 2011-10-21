@@ -6,3 +6,11 @@
  # @see base_list.twig for parameters
  #}
 {% extends "base_list.twig" %}
+
+{% block widget %}
+
+  {{ parent() }}
+  {% from 'macros.twig' import include_list %}
+  {{ include_list( 'interviewer', interviewer_list|default(false), true ) }}
+  
+{% endblock widget %}
