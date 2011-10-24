@@ -44,7 +44,7 @@ class appointment extends record
     $modifier = new modifier();
     $modifier->where( 'participant_id', '=', $this->participant_id );
     $modifier->where( 'datetime', '>', $now_datetime_obj->format( 'Y-m-d H:i:s' ) );
-    $modifier->where( 'address_id', is_null( $this->address_id ) ? '=' : '!=', NULL );
+    $modifier->where( 'address_id', $this->address_id ? '!=' : '=', NULL );
     if( !is_null( $this->id ) ) $modifier->where( 'id', '!=', $this->id );
     $appointment_list = static::select( $modifier );
     if( 0 < count( $appointment_list ) )
@@ -80,7 +80,7 @@ class appointment extends record
       throw new exc\runtime(
         'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
     
-    $home = !is_null( $this->address_id );
+    $home = (bool) $this->address_id;
 
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
@@ -97,10 +97,9 @@ class appointment extends record
     if( !$home )
     {
       // determine site slots using shift template
-      $modifier = new $modifier();
+      $modifier = new modifier();
       $modifier->where( 'site_id', '=', $db_site->id );
       $modifier->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
-      
       foreach( shift_template::select( $modifier ) as $db_shift_template )
       {
         if( $db_shift_template->match_date( $start_datetime_obj->format( 'Y-m-d' ) ) )
@@ -123,6 +122,7 @@ class appointment extends record
     // and how many appointments are during this time?
     $modifier = new modifier();
     $modifier->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
+    $modifier->where( 'address_id', $home ? '!=' : '=', NULL );
     if( !is_null( $this->id ) ) $modifier->where( 'appointment.id', '!=', $this->id );
     foreach( appointment::select_for_site( $db_site, $modifier ) as $db_appointment )
     {
@@ -218,7 +218,7 @@ class appointment extends record
                     $db_site->id,
                     $db_site->id,
                     $modifier->get_sql( true ) );
-
+    die('in select for site');
     if( $count )
     {
       return intval( static::db()->get_one( $sql ) );

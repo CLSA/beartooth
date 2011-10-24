@@ -1,6 +1,6 @@
 <?php
 /**
- * site_calendar.class.php
+ * home_appointment_calendar.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -14,24 +14,24 @@ use beartooth\database as db;
 use beartooth\exception as exc;
 
 /**
- * widget site calendar
+ * widget home appointment calendar
  * 
  * @package beartooth\ui
  */
-class site_calendar extends base_calendar
+class home_appointment_calendar extends base_calendar
 {
   /**
    * Constructor
    * 
-   * Defines all variables required by the site calendar.
+   * Defines all variables required by the home calendar.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param array $args An associative array of arguments to be processed by the widget
    * @access public
    */
   public function __construct( $args )
   {
-    parent::__construct( 'site', $args );
-    $this->set_heading( 'Open appointment slots for '.bus\session::self()->get_site()->name );
+    parent::__construct( 'home_appointment', $args );
+    $this->set_heading( 'Home appointment calendar' );
   }
   
   /**
@@ -44,7 +44,7 @@ class site_calendar extends base_calendar
   {
     parent::finish();
     $this->set_variable( 'allow_all_day', false );
-    $this->set_variable( 'editable', false );
+    $this->set_variable( 'editable', true );
   }
 }
 ?>
