@@ -1255,7 +1255,8 @@ INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id
 FROM role, operation
 WHERE role.name = "interviewer"
-AND operation.subject = "interviewer";
+AND operation.subject = "interviewer"
+AND operation.name != "list";
 
 -- calendars
 INSERT INTO role_has_operation

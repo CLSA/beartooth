@@ -99,7 +99,7 @@ class site_feed extends base_feed
     $modifier = new db\modifier();
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
-    $modifier->where( 'address_id', '=', NULL );
+    $modifier->where( 'appointment.address_id', '=', NULL );
     $modifier->order( 'datetime' );
     foreach( db\appointment::select_for_site( $db_site, $modifier ) as $db_appointment )
     {

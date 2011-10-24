@@ -75,11 +75,6 @@ class appointment extends record
   public function validate_date()
   {
     $db_participant = new participant( $this->participant_id );
-    $db_site = $db_participant->get_primary_site();
-    if( is_null( $db_site ) )
-      throw new exc\runtime(
-        'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
-    
     $home = (bool) $this->address_id;
 
     // determine the appointment interval
@@ -94,8 +89,14 @@ class appointment extends record
 
     $diffs = array();
     
+    $db_access = NULL;
     if( !$home )
     {
+      $db_site = $db_participant->get_primary_site();
+      if( is_null( $db_site ) )
+        throw new exc\runtime(
+          'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
+
       // determine site slots using shift template
       $modifier = new modifier();
       $modifier->where( 'site_id', '=', $db_site->id );
@@ -118,13 +119,26 @@ class appointment extends record
         }
       }
     }
+    else
+    { // determine this user's access
+      $db_user = bus\session::self()->get_user();
+      $db_site = bus\session::self()->get_site();
+      $db_role = bus\session::self()->get_role();
+      $db_access = access::get_unique_record(
+        array( 'user_id', 'site_id', 'role_id' ),
+        array( $db_user->id, $db_site->id, $db_role->id ) );
+    }
 
     // and how many appointments are during this time?
     $modifier = new modifier();
     $modifier->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
-    $modifier->where( 'address_id', $home ? '!=' : '=', NULL );
     if( !is_null( $this->id ) ) $modifier->where( 'appointment.id', '!=', $this->id );
-    foreach( appointment::select_for_site( $db_site, $modifier ) as $db_appointment )
+    
+    $appointment_list = $home
+                      ? static::select_for_access( $db_access, $modifier )
+                      : static::select_for_site( $db_site, $modifier );
+
+    foreach( $appointment_list as $db_appointment )
     {
       $state = $db_appointment->get_state();
       if( 'reached' != $state && 'not reached' != $state )
@@ -200,25 +214,19 @@ class appointment extends record
   {
     // if there is no site restriction then just use the parent method
     if( is_null( $db_site ) ) return parent::select( $modifier, $count );
-    
     // straight join the tables
     if( is_null( $modifier ) ) $modifier = new modifier();
-    $modifier->where( 'appointment.participant_id', '=', 'participant.id', false );
+    $modifier->where(
+      'appointment.participant_id', '=', 'participant_primary_address.participant_id', false );
+    $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
+    $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
+    $modifier->where( 'appointment.address_id', '=', NULL );
+    $modifier->where( 'jurisdiction.site_id', '=', $db_site->id );
+    $sql = sprintf(
+      ( $count ? 'SELECT COUNT(*) ' : 'SELECT appointment.id ' ).
+      'FROM appointment, participant_primary_address, address, jurisdiction %s',
+      $modifier->get_sql() );
 
-    $sql = sprintf( ( $count ? 'SELECT COUNT( DISTINCT %s.%s ) ' : 'SELECT DISTINCT %s.%s ' ).
-                    'FROM appointment, participant '.
-                    'LEFT JOIN address ON address.participant_id = participant.id '.
-                    'WHERE ( participant.site_id = %d '.
-                    '  OR ( '.
-                    '    address.region_id IS NOT NULL AND '.
-                    '    address.region_id IN '.
-                    '    ( SELECT id FROM region WHERE site_id = %d ) ) ) %s',
-                    static::get_table_name(),
-                    static::get_primary_key_name(),
-                    $db_site->id,
-                    $db_site->id,
-                    $modifier->get_sql( true ) );
-    die('in select for site');
     if( $count )
     {
       return intval( static::db()->get_one( $sql ) );
@@ -249,35 +257,57 @@ class appointment extends record
 
   /**
    * Identical to the parent's select method but restrict to the current user's participants.
-   * TODO: this is currently the same as select_for_site, need to implement for user
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param access $db_access The access to restrict the count to.
    * @param modifier $modifier Modifications to the selection.
    * @param boolean $count If true the total number of records instead of a list
    * @return array( record ) | int
    * @static
    * @access public
    */
-  public static function select_for_self( $modifier = NULL, $count = false )
+  public static function select_for_access( $db_access, $modifier = NULL, $count = false )
   {
-    // fake it by getting the user's site
-    $db_site = bus\session::self()->get_site();
+    // if there is no access restriction then just use the parent method
+    if( is_null( $db_access ) ) return parent::select( $modifier, $count );
 
-    // straight join the tables
-    if( is_null( $modifier ) ) $modifier = new modifier();
-    $modifier->where( 'appointment.address_id', '=', 'address.id', false );
-    $modifier->where( 'appointment.participant_id', '=', 'participant.id', false );
+    $sql = sprintf(
+      ( $count ? 'SELECT COUNT(*) ' : 'SELECT appointment.id ' ).
+      'FROM appointment, address, jurisdiction '.
+      'WHERE appointment.address_id = address.id '.
+      'AND address.postcode = jurisdiction.postcode '.
+      'AND jurisdiction.site_id = %s '.
+      'AND ( ',
+      database::format_string( $db_access->get_site()->id ) );
+    
+    // OR all access coverages making sure to AND NOT all other like coverages for the same site
+    $first = true;
+    $coverage_mod = new modifier();
+    $coverage_mod->where( 'access_id', '=', $db_access->id );
+    $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
+    foreach( coverage::select( $coverage_mod ) as $db_coverage )
+    {
+      $sql .= sprintf( '%s ( address.postcode LIKE %s ',
+                       $first ? '' : 'OR',
+                       database::format_string( $db_coverage->postcode_mask ) );
+      $first = false;
 
-    $sql = sprintf( ( $count ? 'SELECT COUNT( %s.%s ) ' : 'SELECT %s.%s ' ).
-                    'FROM appointment, address, participant '.
-                    'WHERE ( participant.site_id = %d '.
-                    '  OR address.region_id IN '.
-                    '  ( SELECT id FROM region WHERE site_id = %d ) ) %s',
-                    static::get_table_name(),
-                    static::get_primary_key_name(),
-                    $db_site->id,
-                    $db_site->id,
-                    $modifier->get_sql( true ) );
+      // now remove the like coverages
+      $inner_coverage_mod = new modifier();
+      $inner_coverage_mod->where( 'access_id', '!=', $db_access->id );
+      $inner_coverage_mod->where( 'access.site_id', '=', $db_access->site_id );
+      $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
+      foreach( coverage::select( $inner_coverage_mod ) as $db_inner_coverage )
+      {
+        $sql .= sprintf( 'AND address.postcode NOT LIKE %s ',
+                         database::format_string( $db_inner_coverage->postcode_mask ) );
+      }
+      $sql .= ') ';
+    }
+
+    // make sure to return an empty list if the access has no coverage
+    $sql .= $first ? 'false )' : ') ';
+    if( !is_null( $modifier ) ) $sql .= $modifier->get_sql( true );
 
     if( $count )
     {
@@ -296,14 +326,15 @@ class appointment extends record
    * Identical to the parent's count method but restrict to the current user's participants.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param access $db_access The access to restrict the count to.
    * @param modifier $modifier Modifications to the count.
    * @return int
    * @static
    * @access public
    */
-  public static function count_for_self( $modifier = NULL )
+  public static function count_for_access( $db_access, $modifier = NULL )
   {
-    return static::select_for_self( $modifier, true );
+    return static::select_for_access( $db_access, $modifier, true );
   }
 
   /**

@@ -42,14 +42,22 @@ class home_appointment_feed extends base_feed
    */
   public function finish()
   {
+    // figure out this user's interview access
+    $db_user = bus\session::self()->get_user();
+    $db_site = bus\session::self()->get_site();
+    $db_role = bus\session::self()->get_role();
+    $db_access = db\access::get_unique_record(
+      array( 'user_id', 'site_id', 'role_id' ),
+      array( $db_user->id, $db_site->id, $db_role->id ) );
+
     // create a list of home appointments between the feed's start and end time
     $modifier = new db\modifier();
-    $modifier->where( 'address_id', '!=', NULL );
+    $modifier->where( 'appointment.address_id', '!=', NULL );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
 
     $event_list = array();
-    foreach( db\appointment::select_for_self( $modifier ) as $db_appointment )
+    foreach( db\appointment::select_for_access( $db_access, $modifier ) as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $end_datetime_obj = clone $start_datetime_obj;

@@ -44,7 +44,7 @@ class site_appointment_feed extends base_feed
   {
     // create a list of site appointments between the feed's start and end time
     $modifier = new db\modifier();
-    $modifier->where( 'address_id', '=', NULL );
+    $modifier->where( 'appointment.address_id', '=', NULL );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
 

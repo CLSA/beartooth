@@ -40,25 +40,25 @@ class appointment_list extends base_list
     if( $interval == 'M' )
     {
       $timeStamp = mktime( 0, 0, 0, date( 'm' ), 1, date( 'Y' ) );
-      $firstDay = date( 'Y:m:d h:i:s', $timeStamp );
-      $this->start_datetime = new DateTime( $firstDay );
+      $firstDay = date( 'Y:m:d H:i:s', $timeStamp );
+      $this->start_datetime = new \DateTime( $firstDay );
       $this->end_datetime = clone $this->start_datetime;
-      $this->end_datetime->add( new DateInterval( 'P1M' ) );
+      $this->end_datetime->add( new \DateInterval( 'P1M' ) );
     }
     else if( $interval == 'W' )
     {
       $timeStamp = mktime( 1, 0, 0, date( 'm' ), date( 'd' ) - date( 'w' ), date( 'Y' ) );
       $firstDay = date( 'Y:m:d', $timeStamp ) . ' 00:00:00';
-      $this->start_datetime = new DateTime( $firstDay );
+      $this->start_datetime = new \DateTime( $firstDay );
       $this->end_datetime = clone $this->start_datetime;
-      $this->end_datetime->add( new DateInterval( 'P1W' ) );
+      $this->end_datetime->add( new \DateInterval( 'P1W' ) );
     }
     else if( $interval == 'D' )
     {
       $this->start_datetime = clone $now_datetime_obj;
       $this->start_datetime->setTime(0,0);
-      $this->end_datetime = clone $now_datetime_obj;
-      $this->end_datetime->setTime(23,59,59);
+      $this->end_datetime = clone( $this->start_datetime );
+      $this->end_datetime->add( new \DateInterval( 'P1D' ) );
     }
     else
     {
@@ -78,26 +78,23 @@ class appointment_list extends base_list
   {
     // TODO: need to figure out which onyx instance is requesting the list
     // eg, a laptop instance of onyx for in home interviews or a DCS instance
-
+    // For now this operation only returns site appointments
+    $event_list = array();
 
     // create a list of appointments between the start and end time
-    $modifier = new db\modifier();
-    $modifier->where( 'datetime', '>=', util::get_formatted_date($this->start_datetime) );
-    $modifier->where( 'datetime', '<', util::get_formatted_date($this->end_datetime) );
-
-    $event_list = array();
     $db_site = bus\session::self()->get_site();
-    db\appointment::select_for_site( $db_site, $modifier ) ;//as $db_appointment )
-    die('im dead');
+    $modifier = new db\modifier();
+    $modifier->where( 'datetime', '>=', $this->start_datetime->format( 'Y-m-d H:i:s' ) );
+    $modifier->where( 'datetime', '<', $this->end_datetime->format( 'Y-m-d H:i:s' ) );
     foreach( db\appointment::select_for_site( $db_site, $modifier ) as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $end_datetime_obj = clone $start_datetime_obj;
       $end_datetime_obj->modify(
         sprintf( '+%d minute',
-        bus\setting_manager::self()->get_setting( 'appointment', 'home duration' ) ) );
+        bus\setting_manager::self()->get_setting( 'appointment', 'site duration' ) ) );
 
-      $db_participant = $db_appointment->get_address()->get_participant();
+      $db_participant = $db_appointment->get_participant();
 
       $mastodon_manager = bus\mastodon_manager::self();
       $participant_obj = $mastodon_manager->pull( 'participant', 'primary',
