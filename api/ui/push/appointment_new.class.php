@@ -46,9 +46,6 @@ class appointment_new extends base_new
     if( !array_key_exists( 'datetime', $columns ) || 0 == strlen( $columns['datetime'] ) )
       throw new exc\notice( 'The date/time cannot be left blank.', __METHOD__ );
     
-    // make sure there is a slot available for the appointment
-    $columns = $this->get_argument( 'columns', array() );
-    
     foreach( $columns as $column => $value ) $this->get_record()->$column = $value;
     
     $force = $this->get_argument( 'force', false );

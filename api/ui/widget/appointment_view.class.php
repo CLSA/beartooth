@@ -75,9 +75,12 @@ class appointment_view extends base_appointment_view
           $db_address->postcode );
     }
     
+    // when address is null twig needs this value to be an empty string (not null)
+    $address = $this->get_record()->address_id ? $this->get_record()->address_id : '';
+
     // set the view's items
     $this->set_item(
-      'address_id', $this->get_record()->address_id, true, $address_list, true );
+      'address_id', $address, true, $address_list, true );
     $this->set_item( 'datetime', $this->get_record()->datetime, true );
     $this->set_item( 'state', $this->get_record()->get_state(), false );
 
