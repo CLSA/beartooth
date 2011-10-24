@@ -11,16 +11,12 @@
 
   <script type="text/javascript">
     $( function () {
-      // by default start by hiding the home calendar
-      //$( "#home_calendar_header" ).hide();
-      //$( "#home_calendar_calendar" ).hide();
-
       // show the right calendar (home or site)
       $( "#{{ widget.full }}__address_id" ).change( function() {
         if( '' == $(this).val() ) // site value is an empty string
         {
-          $( "#home_calendar_header" ).hide();
-          $( "#home_calendar_calendar" ).hide();
+          $( "#home_appointment_calendar_header" ).hide();
+          $( "#home_appointment_calendar_calendar" ).hide();
           $( "#site_calendar_header" ).show();
           $( "#site_calendar_calendar" ).show();
         }
@@ -28,8 +24,8 @@
         {
           $( "#site_calendar_header" ).hide();
           $( "#site_calendar_calendar" ).hide();
-          $( "#home_calendar_header" ).show();
-          $( "#home_calendar_calendar" ).show();
+          $( "#home_appointment_calendar_header" ).show();
+          $( "#home_appointment_calendar_calendar" ).show();
         }
       } );
 
@@ -74,13 +70,13 @@
   {{ parent() }}
   {% from 'macros.twig' import include_calendar %}
   {{ include_calendar( 'site', site_calendar|default(false), true ) }}
-  {{ include_calendar( 'home', home_calendar|default(false), true ) }}
+  {{ include_calendar( 'home_appointment', home_appointment_calendar|default(false), true ) }}
 
   <script type="text/javascript">
     $( function () {
       // by default start by hiding the home calendar
-      $( "#home_calendar_header" ).hide();
-      $( "#home_calendar_calendar" ).hide();
+      $( "#home_appointment_calendar_header" ).hide();
+      $( "#home_appointment_calendar_calendar" ).hide();
     } );
   </script>
 {% endblock record %}

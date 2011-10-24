@@ -1,6 +1,6 @@
 <?php
 /**
- * home_calendar.class.php
+ * home_appointment_calendar.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -14,11 +14,11 @@ use beartooth\database as db;
 use beartooth\exception as exc;
 
 /**
- * widget home calendar
+ * widget home appointment calendar
  * 
  * @package beartooth\ui
  */
-class home_calendar extends base_calendar
+class home_appointment_calendar extends base_calendar
 {
   /**
    * Constructor
@@ -30,7 +30,7 @@ class home_calendar extends base_calendar
    */
   public function __construct( $args )
   {
-    parent::__construct( 'home', $args );
+    parent::__construct( 'home_appointment', $args );
     $this->set_heading( 'Home appointment calendar' );
   }
   
