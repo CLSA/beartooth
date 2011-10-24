@@ -37,25 +37,13 @@ class participant extends has_note
 
     // left join the participant_primary_address and address tables
     if( is_null( $modifier ) ) $modifier = new modifier();
-    $sql = sprintf( ( $count ? 'SELECT COUNT( %s.%s ) ' : 'SELECT %s.%s ' ).
-                    'FROM %s '.
-                    'LEFT JOIN participant_primary_address '.
-                    'ON %s.id = participant_primary_address.participant_id '.
-                    'LEFT JOIN address '.
-                    'ON participant_primary_address.address_id = address.id '.
-                    'WHERE ( %s.site_id = %d '.
-                    '  OR ( %s.site_id IS NULL '.
-                    '    AND address.region_id IN ( '.
-                    '      SELECT id FROM region WHERE site_id = %d ) ) ) %s',
-                    static::get_table_name(),
-                    static::get_primary_key_name(),
-                    static::get_table_name(),
-                    static::get_table_name(),
-                    static::get_table_name(),
-                    $db_site->id,
-                    static::get_table_name(),
-                    $db_site->id,
-                    $modifier->get_sql( true ) );
+    $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
+    $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
+    $modifier->where( 'jurisdiction.site_id', '=', $db_site->id );
+    $sql = sprintf(
+      ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant_primary_address.participant_id ' ).
+      'FROM participant_primary_address, address, jurisdiction %s',
+      $modifier->get_sql() );
 
     if( $count )
     {
@@ -83,6 +71,89 @@ class participant extends has_note
   public static function count_for_site( $db_site, $modifier = NULL )
   {
     return static::select_for_site( $db_site, $modifier, true );
+  }
+  
+  /**
+   * Identical to the parent's select method but restrict to a particular access.
+   * This is usually a user's interview access to a particular site.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param user $db_access The user's access to restrict the selection to.
+   * @param modifier $modifier Modifications to the selection.
+   * @param boolean $count If true the total number of records instead of a list
+   * @return array( record ) | int
+   * @static
+   * @access public
+   */
+  public static function select_for_access( $db_access, $modifier = NULL, $count = false )
+  {
+    // if there is no access restriction then just use the parent method
+    if( is_null( $db_access ) ) return parent::select( $modifier, $count );
+
+    $sql = sprintf(
+      ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant_primary_address.participant_id ' ).
+      'FROM participant_primary_address, address, jurisdiction '.
+      'WHERE participant_primary_address.address_id = address.id '.
+      'AND address.postcode = jurisdiction.postcode '.
+      'AND jurisdiction.site_id = %s '.
+      'AND ( ',
+      database::format_string( $db_access->get_site()->id ) );
+    
+    // OR all access coverages making sure to AND NOT all other like coverages for the same site
+    $first = true;
+    $coverage_mod = new modifier();
+    $coverage_mod->where( 'access_id', '=', $db_access->id );
+    $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
+    foreach( coverage::select( $coverage_mod ) as $db_coverage )
+    {
+      $sql .= sprintf( '%s ( address.postcode LIKE %s ',
+                       $first ? '' : 'OR',
+                       database::format_string( $db_coverage->postcode_mask ) );
+      $first = false;
+
+      // now remove the like coverages
+      $inner_coverage_mod = new modifier();
+      $inner_coverage_mod->where( 'access_id', '!=', $db_access->id );
+      $inner_coverage_mod->where( 'access.site_id', '=', $db_access->site_id );
+      $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
+      foreach( coverage::select( $inner_coverage_mod ) as $db_inner_coverage )
+      {
+        $sql .= sprintf( 'AND address.postcode NOT LIKE %s ',
+                         database::format_string( $db_inner_coverage->postcode_mask ) );
+      }
+      $sql .= ') ';
+    }
+
+    // make sure to return an empty list if the access has no coverage
+    $sql .= $first ? 'false )' : ') ';
+    if( !is_null( $modifier ) ) $sql .= $modifier->get_sql( true );
+    
+    if( $count )
+    {
+      return intval( static::db()->get_one( $sql ) );
+    }
+    else
+    {
+      $id_list = static::db()->get_col( $sql );
+      $records = array();
+      foreach( $id_list as $id ) $records[] = new static( $id );
+      return $records;
+    }
+  }
+
+  /**
+   * Identical to the parent's count method but restrict to a particular access.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param access $db_access The access to restrict the count to.
+   * @param modifier $modifier Modifications to the count.
+   * @return int
+   * @static
+   * @access public
+   */
+  public static function count_for_access( $db_access, $modifier = NULL )
+  {
+    return static::select_for_access( $db_access, $modifier, true );
   }
   
   /**
@@ -223,17 +294,11 @@ class participant extends has_note
     
     $db_site = NULL;
 
-    if( !is_null( $this->site_id ) )
-    { // site is specifically defined
-      $db_site = $this->get_site();
-    }
-    else
-    {
-      $db_address = $this->get_primary_address();
-      if( !is_null( $db_address ) )
-      { // there is a primary address
-        $db_site = $db_address->get_region()->get_site();
-      }
+    $db_address = $this->get_primary_address();
+    if( !is_null( $db_address ) )
+    { // there is a primary address
+      $db_jurisdiction = jurisdiction::get_unique_record( 'postcode', $db_address->postcode );
+      if( !is_null( $db_address ) ) $db_site = $db_jurisdiction->get_site();
     }
 
     return $db_site;

@@ -117,9 +117,25 @@ VALUES( "widget", "consent", "list", true, "Lists a participant's consent entrie
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "consent", "primary", true, "Retrieves base consent information." );
 
+-- coverage
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "coverage", "delete", true, "Removes a coverage entry from the system." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "coverage", "edit", true, "Edits the details of a coverage entry." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "coverage", "new", true, "Creates new coverage entry." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "coverage", "add", true, "View a form for creating new coverage entry." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "coverage", "view", true, "View the details of a coverage entry." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "coverage", "list", true, "Lists a coverage entries." );
+
 -- interviewer
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "interviewer", "assignment", true, "Displays the interviewer's assignment manager." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "interviewer", "list", true, "Displays a list of interviewers." );
 
 -- notes
 INSERT INTO operation( type, subject, name, restricted, description )

@@ -146,13 +146,6 @@ class assignment extends has_note
           }
         }
       }
-
-      // complete the interview if all phases are complete
-      if( false === $this->current_sid )
-      {
-        $db_interview->completed = true;
-        $db_interview->save();
-      }
     }
   }
   
