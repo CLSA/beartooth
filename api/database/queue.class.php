@@ -160,7 +160,7 @@ class queue extends record
     if( is_null( $modifier ) ) $modifier = new modifier();
 
     // restrict to the site
-    if( !is_null( $this->db_site ) ) $modifier->where( 'site_id', '=', $this->db_site->id );
+    if( !is_null( $this->db_site ) ) $modifier->where( 'participant.site_id', '=', $this->db_site->id );
     
     return static::db()->get_one(
       sprintf( '%s %s',
@@ -181,7 +181,7 @@ class queue extends record
     if( is_null( $modifier ) ) $modifier = new modifier();
 
     // restrict to the site
-    if( !is_null( $this->db_site ) ) $modifier->where( 'site_id', '=', $this->db_site->id );
+    if( !is_null( $this->db_site ) ) $modifier->where( 'participant.site_id', '=', $this->db_site->id );
 
     $participant_ids = static::db()->get_col(
       sprintf( '%s %s',
