@@ -170,7 +170,8 @@
                 
                   // open the dialog when the text is clicked
                   $( "div.editable_text" ).click( function () {
-                    $( "#{{ widget.full }}_dialog_{{ id|default(0) }}__{{ item_id }}" ).dialog( "open" );
+                    $( "#{{ widget.full }}_dialog_{{ id|default(0) }}__{{ item_id }}" )
+                      .dialog( "open" );
                   } );
                 } );
               </script>
