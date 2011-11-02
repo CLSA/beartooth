@@ -18,7 +18,7 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-abstract class base_edit extends base_record_push
+abstract class base_edit extends base_record
 {
   /**
    * Constructor.

@@ -18,7 +18,7 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class operation_list extends base_list_widget
+class operation_list extends base_list
 {
   /**
    * Constructor

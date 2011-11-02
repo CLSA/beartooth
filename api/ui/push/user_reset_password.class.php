@@ -18,7 +18,7 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class user_reset_password extends base_record_push
+class user_reset_password extends base_record
 {
   /**
    * Constructor.

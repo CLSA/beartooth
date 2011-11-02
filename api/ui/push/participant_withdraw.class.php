@@ -19,7 +19,7 @@ use beartooth\exception as exc;
  * Edit a participant.
  * @package beartooth\ui
  */
-class participant_withdraw extends base_record_push
+class participant_withdraw extends base_record
 {
   /**
    * Constructor.

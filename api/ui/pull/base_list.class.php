@@ -41,7 +41,7 @@ abstract class base_list extends \beartooth\ui\pull
    */
   public function finish()
   {
-    // TODO: make use of concepts in ui\widget\base_list_widget
+    // TODO: make use of concepts in ui\widget\base_list
 
     // create a list of records
     $modifier = new db\modifier();

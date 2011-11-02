@@ -1,6 +1,6 @@
 <?php
 /**
- * base_list_widget.class.php
+ * base_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -24,7 +24,7 @@ use beartooth\exception as exc;
  * @abstract
  * @package beartooth\ui
  */
-abstract class base_list_widget extends \beartooth\ui\widget
+abstract class base_list extends \beartooth\ui\widget
 {
   /**
    * Constructor

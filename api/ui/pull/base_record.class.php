@@ -1,38 +1,39 @@
 <?php
 /**
- * base_record_push.class.php
+ * base_record.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
  * @filesource
  */
 
-namespace beartooth\ui\push;
+namespace beartooth\ui\pull;
 use beartooth\log, beartooth\util;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
 
 /**
- * Base class for all push operations pertaining to a single record.
+ * Base class for all pull operations pertaining to a single record.
  * 
+ * @abstract
  * @package beartooth\ui
  */
-abstract class base_record_push
-  extends \beartooth\ui\push
+abstract class base_record
+  extends \beartooth\ui\pull
   implements \beartooth\ui\contains_record
 {
   /**
-   * Constructor.
+   * Constructor
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param string $subject The widget's subject.
-   * @param string $name The widget's name.
-   * @param array $args Push arguments
+   * @param array $args Pull arguments.
    * @access public
    */
   public function __construct( $subject, $name, $args )
   {
     parent::__construct( $subject, $name, $args );
+
     $class_name = '\\beartooth\\database\\'.$this->get_subject();
     $this->set_record( new $class_name( $this->get_argument( 'id', NULL ) ) );
   }
@@ -60,7 +61,7 @@ abstract class base_record_push
   }
 
   /**
-   * The record of the item being created.
+   * An record of the item being viewed.
    * @var record
    * @access private
    */

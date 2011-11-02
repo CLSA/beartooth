@@ -1,6 +1,6 @@
 <?php
 /**
- * base_record_widget.class.php
+ * base_record.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -19,7 +19,7 @@ use beartooth\exception as exc;
  * @abstract
  * @package beartooth\ui
  */
-abstract class base_record_widget
+abstract class base_record
   extends \beartooth\ui\widget
   implements \beartooth\ui\contains_record
 {
