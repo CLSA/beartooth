@@ -812,6 +812,40 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `onyx_instance`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `onyx_instance` ;
+
+CREATE  TABLE IF NOT EXISTS `onyx_instance` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `user_id` INT UNSIGNED NOT NULL ,
+  `site_id` INT UNSIGNED NOT NULL ,
+  `interviewer_user_id` INT UNSIGNED NULL COMMENT 'The interviewer\'s instance of onyx, or site\'s if null.' ,
+  PRIMARY KEY (`id`) ,
+  INDEX `fk_user_id` (`user_id` ASC) ,
+  INDEX `fk_interviewer_user_id` (`interviewer_user_id` ASC) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
+  UNIQUE INDEX `uq_user_id` (`user_id` ASC) ,
+  UNIQUE INDEX `uq_site_id_interviewer_id` (`site_id` ASC, `interviewer_user_id` ASC) ,
+  CONSTRAINT `fk_onyx_instance_user`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_onyx_instance_interviewer_user`
+    FOREIGN KEY (`interviewer_user_id` )
+    REFERENCES `user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_onyx_instance_site`
+    FOREIGN KEY (`site_id` )
+    REFERENCES `site` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Placeholder table for view `participant_first_address`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `participant_first_address` (`participant_id` INT, `address_id` INT);

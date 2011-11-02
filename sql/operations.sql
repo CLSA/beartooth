@@ -147,6 +147,22 @@ VALUES( "push", "note", "new", false, "Creates a new note." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "note", "list", false, "Lists a participant's note entries." );
 
+-- onyx_instance
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "onyx_instance", "delete", true, "Removes a onyx instance from the system." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "onyx_instance", "edit", true, "Edits a onyx instance's details." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "onyx_instance", "new", true, "Add a new onyx instance to the system." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "onyx_instance", "add", true, "View a form for creating a new onyx instance." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "onyx_instance", "view", true, "View a onyx instance's details." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "onyx_instance", "list", true, "List onyx instances in the system." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "onyx_instance", "primary", true, "Retrieves base onyx instance information." );
+
 -- operation
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "operation", "list", true, "List operations in the system." );

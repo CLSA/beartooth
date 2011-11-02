@@ -60,6 +60,7 @@ class user_add extends base_view
 
     // create enum arrays
     $modifier = new db\modifier();
+    $modifier->where( 'name', '!=', 'onyx' );
     if( !$is_administrator ) $modifier->where( 'name', '!=', 'administrator' );
     $roles = array();
     foreach( db\role::select( $modifier ) as $db_role )

@@ -74,11 +74,13 @@ class base_add_access extends base_add_list
    */
   public function determine_role_count( $modifier = NULL )
   {
+    if( is_null( $modifier ) ) $modifier = new db\modifier();
+    $modifier->where( 'name', '!=', 'onyx' );
+
+    // make sure that only admins can grant admin access
     if( 'administrator' != bus\session::self()->get_role()->name )
-    { // make sure that only admins can grant admin access
-      if( is_null( $modifier ) ) $modifier = new db\modifier();
       $modifier->where( 'name', '!=', 'administrator' );
-    }
+
     return db\role::count( $modifier );
   }
 
@@ -92,11 +94,13 @@ class base_add_access extends base_add_list
    */
   public function determine_role_list( $modifier = NULL )
   {
+    if( is_null( $modifier ) ) $modifier = new db\modifier();
+    $modifier->where( 'name', '!=', 'onyx' );
+
+    // make sure that only admins can grant admin access
     if( 'administrator' != bus\session::self()->get_role()->name )
-    { // make sure that only admins can grant admin access
-      if( is_null( $modifier ) ) $modifier = new db\modifier();
       $modifier->where( 'name', '!=', 'administrator' );
-    }
+
     return db\role::select( $modifier );
   }
 

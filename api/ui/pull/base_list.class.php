@@ -32,6 +32,30 @@ abstract class base_list extends \beartooth\ui\pull
   {
     parent::__construct( $subject, 'list', $args );
   }
+
+  /**
+   * Returns a list of all records in the list.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return array
+   * @access public
+   */
+  public function finish()
+  {
+    // TODO: make use of concepts in ui\widget\base_list_widget
+
+    // create a list of records
+    $modifier = new db\modifier();
+    $class_name = '\\bearetooth\\database\\'.$this->get_subject();
+    $list = array();
+    foreach( $class_name::select( $modifier ) as $record )
+    {
+      $item = array();
+      foreach( $record->get_column_names() as $column ) $item[$column] = $record->$column;
+      $list[] = $item;
+    }
+
+    return $list;
+  }
   
   /**
    * Lists are always returned in JSON format.

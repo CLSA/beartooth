@@ -1,0 +1,22 @@
+{##
+ # onyx_instance_add.twig
+ # 
+ # Form for creating new onyx_instances.
+ # @author Patrick Emond <emondpd@mcmaster.ca>
+ # @see base_add.twig for parameters
+ #}
+{% extends "base_add.twig" %}
+
+{% block javascript %}
+  
+  {{ parent() }}
+  <script type="text/javascript">
+    // reload page when site selection changes
+    $( function () {
+      $( "#{{ widget.full }}__site_id" ).change( function() {
+        // TODO: need to re-populate interviewer list
+      } );
+    } );
+  </script>
+
+{% endblock javascript %}

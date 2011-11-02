@@ -26,7 +26,8 @@ INSERT INTO user( name, first_name, last_name ) VALUES
 -- Grants all roles to all sites to all users
 INSERT INTO access ( user_id, role_id, site_id )
 SELECT user.id AS user_id, role.id AS role_id, site.id AS site_id
-FROM user, role, site;
+FROM user, role, site
+WHERE role.name != "onyx";
 
 LOAD DATA LOCAL INFILE "./participants.csv"
 INTO TABLE participant
