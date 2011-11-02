@@ -818,6 +818,8 @@ DROP TABLE IF EXISTS `onyx_instance` ;
 
 CREATE  TABLE IF NOT EXISTS `onyx_instance` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
   `user_id` INT UNSIGNED NOT NULL ,
   `site_id` INT UNSIGNED NOT NULL ,
   `interviewer_user_id` INT UNSIGNED NULL COMMENT 'The interviewer\'s instance of onyx, or site\'s if null.' ,

@@ -48,7 +48,7 @@ class onyx_instance_new extends base_new
     $db_user = $columns['interviewer_user_id']
              ? new db\user( $columns['interviewer_user_id'] )
              : NULL;
-    $db_site = $columns['site_id'];
+    $db_site = new db\site( $columns['site_id'] );
 
     // create the user
     $db_user = new db\user();
@@ -56,11 +56,24 @@ class onyx_instance_new extends base_new
     $db_user->first_name = 'onyx instance';
     $db_user->last_name = sprintf( '%s@%s', $db_user ? $db_user->name : 'site' , $db_site->name );
     $db_user->active = true;
-    $db_user->save();
+
+    try
+    {
+      $db_user->save();
+    }
+    catch( exc\database $e )
+    {
+      if( $e->is_duplicate_entry() )
+      {
+        throw new exc\notice(
+          'Unable to create the new '.$this->get_subject().' because it is not unique.',
+          __METHOD__, $e );
+      }
+    }
     
     // replace the username argument with the newly created user id for the new onyx instance
-    unset( $this->arguments['username'] );
-    $this->arguments['user_id'] = $db_user->id;
+    unset( $this->arguments['columns']['username'] );
+    $this->arguments['columns']['user_id'] = $db_user->id;
 
     parent::finish();
   }

@@ -40,9 +40,11 @@ class onyx_instance_view extends base_view
 
     try
     {
-      $this->user_view = new user_view( $args );
+      $this->user_view = new user_view(
+        array( 'user_view' => array( 'id' => $this->get_record()->user_id ) ) );
       $this->user_view->set_parent( $this );
       $this->user_view->set_heading( '' );
+      $this->user_view->set_removable( false );
     }
     catch( exc\permission $e )
     {
@@ -68,18 +70,29 @@ class onyx_instance_view extends base_view
       $sites = array();
       foreach( db\site::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
     }
+    
+    $db_role = db\role::get_unique_record( 'name', 'interviewer' );
 
-    $interviewers = array();
-    foreach( db\user::select( $modifier ) as $db_user )
+    $user_mod = new db\modifier();
+    $user_mod->where( 'site_id', '=', $this->get_record()->site_id );
+    $user_mod->where( 'role_id', '=', $db_role->id );
+    $interviewers = array( 'NULL' => 'site' );
+    foreach( db\user::select( $user_mod ) as $db_user )
       $interviewers[$db_user->id] = $db_user->name;
 
     // set the view's items
     $this->set_item(
-      'site_id', $this->get_record()->site_id, false, $is_administrator ? $sites : NULL );
+      'site_id', $this->get_record()->site_id, true, $is_administrator ? $sites : NULL );
     $this->set_item(
       'interviewer_user_id', $this->get_record()->interviewer_user_id, true, $interviewers );
 
     $this->finish_setting_items();
+
+    if( !is_null( $this->user_view ) )
+    {
+      $this->user_view->finish();
+      $this->set_variable( 'user_view', $this->user_view->get_variables() );
+    }
   }
 }
 ?>
