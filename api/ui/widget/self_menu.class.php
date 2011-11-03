@@ -74,6 +74,7 @@ class self_menu extends \beartooth\ui\widget
       'appointment',
       'availability',
       'consent',
+      'interviewer',
       'operation',
       'phase',
       'phone',

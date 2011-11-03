@@ -34,7 +34,7 @@ class interviewer_list extends base_list
     
     $session = bus\session::self();
 
-    $this->add_column( 'username', 'string', 'Interviewer', true );
+    $this->add_column( 'username', 'string', 'Interviewer', false );
     $this->add_column( 'coverages', 'number', 'Coverages', false );
     $this->add_column( 'jurisdiction_count', 'number', 'Jurisdictions', false );
     $this->add_column( 'participant_count', 'number', 'Participants', false );
