@@ -34,8 +34,7 @@ class onyx_instance_view extends base_view
 
     // define all columns defining this record
 
-    $type = 'administrator' == bus\session::self()->get_role()->name ? 'enum' : 'hidden';
-    $this->add_item( 'site_id', $type, 'Site' );
+    $this->add_item( 'site', 'constant', 'Site' );
     $this->add_item( 'interviewer_user_id', 'enum', 'Instance' );
 
     try
@@ -45,6 +44,8 @@ class onyx_instance_view extends base_view
       $this->user_view->set_parent( $this );
       $this->user_view->set_heading( '' );
       $this->user_view->set_removable( false );
+      $this->user_view->allow_reset_password( false );
+      $this->user_view->allow_set_password( true );
     }
     catch( exc\permission $e )
     {
@@ -62,15 +63,7 @@ class onyx_instance_view extends base_view
   {
     parent::finish();
     $session = bus\session::self();
-    $is_administrator = 'administrator' == $session->get_role()->name;
 
-    // create enum arrays
-    if( $is_administrator )
-    {
-      $sites = array();
-      foreach( db\site::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
-    }
-    
     $db_role = db\role::get_unique_record( 'name', 'interviewer' );
 
     $user_mod = new db\modifier();
@@ -81,8 +74,7 @@ class onyx_instance_view extends base_view
       $interviewers[$db_user->id] = $db_user->name;
 
     // set the view's items
-    $this->set_item(
-      'site_id', $this->get_record()->site_id, true, $is_administrator ? $sites : NULL );
+    $this->set_item( 'site', $this->get_record()->get_site()->name );
     $this->set_item(
       'interviewer_user_id', $this->get_record()->interviewer_user_id, true, $interviewers );
 

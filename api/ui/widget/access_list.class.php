@@ -57,39 +57,5 @@ class access_list extends site_restricted_list
 
     $this->finish_setting_rows();
   }
-  
-  /**
-   * Overrides the parent class method to prevent counting onyx users
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param database\modifier $modifier Modifications to the list.
-   * @return int
-   * @access protected
-   */
-  protected function determine_record_count( $modifier = NULL )
-  {
-    $db_role = db\role::get_unique_record( 'name', 'onyx' );
-    if( NULL == $modifier ) $modifier = new db\modifier();
-    $modifier->where( 'role_id', '!=', $db_role->id );
-
-    return parent::determine_record_count( $modifier );
-  }
-  
-  /**
-   * Overrides the parent class method to prevent onyx users from being included in the lsit
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param database\modifier $modifier Modifications to the list.
-   * @return array( record )
-   * @access protected
-   */
-  protected function determine_record_list( $modifier = NULL )
-  {
-    $db_role = db\role::get_unique_record( 'name', 'onyx' );
-    if( NULL == $modifier ) $modifier = new db\modifier();
-    $modifier->where( 'role_id', '!=', $db_role->id );
-
-    return parent::determine_record_list( $modifier );
-  }
 }
 ?>

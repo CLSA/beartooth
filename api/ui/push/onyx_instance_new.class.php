@@ -44,36 +44,45 @@ class onyx_instance_new extends base_new
     $columns = $this->get_argument( 'columns' );
     if( !$columns['username'] )
       throw new exc\notice( 'The onyx instance\'s user name cannot be left blank.', __METHOD__ );
+    else if( !$columns['password'] )
+      throw new exc\notice( 'You must provide a password at least 6 characters long.', __METHOD__ );
+    else if( 6 > strlen( $columns['password'] ) )
+      throw new exc\notice( 'Passwords must be at least 6 characters long.', __METHOD__ );
+    else if( 'password' == $columns['password'] )
+      throw new exc\notice( 'You cannot choose "password" as a password.', __METHOD__ );
     
-    $db_user = $columns['interviewer_user_id']
+    $db_interviewer_user = $columns['interviewer_user_id']
              ? new db\user( $columns['interviewer_user_id'] )
              : NULL;
     $db_site = new db\site( $columns['site_id'] );
+    $db_role = db\role::get_unique_record( 'name', 'onyx' );
+    $first_name = 'onyx instance';
+    $last_name = sprintf( '%s@%s',
+                          $db_interviewer_user ? $db_interviewer_user->name : 'site',
+                          $db_site->name );
 
-    // create the user
-    $db_user = new db\user();
-    $db_user->name = $columns['username'];
-    $db_user->first_name = 'onyx instance';
-    $db_user->last_name = sprintf( '%s@%s', $db_user ? $db_user->name : 'site' , $db_site->name );
-    $db_user->active = true;
-
-    try
-    {
-      $db_user->save();
-    }
-    catch( exc\database $e )
-    {
-      if( $e->is_duplicate_entry() )
-      {
-        throw new exc\notice(
-          'Unable to create the new '.$this->get_subject().' because it is not unique.',
-          __METHOD__, $e );
-      }
-    }
+    // now create the user and add onyx access to it
+    $args = array( 'columns' =>
+              array(
+                'name' => $columns['username'],
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'active' => true,
+                'role_id' => $db_role->id,
+                'site_id' => $db_site->id ) );
+    $operation = new user_new( $args );
+    
+    $operation->finish();
     
     // replace the username argument with the newly created user id for the new onyx instance
+    $db_user = db\user::get_unique_record( 'name', $columns['username'] );
     unset( $this->arguments['columns']['username'] );
+    unset( $this->arguments['columns']['password'] );
     $this->arguments['columns']['user_id'] = $db_user->id;
+
+    // set user's password
+    $ldap_manager = bus\ldap_manager::self();
+    $ldap_manager->set_user_password( $db_user->name, $columns['password'] );
 
     parent::finish();
   }

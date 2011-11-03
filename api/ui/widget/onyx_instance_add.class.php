@@ -36,6 +36,8 @@ class onyx_instance_add extends base_view
 
     $type = 'administrator' == bus\session::self()->get_role()->name ? 'enum' : 'hidden';
     $this->add_item( 'username', 'string', 'Username' );
+    $this->add_item( 'password', 'string', 'Password',
+      'Passwords must be at least 6 characters long.' );
     $this->add_item( 'site_id', $type, 'Site' );
     $this->add_item( 'interviewer_user_id', 'enum', 'Instance',
       'Determines whether to link this instance to a site or an interviewer.' );
@@ -72,6 +74,7 @@ class onyx_instance_add extends base_view
 
     // set the view's items
     $this->set_item( 'username', '' );
+    $this->set_item( 'password', '' );
     $this->set_item(
       'site_id', $db_site->id, true, $is_administrator ? $sites : NULL );
     $this->set_item(
