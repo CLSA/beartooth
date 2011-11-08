@@ -109,11 +109,6 @@ class appointment_list extends base_list
     foreach( $appointment_list as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
-      $end_datetime_obj = clone $start_datetime_obj;
-      $end_datetime_obj->modify(
-        sprintf( '+%d minute',
-        bus\setting_manager::self()->get_setting( 'appointment', 'site duration' ) ) );
-
       $db_participant = $db_appointment->get_participant();
 
       $mastodon_manager = bus\mastodon_manager::self();
@@ -125,11 +120,8 @@ class appointment_list extends base_list
       }
       else
       {
-        // TODO: this is a temporary fix for when mastodon is not available
-        // during beartooth development.  this should probably be set to
-        // throw an exception under normal operating circumstances
-        $participant_obj->data->date_of_birth = '1950-01-01';
-        $participant_obj->data->gender = 'male';
+        throw new exc\runtime( 
+          'Onyx requires populated dob and gender data from Mastodon', __METHOD__ );
       }
 
       $db_address = $db_participant->get_primary_address();
