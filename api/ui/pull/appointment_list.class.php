@@ -76,17 +76,37 @@ class appointment_list extends base_list
    */
   public function finish()
   {
-    // TODO: need to figure out which onyx instance is requesting the list
-    // eg, a laptop instance of onyx for in home interviews or a DCS instance
-    // For now this operation only returns site appointments
     $event_list = array();
 
     // create a list of appointments between the start and end time
-    $db_site = bus\session::self()->get_site();
+    $db_user = bus\session::self()->get_user();
+    $db_onyx = db\onyx_instance::get_unique_record(
+      'user_id' , $db_user->id );
+    
     $modifier = new db\modifier();
     $modifier->where( 'datetime', '>=', $this->start_datetime->format( 'Y-m-d H:i:s' ) );
     $modifier->where( 'datetime', '<', $this->end_datetime->format( 'Y-m-d H:i:s' ) );
-    foreach( db\appointment::select_for_site( $db_site, $modifier ) as $db_appointment )
+
+    // determine whether this is a site instance of onyx or an interviewer's laptop
+    $appointment_list = NULL;
+    if( is_null( $db_onyx->interviewer_user_id ) )
+    {
+      $appointment_list = db\appointment::select_for_site( $db_onyx->get_site(), $modifier );
+    }
+    else
+    {
+      $db_role = db\role::get_unique_record( 'name', 'interviewer' );
+      $db_access = db\access::get_unique_record(
+        array( 'user_id', 'site_id', 'role_id' ),
+        array( $db_onyx->interviewer_user_id, $db_onyx->site_id, $db_role->id ) );
+      $appointment_list = db\appointment::select_for_access( $db_access, $modifier );
+    }
+
+    if( is_null( $appointment_list ) )
+      throw new exc\runtime( 
+        'Cannot get an appointment list for onyx', __METHOD__ );
+
+    foreach( $appointment_list as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $end_datetime_obj = clone $start_datetime_obj;
@@ -97,17 +117,39 @@ class appointment_list extends base_list
       $db_participant = $db_appointment->get_participant();
 
       $mastodon_manager = bus\mastodon_manager::self();
-      $participant_obj = $mastodon_manager->pull( 'participant', 'primary',
-        array( 'uid' => $db_participant->uid ) );
+      $participant_obj = new \stdClass();
+      if( $mastodon_manager->is_enabled() )
+      {
+        $participant_obj = $mastodon_manager->pull( 'participant', 'primary',
+                             array( 'uid' => $db_participant->uid ) );
+      }
+      else
+      {
+        // TODO: this is a temporary fix for when mastodon is not available
+        // during beartooth development.  this should probably be set to
+        // throw an exception under normal operating circumstances
+        $participant_obj->data->date_of_birth = '1950-01-01';
+        $participant_obj->data->gender = 'male';
+      }
+
+      $db_address = $db_participant->get_primary_address();
 
       $event_list[] = array(
-        'clsa_id'   => $db_participant->uid,
-        'firstName' => $db_participant->first_name,
-        'lastName'  => $db_participant->last_name,
-        'dob'       => $participant_obj->data->date_of_birth,
+        'uid'        => $db_participant->uid,
+        'first_name' => $db_participant->first_name,
+        'last_name'  => $db_participant->last_name,
+        'dob'        => is_null( $participant_obj->data->date_of_birth )
+                      ? ''
+                      : util::get_datetime_object( 
+                          $participant_obj->data->date_of_birth )->format( 
+                            'Y-m-d' ),
         'gender'    => $participant_obj->data->gender,
-        'start'     => $start_datetime_obj->format( \DateTime::ISO8601 ),
-        'end'       => $end_datetime_obj->format( \DateTime::ISO8601 ) );
+        'datetime'  => $start_datetime_obj->format( \DateTime::ISO8601 ),
+        'street'    => is_null( $db_address ) ? 'NA' : $db_address->address1,
+        'city'      => is_null( $db_address ) ? 'NA' : $db_address->city,
+        'province'  => is_null( $db_address ) ? 'NA' : $db_address->get_region()->name,
+        'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode,
+        'consent_to_draw_blood' =>  false ); // TODO: implement this field in mastodon
     }
 
     return $event_list;
