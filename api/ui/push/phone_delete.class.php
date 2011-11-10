@@ -28,7 +28,19 @@ class phone_delete extends base_delete
    */
   public function __construct( $args )
   {
-    parent::__construct( 'phone', $args );
+    // we'll need the arguments to send to mastodon
+    $args = $this->arguments;
+
+    // replace the phone id with a unique key
+    unset( $args['id'] );
+    $args['noid']['participant.uid'] = $this->get_record()->get_participant()->uid;
+    $args['noid']['phone.rank'] = $this->get_record()->rank;
+    
+    parent::finish();
+
+    // now send the same request to mastodon
+    $mastodon_manager = bus\mastodon_manager::self();
+    $mastodon_manager->push( 'phone', 'delete', $args );
   }
 }
 ?>
