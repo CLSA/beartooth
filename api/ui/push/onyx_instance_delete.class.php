@@ -48,7 +48,6 @@ class onyx_instance_delete extends base_delete
         'You do not have access to remove this onyx instance.', __METHOD__ );
     
     $db_user = $this->get_record()->get_user();
-    $username = $db_user->name;
 
     if( 1 < count( $db_user->get_access_count() ) )
       throw new exc\notice(
