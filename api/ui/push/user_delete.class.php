@@ -42,9 +42,8 @@ class user_delete extends base_delete
     $args = $this->arguments;
 
     // replace the user id with a unique key
-    $db_user = $this->get_record();
     unset( $args['id'] );
-    $args['noid']['user.name'] = $db_user->name;
+    $args['noid']['user.name'] = $this->get_record()->name;
     
     parent::finish();
 

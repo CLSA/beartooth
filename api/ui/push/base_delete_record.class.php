@@ -41,7 +41,7 @@ abstract class base_delete_record extends base_record
    */
   public function finish()
   {
-    $class_name = sprintf( '\\sabretooth\\ui\\push\\%s_delete', $this->child_subject );
+    $class_name = sprintf( '\\beartooth\\ui\\push\\%s_delete', $this->child_subject );
     $operation = new $class_name( array( 'id' => $this->get_argument( 'remove_id' ) ) );
     $operation->finish();
   }

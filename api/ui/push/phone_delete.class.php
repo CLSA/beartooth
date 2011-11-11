@@ -28,6 +28,16 @@ class phone_delete extends base_delete
    */
   public function __construct( $args )
   {
+    parent::__construct( 'phone', $args );
+  }
+  
+  /**
+   * Executes the push.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access public
+   */
+  public function finish()
+  {
     // we'll need the arguments to send to mastodon
     $args = $this->arguments;
 
