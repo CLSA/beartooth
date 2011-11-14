@@ -87,8 +87,6 @@ class user_view extends base_view
 
     $this->finish_setting_items();
     
-    $role_name = bus\session::self()->get_role()->name;
-
     // only show reset and/or set password buttons if current user is allowed
     $this->set_variable( 'reset_password',
       $this->reset_password &&
