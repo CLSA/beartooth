@@ -525,8 +525,8 @@ abstract class base_list extends \beartooth\ui\widget
    *   'heading' => the name to display in in the column header
    * The following are optional:
    *   'sortable' => whether or not the list can be sorted by the column
+   *   'restrictable' => whether or not a sortable list can be restricted to particular values
    *   'align' => Which way to align the column
-   *   'restrictable' => whether or not the list can be sorted by restriction
    * This member can only be set in the {@link add_column} and {@link remove_column} functions.
    * @var array
    * @access private
