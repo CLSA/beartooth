@@ -34,7 +34,7 @@ class onyx_instance_add extends base_view
     
     // define all columns defining this record
 
-    $type = 'administrator' == bus\session::self()->get_role()->name ? 'enum' : 'hidden';
+    $type = 3 == bus\session::self()->get_role()->tier ? 'enum' : 'hidden';
     $this->add_item( 'username', 'string', 'Username' );
     $this->add_item( 'password', 'string', 'Password',
       'Passwords must be at least 6 characters long.' );
@@ -53,10 +53,10 @@ class onyx_instance_add extends base_view
   {
     parent::finish();
     $session = bus\session::self();
-    $is_administrator = 'administrator' == $session->get_role()->name;
+    $is_top_tier = 3 == $session->get_role()->tier;
     
     // create enum arrays
-    if( $is_administrator )
+    if( $is_top_tier )
     {
       $sites = array();
       foreach( db\site::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
@@ -76,7 +76,7 @@ class onyx_instance_add extends base_view
     $this->set_item( 'username', '' );
     $this->set_item( 'password', '' );
     $this->set_item(
-      'site_id', $db_site->id, true, $is_administrator ? $sites : NULL );
+      'site_id', $db_site->id, true, $is_top_tier ? $sites : NULL );
     $this->set_item(
       'interviewer_user_id', key( $interviewers ), true, $interviewers, true );
 

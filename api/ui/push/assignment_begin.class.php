@@ -48,7 +48,7 @@ class assignment_begin extends \beartooth\ui\push
     if( 0 == $db_qnaire->get_phase_count() )
       throw new exc\notice(
         'This participant\'s next questionnaire is not yet ready.  '.
-        'Please immediately report this problem to a coordinator.',
+        'Please immediately report this problem to a superior.',
         __METHOD__ );
     
     // get this participant's interview or create a new one if none exists yet

@@ -76,11 +76,7 @@ class base_add_access extends base_add_list
   {
     if( is_null( $modifier ) ) $modifier = new db\modifier();
     $modifier->where( 'name', '!=', 'onyx' );
-
-    // make sure that only admins can grant admin access
-    if( 'administrator' != bus\session::self()->get_role()->name )
-      $modifier->where( 'name', '!=', 'administrator' );
-
+    $modifier->where( 'tier', '<=', bus\session::self()->get_role()->tier );
     return db\role::count( $modifier );
   }
 
@@ -96,11 +92,7 @@ class base_add_access extends base_add_list
   {
     if( is_null( $modifier ) ) $modifier = new db\modifier();
     $modifier->where( 'name', '!=', 'onyx' );
-
-    // make sure that only admins can grant admin access
-    if( 'administrator' != bus\session::self()->get_role()->name )
-      $modifier->where( 'name', '!=', 'administrator' );
-
+    $modifier->where( 'tier', '<=', bus\session::self()->get_role()->tier );
     return db\role::select( $modifier );
   }
 

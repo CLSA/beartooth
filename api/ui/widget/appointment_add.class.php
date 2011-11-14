@@ -83,8 +83,8 @@ class appointment_add extends base_appointment_view
     $this->set_item( 'datetime', '', true, $datetime_limits );
 
     $this->set_variable( 
-      'is_coordinator', 
-      'coordinator' == bus\session::self()->get_role()->name );
+      'is_mid_tier',
+      2 == bus\session::self()->get_role()->tier );
 
     $this->finish_setting_items();
   }
