@@ -111,7 +111,7 @@ class appointment_list extends base_list
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $db_participant = $db_appointment->get_participant();
 
-      $mastodon_manager = bus\mastodon_manager::self();
+      $mastodon_manager = bus\cenozo_manager::self( MASTODON_URL );
       $participant_obj = new \stdClass();
       if( $mastodon_manager->is_enabled() )
       {
