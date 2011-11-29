@@ -18,19 +18,8 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class site_new_access extends base_new_record
+class site_new_access extends \cenozo\ui\push\site_new_access
 {
-  /**
-   * Constructor.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param array $args Push arguments
-   * @access public
-   */
-  public function __construct( $args )
-  {
-    parent::__construct( 'site', 'access', $args );
-  }
-
   /**
    * Executes the push.
    * @author Patrick Emond <emondpd@mcmaster.ca>

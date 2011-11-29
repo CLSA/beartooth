@@ -18,7 +18,7 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class site_add extends base_view
+class site_add extends \cenozo\ui\push\site_add
 {
   /**
    * Constructor
@@ -32,9 +32,7 @@ class site_add extends base_view
   {
     parent::__construct( 'site', 'add', $args );
     
-    // define all columns defining this record
-    $this->add_item( 'name', 'string', 'Name' );
-    $this->add_item( 'timezone', 'enum', 'Time Zone' );
+    // define additional columns defining this record
     $this->add_item( 'institution', 'string', 'Institution' );
     $this->add_item( 'phone_number', 'string', 'Phone Number' );
     $this->add_item( 'address1', 'string', 'Address1' );
@@ -56,17 +54,12 @@ class site_add extends base_view
     parent::finish();
     
     // create enum arrays
-    $timezones = db\site::get_enum_values( 'timezone' );
-    $timezones = array_combine( $timezones, $timezones );
-
     $regions = array();
     foreach( db\region::select() as $db_region )
       $regions[$db_region->id] = $db_region->name.', '.$db_region->country;
     reset( $regions );
 
     // set the view's items
-    $this->set_item( 'name', '', true );
-    $this->set_item( 'timezone', key( $timezones ), true, $timezones );
     $this->set_item( 'institution', '' );
     $this->set_item( 'phone_number', '' );
     $this->set_item( 'address1', '' );

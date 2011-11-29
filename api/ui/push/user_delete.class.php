@@ -18,19 +18,8 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class user_delete extends base_delete
+class user_delete extends \cenozo\ui\push\user_delete
 {
-  /**
-   * Constructor.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param array $args Push arguments
-   * @access public
-   */
-  public function __construct( $args )
-  {
-    parent::__construct( 'user', $args );
-  }
-  
   /**
    * Executes the push.
    * @author Patrick Emond <emondpd@mcmaster.ca>

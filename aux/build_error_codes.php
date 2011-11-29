@@ -5,8 +5,11 @@
  * It uses this information to rebuild the api/exception/error_codes.inc.php file.
  */
 
-function print_exception_block( $type, $list )
+function print_exception_block( $lists, $type )
 {
+  if( !array_key_exists( $type, $lists ) ) return;
+  $list = $lists[$type];
+
   // first find the longest line
   $max_length = 0;
   foreach( $list as $class_name => $method_list )
@@ -54,7 +57,7 @@ if( preg_match( '#/aux$#', getcwd() ) ) chdir( '..' );
 // grep for all method declarations and new exceptions in the api/ directory
 $return_status = -1;
 $grep_line_list = array();
-exec( 'grep -Hrn "\(^ *\(public\|private\|protected\)\( static\)\? function\)\|\(new exc\)" api/*',
+exec( 'grep -Hrn "\(^ *\(public\|private\|protected\)\( static\| final\)* function\)\|\(new exc\)" api/*',
       $grep_line_list, $return_status );
 
 if( 0 != $return_status ) die( 'There was an error when fetching method list.' );
@@ -126,53 +129,6 @@ foreach( $grep_line_list as $grep_line )
   }
 }
 
-// now look in the web directory for exceptions thrown outside of a class
-$grep_line_list = array();
-exec( 'grep -Hrn "new exc" web/*',
-      $grep_line_list, $return_status );
-
-if( 0 != $return_status ) die( 'There was an error when fetching exception list.' );
-
-foreach( $grep_line_list as $grep_line )
-{
-  // get the script name
-
-  // find the first / before the first :
-  $colon_position = strpos( $grep_line, ':' );
-  if( false === $colon_position ) continue;
-  $start_match = '/';
-  $end_match = '.php';
-  $start = strrpos( substr( $grep_line, 0, $colon_position ), $start_match ) +
-           strlen( $start_match );
-  $end = strpos( $grep_line, $end_match, $start );
-  
-  // make sure a match was found
-  if( false === $start || false === $end ) continue;
-  $script_name = substr( $grep_line, $start, $end - $start );
-  
-  // get the exception type
-  $start_match = 'exc\\';
-  $start = strpos( $grep_line, $start_match );
-  if( false === $start ) $start_match = 'exception\\';
-  $start = strpos( $grep_line, $start_match );
-  if( false === $start ) continue;
-  $start += strlen( $start_match );
-
-  $end_match = '(';
-  $end = strpos( $grep_line, $end_match, $start );
-    
-  // make sure a match was found
-  if( false === $start || false === $end ) continue;
-  $exception_type = substr( $grep_line, $start, $end - $start );
-
-  // now add the error code
-  if( !array_key_exists( $exception_type, $error_codes ) )
-    $error_codes[$exception_type] = array();
-  if( !array_key_exists( $script_name, $error_codes[$exception_type] ) )
-    $error_codes[$exception_type][$script_name] = array();
-  $error_codes[$exception_type][$script_name][] = 'script';
-}
-
 // now print out the file
 print <<<OUTPUT
 <?php
@@ -181,24 +137,20 @@ print <<<OUTPUT
  * 
  * This file is where all error codes are defined.
  * All error code are named after the class and function they occur in.
- * @package beartooth\exception
- * @filesource
  */
-
-namespace beartooth\exception;
 
 /**
  * Error number category defines.
  */
-define( 'ARGUMENT_BASE_ERROR_NUMBER',   100000 );
-define( 'DATABASE_BASE_ERROR_NUMBER',   200000 );
-define( 'LDAP_BASE_ERROR_NUMBER',       300000 );
-define( 'NOTICE_BASE_ERROR_NUMBER',     400000 );
-define( 'PERMISSION_BASE_ERROR_NUMBER', 500000 );
-define( 'RUNTIME_BASE_ERROR_NUMBER',    600000 );
-define( 'SYSTEM_BASE_ERROR_NUMBER',     700000 );
-define( 'TEMPLATE_BASE_ERROR_NUMBER',   800000 );
-define( 'VOIP_BASE_ERROR_NUMBER',       900000 );
+define( 'ARGUMENT_BASE_ERROR_NUMBER',   105000 );
+define( 'DATABASE_BASE_ERROR_NUMBER',   205000 );
+define( 'LDAP_BASE_ERROR_NUMBER',       305000 );
+define( 'NOTICE_BASE_ERROR_NUMBER',     405000 );
+define( 'PERMISSION_BASE_ERROR_NUMBER', 505000 );
+define( 'RUNTIME_BASE_ERROR_NUMBER',    605000 );
+define( 'SYSTEM_BASE_ERROR_NUMBER',     705000 );
+define( 'TEMPLATE_BASE_ERROR_NUMBER',   805000 );
+define( 'VOIP_BASE_ERROR_NUMBER',       905000 );
 
 /**
  * "argument" error codes
@@ -207,7 +159,7 @@ define( 'VOIP_BASE_ERROR_NUMBER',       900000 );
 OUTPUT;
 
 // now print all argument exceptions
-print_exception_block( 'argument', $error_codes['argument'] );
+print_exception_block( $error_codes, 'argument' );
 
 print <<<OUTPUT
 
@@ -230,7 +182,7 @@ print <<<OUTPUT
 OUTPUT;
 
 // now print all notice exceptions
-print_exception_block( 'notice', $error_codes['notice'] );
+print_exception_block( $error_codes, 'notice' );
 
 print <<<OUTPUT
 
@@ -241,7 +193,7 @@ print <<<OUTPUT
 OUTPUT;
 
 // now print all permission exceptions
-print_exception_block( 'permission', $error_codes['permission'] );
+print_exception_block( $error_codes, 'permission' );
 
 print <<<OUTPUT
 
@@ -252,7 +204,7 @@ print <<<OUTPUT
 OUTPUT;
 
 // now print all runtime exceptions
-print_exception_block( 'runtime', $error_codes['runtime'] );
+print_exception_block( $error_codes, 'runtime' );
 
 print <<<OUTPUT
 
@@ -260,6 +212,18 @@ print <<<OUTPUT
  * "system" error codes
  * 
  * Since system errors already have codes this list is likely to stay empty.
+ * Note the following PHP error codes:
+ *      1: error,
+ *      2: warning,
+ *      4: parse,
+ *      8: notice,
+ *     16: core error,
+ *     32: core warning,
+ *     64: compile error,
+ *    128: compile warning,
+ *    256: user error,
+ *    512: user warning,
+ *   1024: user notice
  */
 
 /**
@@ -275,8 +239,12 @@ print <<<OUTPUT
 OUTPUT;
 
 // now print all voip exceptions
-print_exception_block( 'voip', $error_codes['voip'] );
+print_exception_block( $error_codes, 'voip' );
 
-print "\n?>\n";
+print <<<OUTPUT
+
+?>
+
+OUTPUT;
 
 ?>

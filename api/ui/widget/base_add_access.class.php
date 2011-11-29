@@ -18,52 +18,8 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class base_add_access extends base_add_list
+class base_add_access extends \cenozo\ui\push\base_add_access
 {
-  /**
-   * Constructor
-   * 
-   * Defines all variables which need to be set for the associated template.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param string $subject The operation's subject.
-   * @param array $args An associative array of arguments to be processed by the widget
-   * @access public
-   */
-  public function __construct( $subject, $args )
-  {
-    parent::__construct( $subject, 'access', $args );
-    $this->show_heading( false );
-    
-    try
-    {
-      // build the role list widget
-      $this->role_list = new role_list( $args );
-      $this->role_list->set_parent( $this, 'edit' );
-      $this->role_list->set_heading( 'Select roles to grant' );
-    }
-    catch( exc\permission $e )
-    {
-      $this->role_list = NULL;
-    }
-  }
-
-  /**
-   * Finish setting the variables in a widget.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
-   */
-  public function finish()
-  {
-    parent::finish();
-
-    if( !is_null( $this->role_list ) )
-    {
-      $this->role_list->finish();
-      $this->set_variable( 'role_list', $this->role_list->get_variables() );
-    }
-  }
-  
   /**
    * Overrides the role list widget's method.
    * 
@@ -95,12 +51,5 @@ class base_add_access extends base_add_list
     $modifier->where( 'tier', '<=', bus\session::self()->get_role()->tier );
     return db\role::select( $modifier );
   }
-
-  /**
-   * The role list widget used to define the access type.
-   * @var role_list
-   * @access protected
-   */
-  protected $role_list = NULL;
 }
 ?>

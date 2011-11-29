@@ -19,19 +19,8 @@ use beartooth\exception as exc;
  * Edit a site.
  * @package beartooth\ui
  */
-class site_edit extends base_edit
+class site_edit extends \cenozo\ui\push\site_edit
 {
-  /**
-   * Constructor.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param array $args Push arguments
-   * @access public
-   */
-  public function __construct( $args )
-  {
-    parent::__construct( 'site', $args );
-  }
-
   /**
    * Overrides the parent method to make sure the postcode is valid.
    * @author Patrick Emond <emondpd@mcmaster.ca>

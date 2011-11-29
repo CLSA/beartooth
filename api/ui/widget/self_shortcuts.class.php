@@ -18,22 +18,8 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class self_shortcuts extends \beartooth\ui\widget
+class self_shortcuts extends \cenozo\ui\push\self_shortcuts
 {
-  /**
-   * Constructor
-   * 
-   * Defines all variables which need to be set for the associated template.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param array $args An associative array of arguments to be processed by the widget
-   * @access public
-   */
-  public function __construct( $args )
-  {
-    parent::__construct( 'self', 'shortcuts', $args );
-    $this->show_heading( false );
-  }
-
   /**
    * Finish setting the variables in a widget.
    * 
@@ -65,11 +51,7 @@ class self_shortcuts extends \beartooth\ui\widget
     $this->set_variable( 'webphone',
       $voip_enabled && !bus\voip_manager::self()->get_sip_enabled() );
     $this->set_variable( 'dialpad', !is_null( bus\voip_manager::self()->get_call() ) );
-    $this->set_variable( 'calculator', true );
     $this->set_variable( 'timezone_calculator', true );
-    $this->set_variable( 'navigation', true );
-    $this->set_variable( 'refresh', true );
-    $this->set_variable( 'home', false );
   }
 }
 ?>
