@@ -208,17 +208,12 @@ CREATE  TABLE IF NOT EXISTS `assignment` (
   `start_datetime` DATETIME NOT NULL ,
   `end_datetime` DATETIME NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_user_id` (`user_id` ASC) ,
   INDEX `fk_interview_id` (`interview_id` ASC) ,
   INDEX `fk_queue_id` (`queue_id` ASC) ,
-  INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `dk_start_datetime` (`start_datetime` ASC) ,
   INDEX `dk_end_datetime` (`end_datetime` ASC) ,
-  CONSTRAINT `fk_assignment_user`
-    FOREIGN KEY (`user_id` )
-    REFERENCES `user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_site_id` (`site_id` ASC) ,
+  INDEX `fk_user_id` (`user_id` ASC) ,
   CONSTRAINT `fk_assignment_interview`
     FOREIGN KEY (`interview_id` )
     REFERENCES `interview` (`id` )
@@ -232,6 +227,11 @@ CREATE  TABLE IF NOT EXISTS `assignment` (
   CONSTRAINT `fk_assignment_site`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_assignment_user`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -415,16 +415,16 @@ CREATE  TABLE IF NOT EXISTS `participant_note` (
   `datetime` DATETIME NOT NULL ,
   `note` TEXT NOT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_user_id` (`user_id` ASC) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
-  CONSTRAINT `fk_participant_note_user`
-    FOREIGN KEY (`user_id` )
-    REFERENCES `user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_user_id` (`user_id` ASC) ,
   CONSTRAINT `fk_participant_note_participant`
     FOREIGN KEY (`participant_id` )
     REFERENCES `participant` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_participant_note_user`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -445,16 +445,17 @@ CREATE  TABLE IF NOT EXISTS `assignment_note` (
   `datetime` DATETIME NOT NULL ,
   `note` TEXT NOT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_user_id` (`user_id` ASC) ,
   INDEX `fk_assignment_id` (`assignment_id` ASC) ,
-  CONSTRAINT `fk_assignment_note_user`
-    FOREIGN KEY (`user_id` )
-    REFERENCES `user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_assignment_note_user` (`user_id` ASC) ,
+  INDEX `fk_user_id` (`user_id` ASC) ,
   CONSTRAINT `fk_assignment_note_assignment`
     FOREIGN KEY (`assignment_id` )
     REFERENCES `assignment` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_assignment_note_user`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -476,13 +477,13 @@ CREATE  TABLE IF NOT EXISTS `appointment` (
   PRIMARY KEY (`id`) ,
   INDEX `dk_reached` (`reached` ASC) ,
   INDEX `fk_address_id` (`address_id` ASC) ,
-  INDEX `fk_participant_id1` (`participant_id` ASC) ,
-  CONSTRAINT `fk_appointment_address_id`
+  INDEX `fk_participant_id` (`participant_id` ASC) ,
+  CONSTRAINT `fk_appointment_address`
     FOREIGN KEY (`address_id` )
     REFERENCES `address` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_participant_id1`
+  CONSTRAINT `fk_appointment_participant`
     FOREIGN KEY (`participant_id` )
     REFERENCES `participant` (`id` )
     ON DELETE NO ACTION
@@ -537,14 +538,14 @@ CREATE  TABLE IF NOT EXISTS `queue_restriction` (
   `region_id` INT UNSIGNED NULL DEFAULT NULL ,
   `postcode` VARCHAR(10) NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_site_id1` (`site_id` ASC) ,
-  INDEX `fk_region_id1` (`region_id` ASC) ,
-  CONSTRAINT `fk_site_id1`
+  INDEX `fk_site_id` (`site_id` ASC) ,
+  INDEX `fk_region_id` (`region_id` ASC) ,
+  CONSTRAINT `fk_queue_restriction_site`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_region_id1`
+  CONSTRAINT `fk_queue_restrictions_region`
     FOREIGN KEY (`region_id` )
     REFERENCES `region` (`id` )
     ON DELETE NO ACTION
@@ -589,8 +590,8 @@ CREATE  TABLE IF NOT EXISTS `coverage` (
   `postcode_mask` VARCHAR(7) NOT NULL ,
   `access_id` INT UNSIGNED NOT NULL COMMENT 'This access should always be as an interviewer.' ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_access_id` (`access_id` ASC) ,
   UNIQUE INDEX `uq_postcode_mask` (`postcode_mask` ASC) ,
+  INDEX `fk_access_id` (`access_id` ASC) ,
   CONSTRAINT `fk_coverage_access`
     FOREIGN KEY (`access_id` )
     REFERENCES `access` (`id` )
@@ -608,15 +609,19 @@ CREATE  TABLE IF NOT EXISTS `onyx_instance` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `update_timestamp` TIMESTAMP NOT NULL ,
   `create_timestamp` TIMESTAMP NOT NULL ,
-  `user_id` INT UNSIGNED NOT NULL ,
   `site_id` INT UNSIGNED NOT NULL ,
+  `user_id` INT UNSIGNED NOT NULL ,
   `interviewer_user_id` INT UNSIGNED NULL COMMENT 'The interviewer\'s instance of onyx, or site\'s if null.' ,
   PRIMARY KEY (`id`) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
+  UNIQUE INDEX `uq_site_id_interviewer_id` (`site_id` ASC, `interviewer_user_id` ASC) ,
   INDEX `fk_user_id` (`user_id` ASC) ,
   INDEX `fk_interviewer_user_id` (`interviewer_user_id` ASC) ,
-  INDEX `fk_site_id` (`site_id` ASC) ,
-  UNIQUE INDEX `uq_user_id` (`user_id` ASC) ,
-  UNIQUE INDEX `uq_site_id_interviewer_id` (`site_id` ASC, `interviewer_user_id` ASC) ,
+  CONSTRAINT `fk_onyx_instance_site`
+    FOREIGN KEY (`site_id` )
+    REFERENCES `site` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
   CONSTRAINT `fk_onyx_instance_user`
     FOREIGN KEY (`user_id` )
     REFERENCES `user` (`id` )
@@ -625,11 +630,6 @@ CREATE  TABLE IF NOT EXISTS `onyx_instance` (
   CONSTRAINT `fk_onyx_instance_interviewer_user`
     FOREIGN KEY (`interviewer_user_id` )
     REFERENCES `user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_onyx_instance_site`
-    FOREIGN KEY (`site_id` )
-    REFERENCES `site` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

@@ -9,8 +9,6 @@
 
 namespace beartooth\business;
 use beartooth\log, beartooth\util;
-use beartooth\database as db;
-use beartooth\exception as exc;
 
 /**
  * Extends Cenozo's session class with custom functionality
@@ -30,11 +28,11 @@ class session extends \cenozo\business\session
   public function initialize()
   {
     // don't initialize more than once
-    if( $this->initialized ) return;
+    if( $this->is_initialized() ) return;
 
     parent::initialize();
 
-    $setting_manager = setting_manager::self();
+    $setting_manager = util::create( 'business\setting_manager' );
 
     // create the databases
     $this->survey_database = new db\database(
