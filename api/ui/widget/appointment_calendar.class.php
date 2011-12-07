@@ -31,7 +31,7 @@ class appointment_calendar extends base_calendar
   public function __construct( $args )
   {
     parent::__construct( 'appointment', $args );
-    $this->set_heading( 'Appointments for '.bus\session::self()->get_site()->name );
+    $this->set_heading( 'Appointments for '.util::create( 'business\session' )->get_site()->name );
   }
   
   /**

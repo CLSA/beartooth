@@ -60,7 +60,7 @@ class shift_template_add extends base_view
     $this->set_variable( 'start_date', $this->date );
 
     // set the view's items
-    $this->set_item( 'site_id', bus\session::self()->get_site()->id, true );
+    $this->set_item( 'site_id', util::create( 'business\session' )->get_site()->id, true );
     $this->set_item( 'start_time', $this->start_time, true );
     $this->set_item( 'end_time', $this->end_time, true );
     $this->set_item( 'start_date', $this->date, true );

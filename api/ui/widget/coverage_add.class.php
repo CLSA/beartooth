@@ -49,12 +49,12 @@ class coverage_add extends base_view
   {
     parent::finish();
     
-    $db_site = bus\session::self()->get_site();
+    $db_site = util::create( 'business\session' )->get_site();
     $db_role = db\role::get_unique_record( 'name', 'interviewer' );
 
     // create enum arrays
     $user_list = array();
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'role_id', '=', $db_role->id );
     foreach( db\user::select( $modifier ) as $db_user ) $user_list[$db_user->id] = $db_user->name;

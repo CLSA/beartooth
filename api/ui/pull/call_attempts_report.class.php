@@ -53,7 +53,7 @@ class call_attempts_report extends base_report
     $contents = array();
     foreach( $participant_list as $db_participant )
     {
-      $interview_mod = new db\modifier();
+      $interview_mod = util::create( 'database\modifier' );
       $interview_mod->where( 'qnaire_id', '=', $db_qnaire->id );
       $interview_mod->where( 'completed', '=', false );
       $db_interview = current( $db_participant->get_interview_list( $interview_mod ) );
@@ -61,7 +61,7 @@ class call_attempts_report extends base_report
       {
         $total_calls = 0;
 
-        $assignment_mod = new db\modifier();
+        $assignment_mod = util::create( 'database\modifier' );
         $assignment_mod->where( 'end_datetime', '!=', NULL );
         $assignment_mod->order( 'start_datetime' );
         $db_last_assignment = NULL;
@@ -74,7 +74,7 @@ class call_attempts_report extends base_report
         if( is_null( $db_last_assignment ) ) continue;
 
         // get the status of the last call from the last assignment
-        $phone_call_mod = new db\modifier();
+        $phone_call_mod = util::create( 'database\modifier' );
         $phone_call_mod->order_desc( 'start_datetime' );
         $phone_call_mod->limit( 1 );
         $db_phone_call = current( $db_last_assignment->get_phone_call_list( $phone_call_mod ) );

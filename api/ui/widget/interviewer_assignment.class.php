@@ -45,7 +45,7 @@ class interviewer_assignment extends \beartooth\ui\widget
   {
     parent::finish();
     
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     $db_role = $session->get_role();
     $db_site = $session->get_site();
 
@@ -82,12 +82,12 @@ class interviewer_assignment extends \beartooth\ui\widget
       }
     }
 
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', true );
     $modifier->order( 'rank' );
     $db_phone_list = $db_participant->get_phone_list( $modifier );
     
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'end_datetime', '!=', NULL );
     $current_calls = $db_assignment->get_phone_call_count( $modifier );
     $on_call = !is_null( $session->get_current_phone_call() );

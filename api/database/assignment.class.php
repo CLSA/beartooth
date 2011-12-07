@@ -79,13 +79,13 @@ class assignment extends has_note
       limesurvey\tokens::set_sid( $db_qnaire->withdraw_sid );
 
       $token = limesurvey\tokens::determine_token_string( $db_interview );
-      $tokens_mod = new modifier();
+      $tokens_mod = util::create( 'database\modifier' );
       $tokens_mod->where( 'token', '=', $token );
       $db_tokens = current( limesurvey\tokens::select( $tokens_mod ) );
 
       if( false === $db_tokens )
       { // token not found, create it
-        $db_tokens = new limesurvey\tokens();
+        $db_tokens = util::create( 'database\limesurvey\tokens' );
         $db_tokens->token = $token;
         $db_tokens->firstname = $db_participant->first_name;
         $db_tokens->lastname = $db_participant->last_name;
@@ -101,7 +101,7 @@ class assignment extends has_note
     }
     else
     { // the participant has not withdrawn, check each phase of the interview
-      $phase_mod = new modifier();
+      $phase_mod = util::create( 'database\modifier' );
       $phase_mod->order( 'rank' );
       
       $phase_list = $db_interview->get_qnaire()->get_phase_list( $phase_mod );
@@ -119,13 +119,13 @@ class assignment extends has_note
           $token = limesurvey\tokens::determine_token_string(
                      $db_interview,
                      $db_phase->repeated ? $this : NULL );
-          $tokens_mod = new modifier();
+          $tokens_mod = util::create( 'database\modifier' );
           $tokens_mod->where( 'token', '=', $token );
           $db_tokens = current( limesurvey\tokens::select( $tokens_mod ) );
   
           if( false === $db_tokens )
           { // token not found, create it
-            $db_tokens = new limesurvey\tokens();
+            $db_tokens = util::create( 'database\limesurvey\tokens' );
             $db_tokens->token = $token;
             $db_tokens->firstname = $db_participant->first_name;
             $db_tokens->lastname = $db_participant->last_name;

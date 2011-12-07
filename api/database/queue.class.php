@@ -157,7 +157,7 @@ class queue extends record
    */
   public function get_participant_count( $modifier = NULL )
   {
-    if( is_null( $modifier ) ) $modifier = new modifier();
+    if( is_null( $modifier ) ) $modifier = util::create( 'database\modifier' );
 
     // restrict to the site
     if( !is_null( $this->db_site ) ) $modifier->where( 'participant.site_id', '=', $this->db_site->id );
@@ -178,7 +178,7 @@ class queue extends record
    */
   public function get_participant_list( $modifier = NULL )
   {
-    if( is_null( $modifier ) ) $modifier = new modifier();
+    if( is_null( $modifier ) ) $modifier = util::create( 'database\modifier' );
 
     // restrict to the site
     if( !is_null( $this->db_site ) ) $modifier->where( 'participant.site_id', '=', $this->db_site->id );
@@ -189,7 +189,7 @@ class queue extends record
                $modifier->get_sql( true ) ) );
 
     $participants = array();
-    foreach( $participant_ids as $id ) $participants[] = new participant( $id );
+    foreach( $participant_ids as $id ) $participants[] = util::create( 'database\participant', $id );
     return $participants;
   }
 
@@ -723,7 +723,7 @@ class queue extends record
     $sql = str_replace( '<CALLING_END_TIME>', $setting, $sql );
 
     // fill in all callback timing settings
-    $setting_mod = new modifier();
+    $setting_mod = util::create( 'database\modifier' );
     $setting_mod->where( 'category', '=', 'callback timing' );
     foreach( setting::select( $setting_mod ) as $db_setting )
     {

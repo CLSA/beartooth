@@ -39,7 +39,7 @@ class participant_tree_report extends base_report
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
     $db_qnaire = util::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     
-    $site_mod = new db\modifier();
+    $site_mod = util::create( 'database\modifier' );
     if( $restrict_site_id )
     {
       $db_restrict_site = util::create( 'database\site', $restrict_site_id );

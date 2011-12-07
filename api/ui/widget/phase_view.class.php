@@ -50,7 +50,7 @@ class phase_view extends base_view
 
     // create enum arrays
     $surveys = array();
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
     $modifier->where( 'anonymized', '=', 'N' );
     $modifier->where( 'tokenanswerspersistence', '=', 'Y' );

@@ -32,7 +32,7 @@ class survey_timings extends sid_record
   {
     if( is_null( static::$table_sid ) )
     {
-      throw new exc\runtime(
+      throw util::create( 'exception\runtime',
         'The survey id (table_sid) must be set before using this class.', __METHOD__ );
     }
 

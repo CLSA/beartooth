@@ -47,7 +47,7 @@ class phone_new extends base_new
 
     // validate the phone number
     if( 10 != strlen( preg_replace( '/[^0-9]/', '', $columns['number'] ) ) )
-      throw new exc\notice(
+      throw util::create( 'exception\notice',
         'Phone numbers must have exactly 10 digits.', __METHOD__ );
 
     $args = $this->arguments;

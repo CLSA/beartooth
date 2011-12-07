@@ -72,11 +72,11 @@ class participant_list extends site_restricted_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    $db_role = bus\session::self()->get_role();
+    $db_role = util::create( 'business\session' )->get_role();
     if( 'interviewer' == $db_role->name )
     {
-      $db_user = bus\session::self()->get_user();
-      $db_site = bus\session::self()->get_site();
+      $db_user = util::create( 'business\session' )->get_user();
+      $db_site = util::create( 'business\session' )->get_site();
       $db_access = db\access::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $db_user->id, $db_site->id, $db_role->id ) );
@@ -98,11 +98,11 @@ class participant_list extends site_restricted_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    $db_role = bus\session::self()->get_role();
+    $db_role = util::create( 'business\session' )->get_role();
     if( 'interviewer' == $db_role->name )
     {
-      $db_user = bus\session::self()->get_user();
-      $db_site = bus\session::self()->get_site();
+      $db_user = util::create( 'business\session' )->get_user();
+      $db_site = util::create( 'business\session' )->get_site();
       $db_access = db\access::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $db_user->id, $db_site->id, $db_role->id ) );

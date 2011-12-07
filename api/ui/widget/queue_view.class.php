@@ -32,7 +32,7 @@ class queue_view extends base_view
   {
     parent::__construct( 'queue', 'view', $args );
     
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     if( 3 != $session->get_role()->tier )
     {
       $this->db_site = $session->get_site();
@@ -61,7 +61,7 @@ class queue_view extends base_view
     try
     {
       // create the participant sub-list widget
-      $this->participant_list = new participant_list( $args );
+      $this->participant_list = util::create( 'ui\widget\participant_list', $args );
       $this->participant_list->set_parent( $this );
       $this->participant_list->set_heading( 'Queue participant list' );
     }

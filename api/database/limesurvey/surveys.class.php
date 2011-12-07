@@ -27,7 +27,7 @@ class surveys extends record
    */
   public function get_title()
   {
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'sid', '=', $this->sid );
     $modifier->where( 'sid', '=', 'surveyls_survey_id', false );
     $modifier->where( 'language', '=', 'surveyls_language', false );

@@ -41,7 +41,7 @@ class productivity_report extends base_report
 
     $db_role = db\role::get_unique_record( 'name', 'interviewer' );
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
-    $site_mod = new db\modifier();
+    $site_mod = util::create( 'database\modifier' );
     if( $restrict_site_id ) 
       $site_mod->where( 'id', '=', $restrict_site_id );
     
@@ -100,13 +100,13 @@ class productivity_report extends base_report
       foreach( db\user::select() as $db_user )
       {
         // make sure the interviewer has min/max time for this date range
-        $activity_mod = new db\modifier();
+        $activity_mod = util::create( 'database\modifier' );
         $activity_mod->where( 'user_id', '=', $db_user->id );
         $activity_mod->where( 'site_id', '=', $db_site->id );
         $activity_mod->where( 'role_id', '=', $db_role->id );
         $activity_mod->where( 'operation.subject', '!=', 'self' );
 
-        $assignment_mod = new db\modifier();
+        $assignment_mod = util::create( 'database\modifier' );
         if( $restrict_start_date && $restrict_end_date )
         {
           $activity_mod->where( 'datetime', '>=',
@@ -155,7 +155,7 @@ class productivity_report extends base_report
           $calls += $db_assignment->get_phone_call_count();
           if( $db_interview->completed )
           {
-            $last_assignment_mod = new db\modifier();
+            $last_assignment_mod = util::create( 'database\modifier' );
             $last_assignment_mod->where( 'interview_id', '=', $db_interview->id );
             $last_assignment_mod->order_desc( 'start_datetime' );
             $last_assignment_mod->limit( 1 );
@@ -200,7 +200,7 @@ class productivity_report extends base_report
         ///////////////////////////////////////////////////////////////////////////////////////////
         if( $single_date )
         {
-          $day_activity_mod = new db\modifier();
+          $day_activity_mod = util::create( 'database\modifier' );
           $day_activity_mod->where( 'user_id', '=', $db_user->id );
           $day_activity_mod->where( 'site_id', '=', $db_site->id );
           $day_activity_mod->where( 'role_id', '=', $db_role->id );

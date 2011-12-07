@@ -39,7 +39,7 @@ class phone_call_begin extends \beartooth\ui\push
    */
   public function finish()
   {
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     $is_interviewer = 'interviewer' == $session->get_role()->name;
     
     $db_phone = util::create( 'database\phone', $this->get_argument( 'phone_id' ) );
@@ -50,11 +50,11 @@ class phone_call_begin extends \beartooth\ui\push
       $db_assignment = $session->get_current_assignment();
   
       if( is_null( $db_assignment ) )
-        throw new exc\runtime(
+        throw util::create( 'exception\runtime',
           'Interviewer tried to make call without an assignment.', __METHOD__ );
 
       if( $db_phone->participant_id != $db_assignment->get_interview()->participant_id )
-        throw new exc\runtime(
+        throw util::create( 'exception\runtime',
           'Interviewer tried to make call to participant who is not currently assigned.', __METHOD__ );
     }
     
@@ -63,7 +63,7 @@ class phone_call_begin extends \beartooth\ui\push
 
     if( $is_interviewer )
     { // create a record of the phone call
-      $db_phone_call = new db\phone_call();
+      $db_phone_call = util::create( 'database\phone_call' );
       $db_phone_call->assignment_id = $db_assignment->id;
       $db_phone_call->phone_id = $db_phone->id;
       $db_phone_call->save();

@@ -28,7 +28,7 @@ class main extends \cenozo\ui\main
    */
   public static function get_variables()
   {
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     $variables = parent::get_variables();
     $variables['show_menu'] = 'interviewer' != $session->get_role()->name ||
                               is_null( $session->get_current_assignment() );

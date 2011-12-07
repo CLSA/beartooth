@@ -52,7 +52,7 @@ class phase extends has_rank
       return;
     }
     
-    return new limesurvey\surveys( $this->sid );
+    return util::create( 'database\limesurvey\surveys', $this->sid );
   }
   
   /**
@@ -68,7 +68,7 @@ class phase extends has_rank
     
     $survey_table = $setting_manager->get_setting( 'survey_db', 'prefix' ).'survey_'.$this->sid;
     $survey_db_name = $setting_manager->get_setting( 'survey_db', 'database' );
-    $survey_db = bus\session::self()->get_survey_database();
+    $survey_db = util::create( 'business\session' )->get_survey_database();
 
     if( !$setting_manager->get_setting( 'audit_db', 'enabled' ) )
     {
@@ -95,7 +95,7 @@ class phase extends has_rank
       
       $audit_db_name = $setting_manager->get_setting( 'audit_db', 'database' );
       $audit_table = $setting_manager->get_setting( 'audit_db', 'prefix' ).'survey_'.$this->sid;
-      $audit_db = bus\session::self()->get_audit_database();
+      $audit_db = util::create( 'business\session' )->get_audit_database();
   
       // check to see if the audit table already exists
       $count = static::db()->get_one( sprintf(

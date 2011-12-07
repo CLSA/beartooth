@@ -27,7 +27,7 @@ class onyx_instance extends record
    */
   public function get_interviewer_user()
   {
-    return $this->interviewer_user_id ? new user( $this->interviewer_user_id ) : NULL;
+    return $this->interviewer_user_id ? util::create( 'database\user', $this->interviewer_user_id ) : NULL;
   }
 }
 ?>

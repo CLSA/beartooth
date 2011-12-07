@@ -31,7 +31,7 @@ class shift_template_calendar extends base_calendar
   public function __construct( $args )
   {
     parent::__construct( 'shift_template', $args );
-    $this->set_heading( 'Shift template for '.bus\session::self()->get_site()->name );
+    $this->set_heading( 'Shift template for '.util::create( 'business\session' )->get_site()->name );
   }
   
   /**

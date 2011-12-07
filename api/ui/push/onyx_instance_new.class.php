@@ -70,7 +70,7 @@ class onyx_instance_new extends base_new
                 'active' => true,
                 'role_id' => $db_role->id,
                 'site_id' => $db_site->id ) );
-    $operation = new user_new( $args );
+    $operation = util::create( 'ui\push\user_new', $args );
     
     $operation->finish();
     

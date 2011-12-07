@@ -50,7 +50,7 @@ class phase_list extends base_list
     foreach( $this->get_record_list() as $record )
     {
       // get the survey
-      $db_survey = new db\limesurvey\surveys( $record->sid );
+      $db_survey = util::create( 'ui\widget\db\limesurvey\surveys', $record->sid );
 
       $this->add_row( $record->id,
         array( 'survey' => $db_survey->get_title(),

@@ -45,7 +45,7 @@ class phone_edit extends base_edit
     if( array_key_exists( 'number', $columns ) )
     {
       if( 10 != strlen( preg_replace( '/[^0-9]/', '', $columns['number'] ) ) )
-        throw new exc\notice(
+        throw util::create( 'exception\notice',
           'Phone numbers must have exactly 10 digits.', __METHOD__ );
     }
 

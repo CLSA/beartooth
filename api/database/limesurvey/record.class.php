@@ -45,7 +45,7 @@ abstract class record extends db\record
    */
   public function __call( $name, $args )
   {
-    throw new exc\runtime(
+    throw util::create( 'exception\runtime',
       sprintf( 'Call to undefined function: %s::%s().',
                get_called_class(),
                $name ), __METHOD__ );
@@ -91,7 +91,7 @@ abstract class record extends db\record
    */
   public static function db()
   {
-    return bus\session::self()->get_survey_database();
+    return util::create( 'business\session' )->get_survey_database();
   }
 }
 ?>

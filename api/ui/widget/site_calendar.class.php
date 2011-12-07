@@ -31,7 +31,7 @@ class site_calendar extends base_calendar
   public function __construct( $args )
   {
     parent::__construct( 'site', $args );
-    $this->set_heading( 'Open appointment slots for '.bus\session::self()->get_site()->name );
+    $this->set_heading( 'Open appointment slots for '.util::create( 'business\session' )->get_site()->name );
   }
   
   /**

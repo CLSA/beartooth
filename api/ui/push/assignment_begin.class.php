@@ -39,20 +39,20 @@ class assignment_begin extends \beartooth\ui\push
    */
   public function finish()
   {
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
 
     $db_participant = util::create( 'database\participant', $this->get_argument( 'participant_id' ) );
     
     // make sure the qnaire has phases
     $db_qnaire = util::create( 'database\qnaire', $db_participant->current_qnaire_id );
     if( 0 == $db_qnaire->get_phase_count() )
-      throw new exc\notice(
+      throw util::create( 'exception\notice',
         'This participant\'s next questionnaire is not yet ready.  '.
         'Please immediately report this problem to a superior.',
         __METHOD__ );
     
     // get this participant's interview or create a new one if none exists yet
-    $interview_mod = new db\modifier();
+    $interview_mod = util::create( 'database\modifier' );
     $interview_mod->where( 'participant_id', '=', $db_participant->id );
     $interview_mod->where( 'qnaire_id', '=', $db_participant->current_qnaire_id );
 
@@ -60,7 +60,7 @@ class assignment_begin extends \beartooth\ui\push
     
     if( 0 == count( $db_interview_list ) )
     {
-      $db_interview = new db\interview();
+      $db_interview = util::create( 'database\interview' );
       $db_interview->participant_id = $db_participant->id;
       $db_interview->qnaire_id = $db_participant->current_qnaire_id;
       $db_interview->save();
@@ -71,7 +71,7 @@ class assignment_begin extends \beartooth\ui\push
     }
 
     // create an assignment for this user
-    $db_assignment = new db\assignment();
+    $db_assignment = util::create( 'database\assignment' );
     $db_assignment->user_id = $session->get_user()->id;
     $db_assignment->site_id = $session->get_site()->id;
     $db_assignment->interview_id = $db_interview->id;

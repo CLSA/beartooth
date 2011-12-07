@@ -42,7 +42,7 @@ class qnaire_new extends base_new
     // make sure the name column isn't blank
     $columns = $this->get_argument( 'columns' );
     if( !array_key_exists( 'name', $columns ) || 0 == strlen( $columns['name'] ) )
-      throw new exc\notice(
+      throw util::create( 'exception\notice',
         'The questionnaire\'s name cannot be left blank.', __METHOD__ );
     
     parent::finish();

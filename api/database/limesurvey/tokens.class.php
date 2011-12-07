@@ -31,10 +31,10 @@ class tokens extends sid_record
   public function update_attributes( $db_participant )
   {
     $mastodon_manager = bus\cenozo_manager::self( MASTODON_URL );
-    $db_user = bus\session::self()->get_user();
+    $db_user = util::create( 'business\session' )->get_user();
 
     // determine the first part of the token
-    $db_interview = bus\session::self()->get_current_assignment()->get_interview();
+    $db_interview = util::create( 'business\session' )->get_current_assignment()->get_interview();
     $token_part = substr( static::determine_token_string( $db_interview ), 0, -1 );
     
     // try getting the attributes from mastodon or beartooth
@@ -80,7 +80,7 @@ class tokens extends sid_record
       }
 
       // written consent received
-      $consent_mod = new db\modifier();
+      $consent_mod = util::create( 'database\modifier' );
       $consent_mod->where( 'event', 'like', 'written %' );
       $written_consent = 0 < $db_participant->get_consent_count( $consent_mod );
 
@@ -93,7 +93,7 @@ class tokens extends sid_record
     }
     
     // determine the attributes from the survey with the same ID
-    $db_surveys = new surveys( static::$table_sid );
+    $db_surveys = util::create( 'database\limesurvey\surveys', static::$table_sid );
 
     foreach( explode( "\n", $db_surveys->attributedescriptions ) as $attribute )
     {
@@ -164,7 +164,7 @@ class tokens extends sid_record
         else if( 'previously completed' == $value )
         {
           // no need to set the token sid since it should already be set before calling this method
-          $tokens_mod = new db\modifier();
+          $tokens_mod = util::create( 'database\modifier' );
           $tokens_mod->where( 'token', 'like', $token_part.'%' );
           $tokens_mod->where( 'completed', '!=', 'N' );
           $this->$key = static::count( $tokens_mod );

@@ -34,7 +34,7 @@ class onyx_instance_add extends base_view
     
     // define all columns defining this record
 
-    $type = 3 == bus\session::self()->get_role()->tier ? 'enum' : 'hidden';
+    $type = 3 == util::create( 'business\session' )->get_role()->tier ? 'enum' : 'hidden';
     $this->add_item( 'username', 'string', 'Username' );
     $this->add_item( 'password', 'string', 'Password',
       'Passwords must be at least 6 characters long.' );
@@ -52,7 +52,7 @@ class onyx_instance_add extends base_view
   public function finish()
   {
     parent::finish();
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
     
     // create enum arrays
@@ -65,7 +65,7 @@ class onyx_instance_add extends base_view
     $db_site = $session->get_site();
     $db_role = db\role::get_unique_record( 'name', 'interviewer' );
     
-    $user_mod = new db\modifier();
+    $user_mod = util::create( 'database\modifier' );
     $user_mod->where( 'site_id', '=', $db_site->id );
     $user_mod->where( 'role_id', '=', $db_role->id );
     $interviewers = array( 'NULL' => 'site' );

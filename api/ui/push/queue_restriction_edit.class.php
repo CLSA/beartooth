@@ -41,11 +41,11 @@ class queue_restriction_edit extends base_edit
   public function finish()
   {
     // make sure that only top tier roles can edit queue restrictions not belonging to the current site
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
 
     if( 3 != $session->get_role()->tier && $session->get_site()->id != $this->get_record()->site_id )
     {
-      throw new exc\notice(
+      throw util::create( 'exception\notice',
         'You do not have access to edit this queue restriction.', __METHOD__ );
     }
 
@@ -68,7 +68,7 @@ class queue_restriction_edit extends base_edit
     {
       if( !preg_match( '/^[A-Z][0-9][A-Z] [0-9][A-Z][0-9]$/', $columns['postcode'] ) &&
           !preg_match( '/^[0-9]{5}$/', $columns['postcode'] ) )
-        throw new exc\notice(
+        throw util::create( 'exception\notice',
           'Postal codes must be in "A1A 1A1" format, zip codes in "01234" format.', __METHOD__ );
     }
 

@@ -67,7 +67,7 @@ class qnaire_add extends base_view
     $types = db\qnaire::get_enum_types( 'type' );
     $types = array_combine( $types, $types );
     $surveys = array();
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
     $modifier->where( 'anonymized', '=', 'N' );
     $modifier->where( 'tokenanswerspersistence', '=', 'Y' );

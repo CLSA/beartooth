@@ -39,13 +39,13 @@ class assignment_end extends \beartooth\ui\push
    */
   public function finish()
   {
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     $db_assignment = $session->get_current_assignment();
     if( !is_null( $db_assignment ) )
     {
       // make sure the interviewer isn't on call
       if( !is_null( $session->get_current_phone_call() ) )
-        throw new exc\notice(
+        throw util::create( 'exception\notice',
           'An assignment cannot be ended while in a call.', __METHOD__ );
       
       // if there is an appointment associated with this assignment, set the status
@@ -61,7 +61,7 @@ class assignment_end extends \beartooth\ui\push
         $db_appointment = current( $appointment_list );
 
         // set the appointment status based on whether any calls reached the participant
-        $modifier = new db\modifier();
+        $modifier = util::create( 'database\modifier' );
         $modifier->where( 'status', '=', 'contacted' );
         $db_appointment->reached = 0 < $db_assignment->get_phone_call_count( $modifier );
         $db_appointment->save();

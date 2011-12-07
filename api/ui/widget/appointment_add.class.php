@@ -52,13 +52,13 @@ class appointment_add extends base_appointment_view
     
     // this widget must have a parent, and it's subject must be a participant
     if( is_null( $this->parent ) || 'participant' != $this->parent->get_subject() )
-      throw new exc\runtime(
+      throw util::create( 'exception\runtime',
         'Appointment widget must have a parent with participant as the subject.', __METHOD__ );
 
     $db_participant = util::create( 'database\participant', $this->parent->get_record()->id );
     
     // create enum arrays
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', true );
     $modifier->order( 'rank' );
     $address_list = array( 'NULL' => 'site' );
@@ -84,7 +84,7 @@ class appointment_add extends base_appointment_view
 
     $this->set_variable( 
       'is_mid_tier',
-      2 == bus\session::self()->get_role()->tier );
+      2 == util::create( 'business\session' )->get_role()->tier );
 
     $this->finish_setting_items();
   }

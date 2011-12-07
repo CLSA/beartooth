@@ -79,11 +79,11 @@ class appointment_list extends base_list
     $event_list = array();
 
     // create a list of appointments between the start and end time
-    $db_user = bus\session::self()->get_user();
+    $db_user = util::create( 'business\session' )->get_user();
     $db_onyx = db\onyx_instance::get_unique_record(
       'user_id' , $db_user->id );
     
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'datetime', '>=', $this->start_datetime->format( 'Y-m-d H:i:s' ) );
     $modifier->where( 'datetime', '<', $this->end_datetime->format( 'Y-m-d H:i:s' ) );
 

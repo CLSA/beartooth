@@ -33,7 +33,7 @@ class self_set_password extends \cenozo\ui\push\self_set_password
     parent::finish();
 
     // flush the voip account
-    bus\voip_manager::self()->sip_prune( bus\session::self()->get_user() );
+    bus\voip_manager::self()->sip_prune( util::create( 'business\session' )->get_user() );
   }
 }
 ?>

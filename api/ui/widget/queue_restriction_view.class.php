@@ -34,7 +34,7 @@ class queue_restriction_view extends base_view
 
     // define all columns defining this record
 
-    $type = 'administrator' == bus\session::self()->get_role()->name ? 'enum' : 'hidden';
+    $type = 'administrator' == util::create( 'business\session' )->get_role()->name ? 'enum' : 'hidden';
     $this->add_item( 'site_id', $type, 'Site' );
     $this->add_item( 'city', 'string', 'City' );
     $this->add_item( 'region_id', 'enum', 'Region' );
@@ -50,7 +50,7 @@ class queue_restriction_view extends base_view
   public function finish()
   {
     parent::finish();
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     $is_administrator = 'administrator' == $session->get_role()->name;
 
     // create enum arrays

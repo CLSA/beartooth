@@ -31,7 +31,7 @@ class participant_tree extends \beartooth\ui\widget
   public function __construct( $args )
   {
     parent::__construct( 'participant', 'tree', $args );
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     if( 3 > $session->get_role()->tier )
       $this->set_heading( $this->get_heading().' for '.$session->get_site()->name );
   }
@@ -46,7 +46,7 @@ class participant_tree extends \beartooth\ui\widget
   {
     parent::finish();
     
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
     $is_mid_tier = 2 == $session->get_role()->tier;
     
@@ -90,7 +90,7 @@ class participant_tree extends \beartooth\ui\widget
     // build the tree from the root
     $nodes = array();
     $tree = array(); // NOTE: holds references to the nodes array
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->order( 'parent_queue_id' );
     foreach( db\queue::select( $modifier ) as $db_queue )
     {
@@ -119,7 +119,7 @@ class participant_tree extends \beartooth\ui\widget
       }
       else // handle queues which are qnaire specific
       {
-        $modifier = new db\modifier();
+        $modifier = util::create( 'database\modifier' );
         $modifier->order( 'rank' );
         foreach( db\qnaire::select( $modifier ) as $db_qnaire )
         {

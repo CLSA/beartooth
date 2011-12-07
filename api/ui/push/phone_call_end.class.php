@@ -39,7 +39,7 @@ class phone_call_end extends \beartooth\ui\push
    */
   public function finish()
   {
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     $is_interviewer = 'interviewer' == $session->get_role()->name;
 
     // disconnect voip
@@ -83,7 +83,7 @@ class phone_call_end extends \beartooth\ui\push
               'columns' => array(
                 'active' => false,
                 'note' => $note ) );
-            $operation = new phone_edit( $args );
+            $operation = util::create( 'ui\push\phone_edit', $args );
             $operation->finish();
           }
         }

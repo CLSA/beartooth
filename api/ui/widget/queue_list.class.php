@@ -39,7 +39,7 @@ class queue_list extends base_list
     $this->add_column( 'enabled', 'boolean', 'Enabled', false );
     $this->add_column( 'participant_count', 'number', 'Participants', false );
     $this->add_column( 'description', 'text', 'Description', true, true, 'left' );
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     if( 3 != $session->get_role()->tier )
       $this->set_heading( $this->get_heading().' for '.$session->get_site()->name );
   }
@@ -54,7 +54,7 @@ class queue_list extends base_list
   {
     parent::finish();
     
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
     $is_mid_tier = 2 == $session->get_role()->tier;
     
@@ -126,7 +126,7 @@ class queue_list extends base_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = new db\modifier();
+    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'rank', '!=', NULL );
     $modifier->order( 'rank' );
 
@@ -143,7 +143,7 @@ class queue_list extends base_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = new db\modifier();
+    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'rank', '!=', NULL );
     $modifier->order( 'rank' );
 

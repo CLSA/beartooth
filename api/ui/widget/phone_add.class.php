@@ -54,11 +54,11 @@ class phone_add extends base_view
     
     // this widget must have a parent, and it's subject must be a participant
     if( is_null( $this->parent ) || 'participant' != $this->parent->get_subject() )
-      throw new exc\runtime(
+      throw util::create( 'exception\runtime',
         'Phone widget must have a parent with participant as the subject.', __METHOD__ );
 
     // create enum arrays
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'participant_id', '=', $this->parent->get_record()->id ); 
     $modifier->order( 'rank' );
     $addresses = array();

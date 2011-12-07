@@ -54,7 +54,7 @@ class appointment_view extends base_appointment_view
     $db_participant = util::create( 'database\participant', $this->get_record()->participant_id );
   
     // create enum arrays
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', true );
     $modifier->order( 'rank' );
 

@@ -30,11 +30,11 @@ class user_add extends \cenozo\ui\push\user_add
   {
     parent::finish();
     
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
 
     // create enum arrays
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'name', '!=', 'onyx' );
     $modifier->where( 'tier', '<=', $session->get_role()->tier );
     $roles = array();

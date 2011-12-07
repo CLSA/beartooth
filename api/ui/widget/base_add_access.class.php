@@ -30,9 +30,9 @@ class base_add_access extends \cenozo\ui\push\base_add_access
    */
   public function determine_role_count( $modifier = NULL )
   {
-    if( is_null( $modifier ) ) $modifier = new db\modifier();
+    if( is_null( $modifier ) ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'name', '!=', 'onyx' );
-    $modifier->where( 'tier', '<=', bus\session::self()->get_role()->tier );
+    $modifier->where( 'tier', '<=', util::create( 'business\session' )->get_role()->tier );
     return db\role::count( $modifier );
   }
 
@@ -46,9 +46,9 @@ class base_add_access extends \cenozo\ui\push\base_add_access
    */
   public function determine_role_list( $modifier = NULL )
   {
-    if( is_null( $modifier ) ) $modifier = new db\modifier();
+    if( is_null( $modifier ) ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'name', '!=', 'onyx' );
-    $modifier->where( 'tier', '<=', bus\session::self()->get_role()->tier );
+    $modifier->where( 'tier', '<=', util::create( 'business\session' )->get_role()->tier );
     return db\role::select( $modifier );
   }
 }

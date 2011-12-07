@@ -42,7 +42,7 @@ class site_feed extends base_feed
    */
   public function finish()
   {
-    $db_site = bus\session::self()->get_site();
+    $db_site = util::create( 'business\session' )->get_site();
 
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
@@ -64,7 +64,7 @@ class site_feed extends base_feed
     }
     
     // fill in the slot differentials for shift templates each day
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'start_date', '<=', $this->end_datetime );
     foreach( db\shift_template::select( $modifier ) as $db_shift_template )
@@ -96,7 +96,7 @@ class site_feed extends base_feed
     }
 
     // fill in the appointments which have not been complete
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
     $modifier->where( 'appointment.address_id', '=', NULL );

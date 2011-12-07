@@ -41,17 +41,17 @@ class participant_withdraw extends base_record
   {
     if( $this->get_argument( 'cancel', false ) )
     { // if the most recent consent is a withdraw, remove it
-      $consent_mod = new db\modifier();
+      $consent_mod = util::create( 'database\modifier' );
       $consent_mod->order_desc( 'date' );
       $consent_mod->limit( 1 );
       $db_consent = current( $this->get_record()->get_consent_list( $consent_mod ) );
       if( $db_consent && 'withdraw' == $db_consent->event )
       {
         // apply the change using an operation (so that Mastodon is also updated)
-        $operation = new consent_delete( array( 'id' => $db_consent->id ) );
+        $operation = util::create( 'ui\push\consent_delete', array( 'id' => $db_consent->id ) );
         $operation->finish();
       }
-      else throw new exc\runtime(
+      else throw util::create( 'exception\runtime',
         sprintf( 'Trying to cancel withdraw for participant id %d but most recent consent is not '.
                  'a withdraw.', $this->get_record()->id ), __METHOD__ );
     }
@@ -64,7 +64,7 @@ class participant_withdraw extends base_record
           'event' => 'withdraw',
           'date' => util::get_datetime_object()->format( 'Y-m-d' ),
           'note' => 'Automatically added by the "withdraw" button.' ) );
-      $operation = new consent_new( $args );
+      $operation = util::create( 'ui\push\consent_new', $args );
       $operation->finish();
     }
   }

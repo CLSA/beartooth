@@ -41,7 +41,7 @@ class voip_begin_monitor extends \beartooth\ui\push
   public function finish()
   {
     bus\voip_manager::self()->get_call()->start_monitoring(
-      bus\session::self()->get_current_assignment()->get_current_token() );
+      util::create( 'business\session' )->get_current_assignment()->get_current_token() );
   }
 }
 ?>

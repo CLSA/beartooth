@@ -50,7 +50,7 @@ class phone_list extends base_list
     
     // only allow higher than first tier roles to make direct calls
     $this->set_variable( 'allow_connect',
-                         1 < bus\session::self()->get_role()->tier );
+                         1 < util::create( 'business\session' )->get_role()->tier );
     $this->set_variable( 'sip_enabled',
       bus\voip_manager::self()->get_sip_enabled() );
 

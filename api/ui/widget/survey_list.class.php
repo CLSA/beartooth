@@ -70,7 +70,7 @@ class survey_list extends base_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = new db\modifier();
+    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
     return db\limesurvey\surveys::count( $modifier );
   }
@@ -84,7 +84,7 @@ class survey_list extends base_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = new db\modifier();
+    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
     return db\limesurvey\surveys::select( $modifier );
   }

@@ -46,7 +46,7 @@ class participant_view extends base_view
     try
     {
       // create the address sub-list widget
-      $this->address_list = new address_list( $args );
+      $this->address_list = util::create( 'ui\widget\address_list', $args );
       $this->address_list->set_parent( $this );
       $this->address_list->set_heading( 'Addresses' );
     }
@@ -58,7 +58,7 @@ class participant_view extends base_view
     try
     {
       // create the phone sub-list widget
-      $this->phone_list = new phone_list( $args );
+      $this->phone_list = util::create( 'ui\widget\phone_list', $args );
       $this->phone_list->set_parent( $this );
       $this->phone_list->set_heading( 'Phone numbers' );
     }
@@ -70,7 +70,7 @@ class participant_view extends base_view
     try
     {
       // create the appointment sub-list widget
-      $this->appointment_list = new appointment_list( $args );
+      $this->appointment_list = util::create( 'ui\widget\appointment_list', $args );
       $this->appointment_list->set_parent( $this );
       $this->appointment_list->set_heading( 'Appointments' );
     }
@@ -82,7 +82,7 @@ class participant_view extends base_view
     try
     {
       // create the availability sub-list widget
-      $this->availability_list = new availability_list( $args );
+      $this->availability_list = util::create( 'ui\widget\availability_list', $args );
       $this->availability_list->set_parent( $this );
       $this->availability_list->set_heading( 'Availability' );
     }
@@ -94,7 +94,7 @@ class participant_view extends base_view
     try
     {
       // create the consent sub-list widget
-      $this->consent_list = new consent_list( $args );
+      $this->consent_list = util::create( 'ui\widget\consent_list', $args );
       $this->consent_list->set_parent( $this );
       $this->consent_list->set_heading( 'Consent information' );
     }
@@ -106,7 +106,7 @@ class participant_view extends base_view
     try
     {
       // create the assignment sub-list widget
-      $this->assignment_list = new assignment_list( $args );
+      $this->assignment_list = util::create( 'ui\widget\assignment_list', $args );
       $this->assignment_list->set_parent( $this );
       $this->assignment_list->set_heading( 'Assignment history' );
     }
@@ -127,7 +127,7 @@ class participant_view extends base_view
     parent::finish();
     
     // set whether or not to show the assign button
-    $allow_assign = 'interviewer' == bus\session::self()->get_role()->name &&
+    $allow_assign = 'interviewer' == util::create( 'business\session' )->get_role()->name &&
                     0 < $this->get_record()->get_phone_count();
     $this->set_variable( 'allow_assign', $allow_assign );
 
@@ -212,7 +212,7 @@ class participant_view extends base_view
    */
   public function determine_assignment_count( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = new db\modifier();
+    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'interview.participant_id', '=', $this->get_record()->id );
     return db\assignment::count( $modifier );
   }
@@ -227,7 +227,7 @@ class participant_view extends base_view
    */
   public function determine_assignment_list( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = new db\modifier();
+    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'interview.participant_id', '=', $this->get_record()->id );
     return db\assignment::select( $modifier );
   }

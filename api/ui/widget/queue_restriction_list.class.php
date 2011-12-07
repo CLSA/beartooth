@@ -76,7 +76,7 @@ class queue_restriction_list extends site_restricted_list
   {
     if( !is_null( $this->db_restrict_site ) )
     {
-      if( NULL == $modifier ) $modifier = new db\modifier();
+      if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
       $modifier->where( 'site_id', '=', $this->db_restrict_site->id );
       $modifier->or_where( 'site_id', '=', NULL );
     }
@@ -98,7 +98,7 @@ class queue_restriction_list extends site_restricted_list
   {
     if( !is_null( $this->db_restrict_site ) )
     {
-      if( NULL == $modifier ) $modifier = new db\modifier();
+      if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
       $modifier->where( 'site_id', '=', $this->db_restrict_site->id );
       $modifier->or_where( 'site_id', '=', NULL );
     }

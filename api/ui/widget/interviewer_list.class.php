@@ -32,7 +32,7 @@ class interviewer_list extends base_list
   {
     parent::__construct( 'interviewer', $args );
     
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
 
     $this->add_column( 'username', 'string', 'Interviewer', false );
     $this->add_column( 'coverages', 'number', 'Coverages', false );
@@ -50,7 +50,7 @@ class interviewer_list extends base_list
   {
     parent::finish();
     
-    $db_site = bus\session::self()->get_site();
+    $db_site = util::create( 'business\session' )->get_site();
     $db_role = db\role::get_unique_record( 'name', 'interviewer' );
 
     foreach( $this->get_record_list() as $record )
@@ -61,7 +61,7 @@ class interviewer_list extends base_list
       
       if( $db_access )
       {
-        $modifier = new db\modifier();
+        $modifier = util::create( 'database\modifier' );
         $modifier->where( 'access_id', '=', $db_access->id );
   
         // assemble the row for this record
@@ -89,8 +89,8 @@ class interviewer_list extends base_list
   protected function determine_record_count( $modifier = NULL )
   {
     $db_role = db\role::get_unique_record( 'name', 'interviewer' );
-    if( NULL == $modifier ) $modifier = new db\modifier();
-    $modifier->where( 'site_id', '=', bus\session::self()->get_site()->id );
+    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
+    $modifier->where( 'site_id', '=', util::create( 'business\session' )->get_site()->id );
     $modifier->where( 'role_id', '=', $db_role->id );
     return db\user::count( $modifier );
   }
@@ -106,8 +106,8 @@ class interviewer_list extends base_list
   protected function determine_record_list( $modifier = NULL )
   {
     $db_role = db\role::get_unique_record( 'name', 'interviewer' );
-    if( NULL == $modifier ) $modifier = new db\modifier();
-    $modifier->where( 'site_id', '=', bus\session::self()->get_site()->id );
+    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
+    $modifier->where( 'site_id', '=', util::create( 'business\session' )->get_site()->id );
     $modifier->where( 'role_id', '=', $db_role->id );
     return db\user::select( $modifier );
   }

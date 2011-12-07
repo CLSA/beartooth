@@ -33,7 +33,7 @@ class coverage_new extends base_new
     if( isset( $args['columns'] ) && isset( $args['columns']['user_id'] ) )
     {
       $user_id = $args['columns']['user_id'];
-      $db_site = bus\session::self()->get_site();
+      $db_site = util::create( 'business\session' )->get_site();
       $db_role = db\role::get_unique_record( 'name', 'interviewer' );
 
       $db_access = db\access::get_unique_record(
@@ -41,7 +41,7 @@ class coverage_new extends base_new
         array( $user_id, $db_site->id, $db_role->id ) );
 
       if( is_null( $db_access ) )
-        throw new exc\notice(
+        throw util::create( 'exception\notice',
           sprintf( 'Unable to create coverage for user "%s" since they are not an interviewer.',
                    $db_user->name ),
           __METHOD__ );
@@ -66,7 +66,7 @@ class coverage_new extends base_new
     // validate the postcode
     $postcode_mask = strtoupper( str_replace( ' ', '', $columns['postcode_mask'] ) );
     if( 1 > strlen( $postcode_mask ) || 6 < strlen( $postcode_mask ) )
-      throw new exc\notice(
+      throw util::create( 'exception\notice',
         'Postal codes must contain between 1 and 6 alpha-numeric characters.',
         __METHOD__ );
 
@@ -83,7 +83,7 @@ class coverage_new extends base_new
           !preg_match( '/^[A-Z][0-9][A-Z][0-9][A-Z]$/', $postcode_mask ) ) ||
         ( 6 == strlen( $postcode_mask ) &&
           !preg_match( '/^[A-Z][0-9][A-Z][0-9][A-Z][0-9]$/', $postcode_mask ) ) )
-      throw new exc\notice(
+      throw util::create( 'exception\notice',
         'Invalid postal code format, make sure to start with a letter and that letters '.
         'and numbers alternate.',
         __METHOD__ );

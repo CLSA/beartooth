@@ -36,7 +36,7 @@ class participant extends has_note
     if( is_null( $db_site ) ) return parent::select( $modifier, $count );
 
     // left join the participant_primary_address and address tables
-    if( is_null( $modifier ) ) $modifier = new modifier();
+    if( is_null( $modifier ) ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
     $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
     $modifier->where( 'jurisdiction.site_id', '=', $db_site->id );
@@ -101,7 +101,7 @@ class participant extends has_note
     
     // OR all access coverages making sure to AND NOT all other like coverages for the same site
     $first = true;
-    $coverage_mod = new modifier();
+    $coverage_mod = util::create( 'database\modifier' );
     $coverage_mod->where( 'access_id', '=', $db_access->id );
     $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
     foreach( coverage::select( $coverage_mod ) as $db_coverage )
@@ -112,7 +112,7 @@ class participant extends has_note
       $first = false;
 
       // now remove the like coverages
-      $inner_coverage_mod = new modifier();
+      $inner_coverage_mod = util::create( 'database\modifier' );
       $inner_coverage_mod->where( 'access_id', '!=', $db_access->id );
       $inner_coverage_mod->where( 'access.site_id', '=', $db_access->site_id );
       $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
@@ -179,7 +179,7 @@ class participant extends has_note
                'FROM participant_last_assignment '.
                'WHERE participant_id = %s',
                database::format_string( $this->id ) ) );
-    return $assignment_id ? new assignment( $assignment_id ) : NULL;
+    return $assignment_id ? util::create( 'database\assignment', $assignment_id ) : NULL;
   }
 
   /**
@@ -197,7 +197,7 @@ class participant extends has_note
       return NULL;
     }
     
-    $modifier = new modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'interview.participant_id', '=', $this->id );
     $modifier->where( 'end_datetime', '!=', NULL );
     $modifier->order_desc( 'start_datetime' );
@@ -228,7 +228,7 @@ class participant extends has_note
                'FROM participant_last_consent '.
                'WHERE participant_id = %s',
                database::format_string( $this->id ) ) );
-    return $consent_id ? new consent( $consent_id ) : NULL;
+    return $consent_id ? util::create( 'database\consent', $consent_id ) : NULL;
   }
 
   /**
@@ -250,7 +250,7 @@ class participant extends has_note
     $address_id = static::db()->get_one(
       sprintf( 'SELECT address_id FROM participant_primary_address WHERE participant_id = %s',
                database::format_string( $this->id ) ) );
-    return $address_id ? new address( $address_id ) : NULL;
+    return $address_id ? util::create( 'database\address', $address_id ) : NULL;
   }
 
   /**
@@ -274,7 +274,7 @@ class participant extends has_note
     $address_id = static::db()->get_one(
       sprintf( 'SELECT address_id FROM participant_first_address WHERE participant_id = %s',
                database::format_string( $this->id ) ) );
-    return $address_id ? new address( $address_id ) : NULL;
+    return $address_id ? util::create( 'database\address', $address_id ) : NULL;
   }
 
   /**
@@ -323,7 +323,7 @@ class participant extends has_note
     $phone_call_id = static::db()->get_one(
       sprintf( 'SELECT phone_call_id FROM participant_last_contacted_phone_call WHERE participant_id = %s',
                database::format_string( $this->id ) ) );
-    return $phone_call_id ? new phone_call( $phone_call_id ) : NULL;
+    return $phone_call_id ? util::create( 'database\phone_call', $phone_call_id ) : NULL;
   }
 
   /**

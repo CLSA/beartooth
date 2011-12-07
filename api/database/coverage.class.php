@@ -30,7 +30,7 @@ class coverage extends record
    */
   public function get_nearest_distance( $db_site )
   {
-    $modifier = new modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'postcode', 'LIKE', $this->postcode_mask );
     return static::db()->get_one(
@@ -49,7 +49,7 @@ class coverage extends record
    */
   public function get_furthest_distance( $db_site )
   {
-    $modifier = new modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'postcode', 'LIKE', $this->postcode_mask );
     return static::db()->get_one(

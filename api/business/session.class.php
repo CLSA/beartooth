@@ -35,7 +35,7 @@ class session extends \cenozo\business\session
     $setting_manager = util::create( 'business\setting_manager' );
 
     // create the databases
-    $this->survey_database = new db\database(
+    $this->survey_database = util::create( 'database\database',
       $setting_manager->get_setting( 'survey_db', 'driver' ),
       $setting_manager->get_setting( 'survey_db', 'server' ),
       $setting_manager->get_setting( 'survey_db', 'username' ),
@@ -46,7 +46,7 @@ class session extends \cenozo\business\session
     {
       // If not set then the audit database settings use the same as limesurvey,
       // with the exception of the prefix
-      $this->audit_database = new db\database(
+      $this->audit_database = util::create( 'database\database',
         $setting_manager->get_setting( 'audit_db', 'driver' ),
         $setting_manager->get_setting( 'audit_db', 'server' ),
         $setting_manager->get_setting( 'audit_db', 'username' ),
@@ -96,7 +96,7 @@ class session extends \cenozo\business\session
       throw util::create( 'exception\runtime', 'Tried to get assignment for non-interviewer.', __METHOD__ );
     
     // query for assignments which do not have a end time
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'end_datetime', '=', NULL );
     $assignment_list = $this->get_user()->get_assignment_list( $modifier );
 
@@ -130,7 +130,7 @@ class session extends \cenozo\business\session
     if( is_null( $db_assignment) ) return NULL;
 
     // query for phone calls which do not have a end time
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'end_datetime', '=', NULL );
     $phone_call_list = $db_assignment->get_phone_call_list( $modifier );
 
@@ -207,7 +207,7 @@ class session extends \cenozo\business\session
     if( is_null( $db_assignment ) ) return false;
     
     // the assignment must have an open call
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'end_datetime', '=', NULL );
     $call_list = $db_assignment->get_phone_call_list( $modifier );
     if( 0 == count( $call_list ) ) return false;

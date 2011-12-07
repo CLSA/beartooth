@@ -45,7 +45,7 @@ class jurisdiction extends record
 
     // OR all access coverages making sure to AND NOT all other like coverages for the same site
     $first = true;
-    $coverage_mod = new modifier();
+    $coverage_mod = util::create( 'database\modifier' );
     $coverage_mod->where( 'access_id', '=', $db_access->id );
     $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
     foreach( coverage::select( $coverage_mod ) as $db_coverage )
@@ -56,7 +56,7 @@ class jurisdiction extends record
       $first = false;
 
       // now remove the like coverages
-      $inner_coverage_mod = new modifier();
+      $inner_coverage_mod = util::create( 'database\modifier' );
       $inner_coverage_mod->where( 'access_id', '!=', $db_access->id );
       $inner_coverage_mod->where( 'access.site_id', '=', $db_access->site_id );
       $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );

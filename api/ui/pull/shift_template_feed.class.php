@@ -43,12 +43,12 @@ class shift_template_feed extends base_feed
   public function finish()
   {
     $event_list = array();
-    $db_site = bus\session::self()->get_site();
+    $db_site = util::create( 'business\session' )->get_site();
 
     $calendar_start_datetime_obj = util::get_datetime_object( $this->start_datetime );
     $calendar_end_datetime_obj = util::get_datetime_object( $this->end_datetime );
 
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'start_date', '<', $this->end_datetime );
     foreach( db\shift_template::select( $modifier ) as $db_shift_template )

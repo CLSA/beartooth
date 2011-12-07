@@ -32,7 +32,7 @@ class coverage_list extends base_list
   {
     parent::__construct( 'coverage', $args );
     
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
 
     $this->add_column( 'username', 'string', 'Interviewer', false );
     $this->add_column( 'postcode_mask', 'string', 'Postal Code', true );
@@ -44,7 +44,7 @@ class coverage_list extends base_list
     try
     {
       // create the interviewer sub-list widget
-      $this->interviewer_list = new interviewer_list( $args );
+      $this->interviewer_list = util::create( 'ui\widget\interviewer_list', $args );
     }
     catch( exc\permission $e )
     {
@@ -62,7 +62,7 @@ class coverage_list extends base_list
   {
     parent::finish();
     
-    $db_site = bus\session::self()->get_site();
+    $db_site = util::create( 'business\session' )->get_site();
 
     foreach( $this->get_record_list() as $record )
     {
@@ -71,11 +71,11 @@ class coverage_list extends base_list
       $furthest = $record->get_furthest_distance( $db_site );
       $furthest = is_null( $furthest ) ? 'N/A' : sprintf( '%0.1f', $furthest );
 
-      $jurisdiction_mod = new db\modifier();
+      $jurisdiction_mod = util::create( 'database\modifier' );
       $jurisdiction_mod->where( 'site_id', '=', $db_site->id );
       $jurisdiction_mod->where( 'jurisdiction.postcode', 'LIKE', $record->postcode_mask );
 
-      $participant_mod = new db\modifier();
+      $participant_mod = util::create( 'database\modifier' );
       $participant_mod->where( 'jurisdiction.postcode', 'LIKE', $record->postcode_mask );
 
       // format the postcode LIKE-based statement
@@ -112,8 +112,8 @@ class coverage_list extends base_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = new db\modifier();
-    $modifier->where( 'access.site_id', '=', bus\session::self()->get_site()->id );
+    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
+    $modifier->where( 'access.site_id', '=', util::create( 'business\session' )->get_site()->id );
     return parent::determine_record_count( $modifier );
   }
   
@@ -127,8 +127,8 @@ class coverage_list extends base_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = new db\modifier();
-    $modifier->where( 'access.site_id', '=', bus\session::self()->get_site()->id );
+    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
+    $modifier->where( 'access.site_id', '=', util::create( 'business\session' )->get_site()->id );
     return parent::determine_record_list( $modifier );
   }
 

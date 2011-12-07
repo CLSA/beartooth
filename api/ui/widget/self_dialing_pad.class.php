@@ -44,7 +44,7 @@ class self_dialing_pad extends \beartooth\ui\widget
   {
     parent::finish();
     
-    $role_name = bus\session::self()->get_role()->name;
+    $role_name = util::create( 'business\session' )->get_role()->name;
     $this->set_variable( 'allow_hangup', 'interviewer' != $role_name );
   }
 }

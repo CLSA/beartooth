@@ -52,7 +52,7 @@ class interview extends has_note
     }
     
     limesurvey\survey::set_sid( $db_phase->sid );
-    $survey_mod = new modifier();
+    $survey_mod = util::create( 'database\modifier' );
     $survey_mod->where( 'token', '=',
       limesurvey\tokens::determine_token_string( $this, $db_assignment ) );
     $survey_list = limesurvey\survey::select( $survey_mod );
@@ -68,7 +68,7 @@ class interview extends has_note
     $db_survey = current( $survey_list );
 
     limesurvey\survey_timings::set_sid( $db_phase->sid );
-    $timing_mod = new modifier();
+    $timing_mod = util::create( 'database\modifier' );
     $timing_mod->where( 'id', '=', $db_survey->id );
     $db_timings = current( limesurvey\survey_timings::select( $timing_mod ) );
     return $db_timings ? (float) $db_timings->interviewtime : 0.0;

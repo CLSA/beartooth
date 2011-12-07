@@ -54,19 +54,19 @@ class sourcing_required_report extends base_report
       // dont bother with deceased or otherwise impaired
       if( !is_null( $db_participant->status ) ) continue;
 
-      $interview_mod = new db\modifier();
+      $interview_mod = util::create( 'database\modifier' );
       $interview_mod->where( 'qnaire_id', '=', $db_qnaire->id );
       $db_interview = current( $db_participant->get_interview_list( $interview_mod ) );
       if( $db_interview && !$db_interview->completed )
       {
-        $assignment_mod = new db\modifier();
+        $assignment_mod = util::create( 'database\modifier' );
         $assignment_mod->order_desc( 'start_datetime' );
         $failed_calls = 0;
         $db_recent_failed_call = NULL;
         foreach( $db_interview->get_assignment_list( $assignment_mod ) as $db_assignment )
         {
           // find the most recently completed phone call
-          $phone_call_mod = new db\modifier();
+          $phone_call_mod = util::create( 'database\modifier' );
           $phone_call_mod->order_desc( 'start_datetime' );
           $phone_call_mod->where( 'end_datetime', '!=', NULL );
           $phone_call_mod->limit( 1 );

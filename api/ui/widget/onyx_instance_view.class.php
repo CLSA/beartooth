@@ -39,7 +39,7 @@ class onyx_instance_view extends base_view
 
     try
     {
-      $this->user_view = new user_view(
+      $this->user_view = util::create( 'ui\widget\user_view',
         array( 'user_view' => array( 'id' => $this->get_record()->user_id ) ) );
       $this->user_view->set_parent( $this );
       $this->user_view->set_heading( '' );
@@ -62,11 +62,11 @@ class onyx_instance_view extends base_view
   public function finish()
   {
     parent::finish();
-    $session = bus\session::self();
+    $session = util::create( 'business\session' );
 
     $db_role = db\role::get_unique_record( 'name', 'interviewer' );
 
-    $user_mod = new db\modifier();
+    $user_mod = util::create( 'database\modifier' );
     $user_mod->where( 'site_id', '=', $this->get_record()->site_id );
     $user_mod->where( 'role_id', '=', $db_role->id );
     $interviewers = array( 'NULL' => 'site' );

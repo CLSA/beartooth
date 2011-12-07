@@ -57,7 +57,7 @@ class voip_manager extends \beartooth\singleton
         throw util::create( 'exception\runtime', 'Unable to connect to the Asterisk server.', __METHOD__ );
 
       // get the current SIP info
-      $peer = session::self()->get_user()->name;
+      $peer = util::create( 'business\session' )->get_user()->name;
       $s8_event = $this->manager->getSipPeer( $peer );
       
       if( !is_null( $s8_event ) &&
@@ -95,7 +95,7 @@ class voip_manager extends \beartooth\singleton
 
     foreach( $events as $s8_event )
       if( 'Status' == $s8_event->get( 'event' ) )
-        $this->call_list[] = new voip_call( $s8_event, $this->manager );
+        $this->call_list[] = util::create( 'business\voip_call', $s8_event, $this->manager );
   }
   
   /**
@@ -112,7 +112,7 @@ class voip_manager extends \beartooth\singleton
     if( !$this->enabled ) return NULL;
     if( is_null( $this->call_list ) ) $this->rebuild_call_list();
 
-    $peer = is_null( $db_user ) ? session::self()->get_user()->name : $db_user->name;
+    $peer = is_null( $db_user ) ? util::create( 'business\session' )->get_user()->name : $db_user->name;
 
     // build the call list
     $calls = array();
@@ -144,16 +144,16 @@ class voip_manager extends \beartooth\singleton
     // check that the phone number has exactly 10 digits
     $digits = preg_replace( '/[^0-9]/', '', $db_phone->number );
     if( 10 != strlen( $digits ) )
-      throw new exc\runtime(
+      throw util::create( 'exception\runtime',
         'Tried to connect to phone number which does not have exactly 10 digits.', __METHOD__ );
 
     // make sure the user isn't already in a call
     if( !is_null( $this->get_call() ) )
-      throw new exc\notice(
+      throw util::create( 'exception\notice',
         'Unable to connect call since you already appear to be in a call.', __METHOD__ );
 
     // originate call (careful, the online API has the arguments in the wrong order)
-    $peer = session::self()->get_user()->name;
+    $peer = util::create( 'business\session' )->get_user()->name;
     $channel = 'SIP/'.$peer;
     $context = 'users';
     $extension = $this->prefix.$digits;

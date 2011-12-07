@@ -47,7 +47,7 @@ class qnaire_view extends base_view
     try
     {
       // create the phase sub-list widget
-      $this->phase_list = new phase_list( $args );
+      $this->phase_list = util::create( 'ui\widget\phase_list', $args );
       $this->phase_list->set_parent( $this );
       $this->phase_list->set_heading( 'Questionnaire phases' );
     }
@@ -79,7 +79,7 @@ class qnaire_view extends base_view
     $types = db\qnaire::get_enum_values( 'type' );
     $types = array_combine( $types, $types );
     $surveys = array();
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
     $modifier->where( 'anonymized', '=', 'N' );
     $modifier->where( 'tokenanswerspersistence', '=', 'Y' );

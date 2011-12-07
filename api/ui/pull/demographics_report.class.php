@@ -61,7 +61,7 @@ class demographics_report extends base_report
           ( $province_id && $province_id != $region_id ) ||
           ( $consent_status != 'Any' && $consent_status != $db_consent->event ) ) continue;
 
-      $interview_mod = new db\modifier();
+      $interview_mod = util::create( 'database\modifier' );
       $interview_mod->where( 'qnaire_id', '=', $db_qnaire->id ); 
       $db_interview = current( $db_participant->get_interview_list( $interview_mod ) );
       

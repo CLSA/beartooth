@@ -43,13 +43,13 @@ class site_appointment_feed extends base_feed
   public function finish()
   {
     // create a list of site appointments between the feed's start and end time
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'appointment.address_id', '=', NULL );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
 
     $event_list = array();
-    $db_site = bus\session::self()->get_site();
+    $db_site = util::create( 'business\session' )->get_site();
     foreach( db\appointment::select_for_site( $db_site, $modifier ) as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );

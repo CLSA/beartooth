@@ -51,12 +51,12 @@ class phase_add extends base_view
     
     // this widget must have a parent, and it's subject must be a qnaire
     if( is_null( $this->parent ) || 'qnaire' != $this->parent->get_subject() )
-      throw new exc\runtime(
+      throw util::create( 'exception\runtime',
         'Phase widget must have a parent with qnaire as the subject.', __METHOD__ );
     
     // create enum arrays
     $surveys = array();
-    $modifier = new db\modifier();
+    $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
     $modifier->where( 'anonymized', '=', 'N' );
     $modifier->where( 'tokenanswerspersistence', '=', 'Y' );
