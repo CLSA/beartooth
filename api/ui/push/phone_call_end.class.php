@@ -61,7 +61,7 @@ class phone_call_end extends \beartooth\ui\push
         if( 'disconnected' == $db_phone_call->status ||
             'wrong number' == $db_phone_call->status )
         {
-          $db_phone = new db\phone( $db_phone_call->phone_id );
+          $db_phone = util::create( 'database\phone', $db_phone_call->phone_id );
           if( !is_null( $db_phone ) )
           {
             $note = sprintf( 'This phone number has been disabled because a call was made to it '.

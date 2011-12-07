@@ -44,14 +44,14 @@ class appointment_new extends base_new
     // make sure the datetime column isn't blank
     $columns = $this->get_argument( 'columns' );
     if( !array_key_exists( 'datetime', $columns ) || 0 == strlen( $columns['datetime'] ) )
-      throw new exc\notice( 'The date/time cannot be left blank.', __METHOD__ );
+      throw util::create( 'exception\notice', 'The date/time cannot be left blank.', __METHOD__ );
     
     foreach( $columns as $column => $value ) $this->get_record()->$column = $value;
     
     $force = $this->get_argument( 'force', false );
     
     if( !$force && !$this->get_record()->validate_date() )
-      throw new exc\notice( 'There are no openings available during that time.', __METHOD__ );
+      throw util::create( 'exception\notice', 'There are no openings available during that time.', __METHOD__ );
     
     // no errors, go ahead and make the change
     parent::finish();

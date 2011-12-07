@@ -61,7 +61,7 @@ class phone_edit extends base_edit
     // if set, replace the address id with a unique key
     if( array_key_exists( 'address_id', $columns ) && $columns['address_id'] )
     {
-      $db_address = new db\address( $columns['address_id'] );
+      $db_address = util::create( 'database\address', $columns['address_id'] );
       unset( $args['address_id'] );
       // we only include half of the unique key since the other half is added above
       $args['noid']['address.rank'] = $db_address->rank;

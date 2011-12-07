@@ -52,7 +52,7 @@ class interviewer_assignment extends \beartooth\ui\widget
     // see if this user has an open assignment
     $db_assignment = $session->get_current_assignment();
     
-    if( is_null( $db_assignment ) ) throw new exc\notice( 'No active assignment.', __METHOD__ );
+    if( is_null( $db_assignment ) ) throw util::create( 'exception\notice', 'No active assignment.', __METHOD__ );
 
     // fill out the participant's details
     $db_interview = $db_assignment->get_interview();

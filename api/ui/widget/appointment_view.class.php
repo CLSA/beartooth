@@ -51,7 +51,7 @@ class appointment_view extends base_appointment_view
   {
     parent::finish();
 
-    $db_participant = new db\participant( $this->get_record()->participant_id );
+    $db_participant = util::create( 'database\participant', $this->get_record()->participant_id );
   
     // create enum arrays
     $modifier = new db\modifier();

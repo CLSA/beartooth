@@ -53,13 +53,13 @@ class address_new extends base_new
     unset( $args['columns']['participant_id'] );
 
     // replace the participant id with a unique key
-    $db_participant = new db\participant( $columns['participant_id'] );
+    $db_participant = util::create( 'database\participant', $columns['participant_id'] );
     $args['noid']['participant.uid'] = $db_participant->uid;
 
     // replace the region id (if it is not null) a unique key
     if( $columns['region_id'] )
     {
-      $db_region = new db\region( $columns['region_id'] );
+      $db_region = util::create( 'database\region', $columns['region_id'] );
       // this is only actually half of the key, the other half is provided by the participant above
       $args['noid']['region.abbreviation'] = $db_region->abbreviation;
     }

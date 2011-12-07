@@ -62,7 +62,7 @@ class participant_tree extends \beartooth\ui\widget
     $restrict_site_id = $this->get_argument( "restrict_site_id", 0 );
     $this->set_variable( 'restrict_site_id', $restrict_site_id );
     $db_restrict_site = $restrict_site_id
-                      ? new db\site( $restrict_site_id )
+                      ? util::create( 'database\site', $restrict_site_id )
                       : NULL;
     
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
@@ -84,7 +84,7 @@ class participant_tree extends \beartooth\ui\widget
     {
       $parts = explode( '_', $show_queue_index );
       $show_qnaire_id = $parts[0];
-      $db_show_queue = new db\queue( $parts[1] );
+      $db_show_queue = util::create( 'database\queue', $parts[1] );
     }
 
     // build the tree from the root
@@ -158,7 +158,7 @@ class participant_tree extends \beartooth\ui\widget
                                   'children' => array() );
 
           // add as a branch to parent node
-          $db_parent_queue = new db\queue( $db_queue->parent_queue_id );
+          $db_parent_queue = util::create( 'database\queue', $db_queue->parent_queue_id );
           $parent_index = sprintf( '%d_%d',
             $db_parent_queue->qnaire_specific ? $db_qnaire->id : 0,
             $db_queue->parent_queue_id );
@@ -168,7 +168,7 @@ class participant_tree extends \beartooth\ui\widget
     }
 
     // make sure that all ancestor's of the show queue are open
-    $db_queue = new db\queue( $db_show_queue->parent_queue_id );
+    $db_queue = util::create( 'database\queue', $db_show_queue->parent_queue_id );
     
     do
     {
@@ -176,7 +176,7 @@ class participant_tree extends \beartooth\ui\widget
         $db_queue->qnaire_specific ? $show_qnaire_id : 0,
         $db_queue->id );
       $nodes[$index]['open'] = true;
-      $db_queue = new db\queue( $db_queue->parent_queue_id );
+      $db_queue = util::create( 'database\queue', $db_queue->parent_queue_id );
     } while( !is_null( $db_queue->parent_queue_id ) );
     
     $this->set_variable( 'tree', $tree );

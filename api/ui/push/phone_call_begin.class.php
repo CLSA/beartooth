@@ -42,7 +42,7 @@ class phone_call_begin extends \beartooth\ui\push
     $session = bus\session::self();
     $is_interviewer = 'interviewer' == $session->get_role()->name;
     
-    $db_phone = new db\phone( $this->get_argument( 'phone_id' ) );
+    $db_phone = util::create( 'database\phone', $this->get_argument( 'phone_id' ) );
     $db_assignment = NULL;
 
     if( $is_interviewer )

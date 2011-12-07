@@ -43,18 +43,18 @@ class onyx_instance_new extends base_new
     // make sure that the username is not empty
     $columns = $this->get_argument( 'columns' );
     if( !$columns['username'] )
-      throw new exc\notice( 'The onyx instance\'s user name cannot be left blank.', __METHOD__ );
+      throw util::create( 'exception\notice', 'The onyx instance\'s user name cannot be left blank.', __METHOD__ );
     else if( !$columns['password'] )
-      throw new exc\notice( 'You must provide a password at least 6 characters long.', __METHOD__ );
+      throw util::create( 'exception\notice', 'You must provide a password at least 6 characters long.', __METHOD__ );
     else if( 6 > strlen( $columns['password'] ) )
-      throw new exc\notice( 'Passwords must be at least 6 characters long.', __METHOD__ );
+      throw util::create( 'exception\notice', 'Passwords must be at least 6 characters long.', __METHOD__ );
     else if( 'password' == $columns['password'] )
-      throw new exc\notice( 'You cannot choose "password" as a password.', __METHOD__ );
+      throw util::create( 'exception\notice', 'You cannot choose "password" as a password.', __METHOD__ );
     
     $db_interviewer_user = $columns['interviewer_user_id']
-             ? new db\user( $columns['interviewer_user_id'] )
+             ? util::create( 'database\user', $columns['interviewer_user_id'] )
              : NULL;
-    $db_site = new db\site( $columns['site_id'] );
+    $db_site = util::create( 'database\site', $columns['site_id'] );
     $db_role = db\role::get_unique_record( 'name', 'onyx' );
     $first_name = 'onyx instance';
     $last_name = sprintf( '%s@%s',

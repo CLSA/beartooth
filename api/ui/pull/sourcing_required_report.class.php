@@ -39,11 +39,11 @@ class sourcing_required_report extends base_report
     $participant_list = db\participant::select();
     if( $restrict_site_id )
     {
-      $db_site = new db\site( $restrict_site_id );
+      $db_site = util::create( 'database\site', $restrict_site_id );
       $participant_list = db\participant::select_for_site( $db_site );                      
     }
 
-    $db_qnaire = new db\qnaire( $this->get_argument( 'restrict_qnaire_id' ) );
+    $db_qnaire = util::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     $this->add_title( sprintf( 'Participants requiring sourcing for the '.
                                '%s interview', $db_qnaire->name ) ) ;
 

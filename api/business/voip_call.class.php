@@ -34,7 +34,7 @@ class voip_call extends \beartooth\base_object
     if( is_null( $s8_event ) ||
         !is_object( $s8_event ) ||
         'Shift8_Event' != get_class( $s8_event ) )
-      throw new exc\argument( 's8_event', $s8_event, __METHOD__ );
+      throw util::create( 'exception\argument', 's8_event', $s8_event, __METHOD__ );
     
     $this->manager = $manager;
     $this->channel = $s8_event->get( 'channel' );
@@ -86,7 +86,7 @@ class voip_call extends \beartooth\base_object
 
     // now send the DTMF tone itself (which is not heard locally)
     if( !$this->manager->playDTMF( $tone, $this->get_bridge() ) )
-      throw new exc\voip( $this->manager->getLastError(), __METHOD__ );
+      throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
   }
   
   /**
@@ -141,7 +141,7 @@ class voip_call extends \beartooth\base_object
       'Volume='.$volume.','.
       'ToChannel='.$this->get_channel() ) )
     {
-      throw new exc\voip( $this->manager->getLastError(), __METHOD__ );
+      throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
     }
     
     if( $bridge )
@@ -165,7 +165,7 @@ class voip_call extends \beartooth\base_object
         'Volume='.$volume.','.
         'ToChannel='.$this->get_bridge() ) )
       {
-        throw new exc\voip( $this->manager->getLastError(), __METHOD__ );
+        throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
       }
     }
   }
@@ -192,7 +192,7 @@ class voip_call extends \beartooth\base_object
     }
 
     if( false == $this->manager->monitor( $this->get_channel(), $filename, 'wav' ) )
-      throw new exc\voip( $this->manager->getLastError(), __METHOD__ );
+      throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
   }
   
   /**
@@ -206,7 +206,7 @@ class voip_call extends \beartooth\base_object
     if( !voip_manager::self()->get_enabled() ) return;
 
     if( false == $this->manager->stopMonitor( $this->get_channel() ) )
-      throw new exc\voip( $this->manager->getLastError(), __METHOD__ );
+      throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
   }
   
   /**

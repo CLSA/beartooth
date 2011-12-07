@@ -78,7 +78,7 @@ class productivity_report extends base_report
                      $start_datetime_obj == $now_datetime_obj );
     if( $single_date ) $single_datetime_obj = clone $start_datetime_obj;
 
-    $db_qnaire = new db\qnaire( $this->get_argument( 'restrict_qnaire_id' ) );
+    $db_qnaire = util::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     
     $this->add_title( 
       sprintf( 'Interviewer productivity for '.

@@ -55,7 +55,7 @@ class qnaire_list extends base_list
       $prev_qnaire = 'none';
       if( !is_null( $record->prev_qnaire_id ) )
       {
-        $db_prev_qnaire = new db\qnaire( $record->prev_qnaire_id );
+        $db_prev_qnaire = util::create( 'database\qnaire', $record->prev_qnaire_id );
         $prev_qnaire = $db_prev_qnaire->name;
       }
 

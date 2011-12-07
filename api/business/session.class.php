@@ -93,7 +93,7 @@ class session extends \cenozo\business\session
   {
     // make sure the user is an interviewer
     if( 'interviewer' != $this->get_role()->name )
-      throw new exc\runtime( 'Tried to get assignment for non-interviewer.', __METHOD__ );
+      throw util::create( 'exception\runtime', 'Tried to get assignment for non-interviewer.', __METHOD__ );
     
     // query for assignments which do not have a end time
     $modifier = new db\modifier();
@@ -123,7 +123,7 @@ class session extends \cenozo\business\session
   {
     // make sure the user is an interviewer
     if( 'interviewer' != $this->get_role()->name )
-      throw new exc\runtime( 'Tried to get phone call for non-interviewer.', __METHOD__ );
+      throw util::create( 'exception\runtime', 'Tried to get phone call for non-interviewer.', __METHOD__ );
     
     // without an assignment there can be no current call
     $db_assignment = $this->get_current_assignment();

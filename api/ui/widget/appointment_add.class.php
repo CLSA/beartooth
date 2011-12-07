@@ -55,7 +55,7 @@ class appointment_add extends base_appointment_view
       throw new exc\runtime(
         'Appointment widget must have a parent with participant as the subject.', __METHOD__ );
 
-    $db_participant = new db\participant( $this->parent->get_record()->id );
+    $db_participant = util::create( 'database\participant', $this->parent->get_record()->id );
     
     // create enum arrays
     $modifier = new db\modifier();

@@ -40,11 +40,11 @@ class queue_view extends base_view
     else
     {
       $site_id = $this->get_argument( 'site_id' );
-      if( $site_id ) $this->db_site = new db\site( $site_id );
+      if( $site_id ) $this->db_site = util::create( 'database\site', $site_id );
     }
 
     $qnaire_id = $this->get_argument( 'qnaire_id' );
-    if( $qnaire_id ) $this->db_qnaire = new db\qnaire( $qnaire_id );
+    if( $qnaire_id ) $this->db_qnaire = util::create( 'database\qnaire', $qnaire_id );
 
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
     $viewing_date = $this->get_argument( 'viewing_date', 'current' );

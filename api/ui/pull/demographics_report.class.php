@@ -37,14 +37,14 @@ class demographics_report extends base_report
   public function finish()
   {
     // get the report arguments
-    $db_qnaire = new db\qnaire( $this->get_argument( 'restrict_qnaire_id' ) );
+    $db_qnaire = util::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     $consent_status = $this->get_argument( 'restrict_consent_id' );
     $province_id = $this->get_argument( 'restrict_province_id' );
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
     $participant_list = db\participant::select();
     if( $restrict_site_id )
     {
-      $db_site = new db\site( $restrict_site_id );
+      $db_site = util::create( 'database\site', $restrict_site_id );
       $participant_list = db\participant::select_for_site( $db_site );
     }
 

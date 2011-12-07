@@ -36,8 +36,8 @@ class user_new extends \cenozo\ui\push\user_new
 
     if( !is_null( $this->site_id ) && !is_null( $this->role_id ) )
     { // add the initial role to the new user
-      $db_site = new db\site( $this->site_id );
-      $db_role = new db\role( $this->role_id );
+      $db_site = util::create( 'database\site', $this->site_id );
+      $db_role = util::create( 'database\role', $this->role_id );
 
       // add the site, cohort and role to the arguments for mastodon
       $args['noid']['site.name'] = $db_site->name;

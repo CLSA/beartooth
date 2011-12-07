@@ -54,7 +54,7 @@ class voip_manager extends \beartooth\singleton
       // create and connect to the shift8 AJAM interface
       $this->manager = new \Shift8( $this->url, $this->username, $this->password );
       if( !$this->manager->login() )
-        throw new exc\runtime( 'Unable to connect to the Asterisk server.', __METHOD__ );
+        throw util::create( 'exception\runtime', 'Unable to connect to the Asterisk server.', __METHOD__ );
 
       // get the current SIP info
       $peer = session::self()->get_user()->name;
@@ -74,7 +74,7 @@ class voip_manager extends \beartooth\singleton
     }
     catch( \Shift8_Exception $e )
     {
-      throw new exc\voip( 'Failed to initialize Asterisk AJAM interface.', __METHOD__, $e );
+      throw util::create( 'exception\voip', 'Failed to initialize Asterisk AJAM interface.', __METHOD__, $e );
     }
   }
   
@@ -91,7 +91,7 @@ class voip_manager extends \beartooth\singleton
     $events = $this->manager->getStatus();
 
     if( is_null( $events ) )
-      throw new exc\voip( $this->manager->getLastError(), __METHOD__ );
+      throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
 
     foreach( $events as $s8_event )
       if( 'Status' == $s8_event->get( 'event' ) )
@@ -139,7 +139,7 @@ class voip_manager extends \beartooth\singleton
     if( is_null( $db_phone ) ||
         !is_object( $db_phone ) ||
         'beartooth\\database\\phone' != get_class( $db_phone ) )
-      throw new exc\argument( 'db_phone', $db_phone, __METHOD__ );
+      throw util::create( 'exception\argument', 'db_phone', $db_phone, __METHOD__ );
 
     // check that the phone number has exactly 10 digits
     $digits = preg_replace( '/[^0-9]/', '', $db_phone->number );
@@ -159,7 +159,7 @@ class voip_manager extends \beartooth\singleton
     $extension = $this->prefix.$digits;
     $priority = 1;
     if( !$this->manager->originate( $channel, $context, $extension, $priority ) )
-      throw new exc\voip( $this->manager->getLastError(), __METHOD__ );
+      throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
 
     // rebuild the call list and return (what should be) the peer's only call
     $this->rebuild_call_list();

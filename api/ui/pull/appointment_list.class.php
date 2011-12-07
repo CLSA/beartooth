@@ -62,7 +62,7 @@ class appointment_list extends base_list
     }
     else
     {
-      throw new exc\notice( 
+      throw util::create( 'exception\notice', 
         'Invalid appointment list interval (must be either M, W or D): '.$interval, __METHOD__ );
     }
   }
@@ -103,7 +103,7 @@ class appointment_list extends base_list
     }
 
     if( is_null( $appointment_list ) )
-      throw new exc\runtime( 
+      throw util::create( 'exception\runtime', 
         'Cannot get an appointment list for onyx', __METHOD__ );
 
     foreach( $appointment_list as $db_appointment )
@@ -120,7 +120,7 @@ class appointment_list extends base_list
       }
       else
       {
-        throw new exc\runtime( 
+        throw util::create( 'exception\runtime', 
           'Onyx requires populated dob and gender data from Mastodon', __METHOD__ );
       }
 

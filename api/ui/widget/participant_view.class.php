@@ -146,7 +146,7 @@ class participant_view extends base_view
     }
     else
     {
-      $db_current_qnaire = new db\qnaire( $this->get_record()->current_qnaire_id );
+      $db_current_qnaire = util::create( 'database\qnaire', $this->get_record()->current_qnaire_id );
       $current_qnaire_name = $db_current_qnaire->name;
       $start_qnaire_date = util::get_formatted_date( $start_qnaire_date, 'immediately' );
     }

@@ -70,7 +70,7 @@ class queue_list extends base_list
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
     $this->set_variable( 'restrict_site_id', $restrict_site_id );
     $db_restrict_site = $restrict_site_id
-                      ? new db\site( $restrict_site_id )
+                      ? util::create( 'database\site', $restrict_site_id )
                       : NULL;
 
     $qnaires = array();
@@ -81,7 +81,7 @@ class queue_list extends base_list
     $restrict_qnaire_id = $this->get_argument( 'restrict_qnaire_id', 0 );
     $this->set_variable( 'restrict_qnaire_id', $restrict_qnaire_id );
     $db_restrict_qnaire = $restrict_qnaire_id
-                        ? new db\qnaire( $restrict_qnaire_id )
+                        ? util::create( 'database\qnaire', $restrict_qnaire_id )
                         : NULL;
     
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );

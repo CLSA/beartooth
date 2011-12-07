@@ -41,14 +41,14 @@ class site_new_access extends \cenozo\ui\push\site_new_access
       $this->get_record()->add_access( $this->get_argument( 'user_id_list' ), $role_id );
 
       // build a list of role names for mastodon
-      $db_role = new db\role( $role_id );
+      $db_role = util::create( 'database\role', $role_id );
       $role_name_list[] = $db_role->name;
     }
 
     // build a list of user names for mastodon
     foreach( $this->get_argument( 'user_id_list' ) as $user_id )
     {
-      $db_user = new db\user( $user_id );
+      $db_user = util::create( 'database\user', $user_id );
       $user_name_list[] = $db_user->name;
     }
 

@@ -37,7 +37,7 @@ class participant_status_report extends base_report
   public function finish()
   {
     // get the report arguments
-    $db_qnaire = new db\qnaire( $this->get_argument( 'restrict_qnaire_id' ) );
+    $db_qnaire = util::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
 
     $this->add_title( 
       sprintf( 'Listing of categorical totals pertaining to '.

@@ -592,7 +592,7 @@ class queue extends record
     {
       // make sure a phone call status has been included (all remaining queues require it)
       if( is_null( $phone_call_status ) )
-        throw new exc\argument( 'phone_call_status', $phone_call_status, __METHOD__ );
+        throw util::create( 'exception\argument', 'phone_call_status', $phone_call_status, __METHOD__ );
 
       if( 'phone call status' == $queue )
       {
@@ -691,7 +691,7 @@ class queue extends record
       }
       else // invalid queue name
       {
-        throw new exc\argument( 'queue', $queue, __METHOD__ );
+        throw util::create( 'exception\argument', 'queue', $queue, __METHOD__ );
       }
     }
   }

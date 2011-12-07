@@ -47,7 +47,7 @@ class queue_restriction_new extends base_new
         !$columns['region_id'] &&
         !$columns['postcode'] )
     {
-      throw new exc\notice( 'At least one item must be specified.', __METHOD__ );
+      throw util::create( 'exception\notice', 'At least one item must be specified.', __METHOD__ );
     }
 
     // make sure the postcode is valid

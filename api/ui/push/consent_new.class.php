@@ -42,13 +42,13 @@ class consent_new extends base_new
     // make sure the date column isn't blank
     $columns = $this->get_argument( 'columns' );
     if( !array_key_exists( 'date', $columns ) || 0 == strlen( $columns['date'] ) )
-      throw new exc\notice( 'The date cannot be left blank.', __METHOD__ );
+      throw util::create( 'exception\notice', 'The date cannot be left blank.', __METHOD__ );
 
     $args = $this->arguments;
     unset( $args['columns']['participant_id'] );
 
     // replace the participant id with a unique key
-    $db_participant = new db\participant( $columns['participant_id'] );
+    $db_participant = util::create( 'database\participant', $columns['participant_id'] );
     $args['noid']['participant.uid'] = $db_participant->uid;
 
     // no errors, go ahead and make the change

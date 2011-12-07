@@ -37,7 +37,7 @@ class setting_manager extends \cenozo\business\setting_manager
     {
       // make sure the category exists
       if( !array_key_exists( $category, $static_settings ) )
-        throw new exc\argument( 'static_settings['.$category.']', NULL, __METHOD__ );
+        throw util::create( 'exception\argument', 'static_settings['.$category.']', NULL, __METHOD__ );
       
       $this->static_settings[$category] = $static_settings[$category];
     }
@@ -45,7 +45,7 @@ class setting_manager extends \cenozo\business\setting_manager
     // get the survey database settings from the limesurvey config file
     $file = LIMESURVEY_PATH.'/config.php';
     if( !file_exists( $file ) )
-      throw new exc\runtime( 'Cannot find limesurvey config.php file.', __METHOD__ );
+      throw util::create( 'exception\runtime', 'Cannot find limesurvey config.php file.', __METHOD__ );
 
     include $file;
     $this->static_settings['survey_db'] =

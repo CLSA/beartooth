@@ -43,7 +43,7 @@ class phone_new extends base_new
     // make sure the datetime column isn't blank
     $columns = $this->get_argument( 'columns' );
     if( !array_key_exists( 'number', $columns ) )
-      throw new exc\notice( 'The number cannot be left blank.', __METHOD__ );
+      throw util::create( 'exception\notice', 'The number cannot be left blank.', __METHOD__ );
 
     // validate the phone number
     if( 10 != strlen( preg_replace( '/[^0-9]/', '', $columns['number'] ) ) )
@@ -55,13 +55,13 @@ class phone_new extends base_new
     unset( $args['columns']['address_id'] );
 
     // replace the participant id with a unique key
-    $db_participant = new db\participant( $columns['participant_id'] );
+    $db_participant = util::create( 'database\participant', $columns['participant_id'] );
     $args['noid']['participant.uid'] = $db_participant->uid;
 
     // replace the address id (if it is not null) a unique key
     if( $columns['address_id'] )
     {
-      $db_address = new db\address( $columns['address_id'] );
+      $db_address = util::create( 'database\address', $columns['address_id'] );
       // this is only actually half of the key, the other half is provided by the participant above
       $args['noid']['address.rank'] = $db_address->rank;
     }

@@ -37,12 +37,12 @@ class participant_tree_report extends base_report
   public function finish()
   {
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
-    $db_qnaire = new db\qnaire( $this->get_argument( 'restrict_qnaire_id' ) );
+    $db_qnaire = util::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     
     $site_mod = new db\modifier();
     if( $restrict_site_id )
     {
-      $db_restrict_site = new db\site( $restrict_site_id );
+      $db_restrict_site = util::create( 'database\site', $restrict_site_id );
       $site_mod->where( 'id', '=', $db_restrict_site );
     }
     $this->add_title( 'Generated for the '.$db_qnaire->name.' questionnaire' );

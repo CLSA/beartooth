@@ -64,7 +64,7 @@ class address_edit extends base_edit
     // if set, replace the region id with a unique key
     if( array_key_exists( 'region_id', $columns ) && $columns['region_id'] )
     {
-      $db_region = new db\region( $columns['region_id'] );
+      $db_region = util::create( 'database\region', $columns['region_id'] );
       unset( $args['region_id'] );
       // we only include half of the unique key since the other half is added above
       $args['noid']['region.abbreviation'] = $db_region->abbreviation;

@@ -41,10 +41,10 @@ class assignment_begin extends \beartooth\ui\push
   {
     $session = bus\session::self();
 
-    $db_participant = new db\participant( $this->get_argument( 'participant_id' ) );
+    $db_participant = util::create( 'database\participant', $this->get_argument( 'participant_id' ) );
     
     // make sure the qnaire has phases
-    $db_qnaire = new db\qnaire( $db_participant->current_qnaire_id );
+    $db_qnaire = util::create( 'database\qnaire', $db_participant->current_qnaire_id );
     if( 0 == $db_qnaire->get_phase_count() )
       throw new exc\notice(
         'This participant\'s next questionnaire is not yet ready.  '.
