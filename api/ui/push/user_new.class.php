@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -36,8 +36,8 @@ class user_new extends \cenozo\ui\push\user_new
 
     if( !is_null( $this->site_id ) && !is_null( $this->role_id ) )
     { // add the initial role to the new user
-      $db_site = util::create( 'database\site', $this->site_id );
-      $db_role = util::create( 'database\role', $this->role_id );
+      $db_site = lib::create( 'database\site', $this->site_id );
+      $db_role = lib::create( 'database\role', $this->role_id );
 
       // add the site, cohort and role to the arguments for mastodon
       $args['noid']['site.name'] = $db_site->name;
@@ -46,7 +46,7 @@ class user_new extends \cenozo\ui\push\user_new
     }
 
     // now send the same request to mastodon
-    $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $mastodon_manager->push( 'user', 'new', $args );
   }
 }

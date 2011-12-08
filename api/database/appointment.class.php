@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\exception as exc;
 
@@ -41,7 +41,7 @@ class appointment extends record
   {
     // make sure there is a maximum of 1 future home appointment and 1 future site appointment
     $now_datetime_obj = util::get_datetime_object();
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'participant_id', '=', $this->participant_id );
     $modifier->where( 'datetime', '>', $now_datetime_obj->format( 'Y-m-d H:i:s' ) );
     $modifier->where( 'address_id', $this->address_id ? '!=' : '=', NULL );
@@ -50,7 +50,7 @@ class appointment extends record
     if( 0 < count( $appointment_list ) )
     {
       $db_appointment = current( $appointment_list );
-      throw util::create( 'exception\notice',
+      throw lib::create( 'exception\notice',
         sprintf( 'Unable to add the appointment since the participant already has an upcomming '.
                  '%s appointment scheduled for %s.',
                  is_null( $this->address_id ) ? 'site' : 'home',
@@ -74,12 +74,12 @@ class appointment extends record
    */
   public function validate_date()
   {
-    $db_participant = util::create( 'database\participant', $this->participant_id );
+    $db_participant = lib::create( 'database\participant', $this->participant_id );
     $home = (bool) $this->address_id;
 
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
-                         util::create( 'business\setting_manager' )->get_setting(
+                         lib::create( 'business\setting_manager' )->get_setting(
                            'appointment',
                            $home ? 'home duration' : 'site duration' ) );
 
@@ -94,14 +94,14 @@ class appointment extends record
     {
       $db_site = $db_participant->get_primary_site();
       if( is_null( $db_site ) )
-        throw util::create( 'exception\runtime',
+        throw lib::create( 'exception\runtime',
           'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
 
       // determine site slots using shift template
-      $modifier = util::create( 'database\modifier' );
+      $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'site_id', '=', $db_site->id );
       $modifier->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
-      $class_name = util::get_class_name( 'database\shift_template' );
+      $class_name = lib::get_class_name( 'database\shift_template' );
       foreach( $class_name::select( $modifier ) as $db_shift_template )
       {
         if( $db_shift_template->match_date( $start_datetime_obj->format( 'Y-m-d' ) ) )
@@ -122,17 +122,17 @@ class appointment extends record
     }
     else
     { // determine this user's access
-      $db_user = util::create( 'business\session' )->get_user();
-      $db_site = util::create( 'business\session' )->get_site();
-      $db_role = util::create( 'business\session' )->get_role();
-      $class_name = util::get_class_name( 'database\access' );
+      $db_user = lib::create( 'business\session' )->get_user();
+      $db_site = lib::create( 'business\session' )->get_site();
+      $db_role = lib::create( 'business\session' )->get_role();
+      $class_name = lib::get_class_name( 'database\access' );
       $db_access = $class_name::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $db_user->id, $db_site->id, $db_role->id ) );
     }
 
     // and how many appointments are during this time?
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
     if( !is_null( $this->id ) ) $modifier->where( 'appointment.id', '!=', $this->id );
     
@@ -217,7 +217,7 @@ class appointment extends record
     // if there is no site restriction then just use the parent method
     if( is_null( $db_site ) ) return parent::select( $modifier, $count );
     // straight join the tables
-    if( is_null( $modifier ) ) $modifier = util::create( 'database\modifier' );
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
     $modifier->where(
       'appointment.participant_id', '=', 'participant_primary_address.participant_id', false );
     $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
@@ -273,8 +273,8 @@ class appointment extends record
     // if there is no access restriction then just use the parent method
     if( is_null( $db_access ) ) return parent::select( $modifier, $count );
 
-    $database_class_name = util::get_class_name( 'database\database' );
-    $coverage_class_name = util::get_class_name( 'database\coverage' );
+    $database_class_name = lib::get_class_name( 'database\database' );
+    $coverage_class_name = lib::get_class_name( 'database\coverage' );
 
     $sql = sprintf(
       ( $count ? 'SELECT COUNT(*) ' : 'SELECT appointment.id ' ).
@@ -287,7 +287,7 @@ class appointment extends record
     
     // OR all access coverages making sure to AND NOT all other like coverages for the same site
     $first = true;
-    $coverage_mod = util::create( 'database\modifier' );
+    $coverage_mod = lib::create( 'database\modifier' );
     $coverage_mod->where( 'access_id', '=', $db_access->id );
     $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
     foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
@@ -298,7 +298,7 @@ class appointment extends record
       $first = false;
 
       // now remove the like coverages
-      $inner_coverage_mod = util::create( 'database\modifier' );
+      $inner_coverage_mod = lib::create( 'database\modifier' );
       $inner_coverage_mod->where( 'access_id', '!=', $db_access->id );
       $inner_coverage_mod->where( 'access.site_id', '=', $db_access->site_id );
       $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );

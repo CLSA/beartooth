@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -43,19 +43,19 @@ class onyx_instance_new extends base_new
     // make sure that the username is not empty
     $columns = $this->get_argument( 'columns' );
     if( !$columns['username'] )
-      throw util::create( 'exception\notice', 'The onyx instance\'s user name cannot be left blank.', __METHOD__ );
+      throw lib::create( 'exception\notice', 'The onyx instance\'s user name cannot be left blank.', __METHOD__ );
     else if( !$columns['password'] )
-      throw util::create( 'exception\notice', 'You must provide a password at least 6 characters long.', __METHOD__ );
+      throw lib::create( 'exception\notice', 'You must provide a password at least 6 characters long.', __METHOD__ );
     else if( 6 > strlen( $columns['password'] ) )
-      throw util::create( 'exception\notice', 'Passwords must be at least 6 characters long.', __METHOD__ );
+      throw lib::create( 'exception\notice', 'Passwords must be at least 6 characters long.', __METHOD__ );
     else if( 'password' == $columns['password'] )
-      throw util::create( 'exception\notice', 'You cannot choose "password" as a password.', __METHOD__ );
+      throw lib::create( 'exception\notice', 'You cannot choose "password" as a password.', __METHOD__ );
     
     $db_interviewer_user = $columns['interviewer_user_id']
-             ? util::create( 'database\user', $columns['interviewer_user_id'] )
+             ? lib::create( 'database\user', $columns['interviewer_user_id'] )
              : NULL;
-    $db_site = util::create( 'database\site', $columns['site_id'] );
-    $class_name = util::get_class_name( 'database\role' );
+    $db_site = lib::create( 'database\site', $columns['site_id'] );
+    $class_name = lib::get_class_name( 'database\role' );
     $db_role = $class_name::get_unique_record( 'name', 'onyx' );
     $first_name = 'onyx instance';
     $last_name = sprintf( '%s@%s',
@@ -71,19 +71,19 @@ class onyx_instance_new extends base_new
                 'active' => true,
                 'role_id' => $db_role->id,
                 'site_id' => $db_site->id ) );
-    $operation = util::create( 'ui\push\user_new', $args );
+    $operation = lib::create( 'ui\push\user_new', $args );
     
     $operation->finish();
     
     // replace the username argument with the newly created user id for the new onyx instance
-    $class_name = util::get_class_name( 'database\user' );
+    $class_name = lib::get_class_name( 'database\user' );
     $db_user = $class_name::get_unique_record( 'name', $columns['username'] );
     unset( $this->arguments['columns']['username'] );
     unset( $this->arguments['columns']['password'] );
     $this->arguments['columns']['user_id'] = $db_user->id;
 
     // set user's password
-    util::create( 'business\ldap_manager' );
+    lib::create( 'business\ldap_manager' );
     $ldap_manager->set_user_password( $db_user->name, $columns['password'] );
 
     parent::finish();

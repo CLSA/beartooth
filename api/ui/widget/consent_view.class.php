@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -49,7 +49,7 @@ class consent_view extends base_view
     parent::finish();
 
     // create enum arrays
-    $class_name = util::get_class_name( 'database\consent' );
+    $class_name = lib::get_class_name( 'database\consent' );
     $events = $class_name::get_enum_values( 'event' );
     $events = array_combine( $events, $events );
 

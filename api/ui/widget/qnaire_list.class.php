@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -55,7 +55,7 @@ class qnaire_list extends base_list
       $prev_qnaire = 'none';
       if( !is_null( $record->prev_qnaire_id ) )
       {
-        $db_prev_qnaire = util::create( 'database\qnaire', $record->prev_qnaire_id );
+        $db_prev_qnaire = lib::create( 'database\qnaire', $record->prev_qnaire_id );
         $prev_qnaire = $db_prev_qnaire->name;
       }
 

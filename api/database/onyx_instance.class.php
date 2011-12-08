@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\exception as exc;
 
@@ -27,7 +27,7 @@ class onyx_instance extends record
    */
   public function get_interviewer_user()
   {
-    return $this->interviewer_user_id ? util::create( 'database\user', $this->interviewer_user_id ) : NULL;
+    return $this->interviewer_user_id ? lib::create( 'database\user', $this->interviewer_user_id ) : NULL;
   }
 }
 ?>

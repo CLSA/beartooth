@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -47,7 +47,7 @@ class appointment_edit extends base_edit
     {
       $this->get_record()->datetime = $columns['datetime'];
       if( !$this->get_record()->validate_date() )
-        throw util::create( 'exception\notice', 'There are no openings during that time.', __METHOD__ );
+        throw lib::create( 'exception\notice', 'There are no openings during that time.', __METHOD__ );
     }
     
     // no errors, go ahead and make the change

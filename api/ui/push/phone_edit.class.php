@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -45,7 +45,7 @@ class phone_edit extends base_edit
     if( array_key_exists( 'number', $columns ) )
     {
       if( 10 != strlen( preg_replace( '/[^0-9]/', '', $columns['number'] ) ) )
-        throw util::create( 'exception\notice',
+        throw lib::create( 'exception\notice',
           'Phone numbers must have exactly 10 digits.', __METHOD__ );
     }
 
@@ -61,7 +61,7 @@ class phone_edit extends base_edit
     // if set, replace the address id with a unique key
     if( array_key_exists( 'address_id', $columns ) && $columns['address_id'] )
     {
-      $db_address = util::create( 'database\address', $columns['address_id'] );
+      $db_address = lib::create( 'database\address', $columns['address_id'] );
       unset( $args['address_id'] );
       // we only include half of the unique key since the other half is added above
       $args['noid']['address.rank'] = $db_address->rank;
@@ -70,7 +70,7 @@ class phone_edit extends base_edit
     parent::finish();
 
     // now send the same request to mastodon
-    $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $mastodon_manager->push( 'phone', 'edit', $args );
   }
 }

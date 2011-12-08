@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -30,10 +30,10 @@ class self_shortcuts extends \cenozo\ui\widget\self_shortcuts
   {
     parent::finish();
     
-    $voip_enabled = util::create( 'business\setting_manager' )->get_setting( 'voip', 'enabled' );
+    $voip_enabled = lib::create( 'business\setting_manager' )->get_setting( 'voip', 'enabled' );
     
     // get the xor key and make sure it is at least as long as the password
-    $xor_key = util::create( 'business\setting_manager' )->get_setting( 'voip', 'xor_key' );
+    $xor_key = lib::create( 'business\setting_manager' )->get_setting( 'voip', 'xor_key' );
     $password = $_SERVER['PHP_AUTH_PW'];
 
     // avoid infinite loops by using a counter
@@ -49,8 +49,8 @@ class self_shortcuts extends \cenozo\ui\widget\self_shortcuts
       $_SERVER['PHP_AUTH_USER'],
       base64_encode( $password ^ $xor_key ) ) );
     $this->set_variable( 'webphone',
-      $voip_enabled && !util::create( 'business\voip_manager' )->get_sip_enabled() );
-    $this->set_variable( 'dialpad', !is_null( util::create( 'business\voip_manager' )->get_call() ) );
+      $voip_enabled && !lib::create( 'business\voip_manager' )->get_sip_enabled() );
+    $this->set_variable( 'dialpad', !is_null( lib::create( 'business\voip_manager' )->get_call() ) );
     $this->set_variable( 'timezone_calculator', true );
   }
 }

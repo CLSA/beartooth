@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -50,7 +50,7 @@ class phase_list extends base_list
     foreach( $this->get_record_list() as $record )
     {
       // get the survey
-      $db_surveys = util::create( 'database\limesurvey\surveys', $record->sid );
+      $db_surveys = lib::create( 'database\limesurvey\surveys', $record->sid );
 
       $this->add_row( $record->id,
         array( 'survey' => $db_surveys->get_title(),

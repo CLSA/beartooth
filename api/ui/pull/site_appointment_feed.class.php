@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -43,21 +43,21 @@ class site_appointment_feed extends base_feed
   public function finish()
   {
     // create a list of site appointments between the feed's start and end time
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'appointment.address_id', '=', NULL );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
 
     $event_list = array();
-    $db_site = util::create( 'business\session' )->get_site();
-    $class_name = util::get_class_name( 'database\appointment' );
+    $db_site = lib::create( 'business\session' )->get_site();
+    $class_name = lib::get_class_name( 'database\appointment' );
     foreach( $class_name::select_for_site( $db_site, $modifier ) as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $end_datetime_obj = clone $start_datetime_obj;
       $end_datetime_obj->modify(
         sprintf( '+%d minute',
-        util::create( 'business\setting_manager' )->get_setting( 'appointment', 'site duration' ) ) );
+        lib::create( 'business\setting_manager' )->get_setting( 'appointment', 'site duration' ) ) );
 
       $db_participant = $db_appointment->get_participant();
       $event_list[] = array(

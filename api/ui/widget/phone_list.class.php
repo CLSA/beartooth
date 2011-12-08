@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -50,9 +50,9 @@ class phone_list extends base_list
     
     // only allow higher than first tier roles to make direct calls
     $this->set_variable( 'allow_connect',
-                         1 < util::create( 'business\session' )->get_role()->tier );
+                         1 < lib::create( 'business\session' )->get_role()->tier );
     $this->set_variable( 'sip_enabled',
-      util::create( 'business\voip_manager' )->get_sip_enabled() );
+      lib::create( 'business\voip_manager' )->get_sip_enabled() );
 
     foreach( $this->get_record_list() as $record )
     {

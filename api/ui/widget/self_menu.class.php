@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -57,7 +57,7 @@ class self_menu extends \cenozo\ui\widget\self_menu
     $lists = $this->get_variables( 'lists' );
 
     // insert the participant tree after participant list
-    if( 'interviewer' != util::create( 'business\session' )->get_role() )
+    if( 'interviewer' != lib::create( 'business\session' )->get_role() )
       $lists[] = array( 'heading' => 'Participant Tree',
                         'subject' => 'participant',
                         'name' => 'tree' );

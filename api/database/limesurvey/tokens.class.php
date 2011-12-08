@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database\limesurvey;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -30,11 +30,11 @@ class tokens extends sid_record
    */
   public function update_attributes( $db_participant )
   {
-    $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
-    $db_user = util::create( 'business\session' )->get_user();
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
+    $db_user = lib::create( 'business\session' )->get_user();
 
     // determine the first part of the token
-    $db_interview = util::create( 'business\session' )->get_current_assignment()->get_interview();
+    $db_interview = lib::create( 'business\session' )->get_current_assignment()->get_interview();
     $token_part = substr( static::determine_token_string( $db_interview ), 0, -1 );
     
     // try getting the attributes from mastodon or beartooth
@@ -80,7 +80,7 @@ class tokens extends sid_record
       }
 
       // written consent received
-      $consent_mod = util::create( 'database\modifier' );
+      $consent_mod = lib::create( 'database\modifier' );
       $consent_mod->where( 'event', 'like', 'written %' );
       $written_consent = 0 < $db_participant->get_consent_count( $consent_mod );
 
@@ -93,7 +93,7 @@ class tokens extends sid_record
     }
     
     // determine the attributes from the survey with the same ID
-    $db_surveys = util::create( 'database\limesurvey\surveys', static::$table_sid );
+    $db_surveys = lib::create( 'database\limesurvey\surveys', static::$table_sid );
 
     foreach( explode( "\n", $db_surveys->attributedescriptions ) as $attribute )
     {
@@ -164,7 +164,7 @@ class tokens extends sid_record
         else if( 'previously completed' == $value )
         {
           // no need to set the token sid since it should already be set before calling this method
-          $tokens_mod = util::create( 'database\modifier' );
+          $tokens_mod = lib::create( 'database\modifier' );
           $tokens_mod->where( 'token', 'like', $token_part.'%' );
           $tokens_mod->where( 'completed', '!=', 'N' );
           $this->$key = static::count( $tokens_mod );

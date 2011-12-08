@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -39,7 +39,7 @@ class user_edit extends \cenozo\ui\push\user_edit
     parent::finish();
 
     // now send the same request to mastodon
-    $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $mastodon_manager->push( 'user', 'edit', $args );
   }
 }

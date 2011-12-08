@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -63,7 +63,7 @@ class call_history_report extends base_report
       $end_datetime_obj = clone $temp_datetime_obj;
     }
 
-    $assignment_mod = util::create( 'database\modifier' );
+    $assignment_mod = lib::create( 'database\modifier' );
     if( $restrict_site_id ) $assignment_mod->where( 'site_id', '=', $restrict_site_id );
     $assignment_mod->order( 'start_datetime' );
     if( $restrict_start_date && $restrict_end_date )
@@ -85,12 +85,12 @@ class call_history_report extends base_report
     }
     
     $contents = array();
-    $class_name = util::get_class_name( 'database\assignment' );
+    $class_name = lib::get_class_name( 'database\assignment' );
     foreach( $class_name::select( $assignment_mod ) as $db_assignment )
     {
       $db_user = $db_assignment->get_user();
       
-      $phone_call_mod = util::create( 'database\modifier' );
+      $phone_call_mod = lib::create( 'database\modifier' );
       $phone_call_mod->order( 'start_datetime' );
       foreach( $db_assignment->get_phone_call_list( $phone_call_mod ) as $db_phone_call )
       {

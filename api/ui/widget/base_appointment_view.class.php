@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -36,7 +36,7 @@ abstract class base_appointment_view extends base_view
     try
     {
       // create the site calendar widget
-      $this->site_calendar = util::create( 'ui\widget\site_calendar', $args );
+      $this->site_calendar = lib::create( 'ui\widget\site_calendar', $args );
       $this->site_calendar->set_parent( $this );
     }
     catch( exc\permission $e )
@@ -47,7 +47,7 @@ abstract class base_appointment_view extends base_view
     try
     {
       // create the home calendar widget
-      $this->home_appointment_calendar = util::create( 'ui\widget\home_appointment_calendar', $args );
+      $this->home_appointment_calendar = lib::create( 'ui\widget\home_appointment_calendar', $args );
       $this->home_appointment_calendar->set_parent( $this );
     }
     catch( exc\permission $e )

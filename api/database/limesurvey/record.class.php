@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database\limesurvey;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -45,7 +45,7 @@ abstract class record extends db\record
    */
   public function __call( $name, $args )
   {
-    throw util::create( 'exception\runtime',
+    throw lib::create( 'exception\runtime',
       sprintf( 'Call to undefined function: %s::%s().',
                get_called_class(),
                $name ), __METHOD__ );
@@ -91,7 +91,7 @@ abstract class record extends db\record
    */
   public static function db()
   {
-    return util::create( 'business\session' )->get_survey_database();
+    return lib::create( 'business\session' )->get_survey_database();
   }
 }
 ?>

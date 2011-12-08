@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -32,7 +32,7 @@ class coverage_list extends base_list
   {
     parent::__construct( 'coverage', $args );
     
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
 
     $this->add_column( 'username', 'string', 'Interviewer', false );
     $this->add_column( 'postcode_mask', 'string', 'Postal Code', true );
@@ -44,7 +44,7 @@ class coverage_list extends base_list
     try
     {
       // create the interviewer sub-list widget
-      $this->interviewer_list = util::create( 'ui\widget\interviewer_list', $args );
+      $this->interviewer_list = lib::create( 'ui\widget\interviewer_list', $args );
     }
     catch( exc\permission $e )
     {
@@ -62,7 +62,7 @@ class coverage_list extends base_list
   {
     parent::finish();
     
-    $db_site = util::create( 'business\session' )->get_site();
+    $db_site = lib::create( 'business\session' )->get_site();
 
     foreach( $this->get_record_list() as $record )
     {
@@ -71,11 +71,11 @@ class coverage_list extends base_list
       $furthest = $record->get_furthest_distance( $db_site );
       $furthest = is_null( $furthest ) ? 'N/A' : sprintf( '%0.1f', $furthest );
 
-      $jurisdiction_mod = util::create( 'database\modifier' );
+      $jurisdiction_mod = lib::create( 'database\modifier' );
       $jurisdiction_mod->where( 'site_id', '=', $db_site->id );
       $jurisdiction_mod->where( 'jurisdiction.postcode', 'LIKE', $record->postcode_mask );
 
-      $participant_mod = util::create( 'database\modifier' );
+      $participant_mod = lib::create( 'database\modifier' );
       $participant_mod->where( 'jurisdiction.postcode', 'LIKE', $record->postcode_mask );
 
       // format the postcode LIKE-based statement
@@ -84,8 +84,8 @@ class coverage_list extends base_list
       for( $index = $length; $index < 7; $index++ ) $postcode_mask .= 3 == $index ? ' ' : '?';
 
       // assemble the row for this record
-      $jurisdiction_class_name = util::get_class_name( 'database\jurisdiction' );
-      $participant_class_name = util::get_class_name( 'database\participant' );
+      $jurisdiction_class_name = lib::get_class_name( 'database\jurisdiction' );
+      $participant_class_name = lib::get_class_name( 'database\participant' );
       $this->add_row( $record->id,
         array( 'username' => $record->get_access()->get_user()->name,
                'postcode_mask' => $postcode_mask,
@@ -115,8 +115,8 @@ class coverage_list extends base_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
-    $modifier->where( 'access.site_id', '=', util::create( 'business\session' )->get_site()->id );
+    if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'access.site_id', '=', lib::create( 'business\session' )->get_site()->id );
     return parent::determine_record_count( $modifier );
   }
   
@@ -130,8 +130,8 @@ class coverage_list extends base_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
-    $modifier->where( 'access.site_id', '=', util::create( 'business\session' )->get_site()->id );
+    if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'access.site_id', '=', lib::create( 'business\session' )->get_site()->id );
     return parent::determine_record_list( $modifier );
   }
 

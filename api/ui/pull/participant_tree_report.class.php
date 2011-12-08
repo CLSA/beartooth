@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -37,12 +37,12 @@ class participant_tree_report extends base_report
   public function finish()
   {
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
-    $db_qnaire = util::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
+    $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     
-    $site_mod = util::create( 'database\modifier' );
+    $site_mod = lib::create( 'database\modifier' );
     if( $restrict_site_id )
     {
-      $db_restrict_site = util::create( 'database\site', $restrict_site_id );
+      $db_restrict_site = lib::create( 'database\site', $restrict_site_id );
       $site_mod->where( 'id', '=', $db_restrict_site );
     }
     $this->add_title( 'Generated for the '.$db_qnaire->name.' questionnaire' );
@@ -51,8 +51,8 @@ class participant_tree_report extends base_report
 
     // The following code is very similar to the participant_tree widget
     // We loop through every queue to get the number of participants waiting in it
-    $queue_class_name = util::get_class_name( 'database\queue' );
-    $site_class_name = util::get_class_name( 'database\site' );
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+    $site_class_name = lib::get_class_name( 'database\site' );
     foreach( $queue_class_name::select() as $db_queue )
     {
       $row = array( $db_queue->title );

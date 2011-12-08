@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -33,8 +33,8 @@ class self_set_password extends \cenozo\ui\push\self_set_password
     parent::finish();
 
     // flush the voip account
-    util::create( 'business\voip_manager' )->sip_prune(
-      util::create( 'business\session' )->get_user() );
+    lib::create( 'business\voip_manager' )->sip_prune(
+      lib::create( 'business\session' )->get_user() );
   }
 }
 ?>

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -33,17 +33,17 @@ class coverage_edit extends base_edit
     if( isset( $args['columns'] ) && isset( $args['columns']['user_id'] ) )
     {
       $user_id = $args['columns']['user_id'];
-      $db_site = util::create( 'business\session' )->get_site();
-      $class_name = util::get_class_name( 'database\role' );
+      $db_site = lib::create( 'business\session' )->get_site();
+      $class_name = lib::get_class_name( 'database\role' );
       $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
 
-      $class_name = util::get_class_name( 'database\access' );
+      $class_name = lib::get_class_name( 'database\access' );
       $db_access = $class_name::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $user_id, $db_site->id, $db_role->id ) );
 
       if( is_null( $db_access ) )
-        throw util::create( 'exception\notice',
+        throw lib::create( 'exception\notice',
           sprintf( 'Unable to create coverage for user "%s" since they are not an interviewer.',
                    $db_user->name ),
           __METHOD__ );
@@ -69,7 +69,7 @@ class coverage_edit extends base_edit
     {
       $postcode_mask = strtoupper( str_replace( ' ', '', $columns['postcode_mask'] ) );
       if( 1 > strlen( $postcode_mask ) || 6 < strlen( $postcode_mask ) )
-        throw util::create( 'exception\notice',
+        throw lib::create( 'exception\notice',
           'Postal codes must contain between 1 and 6 alpha-numeric characters.',
           __METHOD__ );
       
@@ -86,7 +86,7 @@ class coverage_edit extends base_edit
             !preg_match( '/^[A-Z][0-9][A-Z][0-9][A-Z]$/', $postcode_mask ) ) ||
           ( 6 == strlen( $postcode_mask ) &&
             !preg_match( '/^[A-Z][0-9][A-Z][0-9][A-Z][0-9]$/', $postcode_mask ) ) )
-        throw util::create( 'exception\notice',
+        throw lib::create( 'exception\notice',
           'Invalid postal code format, make sure numbers and letters alternate.',
           __METHOD__ );
 

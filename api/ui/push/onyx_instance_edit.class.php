@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -41,12 +41,12 @@ class onyx_instance_edit extends base_edit
   public function finish()
   {
     // make sure that only top tier roles can edit onyx instances not belonging to the current site
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
 
     if( 3 != $session->get_role()->tier &&
         $session->get_site()->id != $this->get_record()->site_id )
     {
-      throw util::create( 'exception\notice',
+      throw lib::create( 'exception\notice',
         'You do not have access to edit this onyx instance.', __METHOD__ );
     }
 

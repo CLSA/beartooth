@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -32,7 +32,7 @@ class site_new extends \cenozo\ui\push\site_new
     $postcode = $columns['postcode'];
     if( !preg_match( '/^[A-Z][0-9][A-Z] [0-9][A-Z][0-9]$/', $postcode ) && // postal code
         !preg_match( '/^[0-9]{5}$/', $postcode ) )  // zip code
-      throw util::create( 'exception\notice',
+      throw lib::create( 'exception\notice',
         'Postal codes must be in "A1A 1A1" format, zip codes in "01234" format.', __METHOD__ );
 
     parent::finish();

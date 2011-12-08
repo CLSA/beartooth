@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database\limesurvey;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -23,7 +23,7 @@ class survey extends sid_record
   public function get_response( $question_code )
   {
     // the questions table has more than one column in its primary key so custom sql is needed
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'sid', '=', static::$table_sid );
     $modifier->where( 'title', '=', $question_code );
     $modifier->group( 'sid' );

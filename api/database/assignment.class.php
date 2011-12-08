@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\exception as exc;
 
@@ -63,7 +63,7 @@ class assignment extends has_note
       return false;
     }
     
-    $tokens_class_name = util::get_class_name( 'database\limesurvey\tokens' );
+    $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
 
     $this->current_sid = false;
     $this->current_token = false;
@@ -81,13 +81,13 @@ class assignment extends has_note
       $tokens_class_name::set_sid( $db_qnaire->withdraw_sid );
 
       $token = $tokens_class_name::determine_token_string( $db_interview );
-      $tokens_mod = util::create( 'database\modifier' );
+      $tokens_mod = lib::create( 'database\modifier' );
       $tokens_mod->where( 'token', '=', $token );
       $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
 
       if( false === $db_tokens )
       { // token not found, create it
-        $db_tokens = util::create( 'database\limesurvey\tokens' );
+        $db_tokens = lib::create( 'database\limesurvey\tokens' );
         $db_tokens->token = $token;
         $db_tokens->firstname = $db_participant->first_name;
         $db_tokens->lastname = $db_participant->last_name;
@@ -103,7 +103,7 @@ class assignment extends has_note
     }
     else
     { // the participant has not withdrawn, check each phase of the interview
-      $phase_mod = util::create( 'database\modifier' );
+      $phase_mod = lib::create( 'database\modifier' );
       $phase_mod->order( 'rank' );
       
       $phase_list = $db_interview->get_qnaire()->get_phase_list( $phase_mod );
@@ -121,13 +121,13 @@ class assignment extends has_note
           $token = $tokens_class_name::determine_token_string(
                      $db_interview,
                      $db_phase->repeated ? $this : NULL );
-          $tokens_mod = util::create( 'database\modifier' );
+          $tokens_mod = lib::create( 'database\modifier' );
           $tokens_mod->where( 'token', '=', $token );
           $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
   
           if( false === $db_tokens )
           { // token not found, create it
-            $db_tokens = util::create( 'database\limesurvey\tokens' );
+            $db_tokens = lib::create( 'database\limesurvey\tokens' );
             $db_tokens->token = $token;
             $db_tokens->firstname = $db_participant->first_name;
             $db_tokens->lastname = $db_participant->last_name;

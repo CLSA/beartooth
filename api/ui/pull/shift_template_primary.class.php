@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 
 /**
  * pull: shift_template primary

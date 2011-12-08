@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -72,20 +72,20 @@ class participant_list extends site_restricted_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    $db_role = util::create( 'business\session' )->get_role();
+    $db_role = lib::create( 'business\session' )->get_role();
     if( 'interviewer' == $db_role->name )
     {
-      $db_user = util::create( 'business\session' )->get_user();
-      $db_site = util::create( 'business\session' )->get_site();
-      $class_name = util::get_class_name( 'database\access' );
+      $db_user = lib::create( 'business\session' )->get_user();
+      $db_site = lib::create( 'business\session' )->get_site();
+      $class_name = lib::get_class_name( 'database\access' );
       $db_access = $class_name::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $db_user->id, $db_site->id, $db_role->id ) );
-      $class_name = util::get_class_name( 'database\participant' );
+      $class_name = lib::get_class_name( 'database\participant' );
       return $class_name::count_for_access( $db_access, $modifier );
     }
 
-    $class_name = util::get_class_name( 'database\participant' );
+    $class_name = lib::get_class_name( 'database\participant' );
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_count( $modifier )
          : $class_name::count_for_site( $this->db_restrict_site, $modifier );
@@ -101,20 +101,20 @@ class participant_list extends site_restricted_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    $db_role = util::create( 'business\session' )->get_role();
+    $db_role = lib::create( 'business\session' )->get_role();
     if( 'interviewer' == $db_role->name )
     {
-      $db_user = util::create( 'business\session' )->get_user();
-      $db_site = util::create( 'business\session' )->get_site();
-      $class_name = util::get_class_name( 'database\access' );
+      $db_user = lib::create( 'business\session' )->get_user();
+      $db_site = lib::create( 'business\session' )->get_site();
+      $class_name = lib::get_class_name( 'database\access' );
       $db_access = $class_name::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $db_user->id, $db_site->id, $db_role->id ) );
-      $class_name = util::get_class_name( 'database\participant' );
+      $class_name = lib::get_class_name( 'database\participant' );
       return $class_name::select_for_access( $db_access, $modifier );
     }
 
-    $class_name = util::get_class_name( 'database\participant' );
+    $class_name = lib::get_class_name( 'database\participant' );
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_list( $modifier )
          : $class_name::select_for_site( $this->db_restrict_site, $modifier );

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -80,7 +80,7 @@ abstract class base_report extends \cenozo\ui\widget\base_report
     if( $this->restrictions[ 'qnaire' ] )
     {
       $qnaires = array();
-      $class_name = util::get_class_name( 'database\qnaire' );
+      $class_name = lib::get_class_name( 'database\qnaire' );
       foreach( $class_name::select() as $db_qnaire ) 
         $qnaires[ $db_qnaire->id ] = $db_qnaire->name;
 
@@ -89,7 +89,7 @@ abstract class base_report extends \cenozo\ui\widget\base_report
 
     if( $this->restrictions[ 'consent' ] )
     {
-      $class_name = util::get_class_name( 'database\consent' );
+      $class_name = lib::get_class_name( 'database\consent' );
       $consent_types = $class_name::get_enum_values( 'event' );
       array_unshift( $consent_types, 'Any' );
       $consent_types = array_combine( $consent_types, $consent_types );

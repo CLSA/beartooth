@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -51,10 +51,10 @@ class appointment_view extends base_appointment_view
   {
     parent::finish();
 
-    $db_participant = util::create( 'database\participant', $this->get_record()->participant_id );
+    $db_participant = lib::create( 'database\participant', $this->get_record()->participant_id );
   
     // create enum arrays
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'active', '=', true );
     $modifier->order( 'rank' );
 

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -34,7 +34,7 @@ class onyx_instance_add extends base_view
     
     // define all columns defining this record
 
-    $type = 3 == util::create( 'business\session' )->get_role()->tier ? 'enum' : 'hidden';
+    $type = 3 == lib::create( 'business\session' )->get_role()->tier ? 'enum' : 'hidden';
     $this->add_item( 'username', 'string', 'Username' );
     $this->add_item( 'password', 'string', 'Password',
       'Passwords must be at least 6 characters long.' );
@@ -52,26 +52,26 @@ class onyx_instance_add extends base_view
   public function finish()
   {
     parent::finish();
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
     
     // create enum arrays
     if( $is_top_tier )
     {
       $sites = array();
-      $class_name = util::get_class_name( 'database\site' );
+      $class_name = lib::get_class_name( 'database\site' );
       foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
     }
     
     $db_site = $session->get_site();
-    $class_name = util::get_class_name( 'database\role' );
+    $class_name = lib::get_class_name( 'database\role' );
     $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
     
-    $user_mod = util::create( 'database\modifier' );
+    $user_mod = lib::create( 'database\modifier' );
     $user_mod->where( 'site_id', '=', $db_site->id );
     $user_mod->where( 'role_id', '=', $db_role->id );
     $interviewers = array( 'NULL' => 'site' );
-    $class_name = util::get_class_name( 'database\user' );
+    $class_name = lib::get_class_name( 'database\user' );
     foreach( $class_name::select( $user_mod ) as $db_user )
       $interviewers[$db_user->id] = $db_user->name;
 

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -73,7 +73,7 @@ class address_view extends base_view
     for( $rank = 1; $rank <= $num_addresss; $rank++ ) $ranks[] = $rank;
     $ranks = array_combine( $ranks, $ranks );
     $regions = array();
-    $class_name = util::get_class_name( 'database\region' );
+    $class_name = lib::get_class_name( 'database\region' );
     foreach( $class_name::select() as $db_region )
       $regions[$db_region->id] = $db_region->name.', '.$db_region->country;
 

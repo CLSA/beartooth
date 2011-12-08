@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -53,13 +53,13 @@ class participant_add extends base_view
     parent::finish();
     
     // create enum arrays
-    $class_name = util::get_class_name( 'database\participant' );
+    $class_name = lib::get_class_name( 'database\participant' );
     $languages = $class_name::get_enum_values( 'language' );
     $languages = array_combine( $languages, $languages );
     $statuses = $class_name::get_enum_values( 'status' );
     $statuses = array_combine( $statuses, $statuses );
     $sites = array();
-    $class_name = util::get_class_name( 'database\site' );
+    $class_name = lib::get_class_name( 'database\site' );
     foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
 
     // set the view's items

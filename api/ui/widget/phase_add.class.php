@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -51,16 +51,16 @@ class phase_add extends base_view
     
     // this widget must have a parent, and it's subject must be a qnaire
     if( is_null( $this->parent ) || 'qnaire' != $this->parent->get_subject() )
-      throw util::create( 'exception\runtime',
+      throw lib::create( 'exception\runtime',
         'Phase widget must have a parent with qnaire as the subject.', __METHOD__ );
     
     // create enum arrays
     $surveys = array();
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
     $modifier->where( 'anonymized', '=', 'N' );
     $modifier->where( 'tokenanswerspersistence', '=', 'Y' );
-    $class_name = util::get_class_name( 'database\limesurvey\surveys' );
+    $class_name = lib::get_class_name( 'database\limesurvey\surveys' );
     foreach( $class_name::select( $modifier ) as $db_survey )
       $surveys[$db_survey->sid] = $db_survey->get_title();
     $num_phases = $this->parent->get_record()->get_phase_count();

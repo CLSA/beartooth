@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -42,7 +42,7 @@ class qnaire_new extends base_new
     // make sure the name column isn't blank
     $columns = $this->get_argument( 'columns' );
     if( !array_key_exists( 'name', $columns ) || 0 == strlen( $columns['name'] ) )
-      throw util::create( 'exception\notice',
+      throw lib::create( 'exception\notice',
         'The questionnaire\'s name cannot be left blank.', __METHOD__ );
     
     parent::finish();

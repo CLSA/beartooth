@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -82,7 +82,7 @@ class appointment_list extends site_restricted_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    $class_name = util::get_class_name( 'database\appointment' );
+    $class_name = lib::get_class_name( 'database\appointment' );
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_count( $modifier )
          : $class_name::count_for_site( $this->db_restrict_site, $modifier );
@@ -98,7 +98,7 @@ class appointment_list extends site_restricted_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    $class_name = util::get_class_name( 'database\appointment' );
+    $class_name = lib::get_class_name( 'database\appointment' );
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_list( $modifier )
          : $class_name::select_for_site( $this->db_restrict_site, $modifier );

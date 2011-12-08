@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -52,7 +52,7 @@ class participant_edit extends base_edit
     // now send the same request to mastodon (unless we are setting the site)
     if( !array_key_exists( 'site_id', $args['columns'] ) )
     {
-      $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
+      $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
       $mastodon_manager->push( 'participant', 'edit', $args );
     }
   }

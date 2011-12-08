@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -39,7 +39,7 @@ class onyx_instance_view extends base_view
 
     try
     {
-      $this->user_view = util::create( 'ui\widget\user_view',
+      $this->user_view = lib::create( 'ui\widget\user_view',
         array( 'user_view' => array( 'id' => $this->get_record()->user_id ) ) );
       $this->user_view->set_parent( $this );
       $this->user_view->set_heading( '' );
@@ -62,16 +62,16 @@ class onyx_instance_view extends base_view
   public function finish()
   {
     parent::finish();
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
 
-    $class_name = util::get_class_name( 'database\role' );
+    $class_name = lib::get_class_name( 'database\role' );
     $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
 
-    $user_mod = util::create( 'database\modifier' );
+    $user_mod = lib::create( 'database\modifier' );
     $user_mod->where( 'site_id', '=', $this->get_record()->site_id );
     $user_mod->where( 'role_id', '=', $db_role->id );
     $interviewers = array( 'NULL' => 'site' );
-    $class_name = util::get_class_name( 'database\user' );
+    $class_name = lib::get_class_name( 'database\user' );
     foreach( $class_name::select( $user_mod ) as $db_user )
       $interviewers[$db_user->id] = $db_user->name;
 

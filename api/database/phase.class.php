@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\exception as exc;
 
@@ -52,7 +52,7 @@ class phase extends has_rank
       return;
     }
     
-    return util::create( 'database\limesurvey\surveys', $this->sid );
+    return lib::create( 'database\limesurvey\surveys', $this->sid );
   }
   
   /**
@@ -64,12 +64,12 @@ class phase extends has_rank
   private function ensure_auditing()
   {
     // ignore if auditing is not enabled
-    $setting_manager = util::create( 'business\setting_manager' );
-    $database_class_name = util::get_class_name( 'database\database' );
+    $setting_manager = lib::create( 'business\setting_manager' );
+    $database_class_name = lib::get_class_name( 'database\database' );
     
     $survey_table = $setting_manager->get_setting( 'survey_db', 'prefix' ).'survey_'.$this->sid;
     $survey_db_name = $setting_manager->get_setting( 'survey_db', 'database' );
-    $survey_db = util::create( 'business\session' )->get_survey_database();
+    $survey_db = lib::create( 'business\session' )->get_survey_database();
 
     if( !$setting_manager->get_setting( 'audit_db', 'enabled' ) )
     {
@@ -96,7 +96,7 @@ class phase extends has_rank
       
       $audit_db_name = $setting_manager->get_setting( 'audit_db', 'database' );
       $audit_table = $setting_manager->get_setting( 'audit_db', 'prefix' ).'survey_'.$this->sid;
-      $audit_db = util::create( 'business\session' )->get_audit_database();
+      $audit_db = lib::create( 'business\session' )->get_audit_database();
   
       // check to see if the audit table already exists
       $count = static::db()->get_one( sprintf(

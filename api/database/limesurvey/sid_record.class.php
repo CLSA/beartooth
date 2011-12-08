@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database\limesurvey;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -39,7 +39,7 @@ abstract class sid_record extends record
   {
     if( is_null( static::$table_sid ) )
     {
-      throw util::create( 'exception\runtime',
+      throw lib::create( 'exception\runtime',
         'The survey id (table_sid) must be set before using this class.', __METHOD__ );
     }
 

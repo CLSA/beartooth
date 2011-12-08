@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database\limesurvey;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -27,7 +27,7 @@ class surveys extends record
    */
   public function get_title()
   {
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'sid', '=', $this->sid );
     $modifier->where( 'sid', '=', 'surveyls_survey_id', false );
     $modifier->where( 'language', '=', 'surveyls_language', false );

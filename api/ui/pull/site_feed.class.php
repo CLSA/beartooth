@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -42,11 +42,11 @@ class site_feed extends base_feed
    */
   public function finish()
   {
-    $db_site = util::create( 'business\session' )->get_site();
+    $db_site = lib::create( 'business\session' )->get_site();
 
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
-                         util::create( 'business\setting_manager' )->get_setting( 'appointment', 'site duration' ) );
+                         lib::create( 'business\setting_manager' )->get_setting( 'appointment', 'site duration' ) );
 
     // start by creating an array with one element per day in the time span
     $start_datetime_obj = util::get_datetime_object( $this->start_datetime );
@@ -64,10 +64,10 @@ class site_feed extends base_feed
     }
     
     // fill in the slot differentials for shift templates each day
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'start_date', '<=', $this->end_datetime );
-    $class_name = util::get_class_name( 'database\shift_template' );
+    $class_name = lib::get_class_name( 'database\shift_template' );
     foreach( $class_name::select( $modifier ) as $db_shift_template )
     {
       foreach( $days as $date => $day )
@@ -97,12 +97,12 @@ class site_feed extends base_feed
     }
 
     // fill in the appointments which have not been complete
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
     $modifier->where( 'appointment.address_id', '=', NULL );
     $modifier->order( 'datetime' );
-    $class_name = util::get_class_name( 'database\appointment' );
+    $class_name = lib::get_class_name( 'database\appointment' );
     foreach( $class_name::select_for_site( $db_site, $modifier ) as $db_appointment )
     {
       $state = $db_appointment->get_state();

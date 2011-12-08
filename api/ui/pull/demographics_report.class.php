@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -37,14 +37,14 @@ class demographics_report extends base_report
   public function finish()
   {
     // get the report arguments
-    $db_qnaire = util::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
+    $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     $consent_status = $this->get_argument( 'restrict_consent_id' );
     $province_id = $this->get_argument( 'restrict_province_id' );
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
-    $class_name = util::get_class_name( 'database\participant' );
+    $class_name = lib::get_class_name( 'database\participant' );
     if( $restrict_site_id )
     {
-      $db_site = util::create( 'database\site', $restrict_site_id );
+      $db_site = lib::create( 'database\site', $restrict_site_id );
       $participant_list = $class_name::select_for_site( $db_site );
     }
     else $participant_list = $class_name::select();
@@ -62,13 +62,13 @@ class demographics_report extends base_report
           ( $province_id && $province_id != $region_id ) ||
           ( $consent_status != 'Any' && $consent_status != $db_consent->event ) ) continue;
 
-      $interview_mod = util::create( 'database\modifier' );
+      $interview_mod = lib::create( 'database\modifier' );
       $interview_mod->where( 'qnaire_id', '=', $db_qnaire->id ); 
       $db_interview = current( $db_participant->get_interview_list( $interview_mod ) );
       
       if( $db_interview && $db_interview->completed )
       {
-        $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
+        $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
         $participant_obj = $mastodon_manager->pull( 'participant', 'primary', 
           array( 'uid' => $db_participant->uid ) );
        

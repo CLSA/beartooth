@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\exception as exc;
 
@@ -51,12 +51,12 @@ class interview extends has_note
       return 0.0;
     }
 
-    $survey_class_name = util::get_class_name( 'database\limesurvey\survey' );
-    $tokens_class_name = util::get_class_name( 'database\limesurvey\tokens' );
-    $survey_timings_class_name = util::get_class_name( 'database\limesurvey\survey_timings' );
+    $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
+    $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
+    $survey_timings_class_name = lib::get_class_name( 'database\limesurvey\survey_timings' );
     
     $survey_class_name::set_sid( $db_phase->sid );
-    $survey_mod = util::create( 'database\modifier' );
+    $survey_mod = lib::create( 'database\modifier' );
     $survey_mod->where( 'token', '=',
       $tokens_class_name::determine_token_string( $this, $db_assignment ) );
     $survey_list = $survey_class_name::select( $survey_mod );
@@ -72,7 +72,7 @@ class interview extends has_note
     $db_survey = current( $survey_list );
 
     $survey_timings_class_name::set_sid( $db_phase->sid );
-    $timing_mod = util::create( 'database\modifier' );
+    $timing_mod = lib::create( 'database\modifier' );
     $timing_mod->where( 'id', '=', $db_survey->id );
     $db_timings = current( $survey_timings_class_name::select( $timing_mod ) );
     return $db_timings ? (float) $db_timings->interviewtime : 0.0;

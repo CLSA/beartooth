@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -43,29 +43,29 @@ class home_appointment_feed extends base_feed
   public function finish()
   {
     // figure out this user's interview access
-    $db_user = util::create( 'business\session' )->get_user();
-    $db_site = util::create( 'business\session' )->get_site();
-    $db_role = util::create( 'business\session' )->get_role();
-    $class_name = util::get_class_name( 'database\access' );
+    $db_user = lib::create( 'business\session' )->get_user();
+    $db_site = lib::create( 'business\session' )->get_site();
+    $db_role = lib::create( 'business\session' )->get_role();
+    $class_name = lib::get_class_name( 'database\access' );
     $db_access = $class_name::get_unique_record(
       array( 'user_id', 'site_id', 'role_id' ),
       array( $db_user->id, $db_site->id, $db_role->id ) );
 
     // create a list of home appointments between the feed's start and end time
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'appointment.address_id', '!=', NULL );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
 
     $event_list = array();
-    $class_name = util::get_class_name( 'database\appointment' );
+    $class_name = lib::get_class_name( 'database\appointment' );
     foreach( $class_name::select_for_access( $db_access, $modifier ) as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $end_datetime_obj = clone $start_datetime_obj;
       $end_datetime_obj->modify(
         sprintf( '+%d minute',
-        util::create( 'business\setting_manager' )->get_setting( 'appointment', 'home duration' ) ) );
+        lib::create( 'business\setting_manager' )->get_setting( 'appointment', 'home duration' ) ) );
 
       $db_participant = $db_appointment->get_participant();
       $event_list[] = array(

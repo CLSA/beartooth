@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -31,7 +31,7 @@ class participant_tree extends \beartooth\ui\widget
   public function __construct( $args )
   {
     parent::__construct( 'participant', 'tree', $args );
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     if( 3 > $session->get_role()->tier )
       $this->set_heading( $this->get_heading().' for '.$session->get_site()->name );
   }
@@ -46,7 +46,7 @@ class participant_tree extends \beartooth\ui\widget
   {
     parent::finish();
     
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
     $is_mid_tier = 2 == $session->get_role()->tier;
     
@@ -54,7 +54,7 @@ class participant_tree extends \beartooth\ui\widget
     if( $is_top_tier )
     {
       $sites = array();
-      $class_name = util::get_class_name( 'database\site' );
+      $class_name = lib::get_class_name( 'database\site' );
       foreach( $class_name::select() as $db_site )
         $sites[$db_site->id] = $db_site->name;
       $this->set_variable( 'sites', $sites );
@@ -63,7 +63,7 @@ class participant_tree extends \beartooth\ui\widget
     $restrict_site_id = $this->get_argument( "restrict_site_id", 0 );
     $this->set_variable( 'restrict_site_id', $restrict_site_id );
     $db_restrict_site = $restrict_site_id
-                      ? util::create( 'database\site', $restrict_site_id )
+                      ? lib::create( 'database\site', $restrict_site_id )
                       : NULL;
     
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
@@ -73,7 +73,7 @@ class participant_tree extends \beartooth\ui\widget
     $this->set_variable( 'viewing_date', $viewing_date );
 
     // set the viewing date if it is not "current"
-    $class_name = util::get_class_name( 'database\queue' );
+    $class_name = lib::get_class_name( 'database\queue' );
     if( 'current' != $viewing_date ) $class_name::set_viewing_date( $viewing_date );
 
     $show_queue_index = $this->get_argument( 'show_queue_index', NULL );
@@ -86,13 +86,13 @@ class participant_tree extends \beartooth\ui\widget
     {
       $parts = explode( '_', $show_queue_index );
       $show_qnaire_id = $parts[0];
-      $db_show_queue = util::create( 'database\queue', $parts[1] );
+      $db_show_queue = lib::create( 'database\queue', $parts[1] );
     }
 
     // build the tree from the root
     $nodes = array();
     $tree = array(); // NOTE: holds references to the nodes array
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->order( 'parent_queue_id' );
     foreach( $class_name::select( $modifier ) as $db_queue )
     {
@@ -121,9 +121,9 @@ class participant_tree extends \beartooth\ui\widget
       }
       else // handle queues which are qnaire specific
       {
-        $modifier = util::create( 'database\modifier' );
+        $modifier = lib::create( 'database\modifier' );
         $modifier->order( 'rank' );
-        $class_name = util::get_class_name( 'database\qnaire' );
+        $class_name = lib::get_class_name( 'database\qnaire' );
         foreach( $class_name::select( $modifier ) as $db_qnaire )
         {
           $db_queue->set_qnaire( $db_qnaire );
@@ -161,7 +161,7 @@ class participant_tree extends \beartooth\ui\widget
                                   'children' => array() );
 
           // add as a branch to parent node
-          $db_parent_queue = util::create( 'database\queue', $db_queue->parent_queue_id );
+          $db_parent_queue = lib::create( 'database\queue', $db_queue->parent_queue_id );
           $parent_index = sprintf( '%d_%d',
             $db_parent_queue->qnaire_specific ? $db_qnaire->id : 0,
             $db_queue->parent_queue_id );
@@ -171,7 +171,7 @@ class participant_tree extends \beartooth\ui\widget
     }
 
     // make sure that all ancestor's of the show queue are open
-    $db_queue = util::create( 'database\queue', $db_show_queue->parent_queue_id );
+    $db_queue = lib::create( 'database\queue', $db_show_queue->parent_queue_id );
     
     do
     {
@@ -179,7 +179,7 @@ class participant_tree extends \beartooth\ui\widget
         $db_queue->qnaire_specific ? $show_qnaire_id : 0,
         $db_queue->id );
       $nodes[$index]['open'] = true;
-      $db_queue = util::create( 'database\queue', $db_queue->parent_queue_id );
+      $db_queue = lib::create( 'database\queue', $db_queue->parent_queue_id );
     } while( !is_null( $db_queue->parent_queue_id ) );
     
     $this->set_variable( 'tree', $tree );

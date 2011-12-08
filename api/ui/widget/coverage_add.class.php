@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -49,16 +49,16 @@ class coverage_add extends base_view
   {
     parent::finish();
     
-    $db_site = util::create( 'business\session' )->get_site();
-    $class_name = util::get_class_name( 'database\role' );
+    $db_site = lib::create( 'business\session' )->get_site();
+    $class_name = lib::get_class_name( 'database\role' );
     $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
 
     // create enum arrays
     $user_list = array();
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'role_id', '=', $db_role->id );
-    $class_name = util::get_class_name( 'database\user' );
+    $class_name = lib::get_class_name( 'database\user' );
     foreach( $class_name::select( $modifier ) as $db_user )
       $user_list[$db_user->id] = $db_user->name;
 

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -47,7 +47,7 @@ class queue_restriction_new extends base_new
         !$columns['region_id'] &&
         !$columns['postcode'] )
     {
-      throw util::create( 'exception\notice', 'At least one item must be specified.', __METHOD__ );
+      throw lib::create( 'exception\notice', 'At least one item must be specified.', __METHOD__ );
     }
 
     // make sure the postcode is valid
@@ -55,7 +55,7 @@ class queue_restriction_new extends base_new
     {
       if( !preg_match( '/^[A-Z][0-9][A-Z] [0-9][A-Z][0-9]$/', $columns['postcode'] ) &&
           !preg_match( '/^[0-9]{5}$/', $columns['postcode'] ) )
-        throw util::create( 'exception\notice',
+        throw lib::create( 'exception\notice',
           'Postal codes must be in "A1A 1A1" format, zip codes in "01234" format.', __METHOD__ );
     }
 

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -55,7 +55,7 @@ class site_add extends \cenozo\ui\widget\site_add
     
     // create enum arrays
     $regions = array();
-    $class_name = util::get_class_name( 'database\region' );
+    $class_name = lib::get_class_name( 'database\region' );
     foreach( $class_name::select() as $db_region )
       $regions[$db_region->id] = $db_region->name.', '.$db_region->country;
     reset( $regions );

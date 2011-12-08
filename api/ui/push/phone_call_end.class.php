@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -39,11 +39,11 @@ class phone_call_end extends \beartooth\ui\push
    */
   public function finish()
   {
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     $is_interviewer = 'interviewer' == $session->get_role()->name;
 
     // disconnect voip
-    util::create( 'business\voip_manager' )->get_call();
+    lib::create( 'business\voip_manager' )->get_call();
     if( !is_null( $voip_call ) ) $voip_call->hang_up();
 
     if( $is_interviewer )
@@ -61,7 +61,7 @@ class phone_call_end extends \beartooth\ui\push
         if( 'disconnected' == $db_phone_call->status ||
             'wrong number' == $db_phone_call->status )
         {
-          $db_phone = util::create( 'database\phone', $db_phone_call->phone_id );
+          $db_phone = lib::create( 'database\phone', $db_phone_call->phone_id );
           if( !is_null( $db_phone ) )
           {
             $note = sprintf( 'This phone number has been disabled because a call was made to it '.
@@ -83,7 +83,7 @@ class phone_call_end extends \beartooth\ui\push
               'columns' => array(
                 'active' => false,
                 'note' => $note ) );
-            $operation = util::create( 'ui\push\phone_edit', $args );
+            $operation = lib::create( 'ui\push\phone_edit', $args );
             $operation->finish();
           }
         }

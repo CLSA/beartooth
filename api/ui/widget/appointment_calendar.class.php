@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -31,7 +31,7 @@ class appointment_calendar extends base_calendar
   public function __construct( $args )
   {
     parent::__construct( 'appointment', $args );
-    $this->set_heading( 'Appointments for '.util::create( 'business\session' )->get_site()->name );
+    $this->set_heading( 'Appointments for '.lib::create( 'business\session' )->get_site()->name );
   }
   
   /**

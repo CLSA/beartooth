@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\business;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 
 /**
  * Extends Cenozo's session class with custom functionality
@@ -32,10 +32,9 @@ class session extends \cenozo\business\session
 
     parent::initialize();
 
-    $setting_manager = util::create( 'business\setting_manager' );
-
+    $setting_manager = lib::create( 'business\setting_manager' );
     // create the databases
-    $this->survey_database = util::create( 'database\database',
+    $this->survey_database = lib::create( 'database\database',
       $setting_manager->get_setting( 'survey_db', 'driver' ),
       $setting_manager->get_setting( 'survey_db', 'server' ),
       $setting_manager->get_setting( 'survey_db', 'username' ),
@@ -46,7 +45,7 @@ class session extends \cenozo\business\session
     {
       // If not set then the audit database settings use the same as limesurvey,
       // with the exception of the prefix
-      $this->audit_database = util::create( 'database\database',
+      $this->audit_database = lib::create( 'database\database',
         $setting_manager->get_setting( 'audit_db', 'driver' ),
         $setting_manager->get_setting( 'audit_db', 'server' ),
         $setting_manager->get_setting( 'audit_db', 'username' ),
@@ -93,10 +92,10 @@ class session extends \cenozo\business\session
   {
     // make sure the user is an interviewer
     if( 'interviewer' != $this->get_role()->name )
-      throw util::create( 'exception\runtime', 'Tried to get assignment for non-interviewer.', __METHOD__ );
+      throw lib::create( 'exception\runtime', 'Tried to get assignment for non-interviewer.', __METHOD__ );
     
     // query for assignments which do not have a end time
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'end_datetime', '=', NULL );
     $assignment_list = $this->get_user()->get_assignment_list( $modifier );
 
@@ -123,14 +122,14 @@ class session extends \cenozo\business\session
   {
     // make sure the user is an interviewer
     if( 'interviewer' != $this->get_role()->name )
-      throw util::create( 'exception\runtime', 'Tried to get phone call for non-interviewer.', __METHOD__ );
+      throw lib::create( 'exception\runtime', 'Tried to get phone call for non-interviewer.', __METHOD__ );
     
     // without an assignment there can be no current call
     $db_assignment = $this->get_current_assignment();
     if( is_null( $db_assignment) ) return NULL;
 
     // query for phone calls which do not have a end time
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'end_datetime', '=', NULL );
     $phone_call_list = $db_assignment->get_phone_call_list( $modifier );
 
@@ -154,17 +153,17 @@ class session extends \cenozo\business\session
   public function get_allow_call()
   {
     $allow = false;
-    if( !util::create( 'business\setting_manager' )->get_setting( 'voip', 'enabled' ) )
+    if( !lib::create( 'business\setting_manager' )->get_setting( 'voip', 'enabled' ) )
     { // if voip is not enabled then allow calls
       $allow = true;
     }
-    if( util::create( 'business\voip_manager' )->get_sip_enabled() )
+    if( lib::create( 'business\voip_manager' )->get_sip_enabled() )
     { // voip is enabled, so make sure sip is also enabled
       $allow = true;
     }
     else
     { // check to see if we can call without a SIP connection
-      $allow = util::create( 'business\setting_manager' )->get_setting( 'voip', 'survey without sip' );
+      $allow = lib::create( 'business\setting_manager' )->get_setting( 'voip', 'survey without sip' );
     }
 
     return $allow;
@@ -207,7 +206,7 @@ class session extends \cenozo\business\session
     if( is_null( $db_assignment ) ) return false;
     
     // the assignment must have an open call
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'end_datetime', '=', NULL );
     $call_list = $db_assignment->get_phone_call_list( $modifier );
     if( 0 == count( $call_list ) ) return false;

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -34,7 +34,7 @@ class appointment_list extends base_list
   
 
     $now_datetime_obj = util::get_datetime_object();
-    $interval = util::create( 'business\setting_manager' )->get_setting( 
+    $interval = lib::create( 'business\setting_manager' )->get_setting( 
         'appointment', 'update interval' );
 
     if( $interval == 'M' )
@@ -62,7 +62,7 @@ class appointment_list extends base_list
     }
     else
     {
-      throw util::create( 'exception\notice', 
+      throw lib::create( 'exception\notice', 
         'Invalid appointment list interval (must be either M, W or D): '.$interval, __METHOD__ );
     }
   }
@@ -79,12 +79,12 @@ class appointment_list extends base_list
     $event_list = array();
 
     // create a list of appointments between the start and end time
-    $db_user = util::create( 'business\session' )->get_user();
-    $class_name = util::get_class_name( 'database\onyx_instance' );
+    $db_user = lib::create( 'business\session' )->get_user();
+    $class_name = lib::get_class_name( 'database\onyx_instance' );
     $db_onyx = $class_name::get_unique_record(
       'user_id' , $db_user->id );
     
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'datetime', '>=', $this->start_datetime->format( 'Y-m-d H:i:s' ) );
     $modifier->where( 'datetime', '<', $this->end_datetime->format( 'Y-m-d H:i:s' ) );
 
@@ -92,23 +92,23 @@ class appointment_list extends base_list
     $appointment_list = NULL;
     if( is_null( $db_onyx->interviewer_user_id ) )
     {
-      $class_name = util::get_class_name( 'database\appointment' );
+      $class_name = lib::get_class_name( 'database\appointment' );
       $appointment_list = $class_name::select_for_site( $db_onyx->get_site(), $modifier );
     }
     else
     {
-      $class_name = util::get_class_name( 'database\role' );
+      $class_name = lib::get_class_name( 'database\role' );
       $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
-      $class_name = util::get_class_name( 'database\access' );
+      $class_name = lib::get_class_name( 'database\access' );
       $db_access = $class_name::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $db_onyx->interviewer_user_id, $db_onyx->site_id, $db_role->id ) );
-      $class_name = util::get_class_name( 'database\appointment' );
+      $class_name = lib::get_class_name( 'database\appointment' );
       $appointment_list = $class_name::select_for_access( $db_access, $modifier );
     }
 
     if( is_null( $appointment_list ) )
-      throw util::create( 'exception\runtime', 
+      throw lib::create( 'exception\runtime', 
         'Cannot get an appointment list for onyx', __METHOD__ );
 
     foreach( $appointment_list as $db_appointment )
@@ -116,7 +116,7 @@ class appointment_list extends base_list
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $db_participant = $db_appointment->get_participant();
 
-      $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
+      $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
       $participant_obj = new \stdClass();
       if( $mastodon_manager->is_enabled() )
       {
@@ -125,7 +125,7 @@ class appointment_list extends base_list
       }
       else
       {
-        throw util::create( 'exception\runtime', 
+        throw lib::create( 'exception\runtime', 
           'Onyx requires populated dob and gender data from Mastodon', __METHOD__ );
       }
 

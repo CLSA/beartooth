@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -37,7 +37,7 @@ class participant_status_report extends base_report
   public function finish()
   {
     // get the report arguments
-    $db_qnaire = util::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
+    $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
 
     $this->add_title( 
       sprintf( 'Listing of categorical totals pertaining to '.
@@ -56,7 +56,7 @@ class participant_status_report extends base_report
       
     // add call results (not including "contacted")
     $phone_call_status_start_index = count( $region_totals ) - 1; // includes 10+ above
-    $class_name = util::get_class_name( 'database\phone_call' );
+    $class_name = lib::get_class_name( 'database\phone_call' );
     foreach( $class_name::get_enum_values( 'status' ) as $status )
       if( 'contacted' != $status ) $region_totals[ ucfirst( $status ) ] = 0;
     $phone_call_status_count = count( $region_totals ) - $phone_call_status_start_index;
@@ -70,18 +70,18 @@ class participant_status_report extends base_report
       'Response rate (incl. soft refusals)' => 0,
       'Response rate (excl. soft refusals)' => 0 ) );
 
-    $region_mod = util::create( 'database\modifier' );
+    $region_mod = lib::create( 'database\modifier' );
     $region_mod->order( 'abbreviation' );
     $region_mod->where( 'country', '=', 'Canada' );
     $grand_totals = array();
-    $class_name = util::get_class_name( 'database\region' );
+    $class_name = lib::get_class_name( 'database\region' );
     foreach( $class_name::select($region_mod) as $db_region )
       $grand_totals[ $db_region->abbreviation ] = $region_totals; 
 
     // the last column of the report sums totals row-wise
     $grand_totals[ 'Grand Total' ] = $region_totals;
     
-    $class_name = util::get_class_name( 'database\participant' );
+    $class_name = lib::get_class_name( 'database\participant' );
     foreach( $class_name::select() as $db_participant )
     {
       $province = $db_participant->get_primary_address()->get_region()->abbreviation;
@@ -97,7 +97,7 @@ class participant_status_report extends base_report
       else
       {
         $now_datetime_obj = util::get_datetime_object();
-        $appointment_mod = util::create( 'database\modifier' );
+        $appointment_mod = lib::create( 'database\modifier' );
         $appointment_mod->where( 'assignment_id', '=', NULL );
         $appointment_mod->where( 'datetime', '>', $now_datetime_obj->format( 'Y-m-d H:i:s' ) );
         $has_appointment = false;
@@ -112,7 +112,7 @@ class participant_status_report extends base_report
         }
         if( $has_appointment ) continue;
 
-        $interview_mod = util::create( 'database\modifier' );
+        $interview_mod = lib::create( 'database\modifier' );
         $interview_mod->where( 'qnaire_id', '=', $db_qnaire->id ); 
         $interview_list = $db_participant->get_interview_list( $interview_mod );
         if( 0 == count( $interview_list ) )
@@ -161,14 +161,14 @@ class participant_status_report extends base_report
           }
           else 
           {
-            $assignment_mod = util::create( 'database\modifier' );
+            $assignment_mod = lib::create( 'database\modifier' );
             $assignment_mod->order_desc( 'start_datetime' );
             $failed_calls = 0;
             $db_recent_failed_call = NULL;
             foreach( $db_interview->get_assignment_list( $assignment_mod ) as $db_assignment )
             {
               // find the most recently completed phone call
-              $phone_call_mod = util::create( 'database\modifier' );
+              $phone_call_mod = lib::create( 'database\modifier' );
               $phone_call_mod->order_desc( 'start_datetime' );
               $phone_call_mod->where( 'end_datetime', '!=', NULL );
               $phone_call_mod->limit( 1 );

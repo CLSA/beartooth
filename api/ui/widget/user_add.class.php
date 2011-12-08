@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -30,15 +30,15 @@ class user_add extends \cenozo\ui\widget\user_add
   {
     parent::finish();
     
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
 
     // create enum arrays
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'name', '!=', 'onyx' );
     $modifier->where( 'tier', '<=', $session->get_role()->tier );
     $roles = array();
-    $class_name = util::get_class_name( 'database\role' );
+    $class_name = lib::get_class_name( 'database\role' );
     foreach( $class_name::select( $modifier ) as $db_role ) $roles[$db_role->id] = $db_role->name;
     
     // set the view's items

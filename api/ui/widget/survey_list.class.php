@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -70,9 +70,9 @@ class survey_list extends base_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
+    if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
-    $class_name = util::get_class_name( 'database\limesurvey\surveys' );
+    $class_name = lib::get_class_name( 'database\limesurvey\surveys' );
     return $class_name::count( $modifier );
   }
 
@@ -85,9 +85,9 @@ class survey_list extends base_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
+    if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
-    $class_name = util::get_class_name( 'database\limesurvey\surveys' );
+    $class_name = lib::get_class_name( 'database\limesurvey\surveys' );
     return $class_name::select( $modifier );
   }
 }

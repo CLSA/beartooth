@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -31,7 +31,7 @@ class shift_template_calendar extends base_calendar
   public function __construct( $args )
   {
     parent::__construct( 'shift_template', $args );
-    $this->set_heading( 'Shift template for '.util::create( 'business\session' )->get_site()->name );
+    $this->set_heading( 'Shift template for '.lib::create( 'business\session' )->get_site()->name );
   }
   
   /**

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\business;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\database as db;
 use beartooth\exception as exc;
 
@@ -34,7 +34,7 @@ class voip_call extends \beartooth\base_object
     if( is_null( $s8_event ) ||
         !is_object( $s8_event ) ||
         'Shift8_Event' != get_class( $s8_event ) )
-      throw util::create( 'exception\argument', 's8_event', $s8_event, __METHOD__ );
+      throw lib::create( 'exception\argument', 's8_event', $s8_event, __METHOD__ );
     
     $this->manager = $manager;
     $this->channel = $s8_event->get( 'channel' );
@@ -45,7 +45,7 @@ class voip_call extends \beartooth\base_object
     // get the dialed number by striping the dialing prefix from the extension
     if( !is_null( $s8_event->get( 'extension' ) ) )
     {
-      $prefix = util::create( 'business\voip_manager' )->get_prefix();
+      $prefix = lib::create( 'business\voip_manager' )->get_prefix();
       $this->number = preg_replace( "/^$prefix/", '', $s8_event->get( 'extension' ) );
     }
 
@@ -68,7 +68,7 @@ class voip_call extends \beartooth\base_object
    */
   public function dtmf( $tone )
   {
-    if( !util::create( 'business\voip_manager' )->get_enabled() ) return;
+    if( !lib::create( 'business\voip_manager' )->get_enabled() ) return;
     
     // make sure the tone is valid
     if( !preg_match( '/^[0-9a-dgs]$/', $tone ) )
@@ -86,7 +86,7 @@ class voip_call extends \beartooth\base_object
 
     // now send the DTMF tone itself (which is not heard locally)
     if( !$this->manager->playDTMF( $tone, $this->get_bridge() ) )
-      throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
+      throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
   }
   
   /**
@@ -97,7 +97,7 @@ class voip_call extends \beartooth\base_object
    */
   public function hang_up()
   {
-    $voip_manager = util::create( 'business\voip_manager' );
+    $voip_manager = lib::create( 'business\voip_manager' );
     if( !$voip_manager->get_enabled() ) return;
     
     // hang up the call, if successful then rebuild the call list
@@ -120,7 +120,7 @@ class voip_call extends \beartooth\base_object
    */
   public function play_sound( $sound, $volume = 0, $bridge = true )
   {
-    if( !util::create( 'business\voip_manager' )->get_enabled() ) return;
+    if( !lib::create( 'business\voip_manager' )->get_enabled() ) return;
     
     // constrain the volume to be between -4 and 4
     $volume = intval( $volume );
@@ -142,7 +142,7 @@ class voip_call extends \beartooth\base_object
       'Volume='.$volume.','.
       'ToChannel='.$this->get_channel() ) )
     {
-      throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
+      throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
     }
     
     if( $bridge )
@@ -166,7 +166,7 @@ class voip_call extends \beartooth\base_object
         'Volume='.$volume.','.
         'ToChannel='.$this->get_bridge() ) )
       {
-        throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
+        throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
       }
     }
   }
@@ -180,7 +180,7 @@ class voip_call extends \beartooth\base_object
    */
   public function start_monitoring( $file )
   {
-    if( !util::create( 'business\voip_manager' )->get_enabled() ) return;
+    if( !lib::create( 'business\voip_manager' )->get_enabled() ) return;
 
     $filename = sprintf( '%s/%s', VOIP_MONITOR_PATH, $file );
 
@@ -193,7 +193,7 @@ class voip_call extends \beartooth\base_object
     }
 
     if( false == $this->manager->monitor( $this->get_channel(), $filename, 'wav' ) )
-      throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
+      throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
   }
   
   /**
@@ -204,10 +204,10 @@ class voip_call extends \beartooth\base_object
    */
   public function stop_monitoring()
   {
-    if( !util::create( 'business\voip_manager' )->get_enabled() ) return;
+    if( !lib::create( 'business\voip_manager' )->get_enabled() ) return;
 
     if( false == $this->manager->stopMonitor( $this->get_channel() ) )
-      throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
+      throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
   }
   
   /**

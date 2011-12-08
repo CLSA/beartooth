@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -54,15 +54,15 @@ class phone_add extends base_view
     
     // this widget must have a parent, and it's subject must be a participant
     if( is_null( $this->parent ) || 'participant' != $this->parent->get_subject() )
-      throw util::create( 'exception\runtime',
+      throw lib::create( 'exception\runtime',
         'Phone widget must have a parent with participant as the subject.', __METHOD__ );
 
     // create enum arrays
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'participant_id', '=', $this->parent->get_record()->id ); 
     $modifier->order( 'rank' );
     $addresses = array();
-    $class_name = util::get_class_name( 'database\address' );
+    $class_name = lib::get_class_name( 'database\address' );
     foreach( $class_name::select( $modifier ) as $db_address )
     {
       $db_region = $db_address->get_region();
@@ -79,7 +79,7 @@ class phone_add extends base_view
     end( $ranks );
     $last_rank_key = key( $ranks );
     reset( $ranks );
-    $class_name = util::get_class_name( 'database\phone' );
+    $class_name = lib::get_class_name( 'database\phone' );
     $types = $class_name::get_enum_values( 'type' );
     $types = array_combine( $types, $types );
 

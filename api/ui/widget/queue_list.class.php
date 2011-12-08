@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -39,7 +39,7 @@ class queue_list extends base_list
     $this->add_column( 'enabled', 'boolean', 'Enabled', false );
     $this->add_column( 'participant_count', 'number', 'Participants', false );
     $this->add_column( 'description', 'text', 'Description', true, true, 'left' );
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     if( 3 != $session->get_role()->tier )
       $this->set_heading( $this->get_heading().' for '.$session->get_site()->name );
   }
@@ -54,7 +54,7 @@ class queue_list extends base_list
   {
     parent::finish();
     
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
     $is_mid_tier = 2 == $session->get_role()->tier;
     
@@ -62,7 +62,7 @@ class queue_list extends base_list
     if( $is_top_tier )
     {
       $sites = array();
-      $class_name = util::get_class_name( 'database\site' );
+      $class_name = lib::get_class_name( 'database\site' );
       foreach( $class_name::select() as $db_site )
         $sites[$db_site->id] = $db_site->name;
       $this->set_variable( 'sites', $sites );
@@ -71,11 +71,11 @@ class queue_list extends base_list
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
     $this->set_variable( 'restrict_site_id', $restrict_site_id );
     $db_restrict_site = $restrict_site_id
-                      ? util::create( 'database\site', $restrict_site_id )
+                      ? lib::create( 'database\site', $restrict_site_id )
                       : NULL;
 
     $qnaires = array();
-    $class_name = util::get_class_name( 'database\qnaire' );
+    $class_name = lib::get_class_name( 'database\qnaire' );
     foreach( $class_name::select() as $db_qnaire )
       $qnaires[$db_qnaire->id] = $db_qnaire->name;
     $this->set_variable( 'qnaires', $qnaires );
@@ -83,7 +83,7 @@ class queue_list extends base_list
     $restrict_qnaire_id = $this->get_argument( 'restrict_qnaire_id', 0 );
     $this->set_variable( 'restrict_qnaire_id', $restrict_qnaire_id );
     $db_restrict_qnaire = $restrict_qnaire_id
-                        ? util::create( 'database\qnaire', $restrict_qnaire_id )
+                        ? lib::create( 'database\qnaire', $restrict_qnaire_id )
                         : NULL;
     
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
@@ -93,10 +93,10 @@ class queue_list extends base_list
     $this->set_variable( 'viewing_date', $viewing_date );
 
     // set the viewing date if it is not "current"
-    $class_name = util::get_class_name( 'database\queue' );
+    $class_name = lib::get_class_name( 'database\queue' );
     if( 'current' != $viewing_date ) $class_name::set_viewing_date( $viewing_date );
 
-    $setting_manager = util::create( 'business\setting_manager' );
+    $setting_manager = lib::create( 'business\setting_manager' );
     foreach( $this->get_record_list() as $record )
     {
       // restrict to the current site if the current user is a mid tier role
@@ -129,7 +129,7 @@ class queue_list extends base_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
+    if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'rank', '!=', NULL );
     $modifier->order( 'rank' );
 
@@ -146,7 +146,7 @@ class queue_list extends base_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
+    if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'rank', '!=', NULL );
     $modifier->order( 'rank' );
 

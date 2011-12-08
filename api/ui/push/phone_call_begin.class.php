@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -39,10 +39,10 @@ class phone_call_begin extends \beartooth\ui\push
    */
   public function finish()
   {
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     $is_interviewer = 'interviewer' == $session->get_role()->name;
     
-    $db_phone = util::create( 'database\phone', $this->get_argument( 'phone_id' ) );
+    $db_phone = lib::create( 'database\phone', $this->get_argument( 'phone_id' ) );
     $db_assignment = NULL;
 
     if( $is_interviewer )
@@ -50,20 +50,20 @@ class phone_call_begin extends \beartooth\ui\push
       $db_assignment = $session->get_current_assignment();
   
       if( is_null( $db_assignment ) )
-        throw util::create( 'exception\runtime',
+        throw lib::create( 'exception\runtime',
           'Interviewer tried to make call without an assignment.', __METHOD__ );
 
       if( $db_phone->participant_id != $db_assignment->get_interview()->participant_id )
-        throw util::create( 'exception\runtime',
+        throw lib::create( 'exception\runtime',
           'Interviewer tried to make call to participant who is not currently assigned.', __METHOD__ );
     }
     
     // connect voip to phone
-    util::create( 'business\voip_manager' )->call( $db_phone );
+    lib::create( 'business\voip_manager' )->call( $db_phone );
 
     if( $is_interviewer )
     { // create a record of the phone call
-      $db_phone_call = util::create( 'database\phone_call' );
+      $db_phone_call = lib::create( 'database\phone_call' );
       $db_phone_call->assignment_id = $db_assignment->id;
       $db_phone_call->phone_id = $db_phone->id;
       $db_phone_call->save();

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -44,7 +44,7 @@ class assignment_view extends base_view
     try
     {
       // create the phone_call sub-list widget
-      $this->phone_call_list = util::create( 'ui\widget\phone_call_list', $args );
+      $this->phone_call_list = lib::create( 'ui\widget\phone_call_list', $args );
       $this->phone_call_list->set_parent( $this );
       $this->phone_call_list->set_heading( 'Phone calls made during this assignment' );
     }

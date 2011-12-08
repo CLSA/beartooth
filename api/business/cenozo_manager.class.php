@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\business;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\database as db;
 use beartooth\exception as exc;
 

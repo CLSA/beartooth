@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -30,10 +30,10 @@ class base_add_access extends \cenozo\ui\widget\base_add_access
    */
   public function determine_role_count( $modifier = NULL )
   {
-    if( is_null( $modifier ) ) $modifier = util::create( 'database\modifier' );
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'name', '!=', 'onyx' );
-    $modifier->where( 'tier', '<=', util::create( 'business\session' )->get_role()->tier );
-    $class_name = util::get_class_name( 'database\role' );
+    $modifier->where( 'tier', '<=', lib::create( 'business\session' )->get_role()->tier );
+    $class_name = lib::get_class_name( 'database\role' );
     return $class_name::count( $modifier );
   }
 
@@ -47,10 +47,10 @@ class base_add_access extends \cenozo\ui\widget\base_add_access
    */
   public function determine_role_list( $modifier = NULL )
   {
-    if( is_null( $modifier ) ) $modifier = util::create( 'database\modifier' );
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'name', '!=', 'onyx' );
-    $modifier->where( 'tier', '<=', util::create( 'business\session' )->get_role()->tier );
-    $class_name = util::get_class_name( 'database\role' );
+    $modifier->where( 'tier', '<=', lib::create( 'business\session' )->get_role()->tier );
+    $class_name = lib::get_class_name( 'database\role' );
     return $class_name::select( $modifier );
   }
 }

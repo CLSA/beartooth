@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -42,20 +42,20 @@ class consent_new extends base_new
     // make sure the date column isn't blank
     $columns = $this->get_argument( 'columns' );
     if( !array_key_exists( 'date', $columns ) || 0 == strlen( $columns['date'] ) )
-      throw util::create( 'exception\notice', 'The date cannot be left blank.', __METHOD__ );
+      throw lib::create( 'exception\notice', 'The date cannot be left blank.', __METHOD__ );
 
     $args = $this->arguments;
     unset( $args['columns']['participant_id'] );
 
     // replace the participant id with a unique key
-    $db_participant = util::create( 'database\participant', $columns['participant_id'] );
+    $db_participant = lib::create( 'database\participant', $columns['participant_id'] );
     $args['noid']['participant.uid'] = $db_participant->uid;
 
     // no errors, go ahead and make the change
     parent::finish();
 
     // now send the same request to mastodon
-    $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $mastodon_manager->push( 'consent', 'new', $args );
   }
 }

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -40,11 +40,11 @@ class queue_restriction_delete extends base_delete
   public function finish()
   {
     // make sure that only top tier roles can remove queue restrictions not belonging to the current site
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
 
     if( 3 != $session->get_role()->tier && $session->get_site()->id != $this->get_record()->site_id )
     {
-      throw util::create( 'exception\notice',
+      throw lib::create( 'exception\notice',
         'You do not have access to remove this queue restriction.', __METHOD__ );
     }
 

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -32,7 +32,7 @@ class queue_view extends base_view
   {
     parent::__construct( 'queue', 'view', $args );
     
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     if( 3 != $session->get_role()->tier )
     {
       $this->db_site = $session->get_site();
@@ -40,11 +40,11 @@ class queue_view extends base_view
     else
     {
       $site_id = $this->get_argument( 'site_id' );
-      if( $site_id ) $this->db_site = util::create( 'database\site', $site_id );
+      if( $site_id ) $this->db_site = lib::create( 'database\site', $site_id );
     }
 
     $qnaire_id = $this->get_argument( 'qnaire_id' );
-    if( $qnaire_id ) $this->db_qnaire = util::create( 'database\qnaire', $qnaire_id );
+    if( $qnaire_id ) $this->db_qnaire = lib::create( 'database\qnaire', $qnaire_id );
 
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
     $viewing_date = $this->get_argument( 'viewing_date', 'current' );
@@ -61,7 +61,7 @@ class queue_view extends base_view
     try
     {
       // create the participant sub-list widget
-      $this->participant_list = util::create( 'ui\widget\participant_list', $args );
+      $this->participant_list = lib::create( 'ui\widget\participant_list', $args );
       $this->participant_list->set_parent( $this );
       $this->participant_list->set_heading( 'Queue participant list' );
     }

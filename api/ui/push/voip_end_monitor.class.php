@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -40,7 +40,7 @@ class voip_end_monitor extends \beartooth\ui\push
    */
   public function finish()
   {
-    util::create( 'business\voip_manager' )->get_call()->stop_monitoring();
+    lib::create( 'business\voip_manager' )->get_call()->stop_monitoring();
   }
 }
 ?>

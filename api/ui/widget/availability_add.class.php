@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -57,7 +57,7 @@ class availability_add extends base_view
     
     // this widget must have a parent, and it's subject must be a participant
     if( is_null( $this->parent ) || 'participant' != $this->parent->get_subject() )
-      throw util::create( 'exception\runtime',
+      throw lib::create( 'exception\runtime',
         'Consent widget must have a parent with participant as the subject.', __METHOD__ );
     
     // set the view's items

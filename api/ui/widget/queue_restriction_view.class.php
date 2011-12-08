@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -34,7 +34,7 @@ class queue_restriction_view extends base_view
 
     // define all columns defining this record
 
-    $type = 'administrator' == util::create( 'business\session' )->get_role()->name ? 'enum' : 'hidden';
+    $type = 'administrator' == lib::create( 'business\session' )->get_role()->name ? 'enum' : 'hidden';
     $this->add_item( 'site_id', $type, 'Site' );
     $this->add_item( 'city', 'string', 'City' );
     $this->add_item( 'region_id', 'enum', 'Region' );
@@ -50,18 +50,18 @@ class queue_restriction_view extends base_view
   public function finish()
   {
     parent::finish();
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     $is_administrator = 'administrator' == $session->get_role()->name;
 
     // create enum arrays
     if( $is_administrator )
     {
       $sites = array();
-      $class_name = util::get_class_name( 'database\site' );
+      $class_name = lib::get_class_name( 'database\site' );
       foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
     }
     $regions = array();
-    $class_name = util::get_class_name( 'database\region' );
+    $class_name = lib::get_class_name( 'database\region' );
     foreach( $class_name::select() as $db_region ) $regions[$db_region->id] = $db_region->name;
 
     // set the view's items

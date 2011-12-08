@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -43,15 +43,15 @@ class shift_template_feed extends base_feed
   public function finish()
   {
     $event_list = array();
-    $db_site = util::create( 'business\session' )->get_site();
+    $db_site = lib::create( 'business\session' )->get_site();
 
     $calendar_start_datetime_obj = util::get_datetime_object( $this->start_datetime );
     $calendar_end_datetime_obj = util::get_datetime_object( $this->end_datetime );
 
-    $modifier = util::create( 'database\modifier' );
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'start_date', '<', $this->end_datetime );
-    $class_name = util::get_class_name( 'database\shift_template' );
+    $class_name = lib::get_class_name( 'database\shift_template' );
     foreach( $class_name::select( $modifier ) as $db_shift_template )
     {
       for( $datetime_obj = clone $calendar_start_datetime_obj;

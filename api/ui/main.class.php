@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui;
-use beartooth\log, beartooth\util;
+use cenozo\lib, cenozo\log;
 use beartooth\business as bus;
 use beartooth\database as db;
 use beartooth\exception as exc;
@@ -28,7 +28,7 @@ class main extends \cenozo\ui\main
    */
   public static function get_variables()
   {
-    $session = util::create( 'business\session' );
+    $session = lib::create( 'business\session' );
     $variables = parent::get_variables();
     $variables['survey_url'] = $session->get_survey_url();
     $variables['show_menu'] = 'interviewer' != $session->get_role()->name ||
