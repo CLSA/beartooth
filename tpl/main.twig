@@ -44,6 +44,9 @@
   <script type="text/javascript" src="{{ constant('JS_URL') }}/main.js"></script>
 
   <script type="text/javascript">
+    // define where the loading icon is
+    window.loading_icon_url = "{{ constant('CENOZO_URL') }}/img/loading.gif";
+
     $( function() {
       
       {% if reset_password %}
