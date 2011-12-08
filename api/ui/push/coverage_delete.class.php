@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: coverage delete

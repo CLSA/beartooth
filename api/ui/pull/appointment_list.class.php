@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Class for appointment list pull operations.

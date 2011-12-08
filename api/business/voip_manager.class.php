@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\business;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 require_once SHIFT8_PATH.'/library/Shift8.php';
 

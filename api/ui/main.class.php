@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Class that manages variables in main user interface template.

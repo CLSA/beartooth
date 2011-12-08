@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\exception;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * voip: voip exceptions

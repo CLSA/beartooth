@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\business;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Manages software settings

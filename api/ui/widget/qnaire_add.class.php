@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget qnaire add

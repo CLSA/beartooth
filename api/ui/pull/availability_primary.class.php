@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * pull: availability primary

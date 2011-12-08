@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * onyx_instance: record

@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\database\limesurvey;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Access to limesurvey's *_SID tables.

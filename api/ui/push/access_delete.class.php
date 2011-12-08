@@ -8,14 +8,14 @@
  */
 
 namespace beartooth\ui\push;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: access delete
  * 
  * @package beartooth\ui
  */
-class access_delete extends base_delete
+class access_delete extends \cenozo\ui\push\access_delete
 {
   /**
    * Executes the push.

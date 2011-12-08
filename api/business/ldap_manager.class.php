@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\business;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Manages LDAP entries
@@ -78,7 +78,9 @@ class ldap_manager extends \cenozo\business\ldap_manager
     
     $dn = sprintf( 'uid=%s,ou=Users,%s', $username, $this->base );
     if( !( @ldap_add( $this->resource, $dn, $data ) ) )
-      throw lib::create( 'exception\ldap', ldap_error( $this->resource ), ldap_errno( $this->resource ) );
+      if( 68 != ldap_errno( $this->resource ) )
+        throw lib::create(
+          'exception\ldap', ldap_error( $this->resource ), ldap_errno( $this->resource ) );
   }
 
   /**
