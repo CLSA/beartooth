@@ -53,7 +53,7 @@ class consent_edit extends base_edit
     parent::finish();
 
     // now send the same request to mastodon
-    $mastodon_manager = bus\cenozo_manager::self( MASTODON_URL );
+    $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
     $mastodon_manager->push( 'consent', 'edit', $args );
   }
 }

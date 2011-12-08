@@ -62,19 +62,21 @@
 
       {% endif %}
 
-      // setup the top extruder
-      $( "#top_extruder" ).buildMbExtruder( {
-        position: "top",
-        positionFixed: true,
-        width: 500,
-        sensibility: 500,
-        extruderOpacity: 1,
-        autoCloseTime: 0,
-        hidePanelsOnClose: true,
-        onExtOpen: function() {},
-        onExtContentLoad: function() {},
-        onExtClose: function() {}
-      } );
+      {% if show_settings %}
+        // setup the top extruder
+        $( "#top_extruder" ).buildMbExtruder( {
+          position: "top",
+          positionFixed: true,
+          width: 500,
+          sensibility: 500,
+          extruderOpacity: 1,
+          autoCloseTime: 0,
+          hidePanelsOnClose: true,
+          onExtOpen: function() {},
+          onExtContentLoad: function() {},
+          onExtClose: function() {}
+        } );
+      {% endif %}
     
       {% if show_menu %}
         // setup the left extruder
@@ -92,9 +94,6 @@
         } );
       {% endif %}
   
-      loading_image = new Image();
-      loading_image.src = "{{ constant('CENOZO_URL') }}/img/loading.gif";
-
       // refresh all slots
       {% if show_status %}slot_refresh( "status" );{% endif %}
       {% if show_shortcuts %}slot_refresh( "shortcuts" );{% endif %}

@@ -59,17 +59,20 @@ class onyx_instance_add extends base_view
     if( $is_top_tier )
     {
       $sites = array();
-      foreach( db\site::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
+      $class_name = util::get_class_name( 'database\site' );
+      foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
     }
     
     $db_site = $session->get_site();
-    $db_role = db\role::get_unique_record( 'name', 'interviewer' );
+    $class_name = util::get_class_name( 'database\role' );
+    $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
     
     $user_mod = util::create( 'database\modifier' );
     $user_mod->where( 'site_id', '=', $db_site->id );
     $user_mod->where( 'role_id', '=', $db_role->id );
     $interviewers = array( 'NULL' => 'site' );
-    foreach( db\user::select( $user_mod ) as $db_user )
+    $class_name = util::get_class_name( 'database\user' );
+    foreach( $class_name::select( $user_mod ) as $db_user )
       $interviewers[$db_user->id] = $db_user->name;
 
     // set the view's items

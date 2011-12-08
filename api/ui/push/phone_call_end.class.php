@@ -43,7 +43,7 @@ class phone_call_end extends \beartooth\ui\push
     $is_interviewer = 'interviewer' == $session->get_role()->name;
 
     // disconnect voip
-    $voip_call = bus\voip_manager::self()->get_call();
+    util::create( 'business\voip_manager' )->get_call();
     if( !is_null( $voip_call ) ) $voip_call->hang_up();
 
     if( $is_interviewer )

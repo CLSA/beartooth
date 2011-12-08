@@ -19,7 +19,7 @@ use beartooth\exception as exc;
  * @abstract
  * @package beartooth\ui
  */
-abstract class base_report extends \cenozo\ui\push\base_report
+abstract class base_report extends \cenozo\ui\widget\base_report
 {
   /**
    * Constructor
@@ -80,7 +80,8 @@ abstract class base_report extends \cenozo\ui\push\base_report
     if( $this->restrictions[ 'qnaire' ] )
     {
       $qnaires = array();
-      foreach( db\qnaire::select() as $db_qnaire ) 
+      $class_name = util::get_class_name( 'database\qnaire' );
+      foreach( $class_name::select() as $db_qnaire ) 
         $qnaires[ $db_qnaire->id ] = $db_qnaire->name;
 
       $this->set_parameter( 'restrict_qnaire_id', current( $qnaires ), true, $qnaires );  
@@ -88,7 +89,8 @@ abstract class base_report extends \cenozo\ui\push\base_report
 
     if( $this->restrictions[ 'consent' ] )
     {
-      $consent_types = db\consent::get_enum_values( 'event' );
+      $class_name = util::get_class_name( 'database\consent' );
+      $consent_types = $class_name::get_enum_values( 'event' );
       array_unshift( $consent_types, 'Any' );
       $consent_types = array_combine( $consent_types, $consent_types );
 

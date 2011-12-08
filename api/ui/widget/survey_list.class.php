@@ -72,7 +72,8 @@ class survey_list extends base_list
   {
     if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
-    return db\limesurvey\surveys::count( $modifier );
+    $class_name = util::get_class_name( 'database\limesurvey\surveys' );
+    return $class_name::count( $modifier );
   }
 
   /**
@@ -86,7 +87,8 @@ class survey_list extends base_list
   {
     if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
-    return db\limesurvey\surveys::select( $modifier );
+    $class_name = util::get_class_name( 'database\limesurvey\surveys' );
+    return $class_name::select( $modifier );
   }
 }
 ?>

@@ -55,7 +55,8 @@ class onyx_instance_new extends base_new
              ? util::create( 'database\user', $columns['interviewer_user_id'] )
              : NULL;
     $db_site = util::create( 'database\site', $columns['site_id'] );
-    $db_role = db\role::get_unique_record( 'name', 'onyx' );
+    $class_name = util::get_class_name( 'database\role' );
+    $db_role = $class_name::get_unique_record( 'name', 'onyx' );
     $first_name = 'onyx instance';
     $last_name = sprintf( '%s@%s',
                           $db_interviewer_user ? $db_interviewer_user->name : 'site',
@@ -75,13 +76,14 @@ class onyx_instance_new extends base_new
     $operation->finish();
     
     // replace the username argument with the newly created user id for the new onyx instance
-    $db_user = db\user::get_unique_record( 'name', $columns['username'] );
+    $class_name = util::get_class_name( 'database\user' );
+    $db_user = $class_name::get_unique_record( 'name', $columns['username'] );
     unset( $this->arguments['columns']['username'] );
     unset( $this->arguments['columns']['password'] );
     $this->arguments['columns']['user_id'] = $db_user->id;
 
     // set user's password
-    $ldap_manager = bus\ldap_manager::self();
+    util::create( 'business\ldap_manager' );
     $ldap_manager->set_user_password( $db_user->name, $columns['password'] );
 
     parent::finish();

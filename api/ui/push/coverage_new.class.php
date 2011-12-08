@@ -34,9 +34,11 @@ class coverage_new extends base_new
     {
       $user_id = $args['columns']['user_id'];
       $db_site = util::create( 'business\session' )->get_site();
-      $db_role = db\role::get_unique_record( 'name', 'interviewer' );
+      $class_name = util::get_class_name( 'database\role' );
+      $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
 
-      $db_access = db\access::get_unique_record(
+      $class_name = util::get_class_name( 'database\access' );
+      $db_access = $class_name::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $user_id, $db_site->id, $db_role->id ) );
 

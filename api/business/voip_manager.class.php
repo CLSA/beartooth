@@ -29,7 +29,7 @@ class voip_manager extends \beartooth\singleton
    */
   protected function __construct()
   {
-    $setting_manager = setting_manager::self();
+    $setting_manager = util::create( 'business\setting_manager' );
     $this->enabled = true === $setting_manager->get_setting( 'voip', 'enabled' );
     $this->url = $setting_manager->get_setting( 'voip', 'url' );
     $this->username = $setting_manager->get_setting( 'voip', 'username' );

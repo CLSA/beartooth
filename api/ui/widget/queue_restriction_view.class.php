@@ -57,10 +57,12 @@ class queue_restriction_view extends base_view
     if( $is_administrator )
     {
       $sites = array();
-      foreach( db\site::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
+      $class_name = util::get_class_name( 'database\site' );
+      foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
     }
     $regions = array();
-    foreach( db\region::select() as $db_region ) $regions[$db_region->id] = $db_region->name;
+    $class_name = util::get_class_name( 'database\region' );
+    foreach( $class_name::select() as $db_region ) $regions[$db_region->id] = $db_region->name;
 
     // set the view's items
     $this->set_item(

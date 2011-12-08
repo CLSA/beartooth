@@ -50,13 +50,14 @@ class site_appointment_feed extends base_feed
 
     $event_list = array();
     $db_site = util::create( 'business\session' )->get_site();
-    foreach( db\appointment::select_for_site( $db_site, $modifier ) as $db_appointment )
+    $class_name = util::get_class_name( 'database\appointment' );
+    foreach( $class_name::select_for_site( $db_site, $modifier ) as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $end_datetime_obj = clone $start_datetime_obj;
       $end_datetime_obj->modify(
         sprintf( '+%d minute',
-        bus\setting_manager::self()->get_setting( 'appointment', 'site duration' ) ) );
+        util::create( 'business\setting_manager' )->get_setting( 'appointment', 'site duration' ) ) );
 
       $db_participant = $db_appointment->get_participant();
       $event_list[] = array(

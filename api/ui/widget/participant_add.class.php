@@ -53,12 +53,14 @@ class participant_add extends base_view
     parent::finish();
     
     // create enum arrays
-    $languages = db\participant::get_enum_values( 'language' );
+    $class_name = util::get_class_name( 'database\participant' );
+    $languages = $class_name::get_enum_values( 'language' );
     $languages = array_combine( $languages, $languages );
-    $statuses = db\participant::get_enum_values( 'status' );
+    $statuses = $class_name::get_enum_values( 'status' );
     $statuses = array_combine( $statuses, $statuses );
     $sites = array();
-    foreach( db\site::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
+    $class_name = util::get_class_name( 'database\site' );
+    foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
 
     // set the view's items
     $this->set_item( 'active', true, true );

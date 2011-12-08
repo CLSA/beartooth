@@ -40,7 +40,7 @@ class voip_play extends \beartooth\ui\push
    */
   public function finish()
   {
-    bus\voip_manager::self()->get_call()->play_sound(
+    util::create( 'business\voip_manager' )->get_call()->play_sound(
       $this->get_argument( 'sound' ),
       $this->get_argument( 'volume' ) );
   }

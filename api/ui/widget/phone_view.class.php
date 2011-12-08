@@ -58,7 +58,8 @@ class phone_view extends base_view
     $modifier->where( 'participant_id', '=', $db_participant->id );
     $modifier->order( 'rank' );
     $addresses = array();
-    foreach( db\address::select( $modifier ) as $db_address )
+    $class_name = util::get_class_name( 'database\address' );
+    foreach( $class_name::select( $modifier ) as $db_address )
     {
       $db_region = $db_address->get_region();
       $addresses[$db_address->id] = sprintf( '%d. %s, %s, %s',
@@ -72,7 +73,8 @@ class phone_view extends base_view
     $ranks = array();
     for( $rank = 1; $rank <= $num_phones; $rank++ ) $ranks[] = $rank;
     $ranks = array_combine( $ranks, $ranks );
-    $types = db\phone::get_enum_values( 'type' );
+    $class_name = util::get_class_name( 'database\phone' );
+    $types = $class_name::get_enum_values( 'type' );
     $types = array_combine( $types, $types );
 
     // set the view's items

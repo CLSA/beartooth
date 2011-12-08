@@ -57,7 +57,8 @@ class queue extends record
       'sourcing required' );
 
     // add the participant final status types
-    $queue_list = array_merge( $queue_list, participant::get_enum_values( 'status' ) );
+    $class_name = util::get_class_name( 'database\participant' );
+    $queue_list = array_merge( $queue_list, $class_name::get_enum_values( 'status' ) );
     
     // finish the queue list
     $queue_list = array_merge( $queue_list, array(
@@ -102,7 +103,8 @@ class queue extends record
     }
     
     // now add the sql for each call back status
-    foreach( phone_call::get_enum_values( 'status' ) as $phone_call_status )
+    $class_name = util::get_class_name( 'database\phone_call' );
+    foreach( $class_name::get_enum_values( 'status' ) as $phone_call_status )
     {
       // ignore statuses which result in deactivating phone numbers
       if( 'disconnected' != $phone_call_status && 'wrong number' != $phone_call_status )
@@ -238,7 +240,8 @@ class queue extends record
       $check_time = false;
     }
 
-    $participant_status_list = participant::get_enum_values( 'status' );
+    $class_name = util::get_class_name( 'database\participant' );
+    $participant_status_list = $class_name::get_enum_values( 'status' );
 
     // first a list of commonly used elements
     $status_where_list = array(
@@ -716,7 +719,7 @@ class queue extends record
     $sql = str_replace( '<QNAIRE_TEST>', $qnaire_test_sql, $sql );
 
     // fill in the settings
-    $setting_manager = bus\setting_manager::self();
+    $setting_manager = util::create( 'business\setting_manager' );
     $setting = $setting_manager->get_setting( 'calling', 'start time' );
     $sql = str_replace( '<CALLING_START_TIME>', $setting, $sql );
     $setting = $setting_manager->get_setting( 'calling', 'end time' );
@@ -725,7 +728,8 @@ class queue extends record
     // fill in all callback timing settings
     $setting_mod = util::create( 'database\modifier' );
     $setting_mod->where( 'category', '=', 'callback timing' );
-    foreach( setting::select( $setting_mod ) as $db_setting )
+    $class_name = util::get_class_name( 'database\setting' );
+    foreach( $class_name::select( $setting_mod ) as $db_setting )
     {
       $setting = $setting_manager->get_setting( 'callback timing', $db_setting->name );
       $template = sprintf( '<CALLBACK_%s>',

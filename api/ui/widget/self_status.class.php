@@ -18,7 +18,7 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class self_status extends \cenozo\ui\push\self_status
+class self_status extends \cenozo\ui\widget\self_status
 {
   /**
    * Finish setting the variables in a widget.
@@ -30,8 +30,10 @@ class self_status extends \cenozo\ui\push\self_status
   {
     parent::finish();
 
-    $this->set_variable( 'sip_enabled', bus\voip_manager::self()->get_sip_enabled() );
-    $this->set_variable( 'on_call', !is_null( bus\voip_manager::self()->get_call() ) );
+    $this->set_variable(
+      'sip_enabled', util::create( 'business\voip_manager' )->get_sip_enabled() );
+    $this->set_variable(
+      'on_call', !is_null( util::create( 'business\voip_manager' )->get_call() ) );
   }
 }
 ?>

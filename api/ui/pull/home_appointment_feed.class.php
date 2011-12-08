@@ -46,7 +46,8 @@ class home_appointment_feed extends base_feed
     $db_user = util::create( 'business\session' )->get_user();
     $db_site = util::create( 'business\session' )->get_site();
     $db_role = util::create( 'business\session' )->get_role();
-    $db_access = db\access::get_unique_record(
+    $class_name = util::get_class_name( 'database\access' );
+    $db_access = $class_name::get_unique_record(
       array( 'user_id', 'site_id', 'role_id' ),
       array( $db_user->id, $db_site->id, $db_role->id ) );
 
@@ -57,13 +58,14 @@ class home_appointment_feed extends base_feed
     $modifier->where( 'datetime', '<', $this->end_datetime );
 
     $event_list = array();
-    foreach( db\appointment::select_for_access( $db_access, $modifier ) as $db_appointment )
+    $class_name = util::get_class_name( 'database\appointment' );
+    foreach( $class_name::select_for_access( $db_access, $modifier ) as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $end_datetime_obj = clone $start_datetime_obj;
       $end_datetime_obj->modify(
         sprintf( '+%d minute',
-        bus\setting_manager::self()->get_setting( 'appointment', 'home duration' ) ) );
+        util::create( 'business\setting_manager' )->get_setting( 'appointment', 'home duration' ) ) );
 
       $db_participant = $db_appointment->get_participant();
       $event_list[] = array(

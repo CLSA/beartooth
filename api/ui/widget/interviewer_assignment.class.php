@@ -52,7 +52,8 @@ class interviewer_assignment extends \beartooth\ui\widget
     // see if this user has an open assignment
     $db_assignment = $session->get_current_assignment();
     
-    if( is_null( $db_assignment ) ) throw util::create( 'exception\notice', 'No active assignment.', __METHOD__ );
+    if( is_null( $db_assignment ) )
+      throw util::create( 'exception\notice', 'No active assignment.', __METHOD__ );
 
     // fill out the participant's details
     $db_interview = $db_assignment->get_interview();
@@ -105,7 +106,8 @@ class interviewer_assignment extends \beartooth\ui\widget
         $phone_list[$db_phone->id] =
           sprintf( '%d. %s (%s)', $db_phone->rank, $db_phone->type, $db_phone->number );
       $this->set_variable( 'phone_list', $phone_list );
-      $this->set_variable( 'status_list', db\phone_call::get_enum_values( 'status' ) );
+      $class_name = util::get_class_name( 'database\phone_call' );
+      $this->set_variable( 'status_list', $class_name::get_enum_values( 'status' ) );
     }
 
     if( 0 == $current_calls && !$on_call && $db_interview->completed )

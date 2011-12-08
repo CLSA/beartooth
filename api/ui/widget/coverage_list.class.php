@@ -84,13 +84,16 @@ class coverage_list extends base_list
       for( $index = $length; $index < 7; $index++ ) $postcode_mask .= 3 == $index ? ' ' : '?';
 
       // assemble the row for this record
+      $jurisdiction_class_name = util::get_class_name( 'database\jurisdiction' );
+      $participant_class_name = util::get_class_name( 'database\participant' );
       $this->add_row( $record->id,
         array( 'username' => $record->get_access()->get_user()->name,
                'postcode_mask' => $postcode_mask,
                'nearest' => $nearest,
                'furthest' => $furthest,
-               'jurisdiction_count' => db\jurisdiction::count( $jurisdiction_mod ),
-               'participant_count' => db\participant::count_for_site( $db_site, $participant_mod ) ) );
+               'jurisdiction_count' => $jurisdiction_class_name::count( $jurisdiction_mod ),
+               'participant_count' =>
+                 $participant_class_name::count_for_site( $db_site, $participant_mod ) ) );
     }
 
     $this->finish_setting_rows();

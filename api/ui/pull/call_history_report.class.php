@@ -85,7 +85,8 @@ class call_history_report extends base_report
     }
     
     $contents = array();
-    foreach( db\assignment::select( $assignment_mod ) as $db_assignment )
+    $class_name = util::get_class_name( 'database\assignment' );
+    foreach( $class_name::select( $assignment_mod ) as $db_assignment )
     {
       $db_user = $db_assignment->get_user();
       

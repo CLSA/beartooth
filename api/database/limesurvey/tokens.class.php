@@ -30,7 +30,7 @@ class tokens extends sid_record
    */
   public function update_attributes( $db_participant )
   {
-    $mastodon_manager = bus\cenozo_manager::self( MASTODON_URL );
+    $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
     $db_user = util::create( 'business\session' )->get_user();
 
     // determine the first part of the token

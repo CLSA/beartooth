@@ -34,7 +34,7 @@ class appointment_list extends base_list
   
 
     $now_datetime_obj = util::get_datetime_object();
-    $interval = bus\setting_manager::self()->get_setting( 
+    $interval = util::create( 'business\setting_manager' )->get_setting( 
         'appointment', 'update interval' );
 
     if( $interval == 'M' )
@@ -80,7 +80,8 @@ class appointment_list extends base_list
 
     // create a list of appointments between the start and end time
     $db_user = util::create( 'business\session' )->get_user();
-    $db_onyx = db\onyx_instance::get_unique_record(
+    $class_name = util::get_class_name( 'database\onyx_instance' );
+    $db_onyx = $class_name::get_unique_record(
       'user_id' , $db_user->id );
     
     $modifier = util::create( 'database\modifier' );
@@ -91,15 +92,19 @@ class appointment_list extends base_list
     $appointment_list = NULL;
     if( is_null( $db_onyx->interviewer_user_id ) )
     {
-      $appointment_list = db\appointment::select_for_site( $db_onyx->get_site(), $modifier );
+      $class_name = util::get_class_name( 'database\appointment' );
+      $appointment_list = $class_name::select_for_site( $db_onyx->get_site(), $modifier );
     }
     else
     {
-      $db_role = db\role::get_unique_record( 'name', 'interviewer' );
-      $db_access = db\access::get_unique_record(
+      $class_name = util::get_class_name( 'database\role' );
+      $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
+      $class_name = util::get_class_name( 'database\access' );
+      $db_access = $class_name::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $db_onyx->interviewer_user_id, $db_onyx->site_id, $db_role->id ) );
-      $appointment_list = db\appointment::select_for_access( $db_access, $modifier );
+      $class_name = util::get_class_name( 'database\appointment' );
+      $appointment_list = $class_name::select_for_access( $db_access, $modifier );
     }
 
     if( is_null( $appointment_list ) )
@@ -111,7 +116,7 @@ class appointment_list extends base_list
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $db_participant = $db_appointment->get_participant();
 
-      $mastodon_manager = bus\cenozo_manager::self( MASTODON_URL );
+      $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
       $participant_obj = new \stdClass();
       if( $mastodon_manager->is_enabled() )
       {

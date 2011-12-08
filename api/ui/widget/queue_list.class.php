@@ -62,7 +62,8 @@ class queue_list extends base_list
     if( $is_top_tier )
     {
       $sites = array();
-      foreach( db\site::select() as $db_site )
+      $class_name = util::get_class_name( 'database\site' );
+      foreach( $class_name::select() as $db_site )
         $sites[$db_site->id] = $db_site->name;
       $this->set_variable( 'sites', $sites );
     }
@@ -74,7 +75,8 @@ class queue_list extends base_list
                       : NULL;
 
     $qnaires = array();
-    foreach( db\qnaire::select() as $db_qnaire )
+    $class_name = util::get_class_name( 'database\qnaire' );
+    foreach( $class_name::select() as $db_qnaire )
       $qnaires[$db_qnaire->id] = $db_qnaire->name;
     $this->set_variable( 'qnaires', $qnaires );
     
@@ -91,9 +93,10 @@ class queue_list extends base_list
     $this->set_variable( 'viewing_date', $viewing_date );
 
     // set the viewing date if it is not "current"
-    if( 'current' != $viewing_date ) db\queue::set_viewing_date( $viewing_date );
+    $class_name = util::get_class_name( 'database\queue' );
+    if( 'current' != $viewing_date ) $class_name::set_viewing_date( $viewing_date );
 
-    $setting_manager = bus\setting_manager::self();
+    $setting_manager = util::create( 'business\setting_manager' );
     foreach( $this->get_record_list() as $record )
     {
       // restrict to the current site if the current user is a mid tier role

@@ -29,11 +29,10 @@ $SETTINGS['url']['MASTODON'] = NULL;
 $SETTINGS['path']['LIMESURVEY'] = '/var/www/limesurvey';
 $SETTINGS['url']['LIMESURVEY'] = '../limesurvey';
 
-// javascript libraries
+// additional javascript libraries
 $SETTINGS['url']['JQUERY'] = '/jquery';
 $SETTINGS['url']['JQUERY_PLUGINS'] = $SETTINGS['url']['JQUERY'].'/plugins';
-$SETTINGS['url']['JQUERY_JSTREE_JS'] =
-  $SETTINGS['url']['JQUERY_PLUGINS'].'/jsTree.js';
+$SETTINGS['url']['JQUERY_JSTREE_JS'] = $SETTINGS['url']['JQUERY_PLUGINS'].'/jsTree.js';
 
 // database settings
 $SETTINGS['db']['driver'] = 'mysql';

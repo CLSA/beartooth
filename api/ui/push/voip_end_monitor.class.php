@@ -40,7 +40,7 @@ class voip_end_monitor extends \beartooth\ui\push
    */
   public function finish()
   {
-    bus\voip_manager::self()->get_call()->stop_monitoring();
+    util::create( 'business\voip_manager' )->get_call()->stop_monitoring();
   }
 }
 ?>

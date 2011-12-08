@@ -52,7 +52,7 @@ class phone_list extends base_list
     $this->set_variable( 'allow_connect',
                          1 < util::create( 'business\session' )->get_role()->tier );
     $this->set_variable( 'sip_enabled',
-      bus\voip_manager::self()->get_sip_enabled() );
+      util::create( 'business\voip_manager' )->get_sip_enabled() );
 
     foreach( $this->get_record_list() as $record )
     {

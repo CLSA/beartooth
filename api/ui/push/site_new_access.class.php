@@ -58,7 +58,7 @@ class site_new_access extends \cenozo\ui\push\site_new_access
     $args['noid']['user_name_list'] = $user_name_list;
   
     // now send the same request to mastodon
-    $mastodon_manager = bus\cenozo_manager::self( MASTODON_URL );
+    $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
     $mastodon_manager->push( 'site', 'new_access', $args );
   }
 }

@@ -39,7 +39,13 @@ class productivity_report extends base_report
     // determine whether or not to round time to 15 minute increments
     $round_times = $this->get_argument( 'round_times', true );
 
-    $db_role = db\role::get_unique_record( 'name', 'interviewer' );
+    $role_class_name = util::get_class_name( 'database\role' );
+    $site_class_name = util::get_class_name( 'database\site' );
+    $user_class_name = util::get_class_name( 'database\user' );
+    $activity_class_name = util::get_class_name( 'database\activity' );
+    $assignment_class_name = util::get_class_name( 'database\assignment' );
+
+    $db_role = $role_class_name::get_unique_record( 'name', 'interviewer' );
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
     $site_mod = util::create( 'database\modifier' );
     if( $restrict_site_id ) 
@@ -90,14 +96,14 @@ class productivity_report extends base_report
     $max_datetime_obj = NULL;
           
     // now create a table for every site included in the report
-    foreach( db\site::select( $site_mod ) as $db_site )
+    foreach( $site_class_name::select( $site_mod ) as $db_site )
     {
       $contents = array();
       // start by determining the table contents
       $grand_total_time = 0;
       $grand_total_completes = 0;
       $grand_total_calls = 0;
-      foreach( db\user::select() as $db_user )
+      foreach( $user_class_name::select() as $db_user )
       {
         // make sure the interviewer has min/max time for this date range
         $activity_mod = util::create( 'database\modifier' );
@@ -133,8 +139,8 @@ class productivity_report extends base_report
             $end_datetime_obj->format( 'Y-m-d' ).' 23:59:59' );
         }
 
-        $min_activity_datetime_obj = db\activity::get_min_datetime( $activity_mod );
-        $max_activity_datetime_obj = db\activity::get_max_datetime( $activity_mod );
+        $min_activity_datetime_obj = $activity_class_name::get_min_datetime( $activity_mod );
+        $max_activity_datetime_obj = $activity_class_name::get_max_datetime( $activity_mod );
         
         // if there is no activity then skip this user
         if( is_null( $min_activity_datetime_obj ) || 
@@ -159,7 +165,7 @@ class productivity_report extends base_report
             $last_assignment_mod->where( 'interview_id', '=', $db_interview->id );
             $last_assignment_mod->order_desc( 'start_datetime' );
             $last_assignment_mod->limit( 1 );
-            $db_last_assignment = current( db\assignment::select( $last_assignment_mod ) );
+            $db_last_assignment = current( $assignment_class_name::select( $last_assignment_mod ) );
             if( $db_assignment->id == $db_last_assignment->id )
             {
               $completes++;
@@ -191,7 +197,7 @@ class productivity_report extends base_report
           if( $single_date && $single_datetime_obj != $datetime_obj ) continue;
 
           // get the elapsed time and round to 15 minute increments (if necessary)
-          $time += db\activity::get_elapsed_time(
+          $time += $activity_class_name::get_elapsed_time(
             $db_user, $db_site, $db_role, $datetime_obj->format( 'Y-m-d' ) );
           $total_time = $round_times ? floor( 4 * $time ) / 4 : $time;
         }
@@ -210,8 +216,8 @@ class productivity_report extends base_report
           $day_activity_mod->where( 'datetime', '<=',
             $min_activity_datetime_obj->format( 'Y-m-d' ).' 23:59:59' );
           
-          $min_datetime_obj = db\activity::get_min_datetime( $day_activity_mod );
-          $max_datetime_obj = db\activity::get_max_datetime( $day_activity_mod );
+          $min_datetime_obj = $activity_class_name::get_min_datetime( $day_activity_mod );
+          $max_datetime_obj = $activity_class_name::get_max_datetime( $day_activity_mod );
 
           $contents[] = array(
             $db_user->first_name.' '.$db_user->last_name,

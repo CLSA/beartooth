@@ -46,7 +46,7 @@ class site_feed extends base_feed
 
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
-                         bus\setting_manager::self()->get_setting( 'appointment', 'site duration' ) );
+                         util::create( 'business\setting_manager' )->get_setting( 'appointment', 'site duration' ) );
 
     // start by creating an array with one element per day in the time span
     $start_datetime_obj = util::get_datetime_object( $this->start_datetime );
@@ -67,7 +67,8 @@ class site_feed extends base_feed
     $modifier = util::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'start_date', '<=', $this->end_datetime );
-    foreach( db\shift_template::select( $modifier ) as $db_shift_template )
+    $class_name = util::get_class_name( 'database\shift_template' );
+    foreach( $class_name::select( $modifier ) as $db_shift_template )
     {
       foreach( $days as $date => $day )
       {
@@ -101,7 +102,8 @@ class site_feed extends base_feed
     $modifier->where( 'datetime', '<', $this->end_datetime );
     $modifier->where( 'appointment.address_id', '=', NULL );
     $modifier->order( 'datetime' );
-    foreach( db\appointment::select_for_site( $db_site, $modifier ) as $db_appointment )
+    $class_name = util::get_class_name( 'database\appointment' );
+    foreach( $class_name::select_for_site( $db_site, $modifier ) as $db_appointment )
     {
       $state = $db_appointment->get_state();
       if( 'reached' != $state && 'not reached' != $state )

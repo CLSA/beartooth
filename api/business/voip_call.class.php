@@ -45,7 +45,7 @@ class voip_call extends \beartooth\base_object
     // get the dialed number by striping the dialing prefix from the extension
     if( !is_null( $s8_event->get( 'extension' ) ) )
     {
-      $prefix = voip_manager::self()->get_prefix();
+      $prefix = util::create( 'business\voip_manager' )->get_prefix();
       $this->number = preg_replace( "/^$prefix/", '', $s8_event->get( 'extension' ) );
     }
 
@@ -68,7 +68,7 @@ class voip_call extends \beartooth\base_object
    */
   public function dtmf( $tone )
   {
-    if( !voip_manager::self()->get_enabled() ) return;
+    if( !util::create( 'business\voip_manager' )->get_enabled() ) return;
     
     // make sure the tone is valid
     if( !preg_match( '/^[0-9a-dgs]$/', $tone ) )
@@ -97,11 +97,12 @@ class voip_call extends \beartooth\base_object
    */
   public function hang_up()
   {
-    if( !voip_manager::self()->get_enabled() ) return;
+    $voip_manager = util::create( 'business\voip_manager' );
+    if( !$voip_manager->get_enabled() ) return;
     
     // hang up the call, if successful then rebuild the call list
     if( $this->manager->hangup( $this->get_channel() ) )
-      voip_manager::self()->rebuild_call_list();
+    $voip_manager->rebuild_call_list();
   }
   
   /**
@@ -119,7 +120,7 @@ class voip_call extends \beartooth\base_object
    */
   public function play_sound( $sound, $volume = 0, $bridge = true )
   {
-    if( !voip_manager::self()->get_enabled() ) return;
+    if( !util::create( 'business\voip_manager' )->get_enabled() ) return;
     
     // constrain the volume to be between -4 and 4
     $volume = intval( $volume );
@@ -179,7 +180,7 @@ class voip_call extends \beartooth\base_object
    */
   public function start_monitoring( $file )
   {
-    if( !voip_manager::self()->get_enabled() ) return;
+    if( !util::create( 'business\voip_manager' )->get_enabled() ) return;
 
     $filename = sprintf( '%s/%s', VOIP_MONITOR_PATH, $file );
 
@@ -203,7 +204,7 @@ class voip_call extends \beartooth\base_object
    */
   public function stop_monitoring()
   {
-    if( !voip_manager::self()->get_enabled() ) return;
+    if( !util::create( 'business\voip_manager' )->get_enabled() ) return;
 
     if( false == $this->manager->stopMonitor( $this->get_channel() ) )
       throw util::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );

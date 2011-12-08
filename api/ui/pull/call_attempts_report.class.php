@@ -46,9 +46,10 @@ class call_attempts_report extends base_report
 
     // loop through every participant searching for those who have started an interview
     // which is not yet complete (restricting by site if necessary)
+    $class_name = util::get_class_name( 'database\participant' );
     $participant_list = $restrict_site_id
-                      ? db\participant::select_for_site( $db_site )
-                      : db\participant::select();
+                      ? $class_name::select_for_site( $db_site )
+                      : $class_name::select();
 
     $contents = array();
     foreach( $participant_list as $db_participant )

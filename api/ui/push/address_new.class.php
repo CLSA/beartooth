@@ -68,7 +68,7 @@ class address_new extends base_new
     parent::finish();
 
     // now send the same request to mastodon
-    $mastodon_manager = bus\cenozo_manager::self( MASTODON_URL );
+    $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
     $mastodon_manager->push( 'address', 'new', $args );
   }
 }

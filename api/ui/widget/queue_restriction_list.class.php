@@ -83,7 +83,8 @@ class queue_restriction_list extends site_restricted_list
     
     // skip the parent method
     // php doesn't allow parent::parent::method() so we have to do the less safe code below
-    return base_list::determine_record_count( $modifier );
+    $class_name = util::get_class_name( 'ui\widget\base_list' );
+    return $class_name::determine_record_count( $modifier );
   }
 
   /**
@@ -105,7 +106,8 @@ class queue_restriction_list extends site_restricted_list
     
     // skip the parent method
     // php doesn't allow parent::parent::method() so we have to do the less safe code below
-    return base_list::determine_record_list( $modifier );
+    $class_name = util::get_class_name( 'ui\widget\base_list' );
+    return $class_name::determine_record_list( $modifier );
   }
 }
 ?>

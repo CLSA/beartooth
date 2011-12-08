@@ -18,7 +18,7 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class base_add_access extends \cenozo\ui\push\base_add_access
+class base_add_access extends \cenozo\ui\widget\base_add_access
 {
   /**
    * Overrides the role list widget's method.
@@ -33,7 +33,8 @@ class base_add_access extends \cenozo\ui\push\base_add_access
     if( is_null( $modifier ) ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'name', '!=', 'onyx' );
     $modifier->where( 'tier', '<=', util::create( 'business\session' )->get_role()->tier );
-    return db\role::count( $modifier );
+    $class_name = util::get_class_name( 'database\role' );
+    return $class_name::count( $modifier );
   }
 
   /**
@@ -49,7 +50,8 @@ class base_add_access extends \cenozo\ui\push\base_add_access
     if( is_null( $modifier ) ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'name', '!=', 'onyx' );
     $modifier->where( 'tier', '<=', util::create( 'business\session' )->get_role()->tier );
-    return db\role::select( $modifier );
+    $class_name = util::get_class_name( 'database\role' );
+    return $class_name::select( $modifier );
   }
 }
 ?>

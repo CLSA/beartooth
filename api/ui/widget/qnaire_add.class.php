@@ -56,22 +56,24 @@ class qnaire_add extends base_view
     
     // create enum arrays
     $qnaires = array();
-    foreach( db\qnaire::select() as $db_qnaire ) $qnaires[$db_qnaire->id] = $db_qnaire->name;
-    $num_ranks = db\qnaire::count();
+    $class_name = util::get_class_name( 'database\qnaire' );
+    foreach( $class_name::select() as $db_qnaire ) $qnaires[$db_qnaire->id] = $db_qnaire->name;
+    $num_ranks = $class_name::count();
     $ranks = array();
     for( $rank = 1; $rank <= ( $num_ranks + 1 ); $rank++ ) $ranks[] = $rank;
     $ranks = array_combine( $ranks, $ranks );
     end( $ranks );
     $last_rank_key = key( $ranks );
     reset( $ranks );
-    $types = db\qnaire::get_enum_types( 'type' );
+    $types = $class_name::get_enum_types( 'type' );
     $types = array_combine( $types, $types );
     $surveys = array();
     $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
     $modifier->where( 'anonymized', '=', 'N' );
     $modifier->where( 'tokenanswerspersistence', '=', 'Y' );
-    foreach( db\limesurvey\surveys::select( $modifier ) as $db_survey )
+    $class_name = util::get_class_name( 'database\limesurvey\surveys' );
+    foreach( $class_name::select( $modifier ) as $db_survey )
       $surveys[$db_survey->sid] = $db_survey->get_title();
 
     // set the view's items

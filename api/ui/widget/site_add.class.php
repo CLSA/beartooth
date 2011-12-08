@@ -18,7 +18,7 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class site_add extends \cenozo\ui\push\site_add
+class site_add extends \cenozo\ui\widget\site_add
 {
   /**
    * Constructor
@@ -55,7 +55,8 @@ class site_add extends \cenozo\ui\push\site_add
     
     // create enum arrays
     $regions = array();
-    foreach( db\region::select() as $db_region )
+    $class_name = util::get_class_name( 'database\region' );
+    foreach( $class_name::select() as $db_region )
       $regions[$db_region->id] = $db_region->name.', '.$db_region->country;
     reset( $regions );
 

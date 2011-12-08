@@ -62,7 +62,8 @@ class phone_add extends base_view
     $modifier->where( 'participant_id', '=', $this->parent->get_record()->id ); 
     $modifier->order( 'rank' );
     $addresses = array();
-    foreach( db\address::select( $modifier ) as $db_address )
+    $class_name = util::get_class_name( 'database\address' );
+    foreach( $class_name::select( $modifier ) as $db_address )
     {
       $db_region = $db_address->get_region();
       $addresses[$db_address->id] = sprintf( '%d. %s, %s, %s',
@@ -78,7 +79,8 @@ class phone_add extends base_view
     end( $ranks );
     $last_rank_key = key( $ranks );
     reset( $ranks );
-    $types = db\phone::get_enum_values( 'type' );
+    $class_name = util::get_class_name( 'database\phone' );
+    $types = $class_name::get_enum_values( 'type' );
     $types = array_combine( $types, $types );
 
     // set the view's items

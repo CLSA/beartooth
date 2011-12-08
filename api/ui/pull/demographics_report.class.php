@@ -41,12 +41,13 @@ class demographics_report extends base_report
     $consent_status = $this->get_argument( 'restrict_consent_id' );
     $province_id = $this->get_argument( 'restrict_province_id' );
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
-    $participant_list = db\participant::select();
+    $class_name = util::get_class_name( 'database\participant' );
     if( $restrict_site_id )
     {
       $db_site = util::create( 'database\site', $restrict_site_id );
-      $participant_list = db\participant::select_for_site( $db_site );
+      $participant_list = $class_name::select_for_site( $db_site );
     }
+    else $participant_list = $class_name::select();
 
     $contents = array();
     foreach( $participant_list as $db_participant )
@@ -67,7 +68,7 @@ class demographics_report extends base_report
       
       if( $db_interview && $db_interview->completed )
       {
-        $mastodon_manager = bus\cenozo_manager::self( MASTODON_URL );
+        $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
         $participant_obj = $mastodon_manager->pull( 'participant', 'primary', 
           array( 'uid' => $db_participant->uid ) );
        

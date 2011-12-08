@@ -64,7 +64,8 @@ class phase extends has_rank
   private function ensure_auditing()
   {
     // ignore if auditing is not enabled
-    $setting_manager = bus\setting_manager::self();
+    $setting_manager = util::create( 'business\setting_manager' );
+    $database_class_name = util::get_class_name( 'database\database' );
     
     $survey_table = $setting_manager->get_setting( 'survey_db', 'prefix' ).'survey_'.$this->sid;
     $survey_db_name = $setting_manager->get_setting( 'survey_db', 'database' );
@@ -103,8 +104,8 @@ class phase extends has_rank
         ' FROM information_schema.TABLES'.
         ' WHERE TABLE_SCHEMA = %s'.
         ' AND TABLE_NAME = %s',
-        database::format_string( $audit_db_name ),
-        database::format_string( $audit_table ) ) );
+        $database_class_name::format_string( $audit_db_name ),
+        $database_class_name::format_string( $audit_table ) ) );
       
       if( 0 == $count )
       {
@@ -142,8 +143,8 @@ class phase extends has_rank
         ' FROM information_schema.TRIGGERS'.
         ' WHERE TRIGGER_SCHEMA = %s'.
         ' AND TRIGGER_NAME = %s',
-        database::format_string( $survey_db_name ),
-        database::format_string( $survey_table.'_auditing' ) ) );
+        $database_class_name::format_string( $survey_db_name ),
+        $database_class_name::format_string( $survey_table.'_auditing' ) ) );
       
       if( 0 == $count )
       {
@@ -152,8 +153,8 @@ class phase extends has_rank
           sprintf( ' SELECT COLUMN_NAME'.
                    ' FROM information_schema.COLUMNS'.
                    ' WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s',
-                   database::format_string( $audit_db_name ),
-                   database::format_string( $survey_table ) ) );
+                   $database_class_name::format_string( $audit_db_name ),
+                   $database_class_name::format_string( $survey_table ) ) );
         
         // build the trigger sql
         $trigger_sql = sprintf( ' CREATE TRIGGER %s_auditing'.

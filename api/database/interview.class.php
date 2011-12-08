@@ -50,12 +50,16 @@ class interview extends has_note
         'Tried to determine interview time for repeating phase without an assignment.' );
       return 0.0;
     }
+
+    $survey_class_name = util::get_class_name( 'database\limesurvey\survey' );
+    $tokens_class_name = util::get_class_name( 'database\limesurvey\tokens' );
+    $survey_timings_class_name = util::get_class_name( 'database\limesurvey\survey_timings' );
     
-    limesurvey\survey::set_sid( $db_phase->sid );
+    $survey_class_name::set_sid( $db_phase->sid );
     $survey_mod = util::create( 'database\modifier' );
     $survey_mod->where( 'token', '=',
-      limesurvey\tokens::determine_token_string( $this, $db_assignment ) );
-    $survey_list = limesurvey\survey::select( $survey_mod );
+      $tokens_class_name::determine_token_string( $this, $db_assignment ) );
+    $survey_list = $survey_class_name::select( $survey_mod );
 
     if( 0 == count( $survey_list ) ) return 0.0;
 
@@ -67,10 +71,10 @@ class interview extends has_note
 
     $db_survey = current( $survey_list );
 
-    limesurvey\survey_timings::set_sid( $db_phase->sid );
+    $survey_timings_class_name::set_sid( $db_phase->sid );
     $timing_mod = util::create( 'database\modifier' );
     $timing_mod->where( 'id', '=', $db_survey->id );
-    $db_timings = current( limesurvey\survey_timings::select( $timing_mod ) );
+    $db_timings = current( $survey_timings_class_name::select( $timing_mod ) );
     return $db_timings ? (float) $db_timings->interviewtime : 0.0;
   }
 }

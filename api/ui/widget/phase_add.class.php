@@ -60,7 +60,8 @@ class phase_add extends base_view
     $modifier->where( 'active', '=', 'Y' );
     $modifier->where( 'anonymized', '=', 'N' );
     $modifier->where( 'tokenanswerspersistence', '=', 'Y' );
-    foreach( db\limesurvey\surveys::select( $modifier ) as $db_survey )
+    $class_name = util::get_class_name( 'database\limesurvey\surveys' );
+    foreach( $class_name::select( $modifier ) as $db_survey )
       $surveys[$db_survey->sid] = $db_survey->get_title();
     $num_phases = $this->parent->get_record()->get_phase_count();
     $ranks = array();

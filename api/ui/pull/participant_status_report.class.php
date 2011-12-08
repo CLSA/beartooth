@@ -56,7 +56,8 @@ class participant_status_report extends base_report
       
     // add call results (not including "contacted")
     $phone_call_status_start_index = count( $region_totals ) - 1; // includes 10+ above
-    foreach( db\phone_call::get_enum_values( 'status' ) as $status )
+    $class_name = util::get_class_name( 'database\phone_call' );
+    foreach( $class_name::get_enum_values( 'status' ) as $status )
       if( 'contacted' != $status ) $region_totals[ ucfirst( $status ) ] = 0;
     $phone_call_status_count = count( $region_totals ) - $phone_call_status_start_index;
 
@@ -73,13 +74,15 @@ class participant_status_report extends base_report
     $region_mod->order( 'abbreviation' );
     $region_mod->where( 'country', '=', 'Canada' );
     $grand_totals = array();
-    foreach( db\region::select($region_mod) as $db_region )
+    $class_name = util::get_class_name( 'database\region' );
+    foreach( $class_name::select($region_mod) as $db_region )
       $grand_totals[ $db_region->abbreviation ] = $region_totals; 
 
     // the last column of the report sums totals row-wise
     $grand_totals[ 'Grand Total' ] = $region_totals;
     
-    foreach( db\participant::select() as $db_participant )
+    $class_name = util::get_class_name( 'database\participant' );
+    foreach( $class_name::select() as $db_participant )
     {
       $province = $db_participant->get_primary_address()->get_region()->abbreviation;
 

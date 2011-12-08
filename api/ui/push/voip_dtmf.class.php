@@ -40,7 +40,7 @@ class voip_dtmf extends \beartooth\ui\push
    */
   public function finish()
   {
-    bus\voip_manager::self()->get_call()->dtmf( $this->get_argument( 'tone' ) );
+    util::create( 'business\voip_manager' )->get_call()->dtmf( $this->get_argument( 'tone' ) );
   }
 }
 ?>

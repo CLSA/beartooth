@@ -56,7 +56,8 @@ class assignment_begin extends \beartooth\ui\push
     $interview_mod->where( 'participant_id', '=', $db_participant->id );
     $interview_mod->where( 'qnaire_id', '=', $db_participant->current_qnaire_id );
 
-    $db_interview_list = db\interview::select( $interview_mod );
+    $class_name = util::get_class_name( 'database\interview' );
+    $db_interview_list = $class_name::select( $interview_mod );
     
     if( 0 == count( $db_interview_list ) )
     {

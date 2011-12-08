@@ -39,7 +39,7 @@ class user_edit extends \cenozo\ui\push\user_edit
     parent::finish();
 
     // now send the same request to mastodon
-    $mastodon_manager = bus\cenozo_manager::self( MASTODON_URL );
+    $mastodon_manager = util::create( 'business\cenozo_manager', MASTODON_URL );
     $mastodon_manager->push( 'user', 'edit', $args );
   }
 }

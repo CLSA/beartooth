@@ -63,6 +63,8 @@ class assignment extends has_note
       return false;
     }
     
+    $tokens_class_name = util::get_class_name( 'database\limesurvey\tokens' );
+
     $this->current_sid = false;
     $this->current_token = false;
 
@@ -76,12 +78,12 @@ class assignment extends has_note
       $db_qnaire = $db_interview->get_qnaire();
       
       // let the tokens record class know which SID we are dealing with
-      limesurvey\tokens::set_sid( $db_qnaire->withdraw_sid );
+      $tokens_class_name::set_sid( $db_qnaire->withdraw_sid );
 
-      $token = limesurvey\tokens::determine_token_string( $db_interview );
+      $token = $tokens_class_name::determine_token_string( $db_interview );
       $tokens_mod = util::create( 'database\modifier' );
       $tokens_mod->where( 'token', '=', $token );
-      $db_tokens = current( limesurvey\tokens::select( $tokens_mod ) );
+      $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
 
       if( false === $db_tokens )
       { // token not found, create it
@@ -114,14 +116,14 @@ class assignment extends has_note
         foreach( $phase_list as $db_phase )
         {
           // let the tokens record class know which SID we are dealing with
-          limesurvey\tokens::set_sid( $db_phase->sid );
+          $tokens_class_name::set_sid( $db_phase->sid );
   
-          $token = limesurvey\tokens::determine_token_string(
+          $token = $tokens_class_name::determine_token_string(
                      $db_interview,
                      $db_phase->repeated ? $this : NULL );
           $tokens_mod = util::create( 'database\modifier' );
           $tokens_mod->where( 'token', '=', $token );
-          $db_tokens = current( limesurvey\tokens::select( $tokens_mod ) );
+          $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
   
           if( false === $db_tokens )
           { // token not found, create it

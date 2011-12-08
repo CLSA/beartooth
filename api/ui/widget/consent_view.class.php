@@ -49,7 +49,8 @@ class consent_view extends base_view
     parent::finish();
 
     // create enum arrays
-    $events = db\consent::get_enum_values( 'event' );
+    $class_name = util::get_class_name( 'database\consent' );
+    $events = $class_name::get_enum_values( 'event' );
     $events = array_combine( $events, $events );
 
     // set the view's items

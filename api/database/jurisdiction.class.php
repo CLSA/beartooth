@@ -36,23 +36,26 @@ class jurisdiction extends record
     // if there is no access restriction then just use the parent method
     if( is_null( $db_access ) ) return parent::select( $modifier, $count );
 
+    $database_class_name = util::get_class_name( 'database\database' );
+    $coverage_class_name = util::get_class_name( 'database\coverage' );
+
     $sql = sprintf(
       ( $count ? 'SELECT COUNT(*) ' : 'SELECT jurisdiction.id ' ).
       'FROM jurisdiction '.
       'WHERE jurisdiction.site_id = %s '.
       'AND ( ',
-      database::format_string( $db_access->get_site()->id ) );
+      $database_class_name::format_string( $db_access->get_site()->id ) );
 
     // OR all access coverages making sure to AND NOT all other like coverages for the same site
     $first = true;
     $coverage_mod = util::create( 'database\modifier' );
     $coverage_mod->where( 'access_id', '=', $db_access->id );
     $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
-    foreach( coverage::select( $coverage_mod ) as $db_coverage )
+    foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
     {
       $sql .= sprintf( '%s ( jurisdiction.postcode LIKE %s ',
                        $first ? '' : 'OR',
-                       database::format_string( $db_coverage->postcode_mask ) );
+                       $database_class_name::format_string( $db_coverage->postcode_mask ) );
       $first = false;
 
       // now remove the like coverages
@@ -60,10 +63,10 @@ class jurisdiction extends record
       $inner_coverage_mod->where( 'access_id', '!=', $db_access->id );
       $inner_coverage_mod->where( 'access.site_id', '=', $db_access->site_id );
       $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
-      foreach( coverage::select( $inner_coverage_mod ) as $db_inner_coverage )
+      foreach( $coverage_class_name::select( $inner_coverage_mod ) as $db_inner_coverage )
       {
         $sql .= sprintf( 'AND jurisdiction.postcode NOT LIKE %s ',
-                         database::format_string( $db_inner_coverage->postcode_mask ) );
+                         $database_class_name::format_string( $db_inner_coverage->postcode_mask ) );
       }
       $sql .= ') ';
     }

@@ -51,11 +51,16 @@ class interviewer_list extends base_list
     parent::finish();
     
     $db_site = util::create( 'business\session' )->get_site();
-    $db_role = db\role::get_unique_record( 'name', 'interviewer' );
+    $class_name = util::get_class_name( 'database\role' );
+    $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
 
+    $access_class_name = util::get_class_name( 'database\access' );
+    $coverage_class_name = util::get_class_name( 'database\coverage' );
+    $jurisdiction_class_name = util::get_class_name( 'database\jurisdiction' );
+    $participant_class_name = util::get_class_name( 'database\participant' );
     foreach( $this->get_record_list() as $record )
     {
-      $db_access = db\access::get_unique_record(
+      $db_access = $access_class_name::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $record->id, $db_site->id, $db_role->id ) );
       
@@ -67,11 +72,11 @@ class interviewer_list extends base_list
         // assemble the row for this record
         $this->add_row( $record->id,
           array( 'username' => $record->name,
-                 'coverages' => db\coverage::count( $modifier ),
+                 'coverages' => $coverage_class_name::count( $modifier ),
                  'jurisdiction_count' =>
-                   db\jurisdiction::count_for_access( $db_access ),
+                   $jurisdiction_class_name::count_for_access( $db_access ),
                  'participant_count' =>
-                   db\participant::count_for_access( $db_access ) ) );
+                   $participant_class_name::count_for_access( $db_access ) ) );
       }
     }
 
@@ -88,11 +93,13 @@ class interviewer_list extends base_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    $db_role = db\role::get_unique_record( 'name', 'interviewer' );
+    $class_name = util::get_class_name( 'database\role' );
+    $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
     if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', util::create( 'business\session' )->get_site()->id );
     $modifier->where( 'role_id', '=', $db_role->id );
-    return db\user::count( $modifier );
+    $class_name = util::get_class_name( 'database\user' );
+    return $class_name::count( $modifier );
   }
   
   /**
@@ -105,11 +112,13 @@ class interviewer_list extends base_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    $db_role = db\role::get_unique_record( 'name', 'interviewer' );
+    $class_name = util::get_class_name( 'database\role' );
+    $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
     if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', util::create( 'business\session' )->get_site()->id );
     $modifier->where( 'role_id', '=', $db_role->id );
-    return db\user::select( $modifier );
+    $class_name = util::get_class_name( 'database\user' );
+    return $class_name::select( $modifier );
   }
 }
 ?>

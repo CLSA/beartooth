@@ -18,7 +18,7 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class self_settings extends \cenozo\ui\push\self_settings
+class self_settings extends \cenozo\ui\widget\self_settings
 {
   /**
    * Finish setting the variables in a widget.

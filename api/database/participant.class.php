@@ -90,6 +90,9 @@ class participant extends has_note
     // if there is no access restriction then just use the parent method
     if( is_null( $db_access ) ) return parent::select( $modifier, $count );
 
+    $database_class_name = util::get_class_name( 'database\database' );
+    $coverage_class_name = util::get_class_name( 'database\coverage' );
+
     $sql = sprintf(
       ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant_primary_address.participant_id ' ).
       'FROM participant_primary_address, address, jurisdiction '.
@@ -97,18 +100,18 @@ class participant extends has_note
       'AND address.postcode = jurisdiction.postcode '.
       'AND jurisdiction.site_id = %s '.
       'AND ( ',
-      database::format_string( $db_access->get_site()->id ) );
+      $database_class_name::format_string( $db_access->get_site()->id ) );
     
     // OR all access coverages making sure to AND NOT all other like coverages for the same site
     $first = true;
     $coverage_mod = util::create( 'database\modifier' );
     $coverage_mod->where( 'access_id', '=', $db_access->id );
     $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
-    foreach( coverage::select( $coverage_mod ) as $db_coverage )
+    foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
     {
       $sql .= sprintf( '%s ( address.postcode LIKE %s ',
                        $first ? '' : 'OR',
-                       database::format_string( $db_coverage->postcode_mask ) );
+                       $database_class_name::format_string( $db_coverage->postcode_mask ) );
       $first = false;
 
       // now remove the like coverages
@@ -116,10 +119,10 @@ class participant extends has_note
       $inner_coverage_mod->where( 'access_id', '!=', $db_access->id );
       $inner_coverage_mod->where( 'access.site_id', '=', $db_access->site_id );
       $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
-      foreach( coverage::select( $inner_coverage_mod ) as $db_inner_coverage )
+      foreach( $coverage_class_name::select( $inner_coverage_mod ) as $db_inner_coverage )
       {
         $sql .= sprintf( 'AND address.postcode NOT LIKE %s ',
-                         database::format_string( $db_inner_coverage->postcode_mask ) );
+                         $database_class_name::format_string( $db_inner_coverage->postcode_mask ) );
       }
       $sql .= ') ';
     }
@@ -174,11 +177,12 @@ class participant extends has_note
     }
     
     // need custom SQL
+    $class_name = util::get_class_name( 'database\database' );
     $assignment_id = static::db()->get_one(
       sprintf( 'SELECT assignment_id '.
                'FROM participant_last_assignment '.
                'WHERE participant_id = %s',
-               database::format_string( $this->id ) ) );
+               $class_name::format_string( $this->id ) ) );
     return $assignment_id ? util::create( 'database\assignment', $assignment_id ) : NULL;
   }
 
@@ -202,7 +206,8 @@ class participant extends has_note
     $modifier->where( 'end_datetime', '!=', NULL );
     $modifier->order_desc( 'start_datetime' );
     $modifier->limit( 1 );
-    $assignment_list = assignment::select( $modifier );
+    $class_name = util::get_class_name( 'database\assignment' );
+    $assignment_list = $class_name::select( $modifier );
 
     return 0 == count( $assignment_list ) ? NULL : current( $assignment_list );
   }
@@ -223,11 +228,12 @@ class participant extends has_note
     }
     
     // need custom SQL
+    $class_name = util::get_class_name( 'database\database' );
     $consent_id = static::db()->get_one(
       sprintf( 'SELECT consent_id '.
                'FROM participant_last_consent '.
                'WHERE participant_id = %s',
-               database::format_string( $this->id ) ) );
+               $class_name::format_string( $this->id ) ) );
     return $consent_id ? util::create( 'database\consent', $consent_id ) : NULL;
   }
 
@@ -247,9 +253,10 @@ class participant extends has_note
     }
     
     // need custom SQL
+    $class_name = util::get_class_name( 'database\database' );
     $address_id = static::db()->get_one(
       sprintf( 'SELECT address_id FROM participant_primary_address WHERE participant_id = %s',
-               database::format_string( $this->id ) ) );
+               $class_name::format_string( $this->id ) ) );
     return $address_id ? util::create( 'database\address', $address_id ) : NULL;
   }
 
@@ -271,9 +278,10 @@ class participant extends has_note
     }
     
     // need custom SQL
+    $class_name = util::get_class_name( 'database\database' );
     $address_id = static::db()->get_one(
       sprintf( 'SELECT address_id FROM participant_first_address WHERE participant_id = %s',
-               database::format_string( $this->id ) ) );
+               $class_name::format_string( $this->id ) ) );
     return $address_id ? util::create( 'database\address', $address_id ) : NULL;
   }
 
@@ -297,7 +305,8 @@ class participant extends has_note
     $db_address = $this->get_primary_address();
     if( !is_null( $db_address ) )
     { // there is a primary address
-      $db_jurisdiction = jurisdiction::get_unique_record( 'postcode', $db_address->postcode );
+      $class_name = util::get_class_name( 'database\jurisdiction' );
+      $db_jurisdiction = $class_name::get_unique_record( 'postcode', $db_address->postcode );
       if( !is_null( $db_address ) ) $db_site = $db_jurisdiction->get_site();
     }
 
@@ -320,9 +329,10 @@ class participant extends has_note
     }
     
     // need custom SQL
+    $class_name = util::get_class_name( 'database\database' );
     $phone_call_id = static::db()->get_one(
       sprintf( 'SELECT phone_call_id FROM participant_last_contacted_phone_call WHERE participant_id = %s',
-               database::format_string( $this->id ) ) );
+               $class_name::format_string( $this->id ) ) );
     return $phone_call_id ? util::create( 'database\phone_call', $phone_call_id ) : NULL;
   }
 
@@ -360,10 +370,11 @@ class participant extends has_note
     
     if( is_null( $this->current_qnaire_id ) && is_null( $this->start_qnaire_date ) )
     {
+      $class_name = util::get_class_name( 'database\database' );
       $sql = sprintf( 'SELECT current_qnaire_id, start_qnaire_date '.
                       'FROM participant_for_queue '.
                       'WHERE id = %s',
-                      database::format_string( $this->id ) );
+                      $class_name::format_string( $this->id ) );
       $row = static::db()->get_row( $sql );
       $this->current_qnaire_id = $row['current_qnaire_id'];
       $this->start_qnaire_date = $row['start_qnaire_date'];

@@ -18,7 +18,7 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class user_add extends \cenozo\ui\push\user_add
+class user_add extends \cenozo\ui\widget\user_add
 {
   /**
    * Finish setting the variables in a widget.
@@ -38,7 +38,8 @@ class user_add extends \cenozo\ui\push\user_add
     $modifier->where( 'name', '!=', 'onyx' );
     $modifier->where( 'tier', '<=', $session->get_role()->tier );
     $roles = array();
-    foreach( db\role::select( $modifier ) as $db_role ) $roles[$db_role->id] = $db_role->name;
+    $class_name = util::get_class_name( 'database\role' );
+    foreach( $class_name::select( $modifier ) as $db_role ) $roles[$db_role->id] = $db_role->name;
     
     // set the view's items
     $this->set_item( 'role_id', array_search( 'interviewer', $roles ), true, $roles );

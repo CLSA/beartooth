@@ -79,7 +79,7 @@ class appointment extends record
 
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
-                         bus\setting_manager::self()->get_setting(
+                         util::create( 'business\setting_manager' )->get_setting(
                            'appointment',
                            $home ? 'home duration' : 'site duration' ) );
 
@@ -101,7 +101,8 @@ class appointment extends record
       $modifier = util::create( 'database\modifier' );
       $modifier->where( 'site_id', '=', $db_site->id );
       $modifier->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
-      foreach( shift_template::select( $modifier ) as $db_shift_template )
+      $class_name = util::get_class_name( 'database\shift_template' );
+      foreach( $class_name::select( $modifier ) as $db_shift_template )
       {
         if( $db_shift_template->match_date( $start_datetime_obj->format( 'Y-m-d' ) ) )
         {
@@ -124,7 +125,8 @@ class appointment extends record
       $db_user = util::create( 'business\session' )->get_user();
       $db_site = util::create( 'business\session' )->get_site();
       $db_role = util::create( 'business\session' )->get_role();
-      $db_access = access::get_unique_record(
+      $class_name = util::get_class_name( 'database\access' );
+      $db_access = $class_name::get_unique_record(
         array( 'user_id', 'site_id', 'role_id' ),
         array( $db_user->id, $db_site->id, $db_role->id ) );
     }
@@ -271,6 +273,9 @@ class appointment extends record
     // if there is no access restriction then just use the parent method
     if( is_null( $db_access ) ) return parent::select( $modifier, $count );
 
+    $database_class_name = util::get_class_name( 'database\database' );
+    $coverage_class_name = util::get_class_name( 'database\coverage' );
+
     $sql = sprintf(
       ( $count ? 'SELECT COUNT(*) ' : 'SELECT appointment.id ' ).
       'FROM appointment, address, jurisdiction '.
@@ -278,18 +283,18 @@ class appointment extends record
       'AND address.postcode = jurisdiction.postcode '.
       'AND jurisdiction.site_id = %s '.
       'AND ( ',
-      database::format_string( $db_access->get_site()->id ) );
+      $database_class_name::format_string( $db_access->get_site()->id ) );
     
     // OR all access coverages making sure to AND NOT all other like coverages for the same site
     $first = true;
     $coverage_mod = util::create( 'database\modifier' );
     $coverage_mod->where( 'access_id', '=', $db_access->id );
     $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
-    foreach( coverage::select( $coverage_mod ) as $db_coverage )
+    foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
     {
       $sql .= sprintf( '%s ( address.postcode LIKE %s ',
                        $first ? '' : 'OR',
-                       database::format_string( $db_coverage->postcode_mask ) );
+                       $database_class_name::format_string( $db_coverage->postcode_mask ) );
       $first = false;
 
       // now remove the like coverages
@@ -297,10 +302,10 @@ class appointment extends record
       $inner_coverage_mod->where( 'access_id', '!=', $db_access->id );
       $inner_coverage_mod->where( 'access.site_id', '=', $db_access->site_id );
       $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
-      foreach( coverage::select( $inner_coverage_mod ) as $db_inner_coverage )
+      foreach( $coverage_class_name::select( $inner_coverage_mod ) as $db_inner_coverage )
       {
         $sql .= sprintf( 'AND address.postcode NOT LIKE %s ',
-                         database::format_string( $db_inner_coverage->postcode_mask ) );
+                         $database_class_name::format_string( $db_inner_coverage->postcode_mask ) );
       }
       $sql .= ') ';
     }

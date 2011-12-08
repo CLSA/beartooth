@@ -64,13 +64,15 @@ class onyx_instance_view extends base_view
     parent::finish();
     $session = util::create( 'business\session' );
 
-    $db_role = db\role::get_unique_record( 'name', 'interviewer' );
+    $class_name = util::get_class_name( 'database\role' );
+    $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
 
     $user_mod = util::create( 'database\modifier' );
     $user_mod->where( 'site_id', '=', $this->get_record()->site_id );
     $user_mod->where( 'role_id', '=', $db_role->id );
     $interviewers = array( 'NULL' => 'site' );
-    foreach( db\user::select( $user_mod ) as $db_user )
+    $class_name = util::get_class_name( 'database\user' );
+    foreach( $class_name::select( $user_mod ) as $db_user )
       $interviewers[$db_user->id] = $db_user->name;
 
     // set the view's items

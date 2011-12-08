@@ -139,14 +139,14 @@ class queue_view extends base_view
 
   /**
    * The site to restrict the queue to (may be NULL)
-   * @var db\site
+   * @var database\site
    * @access protected
    */
   protected $db_site = NULL;
 
   /**
    * The qnaire to restrict the queue to (may be NULL)
-   * @var db\qnaire
+   * @var database\qnaire
    * @access protected
    */
   protected $db_qnaire = NULL;

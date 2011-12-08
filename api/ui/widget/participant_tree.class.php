@@ -54,7 +54,8 @@ class participant_tree extends \beartooth\ui\widget
     if( $is_top_tier )
     {
       $sites = array();
-      foreach( db\site::select() as $db_site )
+      $class_name = util::get_class_name( 'database\site' );
+      foreach( $class_name::select() as $db_site )
         $sites[$db_site->id] = $db_site->name;
       $this->set_variable( 'sites', $sites );
     }
@@ -72,12 +73,13 @@ class participant_tree extends \beartooth\ui\widget
     $this->set_variable( 'viewing_date', $viewing_date );
 
     // set the viewing date if it is not "current"
-    if( 'current' != $viewing_date ) db\queue::set_viewing_date( $viewing_date );
+    $class_name = util::get_class_name( 'database\queue' );
+    if( 'current' != $viewing_date ) $class_name::set_viewing_date( $viewing_date );
 
     $show_queue_index = $this->get_argument( 'show_queue_index', NULL );
     if( is_null( $show_queue_index ) )
     {
-      $db_show_queue = db\queue::get_unique_record( 'name', 'qnaire' );
+      $db_show_queue = $class_name::get_unique_record( 'name', 'qnaire' );
       $show_qnaire_id = 0;
     }
     else
@@ -92,7 +94,7 @@ class participant_tree extends \beartooth\ui\widget
     $tree = array(); // NOTE: holds references to the nodes array
     $modifier = util::create( 'database\modifier' );
     $modifier->order( 'parent_queue_id' );
-    foreach( db\queue::select( $modifier ) as $db_queue )
+    foreach( $class_name::select( $modifier ) as $db_queue )
     {
       // restrict to the current site if the current user is a mid tier role
       if( $is_mid_tier ) $db_queue->set_site( $session->get_site() );
@@ -121,7 +123,8 @@ class participant_tree extends \beartooth\ui\widget
       {
         $modifier = util::create( 'database\modifier' );
         $modifier->order( 'rank' );
-        foreach( db\qnaire::select( $modifier ) as $db_qnaire )
+        $class_name = util::get_class_name( 'database\qnaire' );
+        foreach( $class_name::select( $modifier ) as $db_qnaire )
         {
           $db_queue->set_qnaire( $db_qnaire );
           

@@ -132,9 +132,10 @@ class participant_view extends base_view
     $this->set_variable( 'allow_assign', $allow_assign );
 
     // create enum arrays
-    $languages = db\participant::get_enum_values( 'language' );
+    $class_name = util::get_class_name( 'database\participant' );
+    $languages = $class_name::get_enum_values( 'language' );
     $languages = array_combine( $languages, $languages );
-    $statuses = db\participant::get_enum_values( 'status' );
+    $statuses = $class_name::get_enum_values( 'status' );
     $statuses = array_combine( $statuses, $statuses );
     
     $start_qnaire_date = $this->get_record()->start_qnaire_date;
@@ -214,7 +215,8 @@ class participant_view extends base_view
   {
     if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'interview.participant_id', '=', $this->get_record()->id );
-    return db\assignment::count( $modifier );
+    $class_name = util::get_class_name( 'database\assignment' );
+    return $class_name::count( $modifier );
   }
 
   /**
@@ -229,7 +231,8 @@ class participant_view extends base_view
   {
     if( NULL == $modifier ) $modifier = util::create( 'database\modifier' );
     $modifier->where( 'interview.participant_id', '=', $this->get_record()->id );
-    return db\assignment::select( $modifier );
+    $class_name = util::get_class_name( 'database\assignment' );
+    return $class_name::select( $modifier );
   }
 
   /**

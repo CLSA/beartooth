@@ -59,7 +59,7 @@ class phone_call_begin extends \beartooth\ui\push
     }
     
     // connect voip to phone
-    bus\voip_manager::self()->call( $db_phone );
+    util::create( 'business\voip_manager' )->call( $db_phone );
 
     if( $is_interviewer )
     { // create a record of the phone call

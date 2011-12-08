@@ -154,17 +154,17 @@ class session extends \cenozo\business\session
   public function get_allow_call()
   {
     $allow = false;
-    if( !setting_manager::self()->get_setting( 'voip', 'enabled' ) )
+    if( !util::create( 'business\setting_manager' )->get_setting( 'voip', 'enabled' ) )
     { // if voip is not enabled then allow calls
       $allow = true;
     }
-    else if( voip_manager::self()->get_sip_enabled() )
+    if( util::create( 'business\voip_manager' )->get_sip_enabled() )
     { // voip is enabled, so make sure sip is also enabled
       $allow = true;
     }
     else
     { // check to see if we can call without a SIP connection
-      $allow = setting_manager::self()->get_setting( 'voip', 'survey without sip' );
+      $allow = util::create( 'business\setting_manager' )->get_setting( 'voip', 'survey without sip' );
     }
 
     return $allow;
@@ -200,7 +200,7 @@ class session extends \cenozo\business\session
   public function get_survey_url()
   {
     // only interviewers can fill out surveys
-    if( 'interviewer' != $this->role->name ) return false;
+    if( 'interviewer' != $this->get_role()->name ) return false;
     
     // must have an assignment
     $db_assignment = $this->get_current_assignment();

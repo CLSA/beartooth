@@ -18,7 +18,7 @@ use beartooth\exception as exc;
  * 
  * @package beartooth\ui
  */
-class self_menu extends \cenozo\ui\push\self_menu
+class self_menu extends \cenozo\ui\widget\self_menu
 {
   /**
    * Constructor

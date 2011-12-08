@@ -69,21 +69,23 @@ class qnaire_view extends base_view
 
     // create enum arrays
     $qnaires = array();
-    foreach( db\qnaire::select() as $db_qnaire )
+    $class_name = util::get_class_name( 'database\qnaire' );
+    foreach( $class_name::select() as $db_qnaire )
       if( $db_qnaire->id != $this->get_record()->id )
         $qnaires[$db_qnaire->id] = $db_qnaire->name;
-    $num_ranks = db\qnaire::count();
+    $num_ranks = $class_name::count();
     $ranks = array();
     for( $rank = 1; $rank <= ( $num_ranks + 1 ); $rank++ ) $ranks[] = $rank;
     $ranks = array_combine( $ranks, $ranks );
-    $types = db\qnaire::get_enum_values( 'type' );
+    $types = $class_name::get_enum_values( 'type' );
     $types = array_combine( $types, $types );
     $surveys = array();
     $modifier = util::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
     $modifier->where( 'anonymized', '=', 'N' );
     $modifier->where( 'tokenanswerspersistence', '=', 'Y' );
-    foreach( db\limesurvey\surveys::select( $modifier ) as $db_survey )
+    $class_name = util::get_class_name( 'database\limesurvey\surveys' );
+    foreach( $class_name::select( $modifier ) as $db_survey )
       $surveys[$db_survey->sid] = $db_survey->get_title();
 
     // set the view's items
