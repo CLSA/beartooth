@@ -9,9 +9,6 @@
 
 namespace beartooth\database\limesurvey;
 use cenozo\lib, cenozo\log;
-use beartooth\business as bus;
-use beartooth\database as db;
-use beartooth\exception as exc;
 
 /**
  * Access to limesurvey's survey_SID tables.

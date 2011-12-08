@@ -8,9 +8,6 @@
  */
 
 namespace beartooth\database\limesurvey;
-use beartooth\business as bus;
-use beartooth\database as db;
-use beartooth\exception as exc;
 
 /**
  * users: record

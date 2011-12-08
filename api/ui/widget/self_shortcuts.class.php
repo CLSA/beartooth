@@ -9,9 +9,6 @@
 
 namespace beartooth\ui\widget;
 use cenozo\lib, cenozo\log;
-use beartooth\business as bus;
-use beartooth\database as db;
-use beartooth\exception as exc;
 
 /**
  * widget self shortcuts

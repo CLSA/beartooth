@@ -9,9 +9,6 @@
 
 namespace beartooth\ui;
 use cenozo\lib, cenozo\log;
-use beartooth\business as bus;
-use beartooth\database as db;
-use beartooth\exception as exc;
 
 /**
  * Class that manages variables in main user interface template.

@@ -9,9 +9,6 @@
 
 namespace beartooth\ui\pull;
 use cenozo\lib, cenozo\log;
-use beartooth\business as bus;
-use beartooth\database as db;
-use beartooth\exception as exc;
 
 /**
  * pull: phase primary

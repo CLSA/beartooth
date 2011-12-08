@@ -9,8 +9,6 @@
 
 namespace beartooth\business;
 use cenozo\lib, cenozo\log;
-use beartooth\database as db;
-use beartooth\exception as exc;
 
 /**
  * Extends Cenozo's manager with custom methods

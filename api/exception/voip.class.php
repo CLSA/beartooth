@@ -9,7 +9,6 @@
 
 namespace beartooth\exception;
 use cenozo\lib, cenozo\log;
-use beartooth\business as bus;
 
 /**
  * voip: voip exceptions

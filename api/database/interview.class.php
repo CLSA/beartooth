@@ -9,8 +9,6 @@
 
 namespace beartooth\database;
 use cenozo\lib, cenozo\log;
-use beartooth\business as bus;
-use beartooth\exception as exc;
 
 /**
  * interview: record
