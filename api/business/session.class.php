@@ -32,6 +32,9 @@ class session extends \cenozo\business\session
 
     parent::initialize();
 
+    // initialize the voip manager
+    lib::create( 'business\voip_manager' )->initialize();
+
     $setting_manager = lib::create( 'business\setting_manager' );
     // create the databases
     $this->survey_database = lib::create( 'database\database',

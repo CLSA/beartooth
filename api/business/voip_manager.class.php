@@ -17,7 +17,7 @@ require_once SHIFT8_PATH.'/library/Shift8.php';
  * 
  * @package beartooth\business
  */
-class voip_manager extends \beartooth\singleton
+class voip_manager extends \cenozo\singleton
 {
   /**
    * Constructor.

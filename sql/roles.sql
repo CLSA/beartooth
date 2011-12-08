@@ -3,13 +3,6 @@
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 
-DELETE FROM role_has_operation;
-DELETE FROM role;
-
--- -----------------------------------------------------
--- -----------------------------------------------------
-INSERT INTO role( name, tier ) VALUES( "administrator", 3 );
-
 -- administrator (specific to this role)
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id
@@ -358,16 +351,6 @@ INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "pull" AND subject = "queue_restriction" AND name = "primary" );
-
--- notes
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "note" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "note" AND name = "edit" );
 
 -- ALL reports
 INSERT INTO role_has_operation( role_id, operation_id )

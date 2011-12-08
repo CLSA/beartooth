@@ -51,7 +51,7 @@ class self_menu extends \cenozo\ui\widget\self_menu
   {
     parent::finish();
 
-    $lists = $this->get_variables( 'lists' );
+    $lists = $this->get_variable( 'lists' );
 
     // insert the participant tree after participant list
     if( 'interviewer' != lib::create( 'business\session' )->get_role() )
