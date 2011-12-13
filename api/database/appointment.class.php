@@ -72,6 +72,9 @@ class appointment extends \cenozo\database\record
    */
   public function validate_date()
   {
+    // TODO: once shift templates are determined the next line needs to be removed
+    return true;
+
     $db_participant = lib::create( 'database\participant', $this->participant_id );
     $home = (bool) $this->address_id;
 

@@ -83,9 +83,7 @@ class appointment_add extends base_appointment_view
     $this->set_item( 'address_id', '', true, $address_list, $is_interviewer );
     $this->set_item( 'datetime', '', true, $datetime_limits );
     
-    $this->set_variable( 
-      'is_mid_tier',
-      2 == $session->get_role()->tier );
+    $this->set_variable( 'is_mid_tier', 2 == $session->get_role()->tier );
 
     $this->finish_setting_items();
   }

@@ -68,10 +68,10 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "appointment", "list", true, "Retrieves a list of appointments for an onyx instance." );
 
 -- calendar
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "shift_template", "calendar", true, "Shows shift templates in a calendar format." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "shift_template", "feed", true, "Retrieves a list of shift templates for a given time-span." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "shift_template", "calendar", true, "Shows shift templates in a calendar format." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "shift_template", "feed", true, "Retrieves a list of shift templates for a given time-span." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "home_appointment", "calendar", true, "A calendar listing home appointments." );
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -80,10 +80,10 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "site_appointment", "calendar", true, "A calendar listing site appointments." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "site_appointment", "feed", true, "Retrieves a list of site appointment times for a given time-span." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "site", "calendar", true, "A calendar listing the number of interviewers free for an appointment." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "site", "feed", true, "Retrieves a list of free site appointment times for a given time-span." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "site", "calendar", true, "A calendar listing the number of interviewers free for an appointment." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "site", "feed", true, "Retrieves a list of free site appointment times for a given time-span." );
 
 -- consent
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -296,18 +296,18 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "self", "dialing_pad", false, "A telephone dialing pad widget." );
 
 -- shift_template
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "shift_template", "delete", true, "Removes a shift template from the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "shift_template", "edit", true, "Edits a shift template's details." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "shift_template", "new", true, "Add a new shift template to the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "shift_template", "add", true, "View a form for creating a new shift template." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "shift_template", "view", true, "View a shift template's details." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "shift_template", "primary", true, "Retrieves base shift template information." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "push", "shift_template", "delete", true, "Removes a shift template from the system." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "push", "shift_template", "edit", true, "Edits a shift template's details." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "push", "shift_template", "new", true, "Add a new shift template to the system." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "shift_template", "add", true, "View a form for creating a new shift template." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "shift_template", "view", true, "View a shift template's details." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "shift_template", "primary", true, "Retrieves base shift template information." );
 
 -- survey
 INSERT INTO operation( type, subject, name, restricted, description )

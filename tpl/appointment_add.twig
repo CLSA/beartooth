@@ -17,13 +17,13 @@
         {
           $( "#home_appointment_calendar_header" ).hide();
           $( "#home_appointment_calendar_calendar" ).hide();
-          $( "#site_calendar_header" ).show();
-          $( "#site_calendar_calendar" ).show();
+          $( "#site_appointment_calendar_header" ).show();
+          $( "#site_appointment_calendar_calendar" ).show();
         }
         else
         {
-          $( "#site_calendar_header" ).hide();
-          $( "#site_calendar_calendar" ).hide();
+          $( "#site_appointment_calendar_header" ).hide();
+          $( "#site_appointment_calendar_calendar" ).hide();
           $( "#home_appointment_calendar_header" ).show();
           $( "#home_appointment_calendar_calendar" ).show();
         }
@@ -50,6 +50,7 @@
 
 {% endblock javascript %}
 
+{# Uncomment once there is a need to force appointments
 {% block record_items %}
   {{ parent() }}
   {% if is_mid_tier %}
@@ -64,12 +65,13 @@
     </table>
   {% endif %}  
 {% endblock record_items %}
+#}
 
 {% block record %}
   
   {{ parent() }}
   {% from 'macros.twig' import include_calendar %}
-  {{ include_calendar( 'site', site_calendar|default(false), true ) }}
+  {{ include_calendar( 'site_appointment', site_appointment_calendar|default(false), true ) }}
   {{ include_calendar( 'home_appointment', home_appointment_calendar|default(false), true ) }}
 
   <script type="text/javascript">

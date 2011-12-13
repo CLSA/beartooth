@@ -15,7 +15,7 @@
     {% if item.address_id.value != "" and "main" != slot %}
       {{ include_calendar( "home_appointment", home_appointment_calendar|default(false), true ) }}
     {% else %}
-      {{ include_calendar( "site", site_calendar|default(false), true ) }}
+      {{ include_calendar( "site_appointment", site_appointment_calendar|default(false), true ) }}
     {% endif %}
   {% endif %}
 

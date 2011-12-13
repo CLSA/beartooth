@@ -41,7 +41,7 @@ class site_appointment_calendar extends \cenozo\ui\widget\base_calendar
   {
     parent::finish();
     $this->set_variable( 'allow_all_day', false );
-    $this->set_variable( 'editable', true );
+    $this->set_variable( 'editable', 2 == lib::create( 'business\session' )->get_role()->tier );
   }
 }
 ?>
