@@ -21,7 +21,7 @@ class tokens extends sid_record
    * Updates the token attributes with current values from Mastodon
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param db\participant $db_participant The record of the participant linked to this token.
+   * @param database\participant $db_participant The record of the participant linked to this token.
    * @param boolean $extended Whether or not to included extended parameters.
    * @access public
    */

@@ -45,7 +45,7 @@ class assignment_view extends \cenozo\ui\widget\base_view
       $this->phone_call_list->set_parent( $this );
       $this->phone_call_list->set_heading( 'Phone calls made during this assignment' );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->phone_call_list = NULL;
     }

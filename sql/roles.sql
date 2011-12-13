@@ -84,35 +84,11 @@ SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
     operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "appointment" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
       type = "widget" AND subject = "appointment" AND name = "view" );
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "widget" AND subject = "appointment" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_appointment" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_appointment" );
 
 -- availability
 INSERT INTO role_has_operation
@@ -389,35 +365,11 @@ SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
     operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "appointment" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
-    operation_id = ( SELECT id FROM operation WHERE
       type = "widget" AND subject = "appointment" AND name = "view" );
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "widget" AND subject = "appointment" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_appointment" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_appointment" );
 
 -- availability
 INSERT INTO role_has_operation
@@ -655,6 +607,14 @@ INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "pull" AND subject = "site" AND name = "feed" );
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "widget" AND subject = "site_appointment" AND name = "calendar" );
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "pull" AND subject = "site_appointment" AND name = "feed" );
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
     operation_id = ( SELECT id FROM operation WHERE

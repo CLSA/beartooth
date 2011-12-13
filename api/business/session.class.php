@@ -22,7 +22,6 @@ class session extends \cenozo\business\session
    * 
    * This method should be called immediately after initial construct of the session.
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @throws exception\permission
    * @access public
    */
   public function initialize()

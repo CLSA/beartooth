@@ -36,7 +36,7 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
       $this->site_calendar = lib::create( 'ui\widget\site_calendar', $args );
       $this->site_calendar->set_parent( $this );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->site_calendar = NULL;
     }
@@ -47,7 +47,7 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
       $this->home_appointment_calendar = lib::create( 'ui\widget\home_appointment_calendar', $args );
       $this->home_appointment_calendar->set_parent( $this );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->home_appointment_calendar = NULL;
     }

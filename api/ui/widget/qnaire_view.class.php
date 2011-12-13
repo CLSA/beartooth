@@ -48,7 +48,7 @@ class qnaire_view extends \cenozo\ui\widget\base_view
       $this->phase_list->set_parent( $this );
       $this->phase_list->set_heading( 'Questionnaire phases' );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->phase_list = NULL;
     }

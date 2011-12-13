@@ -47,7 +47,7 @@ class participant_view extends \cenozo\ui\widget\base_view
       $this->address_list->set_parent( $this );
       $this->address_list->set_heading( 'Addresses' );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->address_list = NULL;
     }
@@ -59,7 +59,7 @@ class participant_view extends \cenozo\ui\widget\base_view
       $this->phone_list->set_parent( $this );
       $this->phone_list->set_heading( 'Phone numbers' );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->phone_list = NULL;
     }
@@ -71,7 +71,7 @@ class participant_view extends \cenozo\ui\widget\base_view
       $this->appointment_list->set_parent( $this );
       $this->appointment_list->set_heading( 'Appointments' );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->appointment_list = NULL;
     }
@@ -83,7 +83,7 @@ class participant_view extends \cenozo\ui\widget\base_view
       $this->availability_list->set_parent( $this );
       $this->availability_list->set_heading( 'Availability' );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->availability_list = NULL;
     }
@@ -95,7 +95,7 @@ class participant_view extends \cenozo\ui\widget\base_view
       $this->consent_list->set_parent( $this );
       $this->consent_list->set_heading( 'Consent information' );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->consent_list = NULL;
     }
@@ -107,7 +107,7 @@ class participant_view extends \cenozo\ui\widget\base_view
       $this->assignment_list->set_parent( $this );
       $this->assignment_list->set_heading( 'Assignment history' );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->assignment_list = NULL;
     }

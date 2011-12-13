@@ -62,7 +62,7 @@ class queue_view extends \cenozo\ui\widget\base_view
       $this->participant_list->set_parent( $this );
       $this->participant_list->set_heading( 'Queue participant list' );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->participant_list = NULL;
     }

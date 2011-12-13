@@ -43,7 +43,7 @@ class coverage_list extends \cenozo\ui\widget\base_list
       // create the interviewer sub-list widget
       $this->interviewer_list = lib::create( 'ui\widget\interviewer_list', $args );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->interviewer_list = NULL;
     }

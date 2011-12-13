@@ -44,7 +44,7 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
       $this->user_view->allow_reset_password( false );
       $this->user_view->allow_set_password( true );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
       $this->user_view = NULL;
     }
