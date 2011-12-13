@@ -15,5 +15,5 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class availability extends record {}
+class availability extends \cenozo\database\record {}
 ?>

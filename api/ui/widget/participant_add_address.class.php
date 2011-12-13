@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class participant_add_address extends base_add_record
+class participant_add_address extends \cenozo\ui\widget\base_add_record
 {
   /**
    * Constructor

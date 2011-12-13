@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Assigns a participant to a phone call.
  * @package beartooth\ui
  */
-class phone_call_begin extends \beartooth\ui\push
+class phone_call_begin extends \cenozo\ui\push
 {
   /**
    * Constructor.

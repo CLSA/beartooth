@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class shift_template_delete extends base_delete
+class shift_template_delete extends \cenozo\ui\push\base_delete
 {
   /**
    * Constructor.

@@ -10,13 +10,12 @@
 namespace beartooth\database\limesurvey;
 use cenozo\lib, cenozo\log, beartooth\util;
 
-
 /**
  * This is the abstract database table object for all limesurvey tables.
  * 
  * @package beartooth\database
  */
-abstract class record extends db\record
+abstract class record extends \cenozo\database\record
 {
   /**
    * Constructor

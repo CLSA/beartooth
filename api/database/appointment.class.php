@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class appointment extends record
+class appointment extends \cenozo\database\record
 {
   /**
    * Overrides the parent load method.

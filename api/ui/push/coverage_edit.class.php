@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a coverage.
  * @package beartooth\ui
  */
-class coverage_edit extends base_edit
+class coverage_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

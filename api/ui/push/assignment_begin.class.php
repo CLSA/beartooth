@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Assigns a participant to an assignment.
  * @package beartooth\ui
  */
-class assignment_begin extends \beartooth\ui\push
+class assignment_begin extends \cenozo\ui\push
 {
   /**
    * Constructor.

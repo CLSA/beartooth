@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new qnaire.
  * @package beartooth\ui
  */
-class qnaire_new extends base_new
+class qnaire_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.

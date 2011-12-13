@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a availability.
  * @package beartooth\ui
  */
-class availability_edit extends base_edit
+class availability_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new availability.
  * @package beartooth\ui
  */
-class availability_new extends base_new
+class availability_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.

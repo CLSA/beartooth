@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a onyx_instance.
  * @package beartooth\ui
  */
-class onyx_instance_edit extends base_edit
+class onyx_instance_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

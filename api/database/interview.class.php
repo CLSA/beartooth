@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class interview extends has_note
+class interview extends \cenozo\database\has_note
 {
   /**
    * Returns the time in seconds that it took to complete a particular phase of this interview

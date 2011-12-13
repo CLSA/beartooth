@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class phone_call_list extends base_list
+class phone_call_list extends \cenozo\ui\widget\base_list
 {
   /**
    * Constructor

@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class appointment_list extends site_restricted_list
+class appointment_list extends \cenozo\ui\widget\site_restricted_list
 {
   /**
    * Constructor

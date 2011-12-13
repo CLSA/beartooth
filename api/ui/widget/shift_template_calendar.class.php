@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class shift_template_calendar extends base_calendar
+class shift_template_calendar extends \cenozo\ui\widget\base_calendar
 {
   /**
    * Constructor

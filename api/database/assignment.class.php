@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class assignment extends has_note
+class assignment extends \cenozo\database\has_note
 {
   /**
    * This method returns the current SID, or false if all surveys are complete.

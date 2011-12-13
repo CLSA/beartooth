@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * All exceptions caused because of the voip connection.
  * @package beartooth\exception
  */
-class voip extends runtime
+class voip extends \cenozo\exception\runtime
 {
   /**
    * Constructor

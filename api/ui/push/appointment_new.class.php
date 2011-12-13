@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new appointment.
  * @package beartooth\ui
  */
-class appointment_new extends base_new
+class appointment_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.

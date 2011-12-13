@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a participant.
  * @package beartooth\ui
  */
-class participant_edit extends base_edit
+class participant_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

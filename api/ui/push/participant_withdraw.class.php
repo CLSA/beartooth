@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a participant.
  * @package beartooth\ui
  */
-class participant_withdraw extends base_record
+class participant_withdraw extends \cenozo\ui\push\base_record
 {
   /**
    * Constructor.

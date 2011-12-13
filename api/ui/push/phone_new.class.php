@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new phone.
  * @package beartooth\ui
  */
-class phone_new extends base_new
+class phone_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.

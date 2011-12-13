@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class participant_delete_phone extends base_delete_record
+class participant_delete_phone extends \cenozo\ui\push\base_delete_record
 {
   /**
    * Constructor.

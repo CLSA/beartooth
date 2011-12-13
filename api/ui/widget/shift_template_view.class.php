@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class shift_template_view extends base_view
+class shift_template_view extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor

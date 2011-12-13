@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class phone extends has_rank
+class phone extends \cenozo\database\has_rank
 {
   /**
    * The type of record which the record has a rank for.

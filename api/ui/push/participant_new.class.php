@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new participant.
  * @package beartooth\ui
  */
-class participant_new extends base_new
+class participant_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.

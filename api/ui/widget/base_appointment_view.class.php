@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-abstract class base_appointment_view extends base_view
+abstract class base_appointment_view extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor

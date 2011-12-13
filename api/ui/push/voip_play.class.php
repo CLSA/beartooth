@@ -17,7 +17,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Arguments must include 'theme'.
  * @package beartooth\ui
  */
-class voip_play extends \beartooth\ui\push
+class voip_play extends \cenozo\ui\push
 {
   /**
    * Constructor.

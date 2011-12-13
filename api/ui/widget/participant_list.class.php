@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class participant_list extends site_restricted_list
+class participant_list extends \cenozo\ui\widget\site_restricted_list
 {
   /**
    * Constructor
@@ -28,7 +28,7 @@ class participant_list extends site_restricted_list
   public function __construct( $args )
   {
     parent::__construct( 'participant', $args );
-    
+
     $this->add_column( 'uid', 'string', 'Unique ID', true );
     $this->add_column( 'first_name', 'string', 'First Name', true );
     $this->add_column( 'last_name', 'string', 'Last Name', true );
@@ -44,7 +44,7 @@ class participant_list extends site_restricted_list
   public function finish()
   {
     parent::finish();
-    
+
     foreach( $this->get_record_list() as $record )
     {
       $this->add_row( $record->id,
@@ -82,7 +82,6 @@ class participant_list extends site_restricted_list
       return $class_name::count_for_access( $db_access, $modifier );
     }
 
-    $class_name = lib::get_class_name( 'database\participant' );
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_count( $modifier )
          : $class_name::count_for_site( $this->db_restrict_site, $modifier );

@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new consent.
  * @package beartooth\ui
  */
-class consent_new extends base_new
+class consent_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.

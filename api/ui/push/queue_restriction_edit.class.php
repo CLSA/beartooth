@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a queue_restriction.
  * @package beartooth\ui
  */
-class queue_restriction_edit extends base_edit
+class queue_restriction_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

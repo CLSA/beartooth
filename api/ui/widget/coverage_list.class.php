@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class coverage_list extends base_list
+class coverage_list extends \cenozo\ui\widget\base_list
 {
   /**
    * Constructor

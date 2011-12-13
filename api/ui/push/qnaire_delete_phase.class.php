@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class qnaire_delete_phase extends base_delete_record
+class qnaire_delete_phase extends \cenozo\ui\push\base_delete_record
 {
   /**
    * Constructor.

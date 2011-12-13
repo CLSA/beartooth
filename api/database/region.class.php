@@ -15,5 +15,5 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class region extends record {}
+class region extends \cenozo\database\record {}
 ?>

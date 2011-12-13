@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class qnaire_add_phase extends base_add_record
+class qnaire_add_phase extends \cenozo\ui\widget\base_add_record
 {
   /**
    * Constructor

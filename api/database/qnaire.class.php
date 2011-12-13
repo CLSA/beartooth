@@ -15,5 +15,5 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class qnaire extends has_rank {}
+class qnaire extends \cenozo\database\has_rank {}
 ?>

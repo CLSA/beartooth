@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class phase_delete extends base_delete
+class phase_delete extends \cenozo\ui\push\base_delete
 {
   /**
    * Constructor.

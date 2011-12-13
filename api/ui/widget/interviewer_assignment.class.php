@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class interviewer_assignment extends \beartooth\ui\widget
+class interviewer_assignment extends \cenozo\ui\widget
 {
   /**
    * Constructor

@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class appointment_delete extends base_delete
+class appointment_delete extends \cenozo\ui\push\base_delete
 {
   /**
    * Constructor.

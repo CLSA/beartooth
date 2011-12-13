@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class jurisdiction extends record
+class jurisdiction extends \cenozo\database\record
 {
   /**
    * Identical to the parent's select method but restrict to a particular access.

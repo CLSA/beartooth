@@ -15,5 +15,5 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class phone_call extends has_note {}
+class phone_call extends \cenozo\database\has_note {}
 ?>

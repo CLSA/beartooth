@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class home_appointment_feed extends base_feed
+class home_appointment_feed extends \cenozo\ui\pull\base_feed
 {
   /**
    * Constructor

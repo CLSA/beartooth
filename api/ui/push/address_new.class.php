@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new address.
  * @package beartooth\ui
  */
-class address_new extends base_new
+class address_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.

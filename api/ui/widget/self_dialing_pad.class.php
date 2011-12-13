@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class self_dialing_pad extends \beartooth\ui\widget
+class self_dialing_pad extends \cenozo\ui\widget
 {
   /**
    * Constructor

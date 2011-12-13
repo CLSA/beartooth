@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new phase.
  * @package beartooth\ui
  */
-class phase_new extends base_new
+class phase_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.

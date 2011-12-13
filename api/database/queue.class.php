@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class queue extends record
+class queue extends \cenozo\database\record
 {
   /**
    * Constructor

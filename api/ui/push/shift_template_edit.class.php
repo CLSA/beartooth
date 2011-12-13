@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a shift template.
  * @package beartooth\ui
  */
-class shift_template_edit extends base_edit
+class shift_template_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

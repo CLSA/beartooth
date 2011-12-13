@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a qnaire.
  * @package beartooth\ui
  */
-class qnaire_edit extends base_edit
+class qnaire_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

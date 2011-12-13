@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class onyx_instance_add extends base_view
+class onyx_instance_add extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor

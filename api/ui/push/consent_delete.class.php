@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class consent_delete extends base_delete
+class consent_delete extends \cenozo\ui\push\base_delete
 {
   /**
    * Constructor.

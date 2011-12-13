@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new onyx_instance.
  * @package beartooth\ui
  */
-class onyx_instance_new extends base_new
+class onyx_instance_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.

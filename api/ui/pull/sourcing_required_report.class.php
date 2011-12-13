@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class sourcing_required_report extends base_report
+class sourcing_required_report extends \cenozo\ui\pull\base_report
 {
   /**
    * Constructor

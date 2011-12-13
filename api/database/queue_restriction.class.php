@@ -15,5 +15,5 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class queue_restriction extends record {}
+class queue_restriction extends \cenozo\database\record {}
 ?>

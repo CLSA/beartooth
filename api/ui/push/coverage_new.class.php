@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new coverage.
  * @package beartooth\ui
  */
-class coverage_new extends base_new
+class coverage_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.

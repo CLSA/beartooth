@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class shift_template extends record
+class shift_template extends \cenozo\database\record
 {
   /**
    * Determines if the shift template lands on a particular date.

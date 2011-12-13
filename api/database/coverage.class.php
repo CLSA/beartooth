@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class coverage extends record
+class coverage extends \cenozo\database\record
 {
   /**
    * Returns the distance (in km) between the given site and the closest postcode included

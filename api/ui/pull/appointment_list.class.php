@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * @abstract
  * @package beartooth\ui
  */
-class appointment_list extends base_list
+class appointment_list extends \cenozo\ui\pull\base_list
 {
   /**
    * Constructor

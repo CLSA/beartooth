@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class participant_tree extends \beartooth\ui\widget
+class participant_tree extends \cenozo\ui\widget
 {
   /**
    * Constructor

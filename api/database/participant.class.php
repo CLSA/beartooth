@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class participant extends has_note
+class participant extends \cenozo\database\has_note
 {
   /**
    * Identical to the parent's select method but restrict to a particular site.

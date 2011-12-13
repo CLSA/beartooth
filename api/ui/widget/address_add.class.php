@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class address_add extends base_view
+class address_add extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor

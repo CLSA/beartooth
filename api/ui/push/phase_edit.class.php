@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a phase.
  * @package beartooth\ui
  */
-class phase_edit extends base_edit
+class phase_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

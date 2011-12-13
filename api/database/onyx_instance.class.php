@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class onyx_instance extends record
+class onyx_instance extends \cenozo\database\record
 {
   /**
    * Returns the user record associated with the interviewer_user_id

@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a consent.
  * @package beartooth\ui
  */
-class consent_edit extends base_edit
+class consent_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

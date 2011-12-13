@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * @abstract
  * @package beartooth\ui
  */
-class productivity_report extends base_report
+class productivity_report extends \cenozo\ui\pull\base_report
 {
   /**
    * Constructor

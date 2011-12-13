@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class coverage_view extends base_view
+class coverage_view extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor

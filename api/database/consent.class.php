@@ -15,5 +15,5 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class consent extends record {}
+class consent extends \cenozo\database\record {}
 ?>

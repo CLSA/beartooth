@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class queue_restriction_delete extends base_delete
+class queue_restriction_delete extends \cenozo\ui\push\base_delete
 {
   /**
    * Constructor.

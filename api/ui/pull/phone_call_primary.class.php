@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class phone_call_primary extends base_primary
+class phone_call_primary extends \cenozo\ui\pull\base_primary
 {
   /**
    * Constructor

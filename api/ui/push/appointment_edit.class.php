@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a appointment.
  * @package beartooth\ui
  */
-class appointment_edit extends base_edit
+class appointment_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

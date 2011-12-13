@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class shift_template_feed extends base_feed
+class shift_template_feed extends \cenozo\ui\pull\base_feed
 {
   /**
    * Constructor

@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class site_calendar extends base_calendar
+class site_calendar extends \cenozo\ui\widget\base_calendar
 {
   /**
    * Constructor

@@ -48,6 +48,7 @@ class self_shortcuts extends \cenozo\ui\widget\self_shortcuts
     $this->set_variable( 'webphone',
       $voip_enabled && !lib::create( 'business\voip_manager' )->get_sip_enabled() );
     $this->set_variable( 'dialpad', !is_null( lib::create( 'business\voip_manager' )->get_call() ) );
+    $this->set_variable( 'calculator', true );
     $this->set_variable( 'timezone_calculator', true );
   }
 }

@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class onyx_instance_primary extends base_primary
+class onyx_instance_primary extends \cenozo\ui\pull\base_primary
 {
   /**
    * Constructor
