@@ -87,7 +87,7 @@
       <tr>
         <td class="heading">Previous Assignment:</td>
         <td class="content">
-          {% if 0 == previous_call_list|count %}
+          {% if 0 == previous_call_list|length %}
             new participant (never assigned)
           {% else %}
             Last assigned on {{ previous_assignment_date }} at {{ previous_assignment_time }}
