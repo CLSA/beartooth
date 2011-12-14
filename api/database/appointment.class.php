@@ -90,6 +90,7 @@ class appointment extends \cenozo\database\record
 
     $diffs = array();
     
+    $db_site = NULL;
     $db_access = NULL;
     if( !$home )
     {
@@ -121,16 +122,8 @@ class appointment extends \cenozo\database\record
         }
       }
     }
-    else
-    { // determine this user's access
-      $db_user = lib::create( 'business\session' )->get_user();
-      $db_site = lib::create( 'business\session' )->get_site();
-      $db_role = lib::create( 'business\session' )->get_role();
-      $class_name = lib::get_class_name( 'database\access' );
-      $db_access = $class_name::get_unique_record(
-        array( 'user_id', 'site_id', 'role_id' ),
-        array( $db_user->id, $db_site->id, $db_role->id ) );
-    }
+    // home appointments, we only need the current user's access
+    else $db_access = lib::create( 'business\session' )->get_access();
 
     // and how many appointments are during this time?
     $modifier = lib::create( 'database\modifier' );

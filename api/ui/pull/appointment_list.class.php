@@ -78,8 +78,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     // create a list of appointments between the start and end time
     $db_user = lib::create( 'business\session' )->get_user();
     $class_name = lib::get_class_name( 'database\onyx_instance' );
-    $db_onyx = $class_name::get_unique_record(
-      'user_id' , $db_user->id );
+    $db_onyx = $class_name::get_unique_record( 'user_id' , $db_user->id );
     
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'datetime', '>=', $this->start_datetime->format( 'Y-m-d H:i:s' ) );

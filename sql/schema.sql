@@ -184,7 +184,7 @@ CREATE  TABLE IF NOT EXISTS `site` (
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `uq_name` (`name` ASC) ,
   INDEX `fk_region_id` (`region_id` ASC) ,
-  CONSTRAINT `fk_site_region_id`
+  CONSTRAINT `fk_site_region`
     FOREIGN KEY (`region_id` )
     REFERENCES `region` (`id` )
     ON DELETE NO ACTION
@@ -446,7 +446,6 @@ CREATE  TABLE IF NOT EXISTS `assignment_note` (
   `note` TEXT NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_assignment_id` (`assignment_id` ASC) ,
-  INDEX `fk_assignment_note_user` (`user_id` ASC) ,
   INDEX `fk_user_id` (`user_id` ASC) ,
   CONSTRAINT `fk_assignment_note_assignment`
     FOREIGN KEY (`assignment_id` )
@@ -538,16 +537,16 @@ CREATE  TABLE IF NOT EXISTS `queue_restriction` (
   `region_id` INT UNSIGNED NULL DEFAULT NULL ,
   `postcode` VARCHAR(10) NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `fk_region_id` (`region_id` ASC) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
+  CONSTRAINT `fk_queue_restriction_region`
+    FOREIGN KEY (`region_id` )
+    REFERENCES `region` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
   CONSTRAINT `fk_queue_restriction_site`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_queue_restrictions_region`
-    FOREIGN KEY (`region_id` )
-    REFERENCES `region` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -568,8 +567,8 @@ CREATE  TABLE IF NOT EXISTS `jurisdiction` (
   `latitude` FLOAT NOT NULL ,
   `distance` FLOAT NOT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_jurisdiction_site` (`site_id` ASC) ,
   UNIQUE INDEX `uq_postcode` (`postcode` ASC) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
   CONSTRAINT `fk_jurisdiction_site`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
@@ -611,12 +610,13 @@ CREATE  TABLE IF NOT EXISTS `onyx_instance` (
   `create_timestamp` TIMESTAMP NOT NULL ,
   `site_id` INT UNSIGNED NOT NULL ,
   `user_id` INT UNSIGNED NOT NULL ,
-  `interviewer_user_id` INT UNSIGNED NULL COMMENT 'The interviewer\'s instance of onyx, or site\'s if null.' ,
+  `interviewer_user_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'The interviewer\'s instance of onyx, or site\'s if null.' ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_site_id` (`site_id` ASC) ,
   UNIQUE INDEX `uq_site_id_interviewer_id` (`site_id` ASC, `interviewer_user_id` ASC) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `fk_user_id` (`user_id` ASC) ,
-  INDEX `fk_interviewer_user_id` (`interviewer_user_id` ASC) ,
+  INDEX `fk_interview_user_id` (`interviewer_user_id` ASC) ,
+  INDEX `fk_onyx_instance_interview_user` (`user_id` ASC) ,
   CONSTRAINT `fk_onyx_instance_site`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
@@ -627,8 +627,8 @@ CREATE  TABLE IF NOT EXISTS `onyx_instance` (
     REFERENCES `user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_onyx_instance_interviewer_user`
-    FOREIGN KEY (`interviewer_user_id` )
+  CONSTRAINT `fk_onyx_instance_interview_user`
+    FOREIGN KEY (`user_id` )
     REFERENCES `user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
@@ -648,7 +648,7 @@ CREATE TABLE IF NOT EXISTS `participant_last_assignment` (`participant_id` INT, 
 -- -----------------------------------------------------
 -- Placeholder table for view `participant_for_queue`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `participant_for_queue` (`id` INT, `update_timestamp` INT, `create_timestamp` INT, `active` INT, `uid` INT, `first_name` INT, `last_name` INT, `status` INT, `language` INT, `prior_contact_date` INT, `city` INT, `region_id` INT, `postcode` INT, `phone_number_count` INT, `last_consent` INT, `last_assignment_id` INT, `site_id` INT, `assigned` INT, `current_qnaire_id` INT, `current_qnaire_type` INT, `start_qnaire_date` INT);
+CREATE TABLE IF NOT EXISTS `participant_for_queue` (`id` INT, `update_timestamp` INT, `create_timestamp` INT, `active` INT, `uid` INT, `first_name` INT, `last_name` INT, `status` INT, `language` INT, `prior_contact_date` INT, `city` INT, `region_id` INT, `postcode` INT, `primary_postcode` INT, `phone_number_count` INT, `last_consent` INT, `last_assignment_id` INT, `site_id` INT, `assigned` INT, `current_qnaire_id` INT, `current_qnaire_type` INT, `start_qnaire_date` INT);
 
 -- -----------------------------------------------------
 -- Placeholder table for view `assignment_last_phone_call`
@@ -725,7 +725,8 @@ SELECT participant.*,
        first_address.city,
        first_address.region_id,
        first_address.postcode,
-       COUNT( DISTINCT phone.id ) as phone_number_count,
+       primary_address.postcode AS primary_postcode,
+       COUNT( DISTINCT phone.id ) AS phone_number_count,
        consent.event AS last_consent,
        assignment.id AS last_assignment_id,
        jurisdiction.site_id,

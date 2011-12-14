@@ -160,7 +160,37 @@ class queue extends \cenozo\database\record
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
 
     // restrict to the site
-    if( !is_null( $this->db_site ) ) $modifier->where( 'participant.site_id', '=', $this->db_site->id );
+    if( !is_null( $this->db_site ) )
+    {
+      $modifier->where( 'participant.site_id', '=', $this->db_site->id );
+    }
+    else if( !is_null( $this->db_access ) )
+    { // restrict to the access
+      $modifier->where( 'participant.site_id', '=', $this->db_access->get_site()->id );
+      $modifier->where_bracket( true );
+
+      $coverage_class_name = lib::get_class_name( 'database\coverage' );
+      $coverage_mod = lib::create( 'database\modifier' );
+      $coverage_mod->where( 'access_id', '=', $this->db_access->id );
+      $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
+      foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
+      {
+        $modifier->where_bracket( true, true );
+        // within the coverage
+        $modifier->where( 'primary_postcode', 'LIKE', $db_coverage->postcode_mask );
+        // but outside other coverages
+        $inner_coverage_mod = lib::create( 'database\modifier' );
+        $inner_coverage_mod->where( 'access_id', '!=', $this->db_access->id );
+        $inner_coverage_mod->where( 'access.site_id', '=', $this->db_access->site_id );
+        $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
+        foreach( $coverage_class_name::select( $inner_coverage_mod ) as $db_inner_coverage )
+          $modifier->where(
+            'primary_postcode', 'NOT LIKE', $db_inner_coverage->postcode_mask );
+        $modifier->where_bracket( false );
+      }
+
+      $modifier->where_bracket( false );
+    }
     
     return static::db()->get_one(
       sprintf( '%s %s',
@@ -213,6 +243,17 @@ class queue extends \cenozo\database\record
   public function set_site( $db_site = NULL )
   {
     $this->db_site = $db_site;
+  }
+  
+  /**
+   * The access to restrict the queue to.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param access $db_access
+   * @access public
+   */
+  public function set_access( $db_access = NULL )
+  {
+    $this->db_access = $db_access;
   }
   
   /**
@@ -791,6 +832,13 @@ class queue extends \cenozo\database\record
    * @var site
    */
   protected $db_site = NULL;
+
+  /**
+   * The access to restrict the queue to.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @var access
+   */
+  protected $db_access = NULL;
 
   /**
    * The date (YYYY-MM-DD) with respect to check all queue states.

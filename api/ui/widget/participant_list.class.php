@@ -69,18 +69,10 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    $access_class_name = lib::get_class_name( 'database\access' );
+    $session = lib::create( 'business\session' );
     $participant_class_name = lib::get_class_name( 'database\participant' );
-    $db_role = lib::create( 'business\session' )->get_role();
-    if( 'interviewer' == $db_role->name )
-    {
-      $db_user = lib::create( 'business\session' )->get_user();
-      $db_site = lib::create( 'business\session' )->get_site();
-      $db_access = $access_class_name::get_unique_record(
-        array( 'user_id', 'site_id', 'role_id' ),
-        array( $db_user->id, $db_site->id, $db_role->id ) );
-      return $participant_class_name::count_for_access( $db_access, $modifier );
-    }
+    if( 'interviewer' == $session->get_role()->name )
+      return $participant_class_name::count_for_access( $session->get_access(), $modifier );
 
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_count( $modifier )
@@ -97,18 +89,10 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    $access_class_name = lib::get_class_name( 'database\access' );
+    $session = lib::create( 'business\session' );
     $participant_class_name = lib::get_class_name( 'database\participant' );
-    $db_role = lib::create( 'business\session' )->get_role();
-    if( 'interviewer' == $db_role->name )
-    {
-      $db_user = lib::create( 'business\session' )->get_user();
-      $db_site = lib::create( 'business\session' )->get_site();
-      $db_access = $access_class_name::get_unique_record(
-        array( 'user_id', 'site_id', 'role_id' ),
-        array( $db_user->id, $db_site->id, $db_role->id ) );
-      return $participant_class_name::select_for_access( $db_access, $modifier );
-    }
+    if( 'interviewer' == $session->get_role()->name )
+      return $participant_class_name::select_for_access( $session->get_access(), $modifier );
 
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_list( $modifier )

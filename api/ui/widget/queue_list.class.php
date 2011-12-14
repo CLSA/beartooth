@@ -97,8 +97,12 @@ class queue_list extends \cenozo\ui\widget\base_list
     foreach( $this->get_record_list() as $record )
     {
       // restrict to the current site if the current user is a mid tier role
-      if( $is_mid_tier ) $record->set_site( $session->get_site() );
-      else if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );
+      if( $is_top_tier )
+      {
+        if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );
+      }
+      else if( $is_mid_tier ) $record->set_site( $session->get_site() );
+      else $record->set_access( $session->get_access() );
       
       // restrict to the current qnaire
       $record->set_qnaire( $db_restrict_qnaire );
