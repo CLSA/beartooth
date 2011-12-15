@@ -64,6 +64,34 @@ SELECT postcode, 10, 0.0, 0.0, 25 * RAND() FROM address ORDER BY postcode LIMIT 
 INSERT INTO jurisdiction ( postcode, site_id, longitude, latitude, distance )
 SELECT postcode, 11, 0.0, 0.0, 25 * RAND() FROM address ORDER BY postcode LIMIT 900, 100;
 
+INSERT INTO coverage( postcode_mask, access_id )
+SELECT 'A%', access.id AS access_id
+FROM access, user, role, site
+WHERE access.user_id = user.id AND user.name = 'patrick'
+AND access.role_id = role.id AND role.name = 'interviewer'
+AND access.site_id = site.id AND site.name = 'Hamilton';
+
+INSERT INTO coverage( postcode_mask, access_id )
+SELECT 'B%', access.id AS access_id
+FROM access, user, role, site
+WHERE access.user_id = user.id AND user.name = 'dean'
+AND access.role_id = role.id AND role.name = 'interviewer'
+AND access.site_id = site.id AND site.name = 'Hamilton';
+
+INSERT INTO coverage( postcode_mask, access_id )
+SELECT 'A1E%', access.id AS access_id
+FROM access, user, role, site
+WHERE access.user_id = user.id AND user.name = 'dean'
+AND access.role_id = role.id AND role.name = 'interviewer'
+AND access.site_id = site.id AND site.name = 'Hamilton';
+
+INSERT INTO coverage( postcode_mask, access_id )
+SELECT 'B2%', access.id AS access_id
+FROM access, user, role, site
+WHERE access.user_id = user.id AND user.name = 'patrick'
+AND access.role_id = role.id AND role.name = 'interviewer'
+AND access.site_id = site.id AND site.name = 'Hamilton';
+
 INSERT INTO qnaire ( name, rank, type, prev_qnaire_id, delay ) VALUES
 ( 'Baseline Home', 1, 'home', NULL, 0 ),
 ( 'Baseline Site', 2, 'site', 1, 0 ),
