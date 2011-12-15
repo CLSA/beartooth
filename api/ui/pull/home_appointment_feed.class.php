@@ -39,6 +39,8 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
    */
   public function finish()
   {
+    $setting_manager = lib::create( 'business\setting_manager' );
+
     // get this user's interview access
     $db_access = lib::create( 'business\session' )->get_access();
 
@@ -56,7 +58,7 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
       $end_datetime_obj = clone $start_datetime_obj;
       $end_datetime_obj->modify(
         sprintf( '+%d minute',
-        lib::create( 'business\setting_manager' )->get_setting( 'appointment', 'home duration' ) ) );
+        $setting_manager->get_setting( 'appointment', 'home duration' ) ) );
 
       $db_participant = $db_appointment->get_participant();
       $event_list[] = array(

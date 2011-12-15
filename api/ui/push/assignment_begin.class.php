@@ -38,7 +38,8 @@ class assignment_begin extends \cenozo\ui\push
   {
     $session = lib::create( 'business\session' );
 
-    $db_participant = lib::create( 'database\participant', $this->get_argument( 'participant_id' ) );
+    $db_participant =
+      lib::create( 'database\participant', $this->get_argument( 'participant_id' ) );
     
     // make sure the qnaire has phases
     $db_qnaire = lib::create( 'database\qnaire', $db_participant->current_qnaire_id );

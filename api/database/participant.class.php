@@ -329,7 +329,9 @@ class participant extends \cenozo\database\has_note
     // need custom SQL
     $class_name = lib::get_class_name( 'database\database' );
     $phone_call_id = static::db()->get_one(
-      sprintf( 'SELECT phone_call_id FROM participant_last_contacted_phone_call WHERE participant_id = %s',
+      sprintf( 'SELECT phone_call_id '.
+               'FROM participant_last_contacted_phone_call '.
+               'WHERE participant_id = %s',
                $class_name::format_string( $this->id ) ) );
     return $phone_call_id ? lib::create( 'database\phone_call', $phone_call_id ) : NULL;
   }

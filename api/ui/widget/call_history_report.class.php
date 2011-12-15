@@ -34,7 +34,7 @@ class call_history_report extends base_report
 
     $this->set_variable( 'description',
       'This report chronologically lists assignment call attempts.  The report includes the '.
-      'participant\'s UID, interviewer\'s name, date of the assignment, result, start and end time '.
+      "participant's UID, interviewer's name, date of the assignment, result, start and end time ".
       'of each call.' );
   }
 

@@ -31,7 +31,9 @@ class queue_restriction_view extends \cenozo\ui\widget\base_view
 
     // define all columns defining this record
 
-    $type = 'administrator' == lib::create( 'business\session' )->get_role()->name ? 'enum' : 'hidden';
+    $type = 'administrator' == lib::create( 'business\session' )->get_role()->name
+          ? 'enum'
+          : 'hidden';
     $this->add_item( 'site_id', $type, 'Site' );
     $this->add_item( 'city', 'string', 'City' );
     $this->add_item( 'region_id', 'enum', 'Region' );

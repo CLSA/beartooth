@@ -52,7 +52,8 @@ class phone_call_begin extends \cenozo\ui\push
 
       if( $db_phone->participant_id != $db_assignment->get_interview()->participant_id )
         throw lib::create( 'exception\runtime',
-          'Interviewer tried to make call to participant who is not currently assigned.', __METHOD__ );
+          'Interviewer tried to make call to participant who is not currently assigned.',
+          __METHOD__ );
     }
     
     // connect voip to phone

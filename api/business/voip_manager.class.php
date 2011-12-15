@@ -52,7 +52,8 @@ class voip_manager extends \cenozo\singleton
       // create and connect to the shift8 AJAM interface
       $this->manager = new \Shift8( $this->url, $this->username, $this->password );
       if( !$this->manager->login() )
-        throw lib::create( 'exception\runtime', 'Unable to connect to the Asterisk server.', __METHOD__ );
+        throw lib::create( 'exception\runtime',
+          'Unable to connect to the Asterisk server.', __METHOD__ );
 
       // get the current SIP info
       $peer = lib::create( 'business\session' )->get_user()->name;
@@ -72,7 +73,8 @@ class voip_manager extends \cenozo\singleton
     }
     catch( \Shift8_Exception $e )
     {
-      throw lib::create( 'exception\voip', 'Failed to initialize Asterisk AJAM interface.', __METHOD__, $e );
+      throw lib::create( 'exception\voip',
+        'Failed to initialize Asterisk AJAM interface.', __METHOD__, $e );
     }
   }
   
@@ -110,7 +112,9 @@ class voip_manager extends \cenozo\singleton
     if( !$this->enabled ) return NULL;
     if( is_null( $this->call_list ) ) $this->rebuild_call_list();
 
-    $peer = is_null( $db_user ) ? lib::create( 'business\session' )->get_user()->name : $db_user->name;
+    $peer = is_null( $db_user )
+          ? lib::create( 'business\session' )->get_user()->name
+          : $db_user->name;
 
     // build the call list
     $calls = array();

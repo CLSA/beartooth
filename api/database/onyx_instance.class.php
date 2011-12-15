@@ -25,7 +25,8 @@ class onyx_instance extends \cenozo\database\record
    */
   public function get_interviewer_user()
   {
-    return $this->interviewer_user_id ? lib::create( 'database\user', $this->interviewer_user_id ) : NULL;
+    return $this->interviewer_user_id ?
+      lib::create( 'database\user', $this->interviewer_user_id ) : NULL;
   }
 }
 ?>

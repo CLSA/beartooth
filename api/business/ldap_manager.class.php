@@ -98,12 +98,14 @@ class ldap_manager extends \cenozo\business\ldap_manager
 
     $search = @ldap_search( $this->resource, $this->base, sprintf( '(&(uid=%s))', $username ) );
     if( !$search )
-      throw lib::create( 'exception\ldap', ldap_error( $this->resource ), ldap_errno( $this->resource ) );
+      throw lib::create( 'exception\ldap',
+        ldap_error( $this->resource ), ldap_errno( $this->resource ) );
     
     $entries = @ldap_get_entries( $this->resource, $search );
     ldap_free_result( $search );
     if( !$entries )
-      throw lib::create( 'exception\ldap', ldap_error( $this->resource ), ldap_errno( $this->resource ) );
+      throw lib::create( 'exception\ldap',
+        ldap_error( $this->resource ), ldap_errno( $this->resource ) );
     
     if( 0 == $entries['count'] )
       throw lib::create( 'exception\runtime', 'LDAP user '.$username.' not found.', __METHOD__ );
@@ -119,7 +121,8 @@ class ldap_manager extends \cenozo\business\ldap_manager
   
     $dn = $entries[0]['dn'];
     if( !( @ldap_mod_replace( $this->resource, $dn, $data ) ) )
-      throw lib::create( 'exception\ldap', ldap_error( $this->resource ), ldap_errno( $this->resource ) );
+      throw lib::create( 'exception\ldap',
+        ldap_error( $this->resource ), ldap_errno( $this->resource ) );
   }
 
   /**
@@ -136,12 +139,14 @@ class ldap_manager extends \cenozo\business\ldap_manager
     
     $search = @ldap_search( $this->resource, $this->base, '(&(uid=*))' );
     if( !$search )
-      throw lib::create( 'exception\ldap', ldap_error( $this->resource ), ldap_errno( $this->resource ) );
+      throw lib::create( 'exception\ldap',
+        ldap_error( $this->resource ), ldap_errno( $this->resource ) );
     
     $entries = @ldap_get_entries( $this->resource, $search );
     ldap_free_result( $search );
     if( !$entries )
-      throw lib::create( 'exception\ldap', ldap_error( $this->resource ), ldap_errno( $this->resource ) );
+      throw lib::create( 'exception\ldap',
+        ldap_error( $this->resource ), ldap_errno( $this->resource ) );
     
     $max_id = 999;
     foreach( $entries as $index => $entry )

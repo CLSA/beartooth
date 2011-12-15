@@ -91,7 +91,8 @@ abstract class base_report extends \cenozo\ui\widget\base_report
       array_unshift( $consent_types, 'Any' );
       $consent_types = array_combine( $consent_types, $consent_types );
 
-      $this->set_parameter( 'restrict_consent_id', current( $consent_types ), true, $consent_types );
+      $this->set_parameter(
+        'restrict_consent_id', current( $consent_types ), true, $consent_types );
     }
 
     if( $this->restrictions[ 'mailout' ] )
@@ -100,7 +101,8 @@ abstract class base_report extends \cenozo\ui\widget\base_report
                               'Proxy information package' );
       $mailout_types = array_combine( $mailout_types, $mailout_types );
 
-      $this->set_parameter( 'restrict_mailout_id', current( $mailout_types ), true, $mailout_types );
+      $this->set_parameter(
+        'restrict_mailout_id', current( $mailout_types ), true, $mailout_types );
     }
 
     parent::finish();

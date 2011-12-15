@@ -92,8 +92,8 @@ class interviewer_assignment extends \cenozo\ui\widget
 
     if( 0 == count( $db_phone_list ) && 0 == $current_calls )
     {
-      log::crit(
-        sprintf( 'An interviewer has been assigned participant %d who has no callable phone numbers',
+      log::crit( sprintf(
+        'An interviewer has been assigned participant %d who has no callable phone numbers',
         $db_participant->id ) );
     }
     else

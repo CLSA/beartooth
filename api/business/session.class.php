@@ -94,7 +94,8 @@ class session extends \cenozo\business\session
   {
     // make sure the user is an interviewer
     if( 'interviewer' != $this->get_role()->name )
-      throw lib::create( 'exception\runtime', 'Tried to get assignment for non-interviewer.', __METHOD__ );
+      throw lib::create( 'exception\runtime',
+        'Tried to get assignment for non-interviewer.', __METHOD__ );
     
     // query for assignments which do not have a end time
     $modifier = lib::create( 'database\modifier' );
@@ -124,7 +125,8 @@ class session extends \cenozo\business\session
   {
     // make sure the user is an interviewer
     if( 'interviewer' != $this->get_role()->name )
-      throw lib::create( 'exception\runtime', 'Tried to get phone call for non-interviewer.', __METHOD__ );
+      throw lib::create( 'exception\runtime',
+        'Tried to get phone call for non-interviewer.', __METHOD__ );
     
     // without an assignment there can be no current call
     $db_assignment = $this->get_current_assignment();
@@ -155,17 +157,19 @@ class session extends \cenozo\business\session
   public function get_allow_call()
   {
     $allow = false;
-    if( !lib::create( 'business\setting_manager' )->get_setting( 'voip', 'enabled' ) )
+    $setting_manager = lib::create( 'business\setting_manager' );
+    $voip_manager = lib::create( 'business\voip_manager' );
+    if( !$setting_manager->get_setting( 'voip', 'enabled' ) )
     { // if voip is not enabled then allow calls
       $allow = true;
     }
-    if( lib::create( 'business\voip_manager' )->get_sip_enabled() )
+    if( $voip_manager->get_sip_enabled() )
     { // voip is enabled, so make sure sip is also enabled
       $allow = true;
     }
     else
     { // check to see if we can call without a SIP connection
-      $allow = lib::create( 'business\setting_manager' )->get_setting( 'voip', 'survey without sip' );
+      $allow = $setting_manager->get_setting( 'voip', 'survey without sip' );
     }
 
     return $allow;

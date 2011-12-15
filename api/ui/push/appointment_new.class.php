@@ -48,7 +48,8 @@ class appointment_new extends \cenozo\ui\push\base_new
     $force = $this->get_argument( 'force', false );
     
     if( !$force && !$this->get_record()->validate_date() )
-      throw lib::create( 'exception\notice', 'There are no openings available during that time.', __METHOD__ );
+      throw lib::create( 'exception\notice',
+        'There are no openings available during that time.', __METHOD__ );
     
     // no errors, go ahead and make the change
     parent::finish();

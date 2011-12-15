@@ -39,6 +39,8 @@ class site_appointment_feed extends \cenozo\ui\pull\base_feed
    */
   public function finish()
   {
+    $setting_manager = lib::create( 'business\setting_manager' );
+
     // create a list of site appointments between the feed's start and end time
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'appointment.address_id', '=', NULL );
@@ -54,7 +56,7 @@ class site_appointment_feed extends \cenozo\ui\pull\base_feed
       $end_datetime_obj = clone $start_datetime_obj;
       $end_datetime_obj->modify(
         sprintf( '+%d minute',
-        lib::create( 'business\setting_manager' )->get_setting( 'appointment', 'site duration' ) ) );
+        $setting_manager->get_setting( 'appointment', 'site duration' ) ) );
 
       $db_participant = $db_appointment->get_participant();
       $event_list[] = array(

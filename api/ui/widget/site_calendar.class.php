@@ -28,7 +28,8 @@ class site_calendar extends \cenozo\ui\widget\base_calendar
   public function __construct( $args )
   {
     parent::__construct( 'site', $args );
-    $this->set_heading( 'Open appointment slots for '.lib::create( 'business\session' )->get_site()->name );
+    $this->set_heading(
+      'Open appointment slots for '.lib::create( 'business\session' )->get_site()->name );
   }
   
   /**

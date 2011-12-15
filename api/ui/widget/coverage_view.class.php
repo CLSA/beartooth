@@ -56,7 +56,8 @@ class coverage_view extends \cenozo\ui\widget\base_view
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'role_id', '=', $db_role->id );
     $class_name = lib::get_class_name( 'database\user' );
-    foreach( $class_name::select( $modifier ) as $db_user ) $user_list[$db_user->id] = $db_user->name;
+    foreach( $class_name::select( $modifier ) as $db_user )
+      $user_list[$db_user->id] = $db_user->name;
     
     $postcode_mask = str_replace( '%', '', $this->get_record()->postcode_mask );
 

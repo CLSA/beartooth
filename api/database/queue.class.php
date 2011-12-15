@@ -248,7 +248,8 @@ class queue extends \cenozo\database\record
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
 
     // restrict to the site
-    if( !is_null( $this->db_site ) ) $modifier->where( 'participant.site_id', '=', $this->db_site->id );
+    if( !is_null( $this->db_site ) )
+      $modifier->where( 'participant.site_id', '=', $this->db_site->id );
 
     $participant_ids = static::db()->get_col(
       sprintf( '%s %s',
@@ -671,7 +672,8 @@ class queue extends \cenozo\database\record
     {
       // make sure a phone call status has been included (all remaining queues require it)
       if( is_null( $phone_call_status ) )
-        throw lib::create( 'exception\argument', 'phone_call_status', $phone_call_status, __METHOD__ );
+        throw lib::create( 'exception\argument',
+          'phone_call_status', $phone_call_status, __METHOD__ );
 
       if( 'phone call status' == $queue )
       {
