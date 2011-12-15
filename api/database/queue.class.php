@@ -152,12 +152,13 @@ class queue extends \cenozo\database\record
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param modifier $modifier Modifications to the queue.
+   * @param boolean $use_cache Whether to use the cached value (if one exists)
    * @return int
    * @access public
    */
-  public function get_participant_count( $modifier = NULL )
+  public function get_participant_count( $modifier = NULL, $use_cache = true )
   {
-    if( array_key_exists( $this->name, self::$participant_count_cache ) )
+    if( $use_cache && array_key_exists( $this->name, self::$participant_count_cache ) )
       return self::$participant_count_cache[$this->name];
 
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
