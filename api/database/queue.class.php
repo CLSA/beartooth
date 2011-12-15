@@ -157,45 +157,81 @@ class queue extends \cenozo\database\record
    */
   public function get_participant_count( $modifier = NULL )
   {
+    if( array_key_exists( $this->name, self::$participant_count_cache ) )
+      return self::$participant_count_cache[$this->name];
+
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
 
     // restrict to the site
-    if( !is_null( $this->db_site ) )
-    {
-      $modifier->where( 'participant.site_id', '=', $this->db_site->id );
-    }
-    else if( !is_null( $this->db_access ) )
+    if( !is_null( $this->db_access ) )
     { // restrict to the access
       $modifier->where( 'participant.site_id', '=', $this->db_access->get_site()->id );
-      $modifier->where_bracket( true );
 
       $coverage_class_name = lib::get_class_name( 'database\coverage' );
       $coverage_mod = lib::create( 'database\modifier' );
       $coverage_mod->where( 'access_id', '=', $this->db_access->id );
       $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
-      foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
+      $coverage_list = $coverage_class_name::select( $coverage_mod );
+      if( 0 == count( $coverage_list ) )
       {
-        $modifier->where_bracket( true, true );
-        // within the coverage
-        $modifier->where( 'primary_postcode', 'LIKE', $db_coverage->postcode_mask );
-        // but outside other coverages
-        $inner_coverage_mod = lib::create( 'database\modifier' );
-        $inner_coverage_mod->where( 'access_id', '!=', $this->db_access->id );
-        $inner_coverage_mod->where( 'access.site_id', '=', $this->db_access->site_id );
-        $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
-        foreach( $coverage_class_name::select( $inner_coverage_mod ) as $db_inner_coverage )
-          $modifier->where(
-            'primary_postcode', 'NOT LIKE', $db_inner_coverage->postcode_mask );
+        // no coverages means no participants
+        $modifier->where( 'primary_postcode', '=', NULL );
+      }
+      else
+      {
+        $modifier->where_bracket( true );
+        foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
+        {
+          $modifier->where_bracket( true, true );
+          // within the coverage
+          $modifier->where( 'primary_postcode', 'LIKE', $db_coverage->postcode_mask );
+          // but outside other coverages
+          $inner_coverage_mod = lib::create( 'database\modifier' );
+          $inner_coverage_mod->where( 'access_id', '!=', $this->db_access->id );
+          $inner_coverage_mod->where( 'access.site_id', '=', $this->db_access->site_id );
+          $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
+          foreach( $coverage_class_name::select( $inner_coverage_mod ) as $db_inner_coverage )
+            $modifier->where(
+              'primary_postcode', 'NOT LIKE', $db_inner_coverage->postcode_mask );
+          $modifier->where_bracket( false );
+        }
         $modifier->where_bracket( false );
       }
-
-      $modifier->where_bracket( false );
+    }
+    else if( !is_null( $this->db_site ) )
+    {
+      $modifier->where( 'participant.site_id', '=', $this->db_site->id );
     }
     
-    return static::db()->get_one(
+    self::$participant_count_cache[$this->name] = (integer) static::db()->get_one(
       sprintf( '%s %s',
                $this->get_sql( 'COUNT( DISTINCT participant.id )' ),
                $modifier->get_sql( true ) ) );
+    
+    // if the value is 0 then update all child counts with 0 to save processing time
+    if( 0 == self::$participant_count_cache[$this->name] )
+      static::set_child_count_cache_to_zero( $this );
+
+    return self::$participant_count_cache[$this->name];
+  }
+
+  /**
+   * A recursive method to set the count cache for all child queues to 0.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\queue $db_queue
+   * @static
+   * @access private
+   */
+  private static function set_child_count_cache_to_zero( $db_queue )
+  {
+    $queue_mod = lib::create( 'database\modifier' );
+    $queue_mod->where( 'parent_queue_id', '=', $db_queue->id );
+    foreach( static::select( $queue_mod ) as $db_child_queue )
+    {
+      self::$participant_count_cache[$db_child_queue->name] = 0;
+      self::set_child_count_cache_to_zero( $db_child_queue );
+    }
   }
 
   /**
@@ -859,9 +895,17 @@ class queue extends \cenozo\database\record
   /**
    * The queries for each queue
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @var associative array
+   * @var associative array of strings
    * @static
    */
   protected static $query_list = array();
+
+  /**
+   * A cache of participant counts for each queue
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @var associative array of integers
+   * @static
+   */
+  protected static $participant_count_cache = array();
 }
 ?>

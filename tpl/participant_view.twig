@@ -17,7 +17,7 @@
         $( function () {
           $( "button.{{ widget.full }}_assign" ).click( function() {
             if( ajax_push( "assignment", "begin", { "participant_id": {{ id }} } ) )
-              slot_refresh( {{ slot }} );
+              window.location.reload();
           } );
         } );
       } );

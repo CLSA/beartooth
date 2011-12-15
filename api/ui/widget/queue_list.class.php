@@ -96,7 +96,7 @@ class queue_list extends \cenozo\ui\widget\base_list
     $setting_manager = lib::create( 'business\setting_manager' );
     foreach( $this->get_record_list() as $record )
     {
-      // restrict to the current site if the current user is a mid tier role
+      // restrict queue based on user's role
       if( $is_top_tier )
       {
         if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );

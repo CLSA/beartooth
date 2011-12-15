@@ -45,29 +45,20 @@ class assignment_end extends \cenozo\ui\push
         throw lib::create( 'exception\notice',
           'An assignment cannot be ended while in a call.', __METHOD__ );
       
-      // if there is an appointment associated with this assignment, set the status
-      $appointment_list = $db_assignment->get_appointment_list();
-      if( 0 < count( $appointment_list ) )
+      // if no call was made then delete the assignment
+      if( 0 == $db_assignment->get_phone_call_count() )
       {
-        // there should always only be one appointment per assignment
-        if( 1 < count( $appointment_list ) )
-          log::crit(
-            sprintf( 'Assignment %d has more than one associated appointment!',
-                     $db_assignment->id ) );
-
-        $db_appointment = current( $appointment_list );
-
-        // set the appointment status based on whether any calls reached the participant
-        $modifier = lib::create( 'database\modifier' );
-        $modifier->where( 'status', '=', 'contacted' );
-        $db_appointment->reached = 0 < $db_assignment->get_phone_call_count( $modifier );
-        $db_appointment->save();
+        foreach( $db_assignment->get_assignment_note_list() as $db_assignment_note )
+          $db_assignment_note->delete();
+        $db_assignment->delete();
       }
-
-      // save the assignment's end time
-      $date_obj = util::get_datetime_object();
-      $db_assignment->end_datetime = $date_obj->format( 'Y-m-d H:i:s' );
-      $db_assignment->save();
+      else
+      {
+        // save the assignment's end time
+        $date_obj = util::get_datetime_object();
+        $db_assignment->end_datetime = $date_obj->format( 'Y-m-d H:i:s' );
+        $db_assignment->save();
+      }
     }
   }
 }
