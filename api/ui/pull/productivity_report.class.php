@@ -217,7 +217,7 @@ class productivity_report extends \cenozo\ui\pull\base_report
           $max_datetime_obj = $activity_class_name::get_max_datetime( $day_activity_mod );
 
           $contents[] = array(
-            $db_user->first_name.' '.$db_user->last_name,
+            $db_user->name,
             $completes,
             is_null( $min_datetime_obj ) ? '??' : $min_datetime_obj->format( "H:i" ),
             is_null( $max_datetime_obj ) ? '??' : $max_datetime_obj->format( "H:i" ),
@@ -229,7 +229,7 @@ class productivity_report extends \cenozo\ui\pull\base_report
         else
         {
           $contents[] = array(
-            $db_user->first_name.' '.$db_user->last_name,
+            $db_user->name,
             $completes,
             sprintf( '%0.2f', $total_time ),
             $total_time > 0 ? sprintf( '%0.2f', $completes / $total_time ) : '',
