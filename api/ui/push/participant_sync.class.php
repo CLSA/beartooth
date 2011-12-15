@@ -42,22 +42,22 @@ class participant_sync extends \cenozo\ui\push
     $address_class_name = lib::get_class_name( 'database\address' );
 
     $db_site = $site_class_name::get_unique_record( 'name', 'Sherbrooke' );
-    $mastodon_manager = lib::create( 'business\mastodon_manager' );
+    $cenozo_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $uid_list_string = preg_replace( '/[\'"]/', '', $this->get_argument( 'uid_list' ) );
     $uid_list = array_unique( preg_split( '/[\s,]+/', $uid_list_string ) );
     foreach( $uid_list as $uid )
     {
-      $args = array( 'uid' => $uid, 'full' => true );
+      $args = array( 'uid' => $uid, 'full' => true, 'cohort' => 'comprehensive' );
       try // if the participant is missing we'll get a mastodon error
       {
-        $response = $mastodon_manager->pull( 'participant', 'primary', $args );
+        $response = $cenozo_manager->pull( 'participant', 'primary', $args );
         
         // if the participant already exists then skip
         // TODO: upgrade so that this code includes existing participants as well
         $db_participant = $participant_class_name::get_unique_record( 'uid', $uid );
         if( !is_null( $db_participant ) ) continue;
         
-        $db_participant = new db\participant();
+        $db_participant = lib::create( 'database\participant' );
 
         foreach( $db_participant->get_column_names() as $column )
           if( 'id' != $column && 'site_id' != $column )
@@ -72,7 +72,7 @@ class participant_sync extends \cenozo\ui\push
         // update addresses
         foreach( $response->data->address_list as $address_info )
         {
-          $db_address = new db\address();
+          $db_address = lib::create( 'database\address' );
           $db_address->participant_id = $db_participant->id;
 
           foreach( $db_address->get_column_names() as $column )
@@ -90,7 +90,7 @@ class participant_sync extends \cenozo\ui\push
         // update phones
         foreach( $response->data->phone_list as $phone_info )
         {
-          $db_phone = new db\phone();
+          $db_phone = lib::create( 'database\phone' );
           $db_phone->participant_id = $db_participant->id;
 
           foreach( $db_phone->get_column_names() as $column )
@@ -112,7 +112,7 @@ class participant_sync extends \cenozo\ui\push
         // update consent
         foreach( $response->data->consent_list as $consent_info )
         {
-          $db_consent = new db\consent();
+          $db_consent = lib::create( 'database\consent' );
           $db_consent->participant_id = $db_participant->id;
 
           foreach( $db_consent->get_column_names() as $column )
@@ -122,7 +122,8 @@ class participant_sync extends \cenozo\ui\push
           $db_consent->save();
         }
       }
-      catch( exc\mastodon $e ) {}
+      // ignore all errors
+      catch( \cenozo\exception\cenozo_service $e ) {}
     }
   }
 }
