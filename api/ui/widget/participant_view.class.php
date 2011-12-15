@@ -123,9 +123,21 @@ class participant_view extends \cenozo\ui\widget\base_view
   {
     parent::finish();
     
-    // set whether or not to show the assign button
-    $allow_assign = 'interviewer' == lib::create( 'business\session' )->get_role()->name &&
-                    0 < $this->get_record()->get_phone_count();
+    // set whether or not to show the assign button based on if the participant's eligibility
+    $allow_assign = 'interviewer' == lib::create( 'business\session' )->get_role()->name;
+    if( !is_null( $this->get_record()->status ) )
+    {
+      $allow_assign = false;
+    }
+    else
+    {
+      $queue_class_name = lib::get_class_name( 'database\queue' );
+      $db_queue = $queue_class_name::get_unique_record( 'name', 'eligible' );
+      $queue_mod = lib::create( 'database\modifier' );
+      $queue_mod->where( 'participant.id', '=', $this->get_record()->id );
+      $allow_assign = $allow_assign && 1 == $db_queue->get_participant_count( $queue_mod );
+    }
+
     $this->set_variable( 'allow_assign', $allow_assign );
 
     // create enum arrays
