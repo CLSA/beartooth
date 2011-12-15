@@ -40,20 +40,16 @@ class onyx_instance_new extends \cenozo\ui\push\base_new
     // make sure that the username is not empty
     $columns = $this->get_argument( 'columns' );
     if( !$columns['username'] )
-      throw lib::create(
-        'exception\notice',
+      throw lib::create( 'exception\notice',
         'The onyx instance\'s user name cannot be left blank.', __METHOD__ );
     else if( !$columns['password'] )
-      throw lib::create(
-        'exception\notice',
+      throw lib::create( 'exception\notice',
         'You must provide a password at least 6 characters long.', __METHOD__ );
     else if( 6 > strlen( $columns['password'] ) )
-      throw lib::create(
-        'exception\notice',
+      throw lib::create( 'exception\notice',
         'Passwords must be at least 6 characters long.', __METHOD__ );
     else if( 'password' == $columns['password'] )
-      throw lib::create(
-        'exception\notice',
+      throw lib::create( 'exception\notice',
         'You cannot choose "password" as a password.', __METHOD__ );
     
     $db_interviewer_user = $columns['interviewer_user_id']

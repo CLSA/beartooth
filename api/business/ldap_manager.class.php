@@ -79,8 +79,8 @@ class ldap_manager extends \cenozo\business\ldap_manager
     $dn = sprintf( 'uid=%s,ou=Users,%s', $username, $this->base );
     if( !( @ldap_add( $this->resource, $dn, $data ) ) )
       if( 68 != ldap_errno( $this->resource ) )
-        throw lib::create(
-          'exception\ldap', ldap_error( $this->resource ), ldap_errno( $this->resource ) );
+        throw lib::create( 'exception\ldap',
+          ldap_error( $this->resource ), ldap_errno( $this->resource ) );
   }
 
   /**
