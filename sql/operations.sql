@@ -275,10 +275,6 @@ VALUES( "widget", "productivity", "report", true, "Set up a productivity report.
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "productivity", "report", true, "Download a productivity report." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "participant_status", "report", true, "Set up a participant status report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "participant_status", "report", true, "Download a participant status report." );
-INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "call_attempts", "report", true, "Set up a call attempts report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "call_attempts", "report", true, "Download a call attempts report." );
