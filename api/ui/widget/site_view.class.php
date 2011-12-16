@@ -27,7 +27,7 @@ class site_view extends \cenozo\ui\widget\site_view
    */
   public function __construct( $args )
   {
-    parent::__construct( 'site', 'view', $args );
+    parent::__construct( $args );
     
     // create an associative array with everything we want to display about the site
     $this->add_item( 'institution', 'string', 'Institution' );
