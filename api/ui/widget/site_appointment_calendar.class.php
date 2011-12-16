@@ -29,6 +29,7 @@ class site_appointment_calendar extends \cenozo\ui\widget\base_calendar
   {
     parent::__construct( 'site_appointment', $args );
     $this->set_heading( 'Site appointment calendar' );
+    $this->set_editable( 2 == lib::create( 'business\session' )->get_role()->tier );
   }
   
   /**
@@ -41,7 +42,6 @@ class site_appointment_calendar extends \cenozo\ui\widget\base_calendar
   {
     parent::finish();
     $this->set_variable( 'allow_all_day', false );
-    $this->set_variable( 'editable', 2 == lib::create( 'business\session' )->get_role()->tier );
   }
 }
 ?>

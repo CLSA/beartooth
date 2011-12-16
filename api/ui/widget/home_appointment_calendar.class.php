@@ -29,6 +29,7 @@ class home_appointment_calendar extends \cenozo\ui\widget\base_calendar
   {
     parent::__construct( 'home_appointment', $args );
     $this->set_heading( 'Home appointment calendar' );
+    $this->set_editable( true );
   }
   
   /**
@@ -41,7 +42,6 @@ class home_appointment_calendar extends \cenozo\ui\widget\base_calendar
   {
     parent::finish();
     $this->set_variable( 'allow_all_day', false );
-    $this->set_variable( 'editable', true );
   }
 }
 ?>

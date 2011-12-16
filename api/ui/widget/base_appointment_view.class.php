@@ -36,6 +36,7 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
       $this->site_appointment_calendar =
         lib::create( 'ui\widget\site_appointment_calendar', $args );
       $this->site_appointment_calendar->set_parent( $this );
+      $this->site_appointment_calendar->set_editable( false );
     }
     catch( \cenozo\exception\permission $e )
     {
@@ -48,6 +49,7 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
       $this->home_appointment_calendar =
         lib::create( 'ui\widget\home_appointment_calendar', $args );
       $this->home_appointment_calendar->set_parent( $this );
+      $this->home_appointment_calendar->set_editable( false );
     }
     catch( \cenozo\exception\permission $e )
     {
