@@ -51,15 +51,17 @@ class self_menu extends \cenozo\ui\widget\self_menu
   {
     parent::finish();
 
-    $lists = $this->get_variable( 'lists' );
+    $utilities = $this->get_variable( 'utilities' );
+    
+    // insert the participant tree into the utilities
+    $operation_class_name = lib::get_class_name( 'database\operation' );
+    $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'tree' );
+    if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+      $utilities[] = array( 'heading' => 'Participant Tree',
+                            'subject' => 'participant',
+                            'name' => 'tree' );
 
-    // insert the participant tree after participant list
-    if( 'interviewer' != lib::create( 'business\session' )->get_role() )
-      $lists[] = array( 'heading' => 'Participant Tree',
-                        'subject' => 'participant',
-                        'name' => 'tree' );
-
-    $this->set_variable( 'lists', $lists );
+    $this->set_variable( 'utilities', $utilities );
   }
 }
 ?>
