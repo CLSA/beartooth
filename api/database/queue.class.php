@@ -166,38 +166,12 @@ class queue extends \cenozo\database\record
     // restrict to the site
     if( !is_null( $this->db_access ) )
     { // restrict to the access
-      $modifier->where( 'participant.site_id', '=', $this->db_access->get_site()->id );
-
       $coverage_class_name = lib::get_class_name( 'database\coverage' );
-      $coverage_mod = lib::create( 'database\modifier' );
-      $coverage_mod->where( 'access_id', '=', $this->db_access->id );
-      $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
-      $coverage_list = $coverage_class_name::select( $coverage_mod );
-      if( 0 == count( $coverage_list ) )
-      {
-        // no coverages means no participants
-        $modifier->where( 'primary_postcode', '=', NULL );
-      }
-      else
-      {
-        $modifier->where_bracket( true );
-        foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
-        {
-          $modifier->where_bracket( true, true );
-          // within the coverage
-          $modifier->where( 'primary_postcode', 'LIKE', $db_coverage->postcode_mask );
-          // but outside other coverages
-          $inner_coverage_mod = lib::create( 'database\modifier' );
-          $inner_coverage_mod->where( 'access_id', '!=', $this->db_access->id );
-          $inner_coverage_mod->where( 'access.site_id', '=', $this->db_access->site_id );
-          $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
-          foreach( $coverage_class_name::select( $inner_coverage_mod ) as $db_inner_coverage )
-            $modifier->where(
-              'primary_postcode', 'NOT LIKE', $db_inner_coverage->postcode_mask );
-          $modifier->where_bracket( false );
-        }
-        $modifier->where_bracket( false );
-      }
+
+      $modifier->where( 'participant.site_id', '=', $this->db_access->get_site()->id );
+      $modifier =
+        $coverage_class_name::get_access_modifier(
+          'primary_postcode', $this->db_access, $modifier );
     }
     else if( !is_null( $this->db_site ) )
     {

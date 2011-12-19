@@ -267,46 +267,20 @@ class appointment extends \cenozo\database\record
     // if there is no access restriction then just use the parent method
     if( is_null( $db_access ) ) return parent::select( $modifier, $count );
 
-    $database_class_name = lib::get_class_name( 'database\database' );
     $coverage_class_name = lib::get_class_name( 'database\coverage' );
+
+    // left join the participant_primary_address and address tables
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'appointment.address_id', '=', 'address.id', false );
+    $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
+    $modifier->where( 'jurisdiction.site_id', '=', $db_access->get_site()->id );
+    $modifier =
+      $coverage_class_name::get_access_modifier( 'address.postcode', $db_access, $modifier );
 
     $sql = sprintf(
       ( $count ? 'SELECT COUNT(*) ' : 'SELECT appointment.id ' ).
-      'FROM appointment, address, jurisdiction '.
-      'WHERE appointment.address_id = address.id '.
-      'AND address.postcode = jurisdiction.postcode '.
-      'AND jurisdiction.site_id = %s '.
-      'AND ( ',
-      $database_class_name::format_string( $db_access->get_site()->id ) );
-    
-    // OR all access coverages making sure to AND NOT all other like coverages for the same site
-    $first = true;
-    $coverage_mod = lib::create( 'database\modifier' );
-    $coverage_mod->where( 'access_id', '=', $db_access->id );
-    $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
-    foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
-    {
-      $sql .= sprintf( '%s ( address.postcode LIKE %s ',
-                       $first ? '' : 'OR',
-                       $database_class_name::format_string( $db_coverage->postcode_mask ) );
-      $first = false;
-
-      // now remove the like coverages
-      $inner_coverage_mod = lib::create( 'database\modifier' );
-      $inner_coverage_mod->where( 'access_id', '!=', $db_access->id );
-      $inner_coverage_mod->where( 'access.site_id', '=', $db_access->site_id );
-      $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
-      foreach( $coverage_class_name::select( $inner_coverage_mod ) as $db_inner_coverage )
-      {
-        $sql .= sprintf( 'AND address.postcode NOT LIKE %s ',
-                         $database_class_name::format_string( $db_inner_coverage->postcode_mask ) );
-      }
-      $sql .= ') ';
-    }
-
-    // make sure to return an empty list if the access has no coverage
-    $sql .= $first ? 'false )' : ') ';
-    if( !is_null( $modifier ) ) $sql .= $modifier->get_sql( true );
+      'FROM appointment, address, jurisdiction %s',
+      $modifier->get_sql() );
 
     if( $count )
     {

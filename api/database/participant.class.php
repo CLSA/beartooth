@@ -89,7 +89,6 @@ class participant extends \cenozo\database\has_note
     // if there is no access restriction then just use the parent method
     if( is_null( $db_access ) ) return parent::select( $modifier, $count );
 
-    $database_class_name = lib::get_class_name( 'database\database' );
     $coverage_class_name = lib::get_class_name( 'database\coverage' );
 
     // left join the participant_primary_address and address tables
@@ -98,35 +97,8 @@ class participant extends \cenozo\database\has_note
     $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
     $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
     $modifier->where( 'jurisdiction.site_id', '=', $db_access->get_site()->id );
-    $modifier->where_bracket( true );
-
-    // OR all access coverages making sure to AND NOT all other like coverages for the same site
-    $first = true;
-    $coverage_mod = lib::create( 'database\modifier' );
-    $coverage_mod->where( 'access_id', '=', $db_access->id );
-    $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
-    foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
-    {
-      $modifier->where_bracket( true, true );
-      $modifier->where( 'address.postcode', 'LIKE', $db_coverage->postcode_mask );
-
-      // now remove the like coverages
-      $inner_coverage_mod = lib::create( 'database\modifier' );
-      $inner_coverage_mod->where( 'access_id', '!=', $db_access->id );
-      $inner_coverage_mod->where( 'access.site_id', '=', $db_access->site_id );
-      $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
-      foreach( $coverage_class_name::select( $inner_coverage_mod ) as $db_inner_coverage )
-      {
-        $modifier->where( 'address.postcode', 'NOT LIKE', $db_inner_coverage->postcode_mask );
-      }
-      $modifier->where_bracket( false );
-
-      $first = false;
-    }
-
-    // make sure to return an empty list if the access has no coverage
-    if( $first ) $modifier->where( 'address.postcode', '=', true );
-    $modifier->where_bracket( false );
+    $modifier =
+      $coverage_class_name::get_access_modifier( 'address.postcode', $db_access, $modifier );
     
     $sql = sprintf(
       ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant.id ' ).
