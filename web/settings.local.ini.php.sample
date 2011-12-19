@@ -11,14 +11,20 @@ global $SETTINGS;
 // Whether or not to run the application in development mode
 $SETTINGS['general']['development_mode'] = true;
 
+// The web url of the Cenozo framework
+$SETTINGS['url']['CENOZO'] = sprintf( 'http%s://%s/url/to/cenozo',
+                                          'on' == $_SERVER["HTTPS"] ? 's' : '',
+                                          $_SERVER["HTTP_HOST"] );
+
 // The file path to the application
-$SETTINGS['path']['BEARTOOTH'] = '/path/to/beartooth';
+$SETTINGS['path']['CENOZO'] = '/path/to/cenozo';
+$SETTINGS['path']['APPLICATION'] = '/path/to/beartooth';
 
 // The path to the log file
-$SETTINGS['path']['LOG_FILE'] = $SETTINGS['path']['BEARTOOTH'].'/log';
+$SETTINGS['path']['LOG_FILE'] = $SETTINGS['path']['APPLICATION'].'/log';
 
 // The url of Mastodon (cannot be relative).  Comment out to disable mastodon support.
-//$SETTINGS['url']['MASTODON'] = 'https://url/to/mastodon';
+$SETTINGS['url']['MASTODON'] = 'https://url/to/mastodon';
 
 // The path and url of Limesurvey
 $SETTINGS['path']['LIMESURVEY'] = '/path/to/limesurvey';
@@ -51,5 +57,5 @@ $SETTINGS['voip']['xor_key'] = 'put your webphone xor key here';
 
 // the directory to write monitored calls
 // (must be an absolute path that the asterisk server's user has access to)
-$SETTINGS['path']['VOIP_MONITOR'] = $SETTINGS['path']['BEARTOOTH'].'/web/monitor';
+$SETTINGS['path']['VOIP_MONITOR'] = $SETTINGS['path']['APPLICATION'].'/web/monitor';
 ?>
