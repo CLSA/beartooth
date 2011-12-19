@@ -35,12 +35,13 @@ class participant extends \cenozo\database\has_note
 
     // left join the participant_primary_address and address tables
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'participant.id', '=', 'participant_primary_address.participant_id', false );
     $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
     $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
     $modifier->where( 'jurisdiction.site_id', '=', $db_site->id );
     $sql = sprintf(
-      ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant_primary_address.participant_id ' ).
-      'FROM participant_primary_address, address, jurisdiction %s',
+      ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant.id ' ).
+      'FROM participant, participant_primary_address, address, jurisdiction %s',
       $modifier->get_sql() );
 
     if( $count )
@@ -91,15 +92,14 @@ class participant extends \cenozo\database\has_note
     $database_class_name = lib::get_class_name( 'database\database' );
     $coverage_class_name = lib::get_class_name( 'database\coverage' );
 
-    $sql = sprintf(
-      ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant_primary_address.participant_id ' ).
-      'FROM participant_primary_address, address, jurisdiction '.
-      'WHERE participant_primary_address.address_id = address.id '.
-      'AND address.postcode = jurisdiction.postcode '.
-      'AND jurisdiction.site_id = %s '.
-      'AND ( ',
-      $database_class_name::format_string( $db_access->get_site()->id ) );
-    
+    // left join the participant_primary_address and address tables
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'participant.id', '=', 'participant_primary_address.participant_id', false );
+    $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
+    $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
+    $modifier->where( 'jurisdiction.site_id', '=', $db_access->get_site()->id );
+    $modifier->where_bracket( true );
+
     // OR all access coverages making sure to AND NOT all other like coverages for the same site
     $first = true;
     $coverage_mod = lib::create( 'database\modifier' );
@@ -107,10 +107,8 @@ class participant extends \cenozo\database\has_note
     $coverage_mod->order( 'CHAR_LENGTH( postcode_mask )' );
     foreach( $coverage_class_name::select( $coverage_mod ) as $db_coverage )
     {
-      $sql .= sprintf( '%s ( address.postcode LIKE %s ',
-                       $first ? '' : 'OR',
-                       $database_class_name::format_string( $db_coverage->postcode_mask ) );
-      $first = false;
+      $modifier->where_bracket( true, true );
+      $modifier->where( 'address.postcode', 'LIKE', $db_coverage->postcode_mask );
 
       // now remove the like coverages
       $inner_coverage_mod = lib::create( 'database\modifier' );
@@ -119,16 +117,22 @@ class participant extends \cenozo\database\has_note
       $inner_coverage_mod->where( 'postcode_mask', 'LIKE', $db_coverage->postcode_mask );
       foreach( $coverage_class_name::select( $inner_coverage_mod ) as $db_inner_coverage )
       {
-        $sql .= sprintf( 'AND address.postcode NOT LIKE %s ',
-                         $database_class_name::format_string( $db_inner_coverage->postcode_mask ) );
+        $modifier->where( 'address.postcode', 'NOT LIKE', $db_inner_coverage->postcode_mask );
       }
-      $sql .= ') ';
+      $modifier->where_bracket( false );
+
+      $first = false;
     }
 
     // make sure to return an empty list if the access has no coverage
-    $sql .= $first ? 'false )' : ') ';
-    if( !is_null( $modifier ) ) $sql .= $modifier->get_sql( true );
+    if( $first ) $modifier->where( 'address.postcode', '=', true );
+    $modifier->where_bracket( false );
     
+    $sql = sprintf(
+      ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant.id ' ).
+      'FROM participant, participant_primary_address, address, jurisdiction %s',
+      $modifier->get_sql() );
+
     if( $count )
     {
       return intval( static::db()->get_one( $sql ) );
