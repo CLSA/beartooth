@@ -27,7 +27,7 @@ class self_menu extends \cenozo\ui\widget\self_menu
    */
   public function __construct( $args )
   {
-    parent::__construct( 'self', 'menu', $args );
+    parent::__construct( $args );
 
     $exclude = array(
       'address',
