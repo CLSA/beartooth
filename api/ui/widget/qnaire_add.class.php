@@ -62,7 +62,7 @@ class qnaire_add extends \cenozo\ui\widget\base_view
     end( $ranks );
     $last_rank_key = key( $ranks );
     reset( $ranks );
-    $types = $class_name::get_enum_types( 'type' );
+    $types = $class_name::get_enum_values( 'type' );
     $types = array_combine( $types, $types );
     $surveys = array();
     $modifier = lib::create( 'database\modifier' );
