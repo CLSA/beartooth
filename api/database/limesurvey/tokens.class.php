@@ -27,11 +27,13 @@ class tokens extends sid_record
    */
   public function update_attributes( $db_participant )
   {
+    $session = lib::create( 'business\session' );
     $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
-    $db_user = lib::create( 'business\session' )->get_user();
+    $db_user = $session->get_user();
+    $db_site = $session->get_site();
 
     // determine the first part of the token
-    $db_interview = lib::create( 'business\session' )->get_current_assignment()->get_interview();
+    $db_interview = $session->get_current_assignment()->get_interview();
     $token_part = substr( static::determine_token_string( $db_interview ), 0, -1 );
     
     // try getting the attributes from mastodon or beartooth
@@ -147,6 +149,27 @@ class tokens extends sid_record
         else if( 'number of alternate contacts' == $value )
         {
           $this->$key = count( $alternate_info->data );
+        }
+        else if( 'dcs phone_number' )
+        {
+          $this->$key = $db_site->phone_number;
+        }
+        else if( 'dcs address street' )
+        {
+          $this->$key =
+            $db_site->address1.( !is_null( $db_site->address2 ) ? '' : ', '.$db_site->address2 );
+        }
+        else if( 'dcs address city' )
+        {
+          $this->$key = $db_site->city;
+        }
+        else if( 'dcs address province' )
+        {
+          $this->$key = $db_site->get_region()->name;
+        }
+        else if( 'dcs address postal code' )
+        {
+          $this->$key = $db_site->postcode;
         }
         else if(
           preg_match( '/alternate([0-9]+) (first_name|last_name|phone)/', $value, $matches ) )
