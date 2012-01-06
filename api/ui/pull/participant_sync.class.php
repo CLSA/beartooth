@@ -53,7 +53,6 @@ class participant_sync extends \cenozo\ui\pull
 
     foreach( $uid_list as $uid )
     {
-      log::debug( $uid );
       $args = array( 'uid' => $uid, 'full' => true, 'cohort' => 'comprehensive' );
       $is_missing = false;
       try // if the participant is missing we'll get a mastodon error
