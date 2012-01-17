@@ -12,11 +12,11 @@ global $SETTINGS;
 $SETTINGS['general']['development_mode'] = true;
 
 // The web url of the Cenozo framework
-$SETTINGS['url']['CENOZO'] = sprintf( 'http%s://%s/url/to/cenozo',
-                                          'on' == $_SERVER["HTTPS"] ? 's' : '',
-                                          $_SERVER["HTTP_HOST"] );
+$SETTINGS['url']['CENOZO'] = sprintf( 'http%s://%s/web/path/to/cenozo',
+                                      'on' == $_SERVER["HTTPS"] ? 's' : '',
+                                      $_SERVER["HTTP_HOST"] );
 
-// The file path to the application
+// The file path to the framework and application
 $SETTINGS['path']['CENOZO'] = '/path/to/cenozo';
 $SETTINGS['path']['APPLICATION'] = '/path/to/beartooth';
 
@@ -24,7 +24,7 @@ $SETTINGS['path']['APPLICATION'] = '/path/to/beartooth';
 $SETTINGS['path']['LOG_FILE'] = $SETTINGS['path']['APPLICATION'].'/log';
 
 // The url of Mastodon (cannot be relative).  Comment out to disable mastodon support.
-$SETTINGS['url']['MASTODON'] = 'https://url/to/mastodon';
+//$SETTINGS['url']['MASTODON'] = 'https://url/to/mastodon';
 
 // The path and url of Limesurvey
 $SETTINGS['path']['LIMESURVEY'] = '/path/to/limesurvey';
