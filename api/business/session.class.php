@@ -163,7 +163,7 @@ class session extends \cenozo\business\session
     { // if voip is not enabled then allow calls
       $allow = true;
     }
-    if( $voip_manager->get_sip_enabled() )
+    else if( $voip_manager->get_sip_enabled() )
     { // voip is enabled, so make sure sip is also enabled
       $allow = true;
     }

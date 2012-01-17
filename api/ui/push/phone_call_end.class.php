@@ -40,7 +40,7 @@ class phone_call_end extends \cenozo\ui\push
     $is_interviewer = 'interviewer' == $session->get_role()->name;
 
     // disconnect voip
-    lib::create( 'business\voip_manager' )->get_call();
+    $voip_call = lib::create( 'business\voip_manager' )->get_call();
     if( !is_null( $voip_call ) ) $voip_call->hang_up();
 
     if( $is_interviewer )
