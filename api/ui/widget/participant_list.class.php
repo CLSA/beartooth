@@ -70,13 +70,13 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
   protected function determine_record_count( $modifier = NULL )
   {
     $session = lib::create( 'business\session' );
-    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $class_name = lib::get_class_name( 'database\participant' );
     if( 'interviewer' == $session->get_role()->name )
-      return $participant_class_name::count_for_access( $session->get_access(), $modifier );
+      return $class_name::count_for_access( $session->get_access(), $modifier );
 
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_count( $modifier )
-         : $participant_class_name::count_for_site( $this->db_restrict_site, $modifier );
+         : $class_name::count_for_site( $this->db_restrict_site, $modifier );
   }
   
   /**
@@ -90,13 +90,13 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
   protected function determine_record_list( $modifier = NULL )
   {
     $session = lib::create( 'business\session' );
-    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $class_name = lib::get_class_name( 'database\participant' );
     if( 'interviewer' == $session->get_role()->name )
-      return $participant_class_name::select_for_access( $session->get_access(), $modifier );
+      return $class_name::select_for_access( $session->get_access(), $modifier );
 
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_list( $modifier )
-         : $participant_class_name::select_for_site( $this->db_restrict_site, $modifier );
+         : $class_name::select_for_site( $this->db_restrict_site, $modifier );
   }
 }
 ?>
