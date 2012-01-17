@@ -100,7 +100,7 @@ class voip_call extends \cenozo\base_object
     
     // hang up the call, if successful then rebuild the call list
     if( $this->manager->hangup( $this->get_channel() ) )
-    $voip_manager->rebuild_call_list();
+      $voip_manager->rebuild_call_list();
   }
   
   /**

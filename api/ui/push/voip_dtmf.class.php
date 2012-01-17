@@ -42,7 +42,7 @@ class voip_dtmf extends \cenozo\ui\push
       throw lib::create( 'exception\notice',
         'Unable to send tone since you are not currently in a call.', __METHOD__ );
 
-    lib::create( 'business\voip_manager' )->get_call()->dtmf( $this->get_argument( 'tone' ) );
+    $voip_call->dtmf( $this->get_argument( 'tone' ) );
   }
 }
 ?>

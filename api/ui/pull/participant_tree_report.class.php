@@ -37,11 +37,8 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
     $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     
     $site_mod = lib::create( 'database\modifier' );
-    if( $restrict_site_id )
-    {
-      $db_restrict_site = lib::create( 'database\site', $restrict_site_id );
-      $site_mod->where( 'id', '=', $db_restrict_site );
-    }
+    if( $restrict_site_id ) $site_mod->where( 'id', '=', $restrict_site );
+    
     $this->add_title( 'Generated for the '.$db_qnaire->name.' questionnaire' );
 
     $contents = array();
