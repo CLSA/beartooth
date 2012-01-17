@@ -41,7 +41,7 @@ class participant_sync extends \cenozo\ui\push
     $region_class_name = lib::get_class_name( 'database\region' );
     $address_class_name = lib::get_class_name( 'database\address' );
 
-    $cenozo_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $uid_list_string = preg_replace( '/[\'"]/', '', $this->get_argument( 'uid_list' ) );
     $uid_list = array_unique( preg_split( '/[\s,]+/', $uid_list_string ) );
     foreach( $uid_list as $uid )
@@ -49,7 +49,7 @@ class participant_sync extends \cenozo\ui\push
       $args = array( 'uid' => $uid, 'full' => true, 'cohort' => 'comprehensive' );
       try // if the participant is missing we'll get a mastodon error
       {
-        $response = $cenozo_manager->pull( 'participant', 'primary', $args );
+        $response = $mastodon_manager->pull( 'participant', 'primary', $args );
         
         // if the participant already exists then skip
         // TODO: upgrade so that this code includes existing participants as well
