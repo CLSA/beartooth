@@ -13,7 +13,7 @@ use cenozo\lib, cenozo\log;
 /**
  * push: participant sync
  *
- * Syncs participant information between Sabretooth and Mastodon
+ * Syncs participant information between Beartooth and Mastodon
  * @package beartooth\ui
  */
 class participant_sync extends \cenozo\ui\push
