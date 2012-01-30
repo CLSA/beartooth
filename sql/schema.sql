@@ -590,9 +590,9 @@ CREATE  TABLE IF NOT EXISTS `coverage` (
   `postcode_mask` VARCHAR(7) NOT NULL ,
   `access_id` INT UNSIGNED NOT NULL COMMENT 'This access should always be as an interviewer.' ,
   PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `uq_postcode_mask` (`postcode_mask` ASC) ,
+  UNIQUE INDEX `uq_postcode_mask_access_id` (`postcode_mask` ASC, `access_id` ASC) ,
   INDEX `fk_access_id` (`access_id` ASC) ,
-  CONSTRAINT `fk_coverage_access`
+  CONSTRAINT `fk_coverage_access_id`
     FOREIGN KEY (`access_id` )
     REFERENCES `access` (`id` )
     ON DELETE NO ACTION
@@ -617,19 +617,18 @@ CREATE  TABLE IF NOT EXISTS `onyx_instance` (
   INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `fk_user_id` (`user_id` ASC) ,
   INDEX `fk_interview_user_id` (`interviewer_user_id` ASC) ,
-  INDEX `fk_onyx_instance_interview_user` (`user_id` ASC) ,
-  CONSTRAINT `fk_onyx_instance_site`
+  CONSTRAINT `fk_onyx_instance_site_id`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_onyx_instance_user`
+  CONSTRAINT `fk_onyx_instance_user_id`
     FOREIGN KEY (`user_id` )
     REFERENCES `user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_onyx_instance_interview_user`
-    FOREIGN KEY (`user_id` )
+  CONSTRAINT `fk_onyx_instance_interview_user_id`
+    FOREIGN KEY (`interviewer_user_id` )
     REFERENCES `user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)

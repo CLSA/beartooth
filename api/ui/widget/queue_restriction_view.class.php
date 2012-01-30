@@ -31,9 +31,7 @@ class queue_restriction_view extends \cenozo\ui\widget\base_view
 
     // define all columns defining this record
 
-    $type = 'administrator' == lib::create( 'business\session' )->get_role()->name
-          ? 'enum'
-          : 'hidden';
+    $type = 3 == lib::create( 'business\session' )->get_role()->tier ? 'enum' : 'hidden';
     $this->add_item( 'site_id', $type, 'Site' );
     $this->add_item( 'city', 'string', 'City' );
     $this->add_item( 'region_id', 'enum', 'Region' );
@@ -50,10 +48,10 @@ class queue_restriction_view extends \cenozo\ui\widget\base_view
   {
     parent::finish();
     $session = lib::create( 'business\session' );
-    $is_administrator = 'administrator' == $session->get_role()->name;
+    $is_top_tier = 3 == $session->get_role()->tier;
 
     // create enum arrays
-    if( $is_administrator )
+    if( $is_top_tier )
     {
       $sites = array();
       $class_name = lib::get_class_name( 'database\site' );
@@ -65,7 +63,7 @@ class queue_restriction_view extends \cenozo\ui\widget\base_view
 
     // set the view's items
     $this->set_item(
-      'site_id', $this->get_record()->site_id, false, $is_administrator ? $sites : NULL );
+      'site_id', $this->get_record()->site_id, false, $is_top_tier ? $sites : NULL );
     $this->set_item( 'city', $this->get_record()->city, false );
     $this->set_item( 'region_id', $this->get_record()->region_id, false, $regions );
     $this->set_item( 'postcode', $this->get_record()->postcode, false );

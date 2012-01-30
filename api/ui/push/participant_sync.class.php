@@ -13,7 +13,7 @@ use cenozo\lib, cenozo\log;
 /**
  * push: participant sync
  *
- * Syncs participant information between Sabretooth and Mastodon
+ * Syncs participant information between Beartooth and Mastodon
  * @package beartooth\ui
  */
 class participant_sync extends \cenozo\ui\push
@@ -41,8 +41,7 @@ class participant_sync extends \cenozo\ui\push
     $region_class_name = lib::get_class_name( 'database\region' );
     $address_class_name = lib::get_class_name( 'database\address' );
 
-    $db_site = $site_class_name::get_unique_record( 'name', 'Sherbrooke' );
-    $cenozo_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $uid_list_string = preg_replace( '/[\'"]/', '', $this->get_argument( 'uid_list' ) );
     $uid_list = array_unique( preg_split( '/[\s,]+/', $uid_list_string ) );
     foreach( $uid_list as $uid )
@@ -50,7 +49,7 @@ class participant_sync extends \cenozo\ui\push
       $args = array( 'uid' => $uid, 'full' => true, 'cohort' => 'comprehensive' );
       try // if the participant is missing we'll get a mastodon error
       {
-        $response = $cenozo_manager->pull( 'participant', 'primary', $args );
+        $response = $mastodon_manager->pull( 'participant', 'primary', $args );
         
         // if the participant already exists then skip
         // TODO: upgrade so that this code includes existing participants as well
@@ -60,12 +59,8 @@ class participant_sync extends \cenozo\ui\push
         $db_participant = lib::create( 'database\participant' );
 
         foreach( $db_participant->get_column_names() as $column )
-          if( 'id' != $column && 'site_id' != $column )
+          if( 'id' != $column )
             $db_participant->$column = $response->data->$column;
-
-        // make sure that all participant's whose prefered languge is french gets Sherbrooke's site
-        // TODO: this custom code needs to be made more generic
-        if( 'fr' == $db_participant->language ) $db_participant->site_id = $db_site->id;
 
         $db_participant->save();
 
