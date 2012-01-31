@@ -30,13 +30,16 @@ class queue_view extends \cenozo\ui\widget\base_view
     parent::__construct( 'queue', 'view', $args );
     
     $session = lib::create( 'business\session' );
-    if( 3 == $session->get_role()->tier )
+    $is_top_tier = 3 == $session->get_role()->tier;
+    $is_interviewer = 'interviewer' == $session->get_role()->name;
+
+    if( $is_interviewer ) $this->db_access = $session->get_access();
+    else if( !$is_top_tier ) $this->db_site = $session->get_site();
+    else
     {
       $site_id = $this->get_argument( 'site_id' );
       if( $site_id ) $this->db_site = lib::create( 'database\site', $site_id );
     }
-    else if( 2 == $session->get_role()->tier ) $this->db_site = $session->get_site();
-    else $this->db_access = $session->get_access();
 
     $qnaire_id = $this->get_argument( 'qnaire_id' );
     if( $qnaire_id ) $this->db_qnaire = lib::create( 'database\qnaire', $qnaire_id );
