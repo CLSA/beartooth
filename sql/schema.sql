@@ -272,6 +272,8 @@ CREATE  TABLE IF NOT EXISTS `address` (
   INDEX `fk_participant_id` (`participant_id` ASC) ,
   INDEX `fk_region_id` (`region_id` ASC) ,
   UNIQUE INDEX `uq_participant_id_rank` (`participant_id` ASC, `rank` ASC) ,
+  INDEX `dk_city` (`city` ASC) ,
+  INDEX `dk_postcode` (`postcode` ASC) ,
   CONSTRAINT `fk_address_participant_id`
     FOREIGN KEY (`participant_id` )
     REFERENCES `participant` (`id` )
@@ -334,8 +336,10 @@ CREATE  TABLE IF NOT EXISTS `phone_call` (
   `status` ENUM('contacted','busy','no answer','machine message','machine no message','fax','disconnected','wrong number','not reached','hang up','soft refusal') NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_assignment_id` (`assignment_id` ASC) ,
-  INDEX `status` (`status` ASC) ,
+  INDEX `dk_status` (`status` ASC) ,
   INDEX `fk_phone_id` (`phone_id` ASC) ,
+  INDEX `dk_start_datetime` (`start_datetime` ASC) ,
+  INDEX `dk_end_datetime` (`end_datetime` ASC) ,
   CONSTRAINT `fk_phone_call_assignment`
     FOREIGN KEY (`assignment_id` )
     REFERENCES `assignment` (`id` )
@@ -364,6 +368,8 @@ CREATE  TABLE IF NOT EXISTS `consent` (
   `note` TEXT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
+  INDEX `dk_event` (`event` ASC) ,
+  INDEX `dk_date` (`date` ASC) ,
   CONSTRAINT `fk_consent_participant`
     FOREIGN KEY (`participant_id` )
     REFERENCES `participant` (`id` )
@@ -393,6 +399,8 @@ CREATE  TABLE IF NOT EXISTS `availability` (
   `end_time` TIME NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
+  INDEX `dk_start_time` (`start_time` ASC) ,
+  INDEX `dk_end_time` (`end_time` ASC) ,
   CONSTRAINT `fk_availability_participant`
     FOREIGN KEY (`participant_id` )
     REFERENCES `participant` (`id` )
@@ -418,6 +426,7 @@ CREATE  TABLE IF NOT EXISTS `participant_note` (
   PRIMARY KEY (`id`) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
   INDEX `fk_user_id` (`user_id` ASC) ,
+  INDEX `dk_sticky_datetime` (`sticky` ASC, `datetime` ASC) ,
   CONSTRAINT `fk_participant_note_participant`
     FOREIGN KEY (`participant_id` )
     REFERENCES `participant` (`id` )
@@ -448,6 +457,7 @@ CREATE  TABLE IF NOT EXISTS `assignment_note` (
   PRIMARY KEY (`id`) ,
   INDEX `fk_assignment_id` (`assignment_id` ASC) ,
   INDEX `fk_user_id` (`user_id` ASC) ,
+  INDEX `dk_sticky_datetime` (`sticky` ASC, `datetime` ASC) ,
   CONSTRAINT `fk_assignment_note_assignment`
     FOREIGN KEY (`assignment_id` )
     REFERENCES `assignment` (`id` )
@@ -478,6 +488,7 @@ CREATE  TABLE IF NOT EXISTS `appointment` (
   INDEX `dk_reached` (`reached` ASC) ,
   INDEX `fk_address_id` (`address_id` ASC) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
+  INDEX `dk_datetime` (`datetime` ASC) ,
   CONSTRAINT `fk_appointment_address`
     FOREIGN KEY (`address_id` )
     REFERENCES `address` (`id` )
@@ -516,6 +527,10 @@ CREATE  TABLE IF NOT EXISTS `shift_template` (
   `sunday` TINYINT(1)  NOT NULL DEFAULT false ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_site_id` (`site_id` ASC) ,
+  INDEX `dk_start_time` (`start_time` ASC) ,
+  INDEX `dk_end_time` (`end_time` ASC) ,
+  INDEX `dk_start_date` (`start_date` ASC) ,
+  INDEX `dk_end_date` (`end_date` ASC) ,
   CONSTRAINT `fk_shift_template_site`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
@@ -540,6 +555,8 @@ CREATE  TABLE IF NOT EXISTS `queue_restriction` (
   PRIMARY KEY (`id`) ,
   INDEX `fk_region_id` (`region_id` ASC) ,
   INDEX `fk_site_id` (`site_id` ASC) ,
+  INDEX `dk_city` (`city` ASC) ,
+  INDEX `dk_postcode` (`postcode` ASC) ,
   CONSTRAINT `fk_queue_restriction_region`
     FOREIGN KEY (`region_id` )
     REFERENCES `region` (`id` )
