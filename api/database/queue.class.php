@@ -158,7 +158,8 @@ class queue extends \cenozo\database\record
    */
   public function get_participant_count( $modifier = NULL, $use_cache = true )
   {
-    $qnaire_id = is_null( $this->db_qnaire ) ? 0 : $this->db_qnaire->id;
+    $qnaire_id = !$this->qnaire_specific || is_null( $this->db_qnaire )
+               ? 0 : $this->db_qnaire->id;
     if( $use_cache &&
         array_key_exists( $this->name, self::$participant_count_cache ) &&
         array_key_exists( $qnaire_id, self::$participant_count_cache[$this->name] ) )
@@ -206,7 +207,8 @@ class queue extends \cenozo\database\record
    */
   private static function set_child_count_cache_to_zero( $db_queue )
   {
-    $qnaire_id = is_null( $db_queue->db_qnaire ) ? 0 : $db_queue->db_qnaire->id;
+    $qnaire_id = !$db_queue->qnaire_specific || is_null( $db_queue->db_qnaire )
+               ? 0 : $db_queue->db_qnaire->id;
     $queue_mod = lib::create( 'database\modifier' );
     $queue_mod->where( 'parent_queue_id', '=', $db_queue->id );
     foreach( static::select( $queue_mod ) as $db_child_queue )
