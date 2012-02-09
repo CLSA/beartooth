@@ -62,8 +62,9 @@ class queue extends \cenozo\database\record
     $queue_list = array_merge( $queue_list, array(
       'eligible',
       'qnaire',
-      'restricted',
       'qnaire waiting',
+      'qnaire ready',
+      'restricted',
       'appointment',
       'no appointment',
       'new participant',
@@ -524,29 +525,35 @@ class queue extends \cenozo\database\record
       $parts['where'][] = 'participant.current_qnaire_id <QNAIRE_TEST>';
       return $parts;
     }
-    else if( 'restricted' == $queue )
-    {
-      $parts = self::get_query_parts( 'qnaire' );
-      // make sure to only include participants who are restricted
-      $parts['join'][] = $restriction_join;
-      $parts['where'][] = 'NOT '.$check_restriction_sql;
-      return $parts;
-    }
     else if( 'qnaire waiting' == $queue )
     {
       $parts = self::get_query_parts( 'qnaire' );
-      // make sure to only include participants who are not restricted
-      $parts['join'][] = $restriction_join;
-      $parts['where'][] = $check_restriction_sql;
       // the current qnaire cannot start before start_qnaire_date
       $parts['where'][] = 'participant.start_qnaire_date IS NOT NULL';
       $parts['where'][] = sprintf( 'DATE( participant.start_qnaire_date ) > DATE( %s )',
                                    $viewing_date );
       return $parts;
     }
-    else if( 'appointment' == $queue )
+    else if( 'qnaire ready' == $queue )
     {
       $parts = self::get_query_parts( 'qnaire' );
+      // the current qnaire cannot start before start_qnaire_date
+      $parts['where'][] = sprintf( '( participant.start_qnaire_date IS NULL OR '.
+                                   '  DATE( participant.start_qnaire_date ) <= DATE( %s ) )',
+                                   $viewing_date );
+      return $parts;
+    }
+    else if( 'restricted' == $queue )
+    {
+      $parts = self::get_query_parts( 'qnaire ready' );
+      // make sure to only include participants who are restricted
+      $parts['join'][] = $restriction_join;
+      $parts['where'][] = 'NOT '.$check_restriction_sql;
+      return $parts;
+    }
+    else if( 'appointment' == $queue )
+    {
+      $parts = self::get_query_parts( 'qnaire ready' );
       // make sure to only include participants who are not restricted
       $parts['join'][] = $restriction_join;
       $parts['join'][] = $appointment_join;
@@ -557,7 +564,7 @@ class queue extends \cenozo\database\record
     }
     else if( 'no appointment' == $queue )
     {
-      $parts = self::get_query_parts( 'qnaire' );
+      $parts = self::get_query_parts( 'qnaire ready' );
       // make sure to only include participants who are not restricted
       $parts['join'][] = $restriction_join;
       $parts['where'][] = $check_restriction_sql;
