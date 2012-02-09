@@ -94,7 +94,7 @@ class coverage_edit extends \cenozo\ui\push\base_edit
       // add the % at the end, if necessary
       if( 6 > strlen( $postcode_mask ) ) $postcode_mask .= '%';
 
-      $this->argument['columns']['postcode_mask'] = $postcode_mask;
+      $this->arguments['columns']['postcode_mask'] = $postcode_mask;
     }
 
     parent::finish();
