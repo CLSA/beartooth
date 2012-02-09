@@ -115,6 +115,14 @@ VALUES( "widget", "coverage", "view", true, "View the details of a coverage entr
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "coverage", "list", true, "Lists a coverage entries." );
 
+-- interview
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "interview", "view", true, "View interview details." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "interview", "list", true, "Lists interviews." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "interview", "edit", true, "Edits the details of an interview." );
+
 -- interviewer
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "interviewer", "assignment", true, "Displays the interviewer's assignment manager." );

@@ -197,8 +197,8 @@ class survey_manager extends \cenozo\singleton
         }
       }
 
-      // TODO: should the interview not be completed here as it does in Sabreotooth?
-      //       need to figure out why this code was removed
+      // The interview is not completed here since the interview must be completed by Onyx
+      // and Onyx must report back when it is done.
     }
   }
   
