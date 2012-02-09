@@ -521,6 +521,21 @@ SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "push" AND subject = "participant" AND name = "delete_phone" );
 
+-- queue
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "widget" AND subject = "queue" AND name = "view" );
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "widget" AND subject = "participant" AND name = "tree" );
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "clerk" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "pull" AND subject = "participant" AND name = "tree" );
+
+
 -- -----------------------------------------------------
 -- -----------------------------------------------------
 INSERT INTO role( name, tier ) VALUES( "coordinator", 2 );
