@@ -180,18 +180,6 @@ parent_queue_id = (
 description = "Eligible participants who are currently assigned to the questionnaire.";
 
 INSERT INTO queue SET
-name = "restricted",
-title = "Restricted from calling",
-rank = NULL,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "qnaire" ) AS tmp ),
-description = "Eligible participants whose city, province or postcode have been restricted.";
-
-INSERT INTO queue SET
 name = "qnaire waiting",
 title = "Waiting to begin",
 rank = NULL,
@@ -205,6 +193,30 @@ description = "Eligible participants who are waiting the scheduled cool-down per
 beginning the questionnaire.";
 
 INSERT INTO queue SET
+name = "qnaire ready",
+title = "Ready to begin",
+rank = NULL,
+qnaire_specific = true,
+parent_queue_id = (
+  SELECT id FROM(
+    SELECT id
+    FROM queue
+    WHERE name = "qnaire" ) AS tmp ),
+description = "Eligible participants who are ready to begin the questionnaire.";
+
+INSERT INTO queue SET
+name = "restricted",
+title = "Restricted from calling",
+rank = NULL,
+qnaire_specific = true,
+parent_queue_id = (
+  SELECT id FROM(
+    SELECT id
+    FROM queue
+    WHERE name = "qnaire ready" ) AS tmp ),
+description = "Eligible participants whose city, province or postcode have been restricted.";
+
+INSERT INTO queue SET
 name = "appointment",
 title = "Appointment scheduled",
 rank = NULL,
@@ -213,7 +225,7 @@ parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
-    WHERE name = "qnaire" ) AS tmp ),
+    WHERE name = "qnaire ready" ) AS tmp ),
 description = "Participants whose interview has been scheduled.";
 
 INSERT INTO queue SET
@@ -225,7 +237,7 @@ parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
-    WHERE name = "qnaire" ) AS tmp ),
+    WHERE name = "qnaire ready" ) AS tmp ),
 description = "Participants whose interview has not been scheduled.";
 
 INSERT INTO queue SET
