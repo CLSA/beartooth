@@ -17,6 +17,9 @@ use cenozo\lib, cenozo\log, beartooth\util;
  */
 class interview extends \cenozo\database\has_note
 {
+  // TODO: add select_for_site, count_for_site, select_for_access and count_for_access
+  //       then remove "interview" from the self_menu widget exclude list
+
   /**
    * Returns the time in seconds that it took to complete a particular phase of this interview
    * @author Patrick Emond <emondpd@mcmaster.ca>

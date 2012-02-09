@@ -1109,7 +1109,15 @@ SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "pull" AND subject = "site_appointment" AND name = "feed" );
 
--- assignment and calling
+-- interview, assignment and calling
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "widget" AND subject = "interview" AND name = "view" );
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "widget" AND subject = "interview" AND name = "list" );
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
     operation_id = ( SELECT id FROM operation WHERE
