@@ -34,7 +34,6 @@ class self_menu extends \cenozo\ui\widget\self_menu
       'appointment',
       'availability',
       'consent',
-      'interview', // remove this once inteview::get_for_* methods are implemented
       'interviewer',
       'phase',
       'phone',
