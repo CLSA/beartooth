@@ -74,7 +74,6 @@ class assignment_begin extends \cenozo\ui\push
     $db_assignment->user_id = $session->get_user()->id;
     $db_assignment->site_id = $session->get_site()->id;
     $db_assignment->interview_id = $db_interview->id;
-    $db_assignment->queue_id = $this->get_argument( 'queue_id', NULL );
     $db_assignment->save();
   }
 }
