@@ -72,7 +72,22 @@ class appointment extends \cenozo\database\record
    */
   public function validate_date()
   {
-    // TODO: once shift templates are determined the next line needs to be removed
+    // make sure the participant is ready for the appointment type (home/site)
+    // (don't use $this->get_participant(), the record may not have been created yet)
+    $db_participant = lib::create( 'database\participant', $this->participant_id );
+
+    // check the qnaire start date
+    $start_qnaire_date = $db_participant->start_qnaire_date;
+    if( !is_null( $start_qnaire_date ) &&
+        util::get_datetime_object( $start_qnaire_date ) > util::get_datetime_object() )
+      return false;
+
+    // check the qnaire type
+    $type = 0 < $this->address_id ? 'home' : 'site';
+    if( $db_participant->current_qnaire_type != $type ) return false;
+    
+    // TODO: need requirements for shift templates and appointment restricting before the
+    //       rest of this method can be implemented
     return true;
 
     $db_participant = lib::create( 'database\participant', $this->participant_id );

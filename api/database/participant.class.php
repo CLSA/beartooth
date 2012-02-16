@@ -321,7 +321,9 @@ class participant extends \cenozo\database\has_note
    */
   public function __get( $column_name )
   {
-    if( 'current_qnaire_id' == $column_name || 'start_qnaire_date' == $column_name )
+    if( 'current_qnaire_id' == $column_name ||
+        'current_qnaire_type' == $column_name ||
+        'start_qnaire_date' == $column_name )
     {
       $this->get_queue_data();
       return $this->$column_name;
@@ -344,15 +346,18 @@ class participant extends \cenozo\database\has_note
       return NULL;
     }
     
-    if( is_null( $this->current_qnaire_id ) && is_null( $this->start_qnaire_date ) )
+    if( is_null( $this->current_qnaire_id ) &&
+        is_null( $this->current_qnaire_type ) &&
+        is_null( $this->start_qnaire_date ) )
     {
       $class_name = lib::get_class_name( 'database\database' );
-      $sql = sprintf( 'SELECT current_qnaire_id, start_qnaire_date '.
+      $sql = sprintf( 'SELECT current_qnaire_id, current_qnaire_type, start_qnaire_date '.
                       'FROM participant_for_queue '.
                       'WHERE id = %s',
                       $class_name::format_string( $this->id ) );
       $row = static::db()->get_row( $sql );
       $this->current_qnaire_id = $row['current_qnaire_id'];
+      $this->current_qnaire_type = $row['current_qnaire_type'];
       $this->start_qnaire_date = $row['start_qnaire_date'];
     }
   }
@@ -363,6 +368,13 @@ class participant extends \cenozo\database\has_note
    * @access private
    */
   private $current_qnaire_id = NULL;
+
+  /**
+   * The participant's current questionnaire type (from participant_for_queue)
+   * @var string
+   * @access private
+   */
+  private $current_qnaire_type = NULL;
 
   /**
    * The date that the current questionnaire is to begin (from participant_for_queue)

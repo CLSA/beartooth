@@ -45,11 +45,11 @@ class appointment_new extends \cenozo\ui\push\base_new
     
     foreach( $columns as $column => $value ) $this->get_record()->$column = $value;
     
-    $force = $this->get_argument( 'force', false );
-    
-    if( !$force && !$this->get_record()->validate_date() )
+    if( !$this->get_record()->validate_date() )
       throw lib::create( 'exception\notice',
-        'There are no openings available during that time.', __METHOD__ );
+        sprintf(
+          'The participant is not ready for a %s appointment.',
+          0 < $this->get_record()->address_id ? 'home' : 'site' ), __METHOD__ );
     
     // no errors, go ahead and make the change
     parent::finish();
