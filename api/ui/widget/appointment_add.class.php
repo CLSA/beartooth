@@ -28,12 +28,13 @@ class appointment_add extends base_appointment_view
   public function __construct( $args )
   {
     parent::__construct( 'add', $args );
+
+    // only interviewers should select addresses
+    $this->select_address = 'interviewer' == lib::create( 'business\session' )->get_role()->name;
     
     // add items to the view
     $this->add_item( 'participant_id', 'hidden' );
-    $this->add_item( 'address_id', 'enum', 'Address',
-      'For site interviews select "site", otherwise select which address the home interview '.
-      'will take place at.' );
+    if( $this->select_address ) $this->add_item( 'address_id', 'enum', 'Address' );
     $this->add_item( 'datetime', 'datetime', 'Date' );
   }
 
@@ -60,7 +61,6 @@ class appointment_add extends base_appointment_view
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'active', '=', true );
     $modifier->order( 'rank' );
-    $address_list = array( 'NULL' => 'site' );
 
     if( $is_interviewer )
       foreach( $db_participant->get_address_list( $modifier ) as $db_address )
@@ -80,12 +80,20 @@ class appointment_add extends base_appointment_view
 
     // set the view's items
     $this->set_item( 'participant_id', $this->parent->get_record()->id );
-    $this->set_item( 'address_id', '', true, $address_list, $is_interviewer );
+    if( $this->select_address )
+      $this->set_item( 'address_id', key( $address_list ), true, $address_list, true );
     $this->set_item( 'datetime', '', true, $datetime_limits );
     
     $this->set_variable( 'is_mid_tier', 2 == $session->get_role()->tier );
 
     $this->finish_setting_items();
   }
+  
+  /**
+   * Determines whether to allow the user to select an address for the appointment.
+   * @var boolean $select_address
+   * @access protected
+   */
+  protected $select_address = false;
 }
 ?>
