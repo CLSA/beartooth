@@ -53,7 +53,6 @@ class queue_list extends \cenozo\ui\widget\base_list
     
     $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
-    $is_mid_tier = 2 == $session->get_role()->tier;
     
     // if this is a top tier role, give them a list of sites to choose from
     if( $is_top_tier )
@@ -101,8 +100,7 @@ class queue_list extends \cenozo\ui\widget\base_list
       {
         if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );
       }
-      else if( $is_mid_tier ) $record->set_site( $session->get_site() );
-      else $record->set_access( $session->get_access() );
+      else $record->set_site( $session->get_site() );
       
       // restrict to the current qnaire
       $record->set_qnaire( $db_restrict_qnaire );

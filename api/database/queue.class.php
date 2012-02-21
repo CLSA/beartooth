@@ -45,6 +45,9 @@ class queue extends \cenozo\database\record
    */
   protected static function generate_query_list()
   {
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $phone_call_class_name = lib::get_class_name( 'database\phone_call' );
+
     // define the SQL for each queue
     $queue_list = array(
       'all',
@@ -55,8 +58,7 @@ class queue extends \cenozo\database\record
       'sourcing required' );
 
     // add the participant final status types
-    $class_name = lib::get_class_name( 'database\participant' );
-    $queue_list = array_merge( $queue_list, $class_name::get_enum_values( 'status' ) );
+    $queue_list = array_merge( $queue_list, $participant_class_name::get_enum_values( 'status' ) );
     
     // finish the queue list
     $queue_list = array_merge( $queue_list, array(
@@ -102,8 +104,7 @@ class queue extends \cenozo\database\record
     }
     
     // now add the sql for each call back status
-    $class_name = lib::get_class_name( 'database\phone_call' );
-    foreach( $class_name::get_enum_values( 'status' ) as $phone_call_status )
+    foreach( $phone_call_class_name::get_enum_values( 'status' ) as $phone_call_status )
     {
       // ignore statuses which result in deactivating phone numbers
       if( 'disconnected' != $phone_call_status && 'wrong number' != $phone_call_status )
@@ -168,20 +169,8 @@ class queue extends \cenozo\database\record
 
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
 
-    // restrict to the site
-    if( !is_null( $this->db_access ) )
-    { // restrict to the access
-      $coverage_class_name = lib::get_class_name( 'database\coverage' );
-
-      $modifier->where( 'participant.site_id', '=', $this->db_access->get_site()->id );
-      $modifier =
-        $coverage_class_name::get_access_modifier(
-          'primary_postcode', $this->db_access, $modifier );
-    }
-    else if( !is_null( $this->db_site ) )
-    {
+    if( !is_null( $this->db_site ) )
       $modifier->where( 'participant.site_id', '=', $this->db_site->id );
-    }
     
     if( !array_key_exists( $this->name, self::$participant_count_cache ) )
       self::$participant_count_cache[$this->name] = array();
@@ -270,17 +259,6 @@ class queue extends \cenozo\database\record
   }
   
   /**
-   * The access to restrict the queue to.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param access $db_access
-   * @access public
-   */
-  public function set_access( $db_access = NULL )
-  {
-    $this->db_access = $db_access;
-  }
-  
-  /**
    * Gets the parts of the query for a particular queue.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return associative array
@@ -303,8 +281,8 @@ class queue extends \cenozo\database\record
       $check_time = false;
     }
 
-    $class_name = lib::get_class_name( 'database\participant' );
-    $participant_status_list = $class_name::get_enum_values( 'status' );
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $participant_status_list = $participant_class_name::get_enum_values( 'status' );
 
     // first a list of commonly used elements
     $status_where_list = array(
@@ -798,8 +776,8 @@ class queue extends \cenozo\database\record
     // fill in all callback timing settings
     $setting_mod = lib::create( 'database\modifier' );
     $setting_mod->where( 'category', '=', 'callback timing' );
-    $class_name = lib::get_class_name( 'database\setting' );
-    foreach( $class_name::select( $setting_mod ) as $db_setting )
+    $setting_class_name = lib::get_class_name( 'database\setting' );
+    foreach( $setting_class_name::select( $setting_mod ) as $db_setting )
     {
       $setting = $setting_manager->get_setting( 'callback timing', $db_setting->name );
       $template = sprintf( '<CALLBACK_%s>',
@@ -863,13 +841,6 @@ class queue extends \cenozo\database\record
    * @var site
    */
   protected $db_site = NULL;
-
-  /**
-   * The access to restrict the queue to.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @var access
-   */
-  protected $db_access = NULL;
 
   /**
    * The date (YYYY-MM-DD) with respect to check all queue states.

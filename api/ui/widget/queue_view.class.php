@@ -33,8 +33,7 @@ class queue_view extends \cenozo\ui\widget\base_view
     $is_top_tier = 3 == $session->get_role()->tier;
     $is_interviewer = 'interviewer' == $session->get_role()->name;
 
-    if( $is_interviewer ) $this->db_access = $session->get_access();
-    else if( !$is_top_tier ) $this->db_site = $session->get_site();
+    if( !$is_top_tier ) $this->db_site = $session->get_site();
     else
     {
       $site_id = $this->get_argument( 'site_id' );
@@ -52,7 +51,7 @@ class queue_view extends \cenozo\ui\widget\base_view
     // create an associative array with everything we want to display about the queue
     $this->add_item( 'title', 'constant', 'Title' );
     $this->add_item( 'description', 'constant', 'Description' );
-    if( is_null( $this->db_access ) ) $this->add_item( 'site', 'constant', 'Site' );
+    $this->add_item( 'site', 'constant', 'Site' );
     $this->add_item( 'qnaire', 'constant', 'Questionnaire' );
     $this->add_item( 'viewing_date', 'constant', 'Viewing date' );
 
@@ -82,8 +81,7 @@ class queue_view extends \cenozo\ui\widget\base_view
     // set the view's items
     $this->set_item( 'title', $this->get_record()->title, true );
     $this->set_item( 'description', $this->get_record()->description );
-    if( is_null( $this->db_access ) )
-      $this->set_item( 'site', $this->db_site ? $this->db_site->name : 'All sites' );
+    $this->set_item( 'site', $this->db_site ? $this->db_site->name : 'All sites' );
     $this->set_item( 'qnaire', $this->db_qnaire ? $this->db_qnaire->name : 'All questionnaires' );
     $this->set_item( 'viewing_date', $this->viewing_date );
     
@@ -109,7 +107,6 @@ class queue_view extends \cenozo\ui\widget\base_view
   {
     $db_queue = $this->get_record();
     $db_queue->set_site( $this->db_site );
-    $db_queue->set_access( $this->db_access );
     $db_queue->set_qnaire( $this->db_qnaire );
     return $db_queue->get_participant_count( $modifier );
   }
@@ -126,7 +123,6 @@ class queue_view extends \cenozo\ui\widget\base_view
   {
     $db_queue = $this->get_record();
     $db_queue->set_site( $this->db_site );
-    $db_queue->set_access( $this->db_access );
     $db_queue->set_qnaire( $this->db_qnaire );
     return $db_queue->get_participant_list( $modifier );
   }
@@ -144,13 +140,6 @@ class queue_view extends \cenozo\ui\widget\base_view
    * @access protected
    */
   protected $db_site = NULL;
-
-  /**
-   * The access to restrict the queue to (may be NULL)
-   * @var database\access
-   * @access protected
-   */
-  protected $db_access = NULL;
 
   /**
    * The qnaire to restrict the queue to (may be NULL)

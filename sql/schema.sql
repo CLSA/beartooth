@@ -447,6 +447,7 @@ CREATE  TABLE IF NOT EXISTS `appointment` (
   `update_timestamp` TIMESTAMP NOT NULL ,
   `create_timestamp` TIMESTAMP NOT NULL ,
   `participant_id` INT UNSIGNED NOT NULL ,
+  `user_id` INT UNSIGNED NULL COMMENT 'NULL for site appointments' ,
   `address_id` INT UNSIGNED NULL COMMENT 'NULL for site appointments' ,
   `datetime` DATETIME NOT NULL ,
   `reached` TINYINT(1)  NULL DEFAULT NULL COMMENT 'If the appointment was met, whether the participant was reached.' ,
@@ -455,14 +456,20 @@ CREATE  TABLE IF NOT EXISTS `appointment` (
   INDEX `fk_address_id` (`address_id` ASC) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
   INDEX `dk_datetime` (`datetime` ASC) ,
-  CONSTRAINT `fk_appointment_address`
+  INDEX `fk_user_id` (`user_id` ASC) ,
+  CONSTRAINT `fk_appointment_address_id`
     FOREIGN KEY (`address_id` )
     REFERENCES `address` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_appointment_participant`
+  CONSTRAINT `fk_appointment_participant_id`
     FOREIGN KEY (`participant_id` )
     REFERENCES `participant` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_appointment_user_id`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -583,28 +590,6 @@ CREATE  TABLE IF NOT EXISTS `jurisdiction` (
   CONSTRAINT `fk_jurisdiction_site`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `coverage`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `coverage` ;
-
-CREATE  TABLE IF NOT EXISTS `coverage` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `update_timestamp` TIMESTAMP NOT NULL ,
-  `create_timestamp` TIMESTAMP NOT NULL ,
-  `postcode_mask` VARCHAR(7) NOT NULL ,
-  `access_id` INT UNSIGNED NOT NULL COMMENT 'This access should always be as an interviewer.' ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `uq_postcode_mask_access_id` (`postcode_mask` ASC, `access_id` ASC) ,
-  INDEX `fk_access_id` (`access_id` ASC) ,
-  CONSTRAINT `fk_coverage_access_id`
-    FOREIGN KEY (`access_id` )
-    REFERENCES `access` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

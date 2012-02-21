@@ -33,7 +33,11 @@ class appointment_view extends base_appointment_view
     $this->select_address = 'interviewer' == lib::create( 'business\session' )->get_role()->name;
     
     // add items to the view
-    if( $this->select_address ) $this->add_item( 'address_id', 'enum', 'Address' );
+    if( $this->select_address )
+    {
+      $this->add_item( 'user_id', 'hidden' );
+      $this->add_item( 'address_id', 'enum', 'Address' );
+    }
     $this->add_item( 'datetime', 'datetime', 'Date' );
     $this->add_item( 'state', 'constant', 'State',
       '(One of reached, not reached, upcoming or passed)' );
@@ -67,6 +71,8 @@ class appointment_view extends base_appointment_view
           $db_address->city,
           $db_address->get_region()->abbreviation,
           $db_address->postcode );
+
+      $this->set_item( 'user_id', lib::create( 'business\session' )->get_user()->id );
       $this->set_item( 'address_id', $address, true, $address_list, true );
     }
     

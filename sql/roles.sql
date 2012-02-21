@@ -1001,32 +1001,6 @@ SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "push" AND subject = "note" AND name = "edit" );
 
--- coverage
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "coverage" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "coverage" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "coverage" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "coverage" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "coverage" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "coverage" AND name = "list" );
-
 -- interviewer
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
