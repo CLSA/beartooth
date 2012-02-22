@@ -155,8 +155,7 @@ class appointment extends \cenozo\database\record
 
     foreach( $appointment_list as $db_appointment )
     {
-      $state = $db_appointment->get_state();
-      if( 'reached' != $state && 'not reached' != $state )
+      if( !$db_appointment->completed )
       { // incomplete appointments only
         $appointment_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
   
@@ -272,10 +271,9 @@ class appointment extends \cenozo\database\record
 
   /**
    * Get the state of the appointment as a string:
-   *   reached: the appointment was met and the participant was reached
-   *   not reached: the appointment was met but the participant was not reached
+   *   completed: the appointment has been completed and the interview is done
    *   upcoming: the appointment's date/time has not yet occurred
-   *   passed: the appointment's date/time has passed
+   *   passed: the appointment's date/time has passed and the interview is not done
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return string
    * @access public
@@ -288,8 +286,8 @@ class appointment extends \cenozo\database\record
       return NULL;
     } 
     
-    // if the appointment's reached column is set, nothing else matters
-    if( !is_null( $this->reached ) ) return $this->reached ? 'reached' : 'not reached';
+    // first see if the appointment is complete
+    if( $this->completed ) return 'completed';
 
     $now = util::get_datetime_object()->getTimestamp();
     $appointment = util::get_datetime_object( $this->datetime )->getTimestamp();

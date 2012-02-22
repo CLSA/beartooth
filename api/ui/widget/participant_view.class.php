@@ -123,8 +123,11 @@ class participant_view extends \cenozo\ui\widget\base_view
   {
     parent::finish();
     
-    // set whether or not to show the assign button based on if the participant's eligibility
-    $allow_assign = 'interviewer' == lib::create( 'business\session' )->get_role()->name;
+    // set whether or not to show the assign now button
+    $session = lib::create( 'business\session' );
+    $allow_assign = 'interviewer' != $session->get_role()->name &&
+                    'site' == $this->get_record()->current_qnaire_type &&
+                    is_null( $session->get_current_assignment() );
     if( !is_null( $this->get_record()->status ) )
     {
       $allow_assign = false;

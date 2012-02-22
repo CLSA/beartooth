@@ -39,8 +39,7 @@ class appointment_view extends base_appointment_view
       $this->add_item( 'address_id', 'enum', 'Address' );
     }
     $this->add_item( 'datetime', 'datetime', 'Date' );
-    $this->add_item( 'state', 'constant', 'State',
-      '(One of reached, not reached, upcoming or passed)' );
+    $this->add_item( 'state', 'constant', 'State', '(One of complete, upcoming or passed)' );
   }
 
   /**
@@ -73,7 +72,8 @@ class appointment_view extends base_appointment_view
           $db_address->postcode );
 
       $this->set_item( 'user_id', lib::create( 'business\session' )->get_user()->id );
-      $this->set_item( 'address_id', $address, true, $address_list, true );
+      $this->set_item(
+        'address_id', $this->get_record()->get_address()->id, true, $address_list, true );
     }
     
     // set the view's items

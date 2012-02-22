@@ -98,7 +98,6 @@ class session extends \cenozo\business\session
 
   /**
    * Get the user's current assignment.
-   * Should only be called if the user is an interviewer, otherwise an exception will be thrown.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\assignment
@@ -107,11 +106,6 @@ class session extends \cenozo\business\session
    */
   public function get_current_assignment()
   {
-    // make sure the user is an interviewer
-    if( 'interviewer' != $this->get_role()->name )
-      throw lib::create( 'exception\runtime',
-        'Tried to get assignment for non-interviewer.', __METHOD__ );
-    
     // query for assignments which do not have a end time
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'end_datetime', '=', NULL );
@@ -120,8 +114,7 @@ class session extends \cenozo\business\session
     // only one assignment should ever be open at a time, warn if this isn't the case
     if( 1 < count( $assignment_list ) )
       log::crit(
-        sprintf( 'Current interviewer (id: %d, name: %s), has more than one active assignment!',
-                 $this->get_user()->id,
+        sprintf( 'User %s has more than one active assignment!',
                  $this->get_user()->name ) );
 
     return 1 == count( $assignment_list ) ? current( $assignment_list ) : NULL;
@@ -129,7 +122,6 @@ class session extends \cenozo\business\session
 
   /**
    * Get the user's current phone call.
-   * Should only be called if the user is an interviewer, otherwise an exception will be thrown.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\phone_call
@@ -138,11 +130,6 @@ class session extends \cenozo\business\session
    */
   public function get_current_phone_call()
   {
-    // make sure the user is an interviewer
-    if( 'interviewer' != $this->get_role()->name )
-      throw lib::create( 'exception\runtime',
-        'Tried to get phone call for non-interviewer.', __METHOD__ );
-    
     // without an assignment there can be no current call
     $db_assignment = $this->get_current_assignment();
     if( is_null( $db_assignment) ) return NULL;
@@ -155,8 +142,7 @@ class session extends \cenozo\business\session
     // only one phone call should ever be open at a time, warn if this isn't the case
     if( 1 < count( $phone_call_list ) )
       log::crit(
-        sprintf( 'Current interviewer (id: %d, name: %s), has more than one active phone call!',
-                 $this->get_user()->id,
+        sprintf( 'User %s has more than one active phone call!',
                  $this->get_user()->name ) );
 
     return 1 == count( $phone_call_list ) ? current( $phone_call_list ) : NULL;
@@ -164,7 +150,7 @@ class session extends \cenozo\business\session
 
   /**
    * Determines whether the user is allowed to make calls.  This depends on whether a SIP
-   * is detected and whether or not interviewers are allowed to make calls without using VoIP
+   * is detected and whether or not calls are allowed to be made without using VoIP
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @access public
@@ -204,9 +190,8 @@ class session extends \cenozo\business\session
   public function slot_current( $slot )
   {
     return 'main' == $slot &&
-           'interviewer' == $this->get_role()->name &&
            $this->get_current_assignment()
-         ? array( 'name' => 'interviewer_assignment', 'args' => NULL )
+         ? array( 'name' => 'self_assignment', 'args' => NULL )
          : parent::slot_current( $slot );
   }
 

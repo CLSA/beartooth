@@ -80,10 +80,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "site_appointment", "calendar", true, "A calendar listing site appointments." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "site_appointment", "feed", true, "Retrieves a list of site appointment times for a given time-span." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "site", "calendar", true, "A calendar listing the number of interviewers free for an appointment." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "pull", "site", "feed", true, "Retrieves a list of free site appointment times for a given time-span." );
 
 -- consent
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -108,12 +104,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "interview", "list", true, "Lists interviews." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "interview", "edit", true, "Edits the details of an interview." );
-
--- interviewer
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "interviewer", "assignment", true, "Displays the interviewer's assignment manager." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "interviewer", "list", true, "Displays a list of interviewers." );
 
 -- onyx_instance
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -292,6 +282,8 @@ VALUES( "pull", "participant_tree", "report", true, "Download a participant tree
 -- self
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "self", "dialing_pad", false, "A telephone dialing pad widget." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "self", "assignment", false, "Displays the assignment manager." );
 
 -- shift_template
 -- INSERT INTO operation( type, subject, name, restricted, description )

@@ -103,8 +103,7 @@ class site_feed extends \cenozo\ui\pull\base_feed
     $class_name = lib::get_class_name( 'database\appointment' );
     foreach( $class_name::select_for_site( $db_site, $modifier ) as $db_appointment )
     {
-      $state = $db_appointment->get_state();
-      if( 'reached' != $state && 'not reached' != $state )
+      if( !$db_appointment->completed )
       { // incomplete appointments only
         $appointment_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
         $diffs = &$days[ $appointment_datetime_obj->format( 'Y-m-d' ) ]['diffs'];

@@ -167,6 +167,33 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `queue`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `queue` ;
+
+CREATE  TABLE IF NOT EXISTS `queue` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `name` VARCHAR(45) NOT NULL ,
+  `title` VARCHAR(255) NOT NULL ,
+  `rank` INT UNSIGNED NULL DEFAULT NULL ,
+  `qnaire_specific` TINYINT(1)  NOT NULL ,
+  `parent_queue_id` INT UNSIGNED NULL DEFAULT NULL ,
+  `description` TEXT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `uq_rank` (`rank` ASC) ,
+  INDEX `fk_parent_queue_id` (`parent_queue_id` ASC) ,
+  UNIQUE INDEX `uq_name` (`name` ASC) ,
+  CONSTRAINT `fk_queue_parent_queue_id`
+    FOREIGN KEY (`parent_queue_id` )
+    REFERENCES `queue` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `assignment`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `assignment` ;
@@ -178,6 +205,7 @@ CREATE  TABLE IF NOT EXISTS `assignment` (
   `user_id` INT UNSIGNED NOT NULL ,
   `site_id` INT UNSIGNED NOT NULL COMMENT 'The site from which the user was assigned.' ,
   `interview_id` INT UNSIGNED NOT NULL ,
+  `queue_id` INT UNSIGNED NULL DEFAULT NULL ,
   `start_datetime` DATETIME NOT NULL ,
   `end_datetime` DATETIME NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
@@ -186,19 +214,25 @@ CREATE  TABLE IF NOT EXISTS `assignment` (
   INDEX `dk_end_datetime` (`end_datetime` ASC) ,
   INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `fk_user_id` (`user_id` ASC) ,
-  CONSTRAINT `fk_assignment_interview`
+  INDEX `fk_queue_id` (`queue_id` ASC) ,
+  CONSTRAINT `fk_assignment_interview_id`
     FOREIGN KEY (`interview_id` )
     REFERENCES `interview` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_assignment_site`
+  CONSTRAINT `fk_assignment_site_id`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_assignment_user`
+  CONSTRAINT `fk_assignment_user_id`
     FOREIGN KEY (`user_id` )
     REFERENCES `user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_assignment_queue_id`
+    FOREIGN KEY (`queue_id` )
+    REFERENCES `queue` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -450,9 +484,9 @@ CREATE  TABLE IF NOT EXISTS `appointment` (
   `user_id` INT UNSIGNED NULL COMMENT 'NULL for site appointments' ,
   `address_id` INT UNSIGNED NULL COMMENT 'NULL for site appointments' ,
   `datetime` DATETIME NOT NULL ,
-  `reached` TINYINT(1)  NULL DEFAULT NULL COMMENT 'If the appointment was met, whether the participant was reached.' ,
+  `completed` TINYINT(1)  NOT NULL DEFAULT false ,
   PRIMARY KEY (`id`) ,
-  INDEX `dk_reached` (`reached` ASC) ,
+  INDEX `dk_reached` (`completed` ASC) ,
   INDEX `fk_address_id` (`address_id` ASC) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
   INDEX `dk_datetime` (`datetime` ASC) ,
@@ -470,33 +504,6 @@ CREATE  TABLE IF NOT EXISTS `appointment` (
   CONSTRAINT `fk_appointment_user_id`
     FOREIGN KEY (`user_id` )
     REFERENCES `user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `queue`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `queue` ;
-
-CREATE  TABLE IF NOT EXISTS `queue` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `update_timestamp` TIMESTAMP NOT NULL ,
-  `create_timestamp` TIMESTAMP NOT NULL ,
-  `name` VARCHAR(45) NOT NULL ,
-  `title` VARCHAR(255) NOT NULL ,
-  `rank` INT UNSIGNED NULL DEFAULT NULL ,
-  `qnaire_specific` TINYINT(1)  NOT NULL ,
-  `parent_queue_id` INT UNSIGNED NULL DEFAULT NULL ,
-  `description` TEXT NULL ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `uq_rank` (`rank` ASC) ,
-  INDEX `fk_parent_queue_id` (`parent_queue_id` ASC) ,
-  UNIQUE INDEX `uq_name` (`name` ASC) ,
-  CONSTRAINT `fk_queue_parent_queue_id`
-    FOREIGN KEY (`parent_queue_id` )
-    REFERENCES `queue` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

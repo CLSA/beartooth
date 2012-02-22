@@ -51,16 +51,25 @@ class self_menu extends \cenozo\ui\widget\self_menu
   {
     parent::finish();
 
+    $operation_class_name = lib::get_class_name( 'database\operation' );
+
     $utilities = $this->get_variable( 'utilities' );
     
     // insert the participant tree into the utilities
-    $operation_class_name = lib::get_class_name( 'database\operation' );
     $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'tree' );
     if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
       $utilities[] = array( 'heading' => 'Participant Tree',
                             'type' => 'widget',
                             'subject' => 'participant',
                             'name' => 'tree' );
+
+    // insert the assignment begin operation into the utilities
+    $db_operation = $operation_class_name::get_operation( 'push', 'assignment', 'begin' );
+    if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+      $utilities[] = array( 'heading' => 'Request Assignment',
+                            'type' => 'push',
+                            'subject' => 'assignment',
+                            'name' => 'begin' );
 
     $this->set_variable( 'utilities', $utilities );
   }
