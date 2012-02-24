@@ -45,6 +45,9 @@ class appointment_new extends \cenozo\ui\push\base_new
     
     foreach( $columns as $column => $value ) $this->get_record()->$column = $value;
     
+    // do not include the user_id if this is a site appointment
+    if( 0 < $this->get_record()->address_id ) $this->get_record()->user_id = NULL;
+    
     if( !$this->get_record()->validate_date() )
       throw lib::create( 'exception\notice',
         sprintf(

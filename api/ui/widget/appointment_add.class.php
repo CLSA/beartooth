@@ -67,6 +67,7 @@ class appointment_add extends base_appointment_view
 
     if( $this->select_address )
     {
+      $address_list = array( 0 => 'Site' );
       foreach( $db_participant->get_address_list( $modifier ) as $db_address )
         $address_list[$db_address->id] = sprintf(
           '%s, %s, %s, %s',
@@ -90,6 +91,7 @@ class appointment_add extends base_appointment_view
     $this->set_item( 'participant_id', $this->parent->get_record()->id );
     $this->set_item( 'datetime', '', true, $datetime_limits );
     
+    $this->set_variable( 'current_qnaire_type', $this->parent->get_record()->current_qnaire_type );
     $this->set_variable( 'is_mid_tier', 2 == $session->get_role()->tier );
 
     $this->finish_setting_items();
