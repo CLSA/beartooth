@@ -37,12 +37,13 @@ class interview extends \cenozo\database\has_note
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
     $modifier->where(
       'interview.participant_id', '=', 'participant_primary_address.participant_id', false );
+    $modifier->where( 'participant_primary_address.participant_id', '=', 'participant.id', false );
     $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
     $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
     $modifier->where( 'jurisdiction.site_id', '=', $db_site->id );
     $sql = sprintf(
       ( $count ? 'SELECT COUNT(*) ' : 'SELECT interview.id ' ).
-      'FROM interview, participant_primary_address, address, jurisdiction %s',
+      'FROM interview, participant_primary_address, participant, address, jurisdiction %s',
       $modifier->get_sql() );
 
     if( $count )
