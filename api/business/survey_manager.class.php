@@ -38,9 +38,6 @@ class survey_manager extends \cenozo\singleton
   {
     $session = lib::create( 'business\session' );
 
-    // only interviewers can fill out surveys
-    if( 'interviewer' != $session->get_role()->name ) return false;
-    
     // must have an assignment
     $db_assignment = $session->get_current_assignment();
     if( is_null( $db_assignment ) ) return false;
