@@ -278,6 +278,10 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "participant_tree", "report", true, "Set up a participant tree report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "participant_tree", "report", true, "Download a participant tree report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "home_appointment", "report", true, "Set up a home appointment report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "home_appointment", "report", true, "Download a home appointment report." );
 
 -- self
 INSERT INTO operation( type, subject, name, restricted, description )

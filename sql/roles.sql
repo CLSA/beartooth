@@ -352,11 +352,12 @@ SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "pull" AND subject = "queue_restriction" AND name = "primary" );
 
--- ALL reports
+-- ALL reports except for the home appointment report
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id
 FROM role, operation
 WHERE role.name = "administrator"
+AND operation.category != "home_appointment"
 AND operation.name = "report";
 
 
@@ -1009,11 +1010,12 @@ SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "push" AND subject = "note" AND name = "edit" );
 
--- ALL reports
+-- ALL reports except for the home appointment report
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id
 FROM role, operation
 WHERE role.name = "coordinator"
+AND operation.category != "home_appointment"
 AND operation.name = "report";
 
 -- system messages
@@ -1296,6 +1298,17 @@ INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "push" AND subject = "participant" AND name = "delete_phone" );
+
+-- report
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "widget" AND subject = "home_appointment" AND name = "report" );
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "push" AND subject = "home_appointment" AND name = "report" );
+
 
 -- -----------------------------------------------------
 -- -----------------------------------------------------
