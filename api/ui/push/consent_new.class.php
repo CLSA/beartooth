@@ -26,6 +26,24 @@ class consent_new extends \cenozo\ui\push\base_new
    */
   public function __construct( $args )
   {
+    if( array_key_exists( 'noid', $args ) )
+    {
+      $noid = $args['noid'];
+      unset( $args['noid'] );
+
+      //make sure there is sufficient information
+      if( !is_array( $noid ) ||
+          !array_key_exists( 'participant.uid', $noid ) )
+        throw lib::create( 'exception\argument', 'noid', $noid, __METHOD );
+
+      $participant_class_name = lib::get_class_name( 'database\participant' );
+      $db_participant =
+        $participant_class_name::get_unique_record( 'uid', $noid['participant.uid'] );
+      if( is_null( $db_participant ) )
+        throw lib::create( 'exception\argument', 'noid', $noid, __METHOD__ );
+      $args['id'] = $db_participant->id;
+    }
+
     parent::__construct( 'consent', $args );
   }
 
