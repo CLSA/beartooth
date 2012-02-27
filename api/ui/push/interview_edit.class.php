@@ -67,6 +67,7 @@ class interview_edit extends \cenozo\ui\push\base_edit
     {
       $appointment_class_name = lib::create( 'database\appointment' );
       $appointment_mod = lib::create( 'database\modifier' );
+      $appointment_mod->where( 'participant_id', '=', $this->get_record()->get_participant()->id );
       $appointment_mod->where( 'completed', '=', false );
       $test = 'home' == $this->get_record()->get_qnaire()->type ? '!=' : '=';
       $appointment_mod->where( 'address_id', $test, NULL );
