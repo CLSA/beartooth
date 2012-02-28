@@ -254,26 +254,26 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "queue_restriction", "primary", true, "Retrieves base queue restriction information." );
 
 -- reports
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "productivity", "report", true, "Set up a productivity report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "productivity", "report", true, "Download a productivity report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "call_attempts", "report", true, "Set up a call attempts report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "call_attempts", "report", true, "Download a call attempts report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "call_history", "report", true, "Set up a call history report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "call_history", "report", true, "Download a call history report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "sourcing_required", "report", true, "Set up a new sourcing required report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "sourcing_required", "report", true, "Download a new sourcing required report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "demographics", "report", true, "Set up a new demographics report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "demographics", "report", true, "Download a new demographics report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "productivity", "report", true, "Set up a productivity report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "productivity", "report", true, "Download a productivity report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "call_attempts", "report", true, "Set up a call attempts report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "call_attempts", "report", true, "Download a call attempts report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "call_history", "report", true, "Set up a call history report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "call_history", "report", true, "Download a call history report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "sourcing_required", "report", true, "Set up a new sourcing required report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "sourcing_required", "report", true, "Download a new sourcing required report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "demographics", "report", true, "Set up a new demographics report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "demographics", "report", true, "Download a new demographics report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "participant_tree", "report", true, "Set up a participant tree report." );
 INSERT INTO operation( type, subject, name, restricted, description )
