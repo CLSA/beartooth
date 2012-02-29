@@ -1093,11 +1093,11 @@ SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "push" AND subject = "assignment" AND name = "end" );
 INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
+SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "push" AND subject = "home_assignment" AND name = "begin" );
 INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
+SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "push" AND subject = "site_assignment" AND name = "begin" );
 INSERT INTO role_has_operation
