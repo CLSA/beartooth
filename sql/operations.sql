@@ -41,7 +41,11 @@ VALUES( "widget", "assignment", "view", true, "View assignment details." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "assignment", "list", true, "Lists assignments." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "assignment", "begin", true, "Requests a new assignment." );
+VALUES( "push", "home_assignment", "begin", true, "Requests from the queue a new assignment to make a home appointment." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "site_assignment", "begin", true, "Requests from the queue a new assignment to make a site appointment." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "assignment", "begin", true, "Begins a new assignment with a particular participant." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "assignment", "end", true, "Ends the current assignment." );
 INSERT INTO operation( type, subject, name, restricted, description )

@@ -13,7 +13,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
 /**
  * push: assignment end
  *
- * Assigns a participant to an assignment.
+ * Ends the user's current assignment.
  * @package beartooth\ui
  */
 class assignment_end extends \cenozo\ui\push
