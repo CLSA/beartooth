@@ -28,7 +28,7 @@ class appointment_list extends \cenozo\ui\widget\site_restricted_list
   public function __construct( $args )
   {
     parent::__construct( 'appointment', $args );
-    $this->add_column( 'uid', 'string', 'First name', false );
+    $this->add_column( 'uid', 'string', 'UID', false );
     $this->add_column( 'address', 'string', 'Address', false );
     $this->add_column( 'datetime', 'datetime', 'Date', true );
     $this->add_column( 'state', 'string', 'State', false );

@@ -38,6 +38,10 @@ class self_menu extends \cenozo\ui\widget\self_menu
       'phase',
       'phone',
       'phone_call' );
+
+    if( 'interviewer' == lib::create( 'business\session' )->get_role()->name )
+      $exclude[] = 'assignment';
+
     $this->exclude_widget_list = array_merge( $this->exclude_widget_list, $exclude );
   }
 

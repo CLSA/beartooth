@@ -35,7 +35,7 @@ class productivity_report extends base_report
     $this->add_parameter( 'round_times', 'boolean', 'Round Times' );
     
     $this->set_variable( 'description',
-      'This report lists operator productivity.  The report can either be generated for a '.
+      'This report lists interviewer productivity.  The report can either be generated for a '.
       'particular day (which will include start and end times), or overall.  The report '.
       'includes the number of completed interviews, total working time calls per hour and '.
       'average interview length.' );

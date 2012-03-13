@@ -74,8 +74,7 @@ class assignment_begin extends \cenozo\ui\push
       $db_interview->qnaire_id = $this->db_participant->current_qnaire_id;
 
       // Even though we have made sure this interview isn't a duplicate, it seems to happen from
-      // time to time anyway, so catch it and tell the operator to try requesting the assignment
-      // again
+      // time to time anyway, so catch it and tell the user to try requesting the assignment again
       try
       {
         $db_interview->save();
