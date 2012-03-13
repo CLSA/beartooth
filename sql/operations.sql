@@ -67,10 +67,6 @@ VALUES( "widget", "availability", "list", true, "Lists a participant's availabil
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "availability", "primary", true, "Retrieves base availability information." );
 
--- list
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "appointment", "list", true, "Retrieves a list of appointments for an onyx instance." );
-
 -- calendar
 -- INSERT INTO operation( type, subject, name, restricted, description )
 -- VALUES( "widget", "shift_template", "calendar", true, "Shows shift templates in a calendar format." );
@@ -108,6 +104,14 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "interview", "list", true, "Lists interviews." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "interview", "edit", true, "Edits the details of an interview." );
+
+-- onyx operations
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "appointment", "list", true, "Retrieves a list of appointments for an onyx instance." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "onyx", "participant", true, "Allows Onyx to update the information of one or more participants." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "onyx", "consent", true, "Allows Onyx to update the consent details of one or more participants." );
 
 -- onyx_instance
 INSERT INTO operation( type, subject, name, restricted, description )
