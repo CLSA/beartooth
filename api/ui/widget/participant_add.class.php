@@ -36,6 +36,7 @@ class participant_add extends \cenozo\ui\widget\base_view
     $this->add_item( 'last_name', 'string', 'Last Name' );
     $this->add_item( 'language', 'enum', 'Preferred Language' );
     $this->add_item( 'status', 'enum', 'Condition' );
+    $this->add_item( 'consent_to_draw_blood', 'boolean', 'Consent to Draw Blood' );
     $this->add_item( 'prior_contact_date', 'date', 'Prior Contact Date' );
   }
 
@@ -66,6 +67,7 @@ class participant_add extends \cenozo\ui\widget\base_view
     $this->set_item( 'last_name', '', true );
     $this->set_item( 'language', key( $languages ), false, $languages );
     $this->set_item( 'status', '', false, $statuses );
+    $this->set_item( 'consent_to_draw_blood', false, true );
     $this->set_item( 'prior_contact_date', '' );
 
     $this->finish_setting_items();

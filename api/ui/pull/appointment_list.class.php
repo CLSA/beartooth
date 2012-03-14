@@ -138,7 +138,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
         'city'      => is_null( $db_address ) ? 'NA' : $db_address->city,
         'province'  => is_null( $db_address ) ? 'NA' : $db_address->get_region()->name,
         'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode,
-        'consent_to_draw_blood' =>  false ); // TODO: implement this field in mastodon
+        'consent_to_draw_blood' => $db_participant->consent_to_draw_blood );
     }
 
     return $event_list;
