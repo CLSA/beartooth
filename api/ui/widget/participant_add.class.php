@@ -3,22 +3,19 @@
  * participant_add.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget participant add
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class participant_add extends base_view
+class participant_add extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor
@@ -39,7 +36,6 @@ class participant_add extends base_view
     $this->add_item( 'last_name', 'string', 'Last Name' );
     $this->add_item( 'language', 'enum', 'Preferred Language' );
     $this->add_item( 'status', 'enum', 'Condition' );
-    $this->add_item( 'site_id', 'enum', 'Prefered Site' );
     $this->add_item( 'prior_contact_date', 'date', 'Prior Contact Date' );
   }
 
@@ -54,12 +50,14 @@ class participant_add extends base_view
     parent::finish();
     
     // create enum arrays
-    $languages = db\participant::get_enum_values( 'language' );
+    $class_name = lib::get_class_name( 'database\participant' );
+    $languages = $class_name::get_enum_values( 'language' );
     $languages = array_combine( $languages, $languages );
-    $statuses = db\participant::get_enum_values( 'status' );
+    $statuses = $class_name::get_enum_values( 'status' );
     $statuses = array_combine( $statuses, $statuses );
     $sites = array();
-    foreach( db\site::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
+    $class_name = lib::get_class_name( 'database\site' );
+    foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
 
     // set the view's items
     $this->set_item( 'active', true, true );
@@ -68,7 +66,6 @@ class participant_add extends base_view
     $this->set_item( 'last_name', '', true );
     $this->set_item( 'language', key( $languages ), false, $languages );
     $this->set_item( 'status', '', false, $statuses );
-    $this->set_item( 'site_id', '', false, $sites );
     $this->set_item( 'prior_contact_date', '' );
 
     $this->finish_setting_items();

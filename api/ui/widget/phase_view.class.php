@@ -3,22 +3,19 @@
  * phase_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget phase view
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class phase_view extends base_view
+class phase_view extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor
@@ -50,11 +47,12 @@ class phase_view extends base_view
 
     // create enum arrays
     $surveys = array();
-    $modifier = new db\modifier();
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'active', '=', 'Y' );
     $modifier->where( 'anonymized', '=', 'N' );
     $modifier->where( 'tokenanswerspersistence', '=', 'Y' );
-    foreach( db\limesurvey\surveys::select( $modifier ) as $db_survey )
+    $class_name = lib::get_class_name( 'database\limesurvey\surveys' );
+    foreach( $class_name::select( $modifier ) as $db_survey )
       $surveys[$db_survey->sid] = $db_survey->get_title();
     $num_phases = $this->get_record()->get_qnaire()->get_phase_count();
     $ranks = array();

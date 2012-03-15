@@ -3,20 +3,17 @@
  * appointment_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget appointment view
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
 class appointment_view extends base_appointment_view
 {
@@ -33,14 +30,12 @@ class appointment_view extends base_appointment_view
     parent::__construct( 'view', $args );
     
     // add items to the view
-    $this->add_item( 'phone_id', 'enum', 'Phone Number',
-      'Select a specific phone number to call for the appointment, or leave this field blank if '.
-      'any of the participant\'s phone numbers can be called.' );
+    $this->add_item( 'address_id', 'enum', 'Address',
+      'For site interviews select "site", otherwise select which address the home interview '.
+      'will take place at.' );
     $this->add_item( 'datetime', 'datetime', 'Date' );
-    $this->add_item( 'assignment.user', 'constant', 'Assigned to' );
     $this->add_item( 'state', 'constant', 'State',
-      '(One of reached, not reached, upcoming, assignable, missed, incomplete, assigned '.
-      'or in progress)' );
+      '(One of reached, not reached, upcoming or passed)' );
   }
 
   /**
@@ -51,72 +46,45 @@ class appointment_view extends base_appointment_view
    */
   public function finish()
   {
-    // don't allow editing if the appointment has been assigned
-    $db_assignment = $this->get_record()->get_assignment();
-    $this->editable = is_null( $db_assignment );
-
     parent::finish();
 
-    $db_participant = new db\participant( $this->get_record()->participant_id );
+    $db_participant = lib::create( 'database\participant', $this->get_record()->participant_id );
   
-    // determine the time difference
-    $db_phone = $this->get_record()->get_phone();
-
-    // go with the phone's address if there is one, and the first address if not
-    $db_address = is_null( $db_phone )
-                ? $db_participant->get_first_address()
-                : $db_phone->get_address();
-    $time_diff = is_null( $db_address ) ? NULL : $db_address->get_time_diff();
-
-    // need to add the participant's timezone information as information to the date item
-    $site_name = bus\session::self()->get_site()->name;
-    if( is_null( $time_diff ) )
-      $note = 'The participant\'s time zone is not known.';
-    else if( 0 == $time_diff )
-      $note = sprintf( 'The participant is in the same time zone as the %s site.',
-                       $site_name );
-    else if( 0 < $time_diff )
-      $note = sprintf( 'The participant\'s time zone is %s hours ahead of %s\'s time.',
-                       $time_diff,
-                       $site_name );
-    else if( 0 > $time_diff )
-      $note = sprintf( 'The participant\'s time zone is %s hours behind of %s\'s time.',
-                       abs( $time_diff ),
-                       $site_name );
-
-    $this->add_item( 'datetime', 'datetime', 'Date', $note );
-    
     // create enum arrays
-    $modifier = new db\modifier();
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'active', '=', true );
     $modifier->order( 'rank' );
-    $phones = array();
-    foreach( $db_participant->get_phone_list( $modifier ) as $db_phone )
-      $phones[$db_phone->id] = $db_phone->rank.". ".$db_phone->number;
-    
-    if( !is_null( $db_assignment ) )
-    {
-      $this->set_item( 'assignment.user', $db_assignment->get_user()->name, false );
 
-      $this->add_item( 'assignment.start_datetime', 'constant', 'Started' );
-      $this->set_item( 'assignment.start_datetime',
-        util::get_formatted_time( $db_assignment->start_datetime ), false );
-      
-      $this->add_item( 'assignment.end_datetime', 'constant', 'Finished' );
-      $this->set_item( 'assignment.end_datetime',
-        util::get_formatted_time( $db_assignment->end_datetime ), false );
+    // don't allow users to change the type (home/site) of appointment
+    if( is_null( $this->get_record()->address_id ) )
+    {
+      $address_list = array( 'NULL' => 'site' );
     }
     else
     {
-      $this->set_item( 'assignment.user', 'unassigned', false );
+      foreach( $db_participant->get_address_list( $modifier ) as $db_address )
+        $address_list[$db_address->id] = sprintf(
+          '%s, %s, %s, %s',
+          $db_address->address2 ? $db_address->address1.', '.$db_address->address2
+                                : $db_address->address1,
+          $db_address->city,
+          $db_address->get_region()->abbreviation,
+          $db_address->postcode );
     }
+    
+    // when address is null twig needs this value to be an empty string (not null)
+    $address = $this->get_record()->address_id ? $this->get_record()->address_id : '';
 
     // set the view's items
-    $this->set_item( 'phone_id', $this->get_record()->phone_id, false, $phones );
+    $this->set_item(
+      'address_id', $address, true, $address_list, true );
     $this->set_item( 'datetime', $this->get_record()->datetime, true );
     $this->set_item( 'state', $this->get_record()->get_state(), false );
 
     $this->finish_setting_items();
+
+    // hide the calendar if requested to
+    $this->set_variable( 'hide_calendar', $this->get_argument( 'hide_calendar', false ) );
   }
 }
 ?>

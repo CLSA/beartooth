@@ -3,20 +3,17 @@
  * tokens.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database\limesurvey;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\database\limesurvey;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Access to limesurvey's tokens_SID tables.
  * 
- * @package sabretooth\database
+ * @package beartooth\database
  */
 class tokens extends sid_record
 {
@@ -24,16 +21,23 @@ class tokens extends sid_record
    * Updates the token attributes with current values from Mastodon
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param db\participant $db_participant The record of the participant linked to this token.
+   * @param database\participant $db_participant The record of the participant linked to this token.
    * @param boolean $extended Whether or not to included extended parameters.
    * @access public
    */
   public function update_attributes( $db_participant )
   {
-    $mastodon_manager = bus\mastodon_manager::self();
-    $db_user = bus\session::self()->get_user();
+    $session = lib::create( 'business\session' );
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
+    $db_user = $session->get_user();
+    $db_site = $session->get_site();
+
+    // determine the first part of the token
+    $db_interview = $session->get_current_assignment()->get_interview();
+    $token_part = substr( static::determine_token_string( $db_interview ), 0, -1 );
     
-    // try getting the attributes from mastodon or sabretooth
+    // try getting the attributes from mastodon or beartooth
+    $participant_info = new \stdClass();
     if( $mastodon_manager->is_enabled() )
     {
       $participant_info = $mastodon_manager->pull(
@@ -70,16 +74,16 @@ class tokens extends sid_record
         if( !is_null( $db_address->address2 ) )
           $participant_info->data->street .= ' '.$db_address->address2;
         $participant_info->data->city = $db_address->city;
-        $participant_info->data->region = $db_address->get_region()->get_name();
+        $participant_info->data->region = $db_address->get_region()->name;
         $participant_info->data->postcode = $db_address->postcode;
       }
 
       // written consent received
-      $consent_mod = new modifier();
+      $consent_mod = lib::create( 'database\modifier' );
       $consent_mod->where( 'event', 'like', 'written %' );
       $written_consent = 0 < $db_participant->get_consent_count( $consent_mod );
 
-      // sabretooth doesn't track the following information
+      // beartooth doesn't track the following information
       $participant_info->data->date_of_birth = "";
       $participant_info->data->email = "";
       $participant_info->data->hin_access = "";
@@ -88,7 +92,7 @@ class tokens extends sid_record
     }
     
     // determine the attributes from the survey with the same ID
-    $db_surveys = new surveys( static::$table_sid );
+    $db_surveys = lib::create( 'database\limesurvey\surveys', static::$table_sid );
 
     foreach( explode( "\n", $db_surveys->attributedescriptions ) as $attribute )
     {
@@ -130,11 +134,11 @@ class tokens extends sid_record
         {
           $this->$key = true == $participant_info->data->hin_access ? "1" : "0";
         }
-        else if( 'operator first_name' == $value )
+        else if( 'interviewer first_name' == $value )
         {
           $this->$key = $db_user->first_name;
         }
-        else if( 'operator last_name' == $value )
+        else if( 'interviewer last_name' == $value )
         {
           $this->$key = $db_user->last_name;
         }
@@ -146,7 +150,29 @@ class tokens extends sid_record
         {
           $this->$key = count( $alternate_info->data );
         }
-        else if( preg_match( '/alternate([0-9]+) (first_name|last_name|phone)/', $value, $matches ) )
+        else if( 'dcs phone_number' )
+        {
+          $this->$key = $db_site->phone_number;
+        }
+        else if( 'dcs address street' )
+        {
+          $this->$key =
+            $db_site->address1.( !is_null( $db_site->address2 ) ? '' : ', '.$db_site->address2 );
+        }
+        else if( 'dcs address city' )
+        {
+          $this->$key = $db_site->city;
+        }
+        else if( 'dcs address province' )
+        {
+          $this->$key = $db_site->get_region()->name;
+        }
+        else if( 'dcs address postal code' )
+        {
+          $this->$key = $db_site->postcode;
+        }
+        else if(
+          preg_match( '/alternate([0-9]+) (first_name|last_name|phone)/', $value, $matches ) )
         {
           $alt_number = intval( $matches[1] );
           $aspect = $matches[2];
@@ -154,6 +180,14 @@ class tokens extends sid_record
           $this->$key = $alt_number <= count( $alternate_info->data )
                       ? $alternate_info->data[$alt_number - 1]->$aspect
                       : "";
+        }
+        else if( 'previously completed' == $value )
+        {
+          // no need to set the token sid since it should already be set before calling this method
+          $tokens_mod = lib::create( 'database\modifier' );
+          $tokens_mod->where( 'token', 'like', $token_part.'%' );
+          $tokens_mod->where( 'completed', '!=', 'N' );
+          $this->$key = static::count( $tokens_mod );
         }
       }
     }

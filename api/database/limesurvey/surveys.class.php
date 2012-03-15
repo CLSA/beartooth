@@ -3,20 +3,17 @@
  * surveys.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database\limesurvey;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\database\limesurvey;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * surveys: record
  *
- * @package sabretooth\database
+ * @package beartooth\database
  */
 class surveys extends record
 {
@@ -27,7 +24,7 @@ class surveys extends record
    */
   public function get_title()
   {
-    $modifier = new db\modifier();
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'sid', '=', $this->sid );
     $modifier->where( 'sid', '=', 'surveyls_survey_id', false );
     $modifier->where( 'language', '=', 'surveyls_language', false );

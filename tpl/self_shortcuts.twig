@@ -2,6 +2,7 @@
  # self_shortcuts.twig
  # 
  # Creates a list of shortcuts which are meant to be used under any circumstance.
+ # TODO: have this extend cenozo's self_shortcuts.twig file instead of replacing it
  # @author Patrick Emond <emondpd@mcmaster.ca>
  # @param boolean navigation Whether to include the navigation buttons
  # @param boolean refresh Whether to include the refresh button
@@ -53,25 +54,6 @@
             autoOpen: true
           } );
           slot_load( "dialing_pad", "self", "dialing_pad" );
-        } ).parent().buttonset();
-      {% endif %}
-      
-      {% if timer %}
-        $( "#{{ widget.full }}_timer" ).button( {
-          text: false,
-          icons: {
-            primary: "ui-icon-clock"
-          }
-        } ).click( function() {
-          // open the timber dialog
-          $( "#timer_slot" ).dialog( {
-            title: "Timer and Recording",
-            modal: false,
-            width: 400,
-            height: 235,
-            autoOpen: true
-          } );
-          slot_load( "timer", "self", "timer" );
         } ).parent().buttonset();
       {% endif %}
       
@@ -153,21 +135,21 @@
         } );
       {% endif %}
 
-        $( "#{{ widget.full }}_font_down" ).button( {
-          text: false,
-          icons: {
-            primary: "ui-icon-minus"
-          }
-        } ).click( function() {
-        } ).fontscale( "body", "down" );
+      $( "#{{ widget.full }}_font_down" ).button( {
+        text: false,
+        icons: {
+          primary: "ui-icon-minus"
+        }
+      } ).click( function() {
+      } ).fontscale( "body", "down" );
 
-        $( "#{{ widget.full }}_font_up" ).button( {
-          text: false,
-          icons: {
-            primary: "ui-icon-plus"
-          }
-        } ).click( function() {
-        } ).fontscale( "body", "up" ).parent().buttonset();
+      $( "#{{ widget.full }}_font_up" ).button( {
+        text: false,
+        icons: {
+          primary: "ui-icon-plus"
+        }
+      } ).click( function() {
+      } ).fontscale( "body", "up" ).parent().buttonset();
 
     } );
   </script>
@@ -186,9 +168,6 @@
       {% endif %}
     </span>
     <span>
-      {% if timer %}
-        <button id="{{ widget.full }}_timer">timer</button>
-      {% endif %}
       {% if calculator %}
         <button id="{{ widget.full }}_calculator">calculator</button>
       {% endif %}

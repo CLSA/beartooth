@@ -6,7 +6,7 @@ SET AUTOCOMMIT=0;
 -- voip
 INSERT INTO setting( category, name, type, value, description )
 VALUES( "voip", "survey without sip", "boolean", "false",
-"Whether to allow operators to fill out surveys without an active SIP connection." );
+"Whether to allow interviewers to fill out surveys without an active SIP connection." );
 
 -- queue state
 INSERT INTO setting( category, name, type, value, description )
@@ -18,17 +18,27 @@ ORDER BY rank;
 
 -- appointment
 INSERT INTO setting( category, name, type, value, description )
-VALUES( "appointment", "duration", "integer", "45",
-"The length of time an appointment is estimated to take, in minutes." );
+VALUES( "appointment", "home duration", "integer", "120",
+"The length of time a home appointment is estimated to take, in minutes." );
 
 INSERT INTO setting( category, name, type, value, description )
-VALUES( "appointment", "call pre-window", "integer", "5",
-"Number of minutes before an appointment when it is considered assignable." );
+VALUES( "appointment", "site duration", "integer", "120",
+"The length of time a site appointment is estimated to take, in minutes." );
 
 INSERT INTO setting( category, name, type, value, description )
-VALUES( "appointment", "call post-window", "integer", "15",
-"Number of minutes after an appointment when it is considered assignable, after which it will be
-considered missed." );
+VALUES( "appointment", "update interval", "string", "W",
+"The length of time between site appointment list updates in either one month (M), one week (W) or daily (D)." );
+
+-- calling times
+INSERT INTO setting( category, name, type, value, description )
+VALUES( "calling", "start time", "string", "09:00",
+"The time when calls may begin (not including appointments).  The local time at the participant's
+\"first address\" is tested." );
+
+INSERT INTO setting( category, name, type, value, description )
+VALUES( "calling", "end time", "string", "21:00",
+"The time when calls end (not including appointments).  The local time at the participant's
+\"first address\" is tested." );
 
 -- callback timing
 INSERT INTO setting( category, name, type, value, description )

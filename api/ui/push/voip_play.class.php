@@ -3,24 +3,21 @@
  * voip_play.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: voip play
  *
  * Changes the current user's theme.
  * Arguments must include 'theme'.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class voip_play extends \sabretooth\ui\push
+class voip_play extends \cenozo\ui\push
 {
   /**
    * Constructor.
@@ -40,7 +37,7 @@ class voip_play extends \sabretooth\ui\push
    */
   public function finish()
   {
-    bus\voip_manager::self()->get_call()->play_sound(
+    lib::create( 'business\voip_manager' )->get_call()->play_sound(
       $this->get_argument( 'sound' ),
       $this->get_argument( 'volume' ) );
   }

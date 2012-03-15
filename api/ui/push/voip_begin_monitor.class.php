@@ -3,24 +3,21 @@
  * voip_begin_monitor.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: voip begin_monitor
  *
  * Changes the current user's theme.
  * Arguments must include 'theme'.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class voip_begin_monitor extends \sabretooth\ui\push
+class voip_begin_monitor extends \cenozo\ui\push
 {
   /**
    * Constructor.
@@ -40,8 +37,8 @@ class voip_begin_monitor extends \sabretooth\ui\push
    */
   public function finish()
   {
-    bus\voip_manager::self()->get_call()->start_monitoring(
-      bus\session::self()->get_current_assignment()->get_current_token() );
+    lib::create( 'business\voip_manager' )->get_call()->start_monitoring(
+      lib::create( 'business\session' )->get_current_assignment()->get_current_token() );
   }
 }
 ?>

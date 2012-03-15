@@ -3,24 +3,21 @@
  * voip_dtmf.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: voip dtmf
  *
  * Changes the current user's theme.
  * Arguments must include 'theme'.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class voip_dtmf extends \sabretooth\ui\push
+class voip_dtmf extends \cenozo\ui\push
 {
   /**
    * Constructor.
@@ -40,7 +37,12 @@ class voip_dtmf extends \sabretooth\ui\push
    */
   public function finish()
   {
-    bus\voip_manager::self()->get_call()->dtmf( $this->get_argument( 'tone' ) );
+    $voip_call = lib::create( 'business\voip_manager' )->get_call();
+    if( is_null( $voip_call ) )
+      throw lib::create( 'exception\notice',
+        'Unable to send tone since you are not currently in a call.', __METHOD__ );
+
+    $voip_call->dtmf( $this->get_argument( 'tone' ) );
   }
 }
 ?>

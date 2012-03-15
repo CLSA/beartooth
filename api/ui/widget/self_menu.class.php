@@ -3,22 +3,19 @@
  * self_menu.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget self menu
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class self_menu extends \sabretooth\ui\widget
+class self_menu extends \cenozo\ui\widget\self_menu
 {
   /**
    * Constructor
@@ -30,7 +27,18 @@ class self_menu extends \sabretooth\ui\widget
    */
   public function __construct( $args )
   {
-    parent::__construct( 'self', 'menu', $args );
+    parent::__construct( $args );
+
+    $exclude = array(
+      'address',
+      'appointment',
+      'availability',
+      'consent',
+      'interviewer',
+      'phase',
+      'phone',
+      'phone_call' );
+    $this->exclude_widget_list = array_merge( $this->exclude_widget_list, $exclude );
   }
 
   /**
@@ -43,74 +51,17 @@ class self_menu extends \sabretooth\ui\widget
   {
     parent::finish();
 
-    $db_role = bus\session::self()->get_role();
-
-    // get all calendar widgets that the user has access to
-    $calendars = array();
-
-    $modifier = new db\modifier();
-    $modifier->where( 'operation.type', '=', 'widget' );
-    $modifier->where( 'operation.name', '=', 'calendar' );
-    $widgets = $db_role->get_operation_list( $modifier );
+    $utilities = $this->get_variable( 'utilities' );
     
-    foreach( $widgets as $db_widget )
-    {
-      $calendars[] = array( 'heading' => str_replace( '_', ' ', $db_widget->subject ),
-                            'subject' => $db_widget->subject,
-                            'name' => $db_widget->name );
-    }
+    // insert the participant tree into the utilities
+    $operation_class_name = lib::get_class_name( 'database\operation' );
+    $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'tree' );
+    if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+      $utilities[] = array( 'heading' => 'Participant Tree',
+                            'subject' => 'participant',
+                            'name' => 'tree' );
 
-    // get all list widgets that the user has access to
-    $lists = array();
-
-    $modifier = new db\modifier();
-    $modifier->where( 'operation.type', '=', 'widget' );
-    $modifier->where( 'operation.name', '=', 'list' );
-    $widgets = $db_role->get_operation_list( $modifier );
-    
-    $exclude = array(
-      'address',
-      'appointment',
-      'availability',
-      'consent',
-      'operation',
-      'phase',
-      'phone',
-      'phone_call' );
-
-    foreach( $widgets as $db_widget )
-    {
-      if( !in_array( $db_widget->subject, $exclude ) )
-        $lists[] = array(
-          'heading' => util::pluralize( str_replace( '_', ' ', $db_widget->subject ) ),
-          'subject' => $db_widget->subject,
-          'name' => $db_widget->name );
-      
-      // insert the participant tree after participant list
-      if( 'participant' == $db_widget->subject )
-        $lists[] = array( 'heading' => 'Participant Tree',
-                          'subject' => 'participant',
-                          'name' => 'tree' );
-    }
-
-    // get all report widgets that the user has access to
-    $reports = array();
-
-    $modifier = new db\modifier();
-    $modifier->where( 'operation.type', '=', 'widget' );
-    $modifier->where( 'operation.name', '=', 'report' );
-    $widgets = $db_role->get_operation_list( $modifier );
-    
-    foreach( $widgets as $db_widget )
-    {
-      $reports[] = array( 'heading' => str_replace( '_', ' ', $db_widget->subject ),
-                          'subject' => $db_widget->subject,
-                          'name' => $db_widget->name );
-    }
-
-    $this->set_variable( 'calendars', $calendars );
-    $this->set_variable( 'lists', $lists );
-    $this->set_variable( 'reports', $reports );
+    $this->set_variable( 'utilities', $utilities );
   }
 }
 ?>

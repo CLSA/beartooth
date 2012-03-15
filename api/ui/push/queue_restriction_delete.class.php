@@ -3,22 +3,19 @@
  * queue_restriction_delete.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: queue_restriction delete
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class queue_restriction_delete extends base_delete
+class queue_restriction_delete extends \cenozo\ui\push\base_delete
 {
   /**
    * Constructor.
@@ -39,13 +36,14 @@ class queue_restriction_delete extends base_delete
    */
   public function finish()
   {
-    // make sure that only admins can remove queue restrictions not belonging to the current site
-    $session = bus\session::self();
-    $is_administrator = 'administrator' == $session->get_role()->name;
+    // make sure that only top tier roles can remove queue restrictions not belonging
+    // to the current site
+    $session = lib::create( 'business\session' );
 
-    if( !$is_administrator && $session->get_site()->id != $this->get_record()->site_id )
+    if( 3 != $session->get_role()->tier &&
+        $session->get_site()->id != $this->get_record()->site_id )
     {
-      throw new exc\notice(
+      throw lib::create( 'exception\notice',
         'You do not have access to remove this queue restriction.', __METHOD__ );
     }
 

@@ -3,15 +3,12 @@
  * sid_record.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database\limesurvey;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\database\limesurvey;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Access to limesurvey's *_SID tables.
@@ -19,7 +16,7 @@ use sabretooth\exception as exc;
  * Since limesurvey's database structure for some tables is dynamic this class overrides
  * much of the functionality in record class as is appropriate.
  * 
- * @package sabretooth\database
+ * @package beartooth\database
  */
 abstract class sid_record extends record
 {
@@ -39,7 +36,7 @@ abstract class sid_record extends record
   {
     if( is_null( static::$table_sid ) )
     {
-      throw new exc\runtime(
+      throw lib::create( 'exception\runtime',
         'The survey id (table_sid) must be set before using this class.', __METHOD__ );
     }
 

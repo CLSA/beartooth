@@ -3,23 +3,20 @@
  * call_history.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\pull;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\pull;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Consent form report data.
  * 
  * @abstract
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class call_history_report extends base_report
+class call_history_report extends \cenozo\ui\pull\base_report
 {
   /**
    * Constructor
@@ -37,26 +34,60 @@ class call_history_report extends base_report
   public function finish()
   {
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
-    
-    $title = 'Call History Report';
-    if( $restrict_site_id )
+      
+    $restrict_start_date = $this->get_argument( 'restrict_start_date' );
+    $restrict_end_date = $this->get_argument( 'restrict_end_date' );
+    $now_datetime_obj = util::get_datetime_object();
+    $start_datetime_obj = NULL;
+    $end_datetime_obj = NULL;
+
+    if( $restrict_start_date )
     {
-      $db_site = new db\site( $restrict_site_id );
-      $title = $title.' for '.$db_site->name;
+      $start_datetime_obj = util::get_datetime_object( $restrict_start_date );
+      if( $start_datetime_obj > $now_datetime_obj )
+        $start_datetime_obj = clone $now_datetime_obj;
+    }
+    if( $restrict_end_date )
+    {
+      $end_datetime_obj = util::get_datetime_object( $restrict_end_date );
+      if( $end_datetime_obj > $now_datetime_obj )
+        $end_datetime_obj = clone $now_datetime_obj;
+    }
+    if( $restrict_start_date && $restrict_end_date && $end_datetime_obj < $start_datetime_obj )
+    {
+      $temp_datetime_obj = clone $start_datetime_obj;
+      $start_datetime_obj = clone $end_datetime_obj;
+      $end_datetime_obj = clone $temp_datetime_obj;
     }
 
-    $this->add_title( $title );
-
-    $contents = array();
-
-    $assignment_mod = new db\modifier();
-    if( $restrict_site_id ) $assignment_mod->where( 'site_id', '=', $db_site->id );
+    $assignment_mod = lib::create( 'database\modifier' );
+    if( $restrict_site_id ) $assignment_mod->where( 'site_id', '=', $restrict_site_id );
     $assignment_mod->order( 'start_datetime' );
-    foreach( db\assignment::select( $assignment_mod ) as $db_assignment )
+    if( $restrict_start_date && $restrict_end_date )
+    {
+      $assignment_mod->where( 'start_datetime', '>=',
+        $start_datetime_obj->format( 'Y-m-d' ).' 0:00:00' );
+      $assignment_mod->where( 'end_datetime', '<=',
+        $end_datetime_obj->format( 'Y-m-d' ).' 23:59:59' );
+    }
+    else if( $restrict_start_date && !$restrict_end_date ) 
+    {
+      $assignment_mod->where( 'start_datetime', '>=',
+        $start_datetime_obj->format( 'Y-m-d' ).' 0:00:00' );
+    }
+    else if( !$restrict_start_date && $restrict_end_date )
+    {
+      $assignment_mod->where( 'start_datetime', '<=',
+        $end_datetime_obj->format( 'Y-m-d' ).' 23:59:59' );
+    }
+    
+    $contents = array();
+    $class_name = lib::get_class_name( 'database\assignment' );
+    foreach( $class_name::select( $assignment_mod ) as $db_assignment )
     {
       $db_user = $db_assignment->get_user();
       
-      $phone_call_mod = new db\modifier();
+      $phone_call_mod = lib::create( 'database\modifier' );
       $phone_call_mod->order( 'start_datetime' );
       foreach( $db_assignment->get_phone_call_list( $phone_call_mod ) as $db_phone_call )
       {
@@ -79,7 +110,7 @@ class call_history_report extends base_report
     $header = array(
       'Site',
       'UID',
-      'Operator',
+      'Interviewer',
       'Assignment ID',
       'Date',
       'Call Start',

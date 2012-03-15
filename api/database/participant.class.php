@@ -3,21 +3,19 @@
  * participant.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\exception as exc;
+namespace beartooth\database;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * participant: record
  *
- * @package sabretooth\database
+ * @package beartooth\database
  */
-class participant extends has_note
+class participant extends \cenozo\database\has_note
 {
   /**
    * Identical to the parent's select method but restrict to a particular site.
@@ -36,26 +34,15 @@ class participant extends has_note
     if( is_null( $db_site ) ) return parent::select( $modifier, $count );
 
     // left join the participant_primary_address and address tables
-    if( is_null( $modifier ) ) $modifier = new modifier();
-    $sql = sprintf( ( $count ? 'SELECT COUNT( %s.%s ) ' : 'SELECT %s.%s ' ).
-                    'FROM %s '.
-                    'LEFT JOIN participant_primary_address '.
-                    'ON %s.id = participant_primary_address.participant_id '.
-                    'LEFT JOIN address '.
-                    'ON participant_primary_address.address_id = address.id '.
-                    'WHERE ( %s.site_id = %d '.
-                    '  OR ( %s.site_id IS NULL '.
-                    '    AND address.region_id IN ( '.
-                    '      SELECT id FROM region WHERE site_id = %d ) ) ) %s',
-                    static::get_table_name(),
-                    static::get_primary_key_name(),
-                    static::get_table_name(),
-                    static::get_table_name(),
-                    static::get_table_name(),
-                    $db_site->id,
-                    static::get_table_name(),
-                    $db_site->id,
-                    $modifier->get_sql( true ) );
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'participant.id', '=', 'participant_primary_address.participant_id', false );
+    $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
+    $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
+    $modifier->where( 'jurisdiction.site_id', '=', $db_site->id );
+    $sql = sprintf(
+      ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant.id ' ).
+      'FROM participant, participant_primary_address, address, jurisdiction %s',
+      $modifier->get_sql() );
 
     if( $count )
     {
@@ -86,6 +73,67 @@ class participant extends has_note
   }
   
   /**
+   * Identical to the parent's select method but restrict to a particular access.
+   * This is usually a user's interview access to a particular site.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param user $db_access The user's access to restrict the selection to.
+   * @param modifier $modifier Modifications to the selection.
+   * @param boolean $count If true the total number of records instead of a list
+   * @return array( record ) | int
+   * @static
+   * @access public
+   */
+  public static function select_for_access( $db_access, $modifier = NULL, $count = false )
+  {
+    // if there is no access restriction then just use the parent method
+    if( is_null( $db_access ) ) return parent::select( $modifier, $count );
+
+    $coverage_class_name = lib::get_class_name( 'database\coverage' );
+
+    // left join the participant_primary_address and address tables
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'participant.id', '=', 'participant_primary_address.participant_id', false );
+    $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
+    $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
+    $modifier->where( 'jurisdiction.site_id', '=', $db_access->get_site()->id );
+    $modifier =
+      $coverage_class_name::get_access_modifier( 'address.postcode', $db_access, $modifier );
+    
+    $sql = sprintf(
+      ( $count ? 'SELECT COUNT(*) ' : 'SELECT participant.id ' ).
+      'FROM participant, participant_primary_address, address, jurisdiction %s',
+      $modifier->get_sql() );
+
+    if( $count )
+    {
+      return intval( static::db()->get_one( $sql ) );
+    }
+    else
+    {
+      $id_list = static::db()->get_col( $sql );
+      $records = array();
+      foreach( $id_list as $id ) $records[] = new static( $id );
+      return $records;
+    }
+  }
+
+  /**
+   * Identical to the parent's count method but restrict to a particular access.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param access $db_access The access to restrict the count to.
+   * @param modifier $modifier Modifications to the count.
+   * @return int
+   * @static
+   * @access public
+   */
+  public static function count_for_access( $db_access, $modifier = NULL )
+  {
+    return static::select_for_access( $db_access, $modifier, true );
+  }
+  
+  /**
    * Get the participant's most recent assignment.
    * This will return the participant's current assignment, or the most recently closed assignment
    * if the participant is not currently assigned.
@@ -103,12 +151,13 @@ class participant extends has_note
     }
     
     // need custom SQL
+    $class_name = lib::get_class_name( 'database\database' );
     $assignment_id = static::db()->get_one(
       sprintf( 'SELECT assignment_id '.
                'FROM participant_last_assignment '.
                'WHERE participant_id = %s',
-               database::format_string( $this->id ) ) );
-    return $assignment_id ? new assignment( $assignment_id ) : NULL;
+               $class_name::format_string( $this->id ) ) );
+    return $assignment_id ? lib::create( 'database\assignment', $assignment_id ) : NULL;
   }
 
   /**
@@ -126,12 +175,13 @@ class participant extends has_note
       return NULL;
     }
     
-    $modifier = new modifier();
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'interview.participant_id', '=', $this->id );
     $modifier->where( 'end_datetime', '!=', NULL );
     $modifier->order_desc( 'start_datetime' );
     $modifier->limit( 1 );
-    $assignment_list = assignment::select( $modifier );
+    $class_name = lib::get_class_name( 'database\assignment' );
+    $assignment_list = $class_name::select( $modifier );
 
     return 0 == count( $assignment_list ) ? NULL : current( $assignment_list );
   }
@@ -152,12 +202,13 @@ class participant extends has_note
     }
     
     // need custom SQL
+    $class_name = lib::get_class_name( 'database\database' );
     $consent_id = static::db()->get_one(
       sprintf( 'SELECT consent_id '.
                'FROM participant_last_consent '.
                'WHERE participant_id = %s',
-               database::format_string( $this->id ) ) );
-    return $consent_id ? new consent( $consent_id ) : NULL;
+               $class_name::format_string( $this->id ) ) );
+    return $consent_id ? lib::create( 'database\consent', $consent_id ) : NULL;
   }
 
   /**
@@ -176,10 +227,11 @@ class participant extends has_note
     }
     
     // need custom SQL
+    $class_name = lib::get_class_name( 'database\database' );
     $address_id = static::db()->get_one(
       sprintf( 'SELECT address_id FROM participant_primary_address WHERE participant_id = %s',
-               database::format_string( $this->id ) ) );
-    return $address_id ? new address( $address_id ) : NULL;
+               $class_name::format_string( $this->id ) ) );
+    return $address_id ? lib::create( 'database\address', $address_id ) : NULL;
   }
 
   /**
@@ -200,10 +252,11 @@ class participant extends has_note
     }
     
     // need custom SQL
+    $class_name = lib::get_class_name( 'database\database' );
     $address_id = static::db()->get_one(
       sprintf( 'SELECT address_id FROM participant_first_address WHERE participant_id = %s',
-               database::format_string( $this->id ) ) );
-    return $address_id ? new address( $address_id ) : NULL;
+               $class_name::format_string( $this->id ) ) );
+    return $address_id ? lib::create( 'database\address', $address_id ) : NULL;
   }
 
   /**
@@ -223,17 +276,12 @@ class participant extends has_note
     
     $db_site = NULL;
 
-    if( !is_null( $this->site_id ) )
-    { // site is specifically defined
-      $db_site = $this->get_site();
-    }
-    else
-    {
-      $db_address = $this->get_primary_address();
-      if( !is_null( $db_address ) )
-      { // there is a primary address
-        $db_site = $db_address->get_region()->get_site();
-      }
+    $db_address = $this->get_primary_address();
+    if( !is_null( $db_address ) )
+    { // there is a primary address
+      $class_name = lib::get_class_name( 'database\jurisdiction' );
+      $db_jurisdiction = $class_name::get_unique_record( 'postcode', $db_address->postcode );
+      if( !is_null( $db_address ) ) $db_site = $db_jurisdiction->get_site();
     }
 
     return $db_site;
@@ -255,10 +303,13 @@ class participant extends has_note
     }
     
     // need custom SQL
+    $class_name = lib::get_class_name( 'database\database' );
     $phone_call_id = static::db()->get_one(
-      sprintf( 'SELECT phone_call_id FROM participant_last_contacted_phone_call WHERE participant_id = %s',
-               database::format_string( $this->id ) ) );
-    return $phone_call_id ? new phone_call( $phone_call_id ) : NULL;
+      sprintf( 'SELECT phone_call_id '.
+               'FROM participant_last_contacted_phone_call '.
+               'WHERE participant_id = %s',
+               $class_name::format_string( $this->id ) ) );
+    return $phone_call_id ? lib::create( 'database\phone_call', $phone_call_id ) : NULL;
   }
 
   /**
@@ -295,10 +346,11 @@ class participant extends has_note
     
     if( is_null( $this->current_qnaire_id ) && is_null( $this->start_qnaire_date ) )
     {
+      $class_name = lib::get_class_name( 'database\database' );
       $sql = sprintf( 'SELECT current_qnaire_id, start_qnaire_date '.
                       'FROM participant_for_queue '.
                       'WHERE id = %s',
-                      database::format_string( $this->id ) );
+                      $class_name::format_string( $this->id ) );
       $row = static::db()->get_row( $sql );
       $this->current_qnaire_id = $row['current_qnaire_id'];
       $this->start_qnaire_date = $row['start_qnaire_date'];

@@ -3,22 +3,19 @@
  * queue_restriction_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget queue_restriction list
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class queue_restriction_list extends site_restricted_list
+class queue_restriction_list extends \cenozo\ui\widget\site_restricted_list
 {
   /**
    * Constructor
@@ -32,9 +29,9 @@ class queue_restriction_list extends site_restricted_list
   {
     parent::__construct( 'queue_restriction', $args );
     
-    $this->add_column( 'site.name', 'enum', 'Site', true );
+    $this->add_column( 'site.name', 'string', 'Site', true );
     $this->add_column( 'city', 'string', 'City', true );
-    $this->add_column( 'region.name', 'enum', 'Region', true );
+    $this->add_column( 'region.name', 'string', 'Region', true );
     $this->add_column( 'postcode', 'string', 'Postcode', true );
   }
   
@@ -76,14 +73,15 @@ class queue_restriction_list extends site_restricted_list
   {
     if( !is_null( $this->db_restrict_site ) )
     {
-      if( NULL == $modifier ) $modifier = new db\modifier();
+      if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'site_id', '=', $this->db_restrict_site->id );
       $modifier->or_where( 'site_id', '=', NULL );
     }
     
     // skip the parent method
     // php doesn't allow parent::parent::method() so we have to do the less safe code below
-    return base_list_widget::determine_record_count( $modifier );
+    $class_name = lib::get_class_name( 'ui\widget\base_list' );
+    return $class_name::determine_record_count( $modifier );
   }
 
   /**
@@ -98,14 +96,15 @@ class queue_restriction_list extends site_restricted_list
   {
     if( !is_null( $this->db_restrict_site ) )
     {
-      if( NULL == $modifier ) $modifier = new db\modifier();
+      if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'site_id', '=', $this->db_restrict_site->id );
       $modifier->or_where( 'site_id', '=', NULL );
     }
     
     // skip the parent method
     // php doesn't allow parent::parent::method() so we have to do the less safe code below
-    return base_list_widget::determine_record_list( $modifier );
+    $class_name = lib::get_class_name( 'ui\widget\base_list' );
+    return $class_name::determine_record_list( $modifier );
   }
 }
 ?>

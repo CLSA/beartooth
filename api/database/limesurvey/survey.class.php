@@ -3,27 +3,24 @@
  * survey.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database\limesurvey;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\database\limesurvey;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Access to limesurvey's survey_SID tables.
  * 
- * @package sabretooth\database
+ * @package beartooth\database
  */
 class survey extends sid_record
 {
   public function get_response( $question_code )
   {
     // the questions table has more than one column in its primary key so custom sql is needed
-    $modifier = new db\modifier();
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'sid', '=', static::$table_sid );
     $modifier->where( 'title', '=', $question_code );
     $modifier->group( 'sid' );

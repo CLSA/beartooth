@@ -3,22 +3,19 @@
  * participant_add_availability.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget participant add_availability
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class participant_add_availability extends base_add_record
+class participant_add_availability extends \cenozo\ui\widget\base_add_record
 {
   /**
    * Constructor

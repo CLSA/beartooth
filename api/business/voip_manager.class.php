@@ -3,23 +3,21 @@
  * voip_manager.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\business
+ * @package beartooth\business
  * @filesource
  */
 
-namespace sabretooth\business;
-use sabretooth\log, sabretooth\util;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\business;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 require_once SHIFT8_PATH.'/library/Shift8.php';
 
 /**
  * Manages VoIP communications.
  * 
- * @package sabretooth\business
+ * @package beartooth\business
  */
-class voip_manager extends \sabretooth\singleton
+class voip_manager extends \cenozo\singleton
 {
   /**
    * Constructor.
@@ -29,7 +27,7 @@ class voip_manager extends \sabretooth\singleton
    */
   protected function __construct()
   {
-    $setting_manager = setting_manager::self();
+    $setting_manager = lib::create( 'business\setting_manager' );
     $this->enabled = true === $setting_manager->get_setting( 'voip', 'enabled' );
     $this->url = $setting_manager->get_setting( 'voip', 'url' );
     $this->username = $setting_manager->get_setting( 'voip', 'username' );
@@ -54,10 +52,11 @@ class voip_manager extends \sabretooth\singleton
       // create and connect to the shift8 AJAM interface
       $this->manager = new \Shift8( $this->url, $this->username, $this->password );
       if( !$this->manager->login() )
-        throw new exc\runtime( 'Unable to connect to the Asterisk server.', __METHOD__ );
+        throw lib::create( 'exception\runtime',
+          'Unable to connect to the Asterisk server.', __METHOD__ );
 
       // get the current SIP info
-      $peer = session::self()->get_user()->name;
+      $peer = lib::create( 'business\session' )->get_user()->name;
       $s8_event = $this->manager->getSipPeer( $peer );
       
       if( !is_null( $s8_event ) &&
@@ -74,7 +73,8 @@ class voip_manager extends \sabretooth\singleton
     }
     catch( \Shift8_Exception $e )
     {
-      throw new exc\voip( 'Failed to initialize Asterisk AJAM interface.', __METHOD__, $e );
+      throw lib::create( 'exception\voip',
+        'Failed to initialize Asterisk AJAM interface.', __METHOD__, $e );
     }
   }
   
@@ -91,11 +91,11 @@ class voip_manager extends \sabretooth\singleton
     $events = $this->manager->getStatus();
 
     if( is_null( $events ) )
-      throw new exc\voip( $this->manager->getLastError(), __METHOD__ );
+      throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
 
     foreach( $events as $s8_event )
       if( 'Status' == $s8_event->get( 'event' ) )
-        $this->call_list[] = new voip_call( $s8_event, $this->manager );
+        $this->call_list[] = lib::create( 'business\voip_call', $s8_event, $this->manager );
   }
   
   /**
@@ -112,7 +112,9 @@ class voip_manager extends \sabretooth\singleton
     if( !$this->enabled ) return NULL;
     if( is_null( $this->call_list ) ) $this->rebuild_call_list();
 
-    $peer = is_null( $db_user ) ? session::self()->get_user()->name : $db_user->name;
+    $peer = is_null( $db_user )
+          ? lib::create( 'business\session' )->get_user()->name
+          : $db_user->name;
 
     // build the call list
     $calls = array();
@@ -138,28 +140,28 @@ class voip_manager extends \sabretooth\singleton
     // check that the phone is valid
     if( is_null( $db_phone ) ||
         !is_object( $db_phone ) ||
-        'sabretooth\\database\\phone' != get_class( $db_phone ) )
-      throw new exc\argument( 'db_phone', $db_phone, __METHOD__ );
+        'beartooth\\database\\phone' != get_class( $db_phone ) )
+      throw lib::create( 'exception\argument', 'db_phone', $db_phone, __METHOD__ );
 
     // check that the phone number has exactly 10 digits
     $digits = preg_replace( '/[^0-9]/', '', $db_phone->number );
     if( 10 != strlen( $digits ) )
-      throw new exc\runtime(
+      throw lib::create( 'exception\runtime',
         'Tried to connect to phone number which does not have exactly 10 digits.', __METHOD__ );
 
     // make sure the user isn't already in a call
     if( !is_null( $this->get_call() ) )
-      throw new exc\notice(
+      throw lib::create( 'exception\notice',
         'Unable to connect call since you already appear to be in a call.', __METHOD__ );
 
     // originate call (careful, the online API has the arguments in the wrong order)
-    $peer = session::self()->get_user()->name;
+    $peer = lib::create( 'business\session' )->get_user()->name;
     $channel = 'SIP/'.$peer;
     $context = 'users';
     $extension = $this->prefix.$digits;
     $priority = 1;
     if( !$this->manager->originate( $channel, $context, $extension, $priority ) )
-      throw new exc\voip( $this->manager->getLastError(), __METHOD__ );
+      throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
 
     // rebuild the call list and return (what should be) the peer's only call
     $this->rebuild_call_list();
@@ -180,7 +182,7 @@ class voip_manager extends \sabretooth\singleton
     // there is no way to send a sip prune command to asterisk using AMI so we need to use the CLI
     $output = array();
     $return_value = 0;
-    exec( 'asterisk -rx "sip prune realtime peer patrick"', $output, $return_value );
+    exec( 'asterisk -rx "sip prune realtime peer '.$db_user->name.'"', $output, $return_value );
     if( 0 != $return_value ) log::err( $output[0] );
   }
 

@@ -3,19 +3,17 @@
  * availability.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\exception as exc;
+namespace beartooth\database;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * availability: record
  *
- * @package sabretooth\database
+ * @package beartooth\database
  */
-class availability extends record {}
+class availability extends \cenozo\database\record {}
 ?>

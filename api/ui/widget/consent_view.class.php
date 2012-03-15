@@ -3,22 +3,19 @@
  * consent_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget consent view
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class consent_view extends base_view
+class consent_view extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor
@@ -49,7 +46,8 @@ class consent_view extends base_view
     parent::finish();
 
     // create enum arrays
-    $events = db\consent::get_enum_values( 'event' );
+    $class_name = lib::get_class_name( 'database\consent' );
+    $events = $class_name::get_enum_values( 'event' );
     $events = array_combine( $events, $events );
 
     // set the view's items

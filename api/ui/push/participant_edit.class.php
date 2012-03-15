@@ -3,23 +3,20 @@
  * participant_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: participant edit
  *
  * Edit a participant.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class participant_edit extends base_edit
+class participant_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.
@@ -43,7 +40,7 @@ class participant_edit extends base_edit
     $args = $this->arguments;
 
     // replace the participant id with a unique key
-    $db_participant = new db\participant( $this->get_argument( 'id' ) );
+    $db_participant = $this->get_record();
     unset( $args['id'] );
     $args['noid']['participant.uid'] = $db_participant->uid;
 
@@ -52,7 +49,7 @@ class participant_edit extends base_edit
     // now send the same request to mastodon (unless we are setting the site)
     if( !array_key_exists( 'site_id', $args['columns'] ) )
     {
-      $mastodon_manager = bus\mastodon_manager::self();
+      $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
       $mastodon_manager->push( 'participant', 'edit', $args );
     }
   }

@@ -3,22 +3,19 @@
  * address_add.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget address add
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class address_add extends base_view
+class address_add extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor
@@ -70,7 +67,7 @@ class address_add extends base_view
 
     // this widget must have a parent, and it's subject must be a participant
     if( is_null( $this->parent ) || 'participant' != $this->parent->get_subject() )
-      throw new exc\runtime(
+      throw lib::create( 'exception\runtime',
         'Address widget must have a parent with participant as the subject.', __METHOD__ );
     
     // create enum arrays
@@ -82,7 +79,8 @@ class address_add extends base_view
     $last_rank_key = key( $ranks );
     reset( $ranks );
     $regions = array();
-    foreach( db\region::select() as $db_region )
+    $class_name = lib::get_class_name( 'database\region' );
+    foreach( $class_name::select() as $db_region )
       $regions[$db_region->id] = $db_region->name.', '.$db_region->country;
     reset( $regions );
 

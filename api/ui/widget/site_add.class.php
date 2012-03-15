@@ -3,22 +3,19 @@
  * site_add.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget site add
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class site_add extends base_view
+class site_add extends \cenozo\ui\widget\site_add
 {
   /**
    * Constructor
@@ -32,9 +29,15 @@ class site_add extends base_view
   {
     parent::__construct( 'site', 'add', $args );
     
-    // define all columns defining this record
-    $this->add_item( 'name', 'string', 'Name' );
-    $this->add_item( 'timezone', 'enum', 'Time Zone' );
+    // define additional columns defining this record
+    $this->add_item( 'institution', 'string', 'Institution' );
+    $this->add_item( 'phone_number', 'string', 'Phone Number' );
+    $this->add_item( 'address1', 'string', 'Address1' );
+    $this->add_item( 'address2', 'string', 'Address2' );
+    $this->add_item( 'city', 'string', 'City' );
+    $this->add_item( 'region_id', 'enum', 'Region' );
+    $this->add_item( 'postcode', 'string', 'Postcode',
+      'Postal codes must be in "A1A 1A1" format, zip codes in "01234" format.' );
   }
 
   /**
@@ -48,12 +51,20 @@ class site_add extends base_view
     parent::finish();
     
     // create enum arrays
-    $timezones = db\site::get_enum_values( 'timezone' );
-    $timezones = array_combine( $timezones, $timezones );
+    $regions = array();
+    $class_name = lib::get_class_name( 'database\region' );
+    foreach( $class_name::select() as $db_region )
+      $regions[$db_region->id] = $db_region->name.', '.$db_region->country;
+    reset( $regions );
 
     // set the view's items
-    $this->set_item( 'name', '', true );
-    $this->set_item( 'timezone', key( $timezones ), true, $timezones );
+    $this->set_item( 'institution', '' );
+    $this->set_item( 'phone_number', '' );
+    $this->set_item( 'address1', '' );
+    $this->set_item( 'address2', '' );
+    $this->set_item( 'city', '' );
+    $this->set_item( 'region_id', key( $regions ), false, $regions );
+    $this->set_item( 'postcode', '' );
 
     $this->finish_setting_items();
   }

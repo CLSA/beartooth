@@ -3,22 +3,19 @@
  * availability_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget availability view
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class availability_view extends base_view
+class availability_view extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor

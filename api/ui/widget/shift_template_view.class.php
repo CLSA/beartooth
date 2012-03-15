@@ -3,22 +3,19 @@
  * shift_template_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget shift_template view
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class shift_template_view extends base_view
+class shift_template_view extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor
@@ -35,11 +32,8 @@ class shift_template_view extends base_view
     // add items to the view
     $this->add_item( 'start_time', 'time', 'Start Time' );
     $this->add_item( 'end_time', 'time', 'End Time' );
-    $this->add_item( 'operators', 'number', 'Operators' );
     $this->add_item( 'start_date', 'date', 'Start Date' );
     $this->add_item( 'end_date', 'date', 'End Date' );
-
-//    $this->set_heading( 'Creating a new shift template' );
   }
 
   /**
@@ -68,7 +62,6 @@ class shift_template_view extends base_view
     // set the view's items
     $this->set_item( 'start_time', $this->get_record()->start_time, true );
     $this->set_item( 'end_time', $this->get_record()->end_time, true );
-    $this->set_item( 'operators', 1, true );
     $this->set_item( 'start_date', $this->get_record()->start_date, true );
     $this->set_item( 'end_date', $this->get_record()->end_date, false );
     

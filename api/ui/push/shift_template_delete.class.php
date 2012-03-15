@@ -3,22 +3,19 @@
  * shift_template_delete.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: shift template delete
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class shift_template_delete extends base_delete
+class shift_template_delete extends \cenozo\ui\push\base_delete
 {
   /**
    * Constructor.

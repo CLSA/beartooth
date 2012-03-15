@@ -3,23 +3,20 @@
  * phase_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: phase edit
  *
  * Edit a phase.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class phase_edit extends base_edit
+class phase_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.

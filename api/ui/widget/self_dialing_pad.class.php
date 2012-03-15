@@ -3,22 +3,19 @@
  * self_dialing_pad.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget self dialing_pad
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class self_dialing_pad extends \sabretooth\ui\widget
+class self_dialing_pad extends \cenozo\ui\widget
 {
   /**
    * Constructor
@@ -31,6 +28,7 @@ class self_dialing_pad extends \sabretooth\ui\widget
   public function __construct( $args )
   {
     parent::__construct( 'self', 'dialing_pad', $args );
+    $this->show_heading( false );
   }
 
   /**
@@ -43,8 +41,8 @@ class self_dialing_pad extends \sabretooth\ui\widget
   {
     parent::finish();
     
-    $role_name = bus\session::self()->get_role()->name;
-    $this->set_variable( 'allow_hangup', 'operator' != $role_name );
+    $role_name = lib::create( 'business\session' )->get_role()->name;
+    $this->set_variable( 'allow_hangup', 'interviewer' != $role_name );
   }
 }
 ?>

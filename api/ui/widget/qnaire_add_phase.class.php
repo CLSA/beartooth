@@ -3,22 +3,19 @@
  * qnaire_add_phase.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget qnaire add_phase
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class qnaire_add_phase extends base_add_record
+class qnaire_add_phase extends \cenozo\ui\widget\base_add_record
 {
   /**
    * Constructor

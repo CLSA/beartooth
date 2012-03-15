@@ -3,22 +3,19 @@
  * shift_template_feed.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\pull;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\pull;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * pull: shift template feed
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class shift_template_feed extends base_feed
+class shift_template_feed extends \cenozo\ui\pull\base_feed
 {
   /**
    * Constructor
@@ -43,15 +40,16 @@ class shift_template_feed extends base_feed
   public function finish()
   {
     $event_list = array();
-    $db_site = bus\session::self()->get_site();
+    $db_site = lib::create( 'business\session' )->get_site();
 
     $calendar_start_datetime_obj = util::get_datetime_object( $this->start_datetime );
     $calendar_end_datetime_obj = util::get_datetime_object( $this->end_datetime );
 
-    $modifier = new db\modifier();
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'start_date', '<', $this->end_datetime );
-    foreach( db\shift_template::select( $modifier ) as $db_shift_template )
+    $class_name = lib::get_class_name( 'database\shift_template' );
+    foreach( $class_name::select( $modifier ) as $db_shift_template )
     {
       for( $datetime_obj = clone $calendar_start_datetime_obj;
            $datetime_obj <= $calendar_end_datetime_obj;
@@ -123,9 +121,7 @@ class shift_template_feed extends base_feed
 
           $event_list[] = array(
             'id' => $db_shift_template->id,
-            'title' => sprintf( ' to %s: %d operators',
-              $end_time,
-              $db_shift_template->operators ),
+            'title' => sprintf( ' to %s', $end_time ),
             'allDay' => false,
             'start' => $event_start_datetime_obj->format( \DateTime::ISO8601 ),
             'end' => $event_end_datetime_obj->format( \DateTime::ISO8601 ) );

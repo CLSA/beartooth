@@ -3,23 +3,20 @@
  * address_new.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: address new
  *
  * Create a new address.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class address_new extends base_new
+class address_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.
@@ -46,11 +43,30 @@ class address_new extends base_new
     // validate the postcode
     if( !preg_match( '/^[A-Z][0-9][A-Z] [0-9][A-Z][0-9]$/', $postcode ) && // postal code
         !preg_match( '/^[0-9]{5}$/', $postcode ) )  // zip code
-      throw new exc\notice(
+      throw lib::create( 'exception\notice',
         'Postal codes must be in "A1A 1A1" format, zip codes in "01234" format.', __METHOD__ );
+
+    $args = $this->arguments;
+    unset( $args['columns']['participant_id'] );
+
+    // replace the participant id with a unique key
+    $db_participant = lib::create( 'database\participant', $columns['participant_id'] );
+    $args['noid']['participant.uid'] = $db_participant->uid;
+
+    // replace the region id (if it is not null) a unique key
+    if( $columns['region_id'] )
+    {
+      $db_region = lib::create( 'database\region', $columns['region_id'] );
+      // this is only actually half of the key, the other half is provided by the participant above
+      $args['noid']['region.abbreviation'] = $db_region->abbreviation;
+    }
 
     // no errors, go ahead and make the change
     parent::finish();
+
+    // now send the same request to mastodon
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
+    $mastodon_manager->push( 'address', 'new', $args );
   }
 }
 ?>

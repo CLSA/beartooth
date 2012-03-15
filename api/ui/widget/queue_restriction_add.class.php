@@ -3,22 +3,19 @@
  * queue_restriction_add.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget queue_restriction add
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class queue_restriction_add extends base_view
+class queue_restriction_add extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor
@@ -34,7 +31,7 @@ class queue_restriction_add extends base_view
     
     // define all columns defining this record
 
-    $type = 'administrator' == bus\session::self()->get_role()->name ? 'enum' : 'hidden';
+    $type = 3 == lib::create( 'business\session' )->get_role()->tier ? 'enum' : 'hidden';
     $this->add_item( 'site_id', $type, 'Site' );
     $this->add_item( 'city', 'string', 'City' );
     $this->add_item( 'region_id', 'enum', 'Region' );
@@ -50,21 +47,23 @@ class queue_restriction_add extends base_view
   public function finish()
   {
     parent::finish();
-    $session = bus\session::self();
-    $is_administrator = 'administrator' == $session->get_role()->name;
+    $session = lib::create( 'business\session' );
+    $is_top_tier = 3 == $session->get_role()->tier;
     
     // create enum arrays
-    if( $is_administrator )
+    if( $is_top_tier )
     {
       $sites = array();
-      foreach( db\site::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
+      $class_name = lib::get_class_name( 'database\site' );
+      foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
     }
     $regions = array();
-    foreach( db\region::select() as $db_region ) $regions[$db_region->id] = $db_region->name;
+    $class_name = lib::get_class_name( 'database\region' );
+    foreach( $class_name::select() as $db_region ) $regions[$db_region->id] = $db_region->name;
 
     // set the view's items
     $this->set_item(
-      'site_id', $session->get_site()->id, false, $is_administrator ? $sites : NULL );
+      'site_id', $session->get_site()->id, false, $is_top_tier ? $sites : NULL );
     $this->set_item( 'city', null, false );
     $this->set_item( 'region_id', null, false, $regions );
     $this->set_item( 'postcode', null, false );

@@ -3,23 +3,20 @@
  * appointment_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: appointment edit
  *
  * Edit a appointment.
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class appointment_edit extends base_edit
+class appointment_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.
@@ -47,7 +44,8 @@ class appointment_edit extends base_edit
     {
       $this->get_record()->datetime = $columns['datetime'];
       if( !$this->get_record()->validate_date() )
-        throw new exc\notice( 'There are no operators available during that time.', __METHOD__ );
+        throw lib::create( 'exception\notice',
+          'There are no openings during that time.', __METHOD__ );
     }
     
     // no errors, go ahead and make the change

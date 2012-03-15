@@ -3,20 +3,17 @@
  * call_attempts.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget call attempts report
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
 class call_attempts_report extends base_report
 {
@@ -31,16 +28,14 @@ class call_attempts_report extends base_report
   public function __construct( $args )
   {
     parent::__construct( 'call_attempts', $args );
-    $this->restrict_by_site();
+    $this->add_restriction( 'site' );
+    $this->add_restriction( 'qnaire' );
 
     $this->set_variable( 'description',
       'This report lists all participants who have been assigned at least once and have not '.
       'completed the given interview.  The report includes the participant\'s UID, date of the '.
-      'last time they were called and by which operator and the total number of times they '.
+      'last time they were called and by which interviewer and the total number of times they '.
       'have been called.' );
-
-    // add parameters to the report
-    $this->add_parameter( 'qnaire_id', 'enum', 'Questionnaire' );
   }
 
   /**
@@ -50,11 +45,6 @@ class call_attempts_report extends base_report
   public function finish()
   {
     parent::finish();
-    
-    $qnaires = array();
-    foreach( db\qnaire::select() as $db_qnaire ) $qnaires[$db_qnaire->id] = $db_qnaire->name;
-    $this->set_parameter( 'qnaire_id', current( $qnaires ), true, $qnaires );
-
     $this->finish_setting_parameters();
   }
 }

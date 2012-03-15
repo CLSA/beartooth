@@ -3,22 +3,19 @@
  * phone_add.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget phone add
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class phone_add extends base_view
+class phone_add extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor
@@ -54,15 +51,16 @@ class phone_add extends base_view
     
     // this widget must have a parent, and it's subject must be a participant
     if( is_null( $this->parent ) || 'participant' != $this->parent->get_subject() )
-      throw new exc\runtime(
+      throw lib::create( 'exception\runtime',
         'Phone widget must have a parent with participant as the subject.', __METHOD__ );
 
     // create enum arrays
-    $modifier = new db\modifier();
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'participant_id', '=', $this->parent->get_record()->id ); 
     $modifier->order( 'rank' );
     $addresses = array();
-    foreach( db\address::select( $modifier ) as $db_address )
+    $class_name = lib::get_class_name( 'database\address' );
+    foreach( $class_name::select( $modifier ) as $db_address )
     {
       $db_region = $db_address->get_region();
       $addresses[$db_address->id] = sprintf( '%d. %s, %s, %s',
@@ -78,7 +76,8 @@ class phone_add extends base_view
     end( $ranks );
     $last_rank_key = key( $ranks );
     reset( $ranks );
-    $types = db\phone::get_enum_values( 'type' );
+    $class_name = lib::get_class_name( 'database\phone' );
+    $types = $class_name::get_enum_values( 'type' );
     $types = array_combine( $types, $types );
 
     // set the view's items

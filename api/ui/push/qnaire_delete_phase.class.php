@@ -3,22 +3,19 @@
  * qnaire_delete_phase.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: qnaire delete_phase
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class qnaire_delete_phase extends base_delete_record
+class qnaire_delete_phase extends \cenozo\ui\push\base_delete_record
 {
   /**
    * Constructor.

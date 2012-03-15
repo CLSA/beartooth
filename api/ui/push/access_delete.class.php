@@ -3,34 +3,20 @@
  * access_delete.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\push;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\push;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: access delete
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class access_delete extends base_delete
+class access_delete extends \cenozo\ui\push\access_delete
 {
-  /**
-   * Constructor.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param array $args Push arguments
-   * @access public
-   */
-  public function __construct( $args )
-  {
-    parent::__construct( 'access', $args );
-  }
-  
   /**
    * Executes the push.
    * @author Patrick Emond <emondpd@mcmaster.ca>
@@ -42,17 +28,17 @@ class access_delete extends base_delete
     $args = $this->arguments;
 
     // replace the access id with a unique key
-    $db_access = new db\access( $this->get_argument('id') );
+    $db_access = $this->get_record();
     unset( $args['id'] );
     $args['noid']['user.name'] = $db_access->get_user()->name;
     $args['noid']['role.name'] = $db_access->get_role()->name;
     $args['noid']['site.name'] = $db_access->get_site()->name;
-    $args['noid']['site.cohort'] = 'tracking';
+    $args['noid']['site.cohort'] = 'comprehensive';
 
     parent::finish();
 
     // now send the same request to mastodon
-    $mastodon_manager = bus\mastodon_manager::self();
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $mastodon_manager->push( 'access', 'delete', $args );
   }
 }

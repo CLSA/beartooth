@@ -3,22 +3,19 @@
  * appointment_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget appointment list
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class appointment_list extends site_restricted_list
+class appointment_list extends \cenozo\ui\widget\site_restricted_list
 {
   /**
    * Constructor
@@ -31,9 +28,8 @@ class appointment_list extends site_restricted_list
   public function __construct( $args )
   {
     parent::__construct( 'appointment', $args );
-    $this->add_column( 'participant.first_name', 'string', 'First name', true );
-    $this->add_column( 'participant.last_name', 'string', 'Last name', true );
-    $this->add_column( 'phone', 'string', 'Phone number', false );
+    $this->add_column( 'uid', 'string', 'First name', false );
+    $this->add_column( 'address', 'string', 'Address', false );
     $this->add_column( 'datetime', 'datetime', 'Date', true );
     $this->add_column( 'state', 'string', 'State', false );
   }
@@ -48,29 +44,24 @@ class appointment_list extends site_restricted_list
   {
     // don't add appointments if this list isn't parented
     if( is_null( $this->parent ) ) $this->addable = false;
-    else // don't add appointments if the parent already has an unassigned appointment
-    {
-      $modifier = new db\modifier();
-      $modifier->where( 'participant_id', '=', $this->parent->get_record()->id );
-      $modifier->where( 'assignment_id', '=', NULL );
-      $this->addable = 0 == db\appointment::count( $modifier );
-    }
 
     parent::finish();
 
     foreach( $this->get_record_list() as $record )
     {
-      $db_phone = $record->get_phone();
-      $phone = is_null( $db_phone )
-             ? 'not specified'
-             : sprintf( '(%d) %s: %s',
-                        $db_phone->rank,
-                        $db_phone->type,
-                        $db_phone->number );
+      $db_address = $record->get_address();
+      $address =
+        is_null( $db_address ) ? 'site' : sprintf(
+          '%s, %s, %s, %s',
+          $db_address->address2 ? $db_address->address1.', '.$db_address->address2
+                                : $db_address->address1,
+          $db_address->city,
+          $db_address->get_region()->abbreviation,
+          $db_address->postcode );
+
       $this->add_row( $record->id,
-        array( 'participant.first_name' => $record->get_participant()->first_name,
-               'participant.last_name' => $record->get_participant()->last_name,
-               'phone' => $phone,
+        array( 'uid' => $record->get_participant()->uid,
+               'address' => $address,
                'datetime' => $record->datetime,
                'state' => $record->get_state() ) );
     }
@@ -88,9 +79,10 @@ class appointment_list extends site_restricted_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
+    $class_name = lib::get_class_name( 'database\appointment' );
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_count( $modifier )
-         : db\appointment::count_for_site( $this->db_restrict_site, $modifier );
+         : $class_name::count_for_site( $this->db_restrict_site, $modifier );
   }
   
   /**
@@ -103,9 +95,10 @@ class appointment_list extends site_restricted_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
+    $class_name = lib::get_class_name( 'database\appointment' );
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_list( $modifier )
-         : db\appointment::select_for_site( $this->db_restrict_site, $modifier );
+         : $class_name::select_for_site( $this->db_restrict_site, $modifier );
   }
 }
 ?>

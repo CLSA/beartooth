@@ -3,22 +3,19 @@
  * base_appointment_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * base class for appointment view/add classes
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-abstract class base_appointment_view extends base_view
+abstract class base_appointment_view extends \cenozo\ui\widget\base_view
 {
   /**
    * Constructor
@@ -36,12 +33,27 @@ abstract class base_appointment_view extends base_view
     try
     {
       // create the site calendar widget
-      $this->site_calendar = new site_calendar( $args );
-      $this->site_calendar->set_parent( $this );
+      $this->site_appointment_calendar =
+        lib::create( 'ui\widget\site_appointment_calendar', $args );
+      $this->site_appointment_calendar->set_parent( $this );
+      $this->site_appointment_calendar->set_editable( false );
     }
-    catch( exc\permission $e )
+    catch( \cenozo\exception\permission $e )
     {
-      $this->site_calendar = NULL;
+      $this->site_appointment_calendar = NULL;
+    }
+    
+    try
+    {
+      // create the home calendar widget
+      $this->home_appointment_calendar =
+        lib::create( 'ui\widget\home_appointment_calendar', $args );
+      $this->home_appointment_calendar->set_parent( $this );
+      $this->home_appointment_calendar->set_editable( false );
+    }
+    catch( \cenozo\exception\permission $e )
+    {
+      $this->home_appointment_calendar = NULL;
     }
   }
 
@@ -58,19 +70,34 @@ abstract class base_appointment_view extends base_view
     // set up the site calendar if editing is enabled
     if( $this->editable || 'add' == $this->get_name() )
     {
-      if( !is_null( $this->site_calendar ) )
+      if( !is_null( $this->site_appointment_calendar ) )
       {
-        $this->site_calendar->finish();
-        $this->set_variable( 'site_calendar', $this->site_calendar->get_variables() );
+        $this->site_appointment_calendar->finish();
+        $this->set_variable( 'site_appointment_calendar', 
+          $this->site_appointment_calendar->get_variables() );
+      }
+
+      if( !is_null( $this->home_appointment_calendar ) )
+      {
+        $this->home_appointment_calendar->finish();
+        $this->set_variable( 'home_appointment_calendar', 
+          $this->home_appointment_calendar->get_variables() );
       }
     }
   }
 
   /**
    * Site calendar used to help find appointment availability
-   * @var site_calendar $site_calendar
+   * @var site_appointment_calendar $site_appointment_calendar
    * @access protected
    */
-  protected $site_calendar = NULL;
+  protected $site_appointment_calendar = NULL;
+
+  /**
+   * Site calendar used to help find appointment availability
+   * @var home_appointment_calendar $home_appointment_calendar
+   * @access protected
+   */
+  protected $home_appointment_calendar = NULL;
 }
 ?>

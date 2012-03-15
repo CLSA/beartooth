@@ -11,6 +11,24 @@
 
   <script type="text/javascript">
     $( function () {
+      // show the right calendar (home or site)
+      $( "#{{ widget.full }}__address_id" ).change( function() {
+        if( '' == $(this).val() ) // site value is an empty string
+        {
+          $( "#home_appointment_calendar_header" ).hide();
+          $( "#home_appointment_calendar_calendar" ).hide();
+          $( "#site_appointment_calendar_header" ).show();
+          $( "#site_appointment_calendar_calendar" ).show();
+        }
+        else
+        {
+          $( "#site_appointment_calendar_header" ).hide();
+          $( "#site_appointment_calendar_calendar" ).hide();
+          $( "#home_appointment_calendar_header" ).show();
+          $( "#home_appointment_calendar_calendar" ).show();
+        }
+      } );
+
       // add button
       $( "#{{ widget.compound }}_add" ).click( function () {
         // push the form information
@@ -32,9 +50,10 @@
 
 {% endblock javascript %}
 
+{# Uncomment once there is a need to force appointments
 {% block record_items %}
   {{ parent() }}
-  {% if is_supervisor %}
+  {% if is_mid_tier %}
     <hr class="ui-widget ui-widget-content">
     <table>
       <tr id="{{widget.full }}__force_row">
@@ -46,11 +65,20 @@
     </table>
   {% endif %}  
 {% endblock record_items %}
+#}
 
 {% block record %}
   
   {{ parent() }}
   {% from 'macros.twig' import include_calendar %}
-  {{ include_calendar( 'site', site_calendar|default(false), true ) }}
+  {{ include_calendar( 'site_appointment', site_appointment_calendar|default(false), true ) }}
+  {{ include_calendar( 'home_appointment', home_appointment_calendar|default(false), true ) }}
 
+  <script type="text/javascript">
+    $( function () {
+      // by default start by hiding the home calendar
+      $( "#home_appointment_calendar_header" ).hide();
+      $( "#home_appointment_calendar_calendar" ).hide();
+    } );
+  </script>
 {% endblock record %}

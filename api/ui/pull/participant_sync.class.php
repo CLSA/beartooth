@@ -1,0 +1,97 @@
+<?php
+/**
+ * participant_sync.class.php
+ * 
+ * @author Dean Inglis <inglisd@mcmaster.ca>
+ * @package beartooth\ui
+ * @filesource
+ */
+
+namespace beartooth\ui\pull;
+use cenozo\lib, cenozo\log;
+
+/**
+ * Base class for all list pull operations.
+ * 
+ * @abstract
+ * @package beartooth\ui
+ */
+class participant_sync extends \cenozo\ui\pull
+{
+  /**
+   * Constructor
+   * 
+   * @author Dean Inglis <inglisd@mcmaster.ca>
+   * @param array $args Pull arguments.
+   * @access public
+   */
+  public function __construct( $args )
+  {
+    parent::__construct( 'participant', 'sync', $args );
+  }
+
+  /**
+   * Returns a summary of the participant sync request as an associative array.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return array
+   * @access public
+   */
+  public function finish()
+  {
+    $existing_count = 0;
+    $new_count = 0;
+    $address_count = 0;
+    $phone_count = 0;
+    $consent_count = 0;
+    $missing_count = 0;
+    
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
+    $uid_list_string = preg_replace( '/[\'",]/', '', $this->get_argument( 'uid_list' ) );
+    $uid_list_string = trim( $uid_list_string );
+    $uid_list = array_unique( preg_split( '/\s+/', $uid_list_string ) );
+
+    foreach( $uid_list as $uid )
+    {
+      $args = array( 'uid' => $uid, 'full' => true, 'cohort' => 'comprehensive' );
+      $is_missing = false;
+      try // if the participant is missing we'll get a mastodon error
+      {
+        $response = $mastodon_manager->pull( 'participant', 'primary', $args );
+        if( !is_null( $response ) )
+        {
+          $address_count += count( $response->data->address_list );
+          $phone_count += count( $response->data->phone_list );
+          $consent_count += count( $response->data->consent_list );
+
+          if( !is_null( $participant_class_name::get_unique_record( 'uid', $uid ) ) )
+            $existing_count++;
+          else $new_count++;
+        }
+        else $is_missing = true;
+      }
+      // consider errors to be missing participants (may be missing or the wrong cohort)
+      catch( \cenozo\exception\cenozo_service $e ) { $is_missing = true; }
+      if( $is_missing ) $missing_count++;
+    }
+
+    return array(
+      'Valid participants in request' => count( $uid_list ),
+      'Participants missing from Mastodon' => $missing_count,
+      'New participants' => $new_count,
+      'Existing participants (ignored)' => $existing_count,
+      'Addresses' => $address_count,
+      'Phone numbers' => $phone_count,
+      'Consent entries' => $consent_count );
+  }
+  
+  /**
+   * Lists are always returned in JSON format.
+   * 
+   * @author Dean Inglis <inglisd@mcmaster.ca>
+   * @return string
+   * @access public
+   */
+  public function get_data_type() { return "json"; }
+}
+?>

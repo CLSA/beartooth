@@ -3,22 +3,19 @@
  * appointment_calendar.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget appointment calendar
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class appointment_calendar extends base_calendar
+class appointment_calendar extends \cenozo\ui\widget\base_calendar
 {
   /**
    * Constructor
@@ -31,7 +28,7 @@ class appointment_calendar extends base_calendar
   public function __construct( $args )
   {
     parent::__construct( 'appointment', $args );
-    $this->set_heading( 'Appointments for '.bus\session::self()->get_site()->name );
+    $this->set_heading( 'Appointments for '.lib::create( 'business\session' )->get_site()->name );
   }
   
   /**

@@ -3,22 +3,19 @@
  * participant_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget participant list
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class participant_list extends site_restricted_list
+class participant_list extends \cenozo\ui\widget\site_restricted_list
 {
   /**
    * Constructor
@@ -31,7 +28,7 @@ class participant_list extends site_restricted_list
   public function __construct( $args )
   {
     parent::__construct( 'participant', $args );
-    
+
     $this->add_column( 'uid', 'string', 'Unique ID', true );
     $this->add_column( 'first_name', 'string', 'First Name', true );
     $this->add_column( 'last_name', 'string', 'Last Name', true );
@@ -47,7 +44,7 @@ class participant_list extends site_restricted_list
   public function finish()
   {
     parent::finish();
-    
+
     foreach( $this->get_record_list() as $record )
     {
       $this->add_row( $record->id,
@@ -72,9 +69,14 @@ class participant_list extends site_restricted_list
    */
   protected function determine_record_count( $modifier = NULL )
   {
+    $session = lib::create( 'business\session' );
+    $class_name = lib::get_class_name( 'database\participant' );
+    if( 'interviewer' == $session->get_role()->name )
+      return $class_name::count_for_access( $session->get_access(), $modifier );
+
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_count( $modifier )
-         : db\participant::count_for_site( $this->db_restrict_site, $modifier );
+         : $class_name::count_for_site( $this->db_restrict_site, $modifier );
   }
   
   /**
@@ -87,9 +89,14 @@ class participant_list extends site_restricted_list
    */
   protected function determine_record_list( $modifier = NULL )
   {
+    $session = lib::create( 'business\session' );
+    $class_name = lib::get_class_name( 'database\participant' );
+    if( 'interviewer' == $session->get_role()->name )
+      return $class_name::select_for_access( $session->get_access(), $modifier );
+
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_list( $modifier )
-         : db\participant::select_for_site( $this->db_restrict_site, $modifier );
+         : $class_name::select_for_site( $this->db_restrict_site, $modifier );
   }
 }
 ?>

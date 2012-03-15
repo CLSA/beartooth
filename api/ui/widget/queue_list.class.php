@@ -3,22 +3,19 @@
  * queue_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\widget;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\widget;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget queue list
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class queue_list extends base_list_widget
+class queue_list extends \cenozo\ui\widget\base_list
 {
   /**
    * Constructor
@@ -38,10 +35,10 @@ class queue_list extends base_list_widget
     $this->add_column( 'rank', 'number', 'Rank', true );
     $this->add_column( 'enabled', 'boolean', 'Enabled', false );
     $this->add_column( 'participant_count', 'number', 'Participants', false );
-    $this->add_column( 'description', 'text', 'Description', true, 'left' );
-    $session = bus\session::self();
-    if( 'supervisor' == $session->get_role()->name )
-      $this->set_heading( 'Queue list for '.$session->get_site()->name );
+    $this->add_column( 'description', 'text', 'Description', true, true, 'left' );
+    $session = lib::create( 'business\session' );
+    if( 3 != $session->get_role()->tier )
+      $this->set_heading( $this->get_heading().' for '.$session->get_site()->name );
   }
 
   /**
@@ -54,15 +51,16 @@ class queue_list extends base_list_widget
   {
     parent::finish();
     
-    $session = bus\session::self();
-    $is_administrator = 'administrator' == $session->get_role()->name;
-    $is_supervisor = 'supervisor' == $session->get_role()->name;
+    $session = lib::create( 'business\session' );
+    $is_top_tier = 3 == $session->get_role()->tier;
+    $is_mid_tier = 2 == $session->get_role()->tier;
     
-    // if this is an admin, give them a list of sites to choose from
-    if( $is_administrator )
+    // if this is a top tier role, give them a list of sites to choose from
+    if( $is_top_tier )
     {
       $sites = array();
-      foreach( db\site::select() as $db_site )
+      $class_name = lib::get_class_name( 'database\site' );
+      foreach( $class_name::select() as $db_site )
         $sites[$db_site->id] = $db_site->name;
       $this->set_variable( 'sites', $sites );
     }
@@ -70,18 +68,19 @@ class queue_list extends base_list_widget
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
     $this->set_variable( 'restrict_site_id', $restrict_site_id );
     $db_restrict_site = $restrict_site_id
-                      ? new db\site( $restrict_site_id )
+                      ? lib::create( 'database\site', $restrict_site_id )
                       : NULL;
 
     $qnaires = array();
-    foreach( db\qnaire::select() as $db_qnaire )
+    $class_name = lib::get_class_name( 'database\qnaire' );
+    foreach( $class_name::select() as $db_qnaire )
       $qnaires[$db_qnaire->id] = $db_qnaire->name;
     $this->set_variable( 'qnaires', $qnaires );
     
     $restrict_qnaire_id = $this->get_argument( 'restrict_qnaire_id', 0 );
     $this->set_variable( 'restrict_qnaire_id', $restrict_qnaire_id );
     $db_restrict_qnaire = $restrict_qnaire_id
-                        ? new db\qnaire( $restrict_qnaire_id )
+                        ? lib::create( 'database\qnaire', $restrict_qnaire_id )
                         : NULL;
     
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
@@ -90,18 +89,23 @@ class queue_list extends base_list_widget
     if( $current_date == $viewing_date ) $viewing_date = 'current';
     $this->set_variable( 'viewing_date', $viewing_date );
 
-    $setting_manager = bus\setting_manager::self();
+    // set the viewing date if it is not "current"
+    $class_name = lib::get_class_name( 'database\queue' );
+    if( 'current' != $viewing_date ) $class_name::set_viewing_date( $viewing_date );
+
+    $setting_manager = lib::create( 'business\setting_manager' );
     foreach( $this->get_record_list() as $record )
     {
-      // restrict to the current site if the current user is a supervisor
-      if( $is_supervisor ) $record->set_site( $session->get_site() );
-      else if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );
+      // restrict queue based on user's role
+      if( $is_top_tier )
+      {
+        if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );
+      }
+      else if( $is_mid_tier ) $record->set_site( $session->get_site() );
+      else $record->set_access( $session->get_access() );
       
       // restrict to the current qnaire
       $record->set_qnaire( $db_restrict_qnaire );
-
-      // set the viewing date if it is not "current"
-      if( 'current' != $viewing_date ) $record->set_viewing_date( $viewing_date );
 
       $this->add_row( $record->id,
         array( 'rank' => $record->rank,
@@ -126,7 +130,7 @@ class queue_list extends base_list_widget
    */
   protected function determine_record_count( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = new db\modifier();
+    if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'rank', '!=', NULL );
     $modifier->order( 'rank' );
 
@@ -143,7 +147,7 @@ class queue_list extends base_list_widget
    */
   protected function determine_record_list( $modifier = NULL )
   {
-    if( NULL == $modifier ) $modifier = new db\modifier();
+    if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'rank', '!=', NULL );
     $modifier->order( 'rank' );
 

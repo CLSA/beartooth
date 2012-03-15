@@ -3,22 +3,19 @@
  * appointment_primary.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\pull;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\pull;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * pull: appointment primary
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class appointment_primary extends base_primary
+class appointment_primary extends \cenozo\ui\pull\base_primary
 {
   /**
    * Constructor

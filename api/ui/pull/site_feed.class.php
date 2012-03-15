@@ -3,22 +3,19 @@
  * site_feed.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\ui
+ * @package beartooth\ui
  * @filesource
  */
 
-namespace sabretooth\ui\pull;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\database as db;
-use sabretooth\exception as exc;
+namespace beartooth\ui\pull;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * pull: site feed
  * 
- * @package sabretooth\ui
+ * @package beartooth\ui
  */
-class site_feed extends base_feed
+class site_feed extends \cenozo\ui\pull\base_feed
 {
   /**
    * Constructor
@@ -42,11 +39,12 @@ class site_feed extends base_feed
    */
   public function finish()
   {
-    $db_site = bus\session::self()->get_site();
+    $db_site = lib::create( 'business\session' )->get_site();
 
     // determine the appointment interval
-    $interval = sprintf( 'PT%dM',
-                         bus\setting_manager::self()->get_setting( 'appointment', 'duration' ) );
+    $interval = sprintf(
+      'PT%dM',
+      lib::create( 'business\setting_manager' )->get_setting( 'appointment', 'site duration' ) );
 
     // start by creating an array with one element per day in the time span
     $start_datetime_obj = util::get_datetime_object( $this->start_datetime );
@@ -64,10 +62,11 @@ class site_feed extends base_feed
     }
     
     // fill in the slot differentials for shift templates each day
-    $modifier = new db\modifier();
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'start_date', '<=', $this->end_datetime );
-    foreach( db\shift_template::select( $modifier ) as $db_shift_template )
+    $class_name = lib::get_class_name( 'database\shift_template' );
+    foreach( $class_name::select( $modifier ) as $db_shift_template )
     {
       foreach( $days as $date => $day )
       {
@@ -81,13 +80,13 @@ class site_feed extends base_feed
             intval( preg_replace( '/[^0-9]/', '',
               substr( $db_shift_template->start_time, 0, -3 ) ) );
           if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[ $start_time_as_int ] = 0;
-          $diffs[ $start_time_as_int ] += $db_shift_template->operators;
+          $diffs[ $start_time_as_int ]++;
 
           $end_time_as_int =
             intval( preg_replace( '/[^0-9]/', '',
               substr( $db_shift_template->end_time, 0, -3 ) ) );
           if( !array_key_exists( $end_time_as_int, $diffs ) ) $diffs[ $end_time_as_int ] = 0;
-          $diffs[ $end_time_as_int ] -= $db_shift_template->operators;
+          $diffs[ $end_time_as_int ]--;
         }
 
         // unset diffs since it is a reference
@@ -95,44 +94,14 @@ class site_feed extends base_feed
       }
     }
 
-    // fill in the shifts (which override shift templates for that day)
-    $modifier = new db\modifier();
-    $modifier->where( 'site_id', '=', $db_site->id );
-    $modifier->where( 'start_datetime', '<', $this->end_datetime );
-    $modifier->where( 'end_datetime', '>', $this->start_datetime );
-    $modifier->order( 'start_datetime' );
-    foreach( db\shift::select( $modifier ) as $db_shift )
-    {
-      $start_datetime_obj = util::get_datetime_object( $db_shift->start_datetime );
-      $end_datetime_obj = util::get_datetime_object( $db_shift->end_datetime );
-      $date = $start_datetime_obj->format( 'Y-m-d' );
-      
-      if( $days[$date]['template'] )
-      { // remove the shift templates for this day, replace with shift
-        $days[$date]['diffs'] = array();
-        $days[$date]['template'] = false;
-      }
-
-      $diffs = &$days[ $start_datetime_obj->format( 'Y-m-d' ) ]['diffs'];
-      
-      $start_time_as_int = intval( $start_datetime_obj->format( 'Gi' ) );
-      $end_time_as_int = intval( $end_datetime_obj->format( 'Gi' ) );
-      
-      if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[ $start_time_as_int ] = 0;
-      $diffs[ $start_time_as_int ]++;
-      if( !array_key_exists( $end_time_as_int, $diffs ) ) $diffs[ $end_time_as_int ] = 0;
-      $diffs[ $end_time_as_int ]--;
-
-      // unset diffs since it is a reference
-      unset( $diffs );
-    }
-
-    // fill in the appointments which have not been completed
-    $modifier = new db\modifier();
+    // fill in the appointments which have not been complete
+    $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
+    $modifier->where( 'appointment.address_id', '=', NULL );
     $modifier->order( 'datetime' );
-    foreach( db\appointment::select_for_site( $db_site, $modifier ) as $db_appointment )
+    $class_name = lib::get_class_name( 'database\appointment' );
+    foreach( $class_name::select_for_site( $db_site, $modifier ) as $db_appointment )
     {
       $state = $db_appointment->get_state();
       if( 'reached' != $state && 'not reached' != $state )
@@ -141,7 +110,7 @@ class site_feed extends base_feed
         $diffs = &$days[ $appointment_datetime_obj->format( 'Y-m-d' ) ]['diffs'];
   
         $start_time_as_int = intval( $appointment_datetime_obj->format( 'Gi' ) );
-        // increment slot one hour later
+        // increment slot one interval later
         $appointment_datetime_obj->add( new \DateInterval( $interval ) );
         $end_time_as_int = intval( $appointment_datetime_obj->format( 'Gi' ) );
   
@@ -158,7 +127,7 @@ class site_feed extends base_feed
     // use the 'diff' arrays to define the 'times' array
     foreach( $days as $date => $day )
     {
-      $num_operators = 0;
+      $num_available = 0;
       $diffs = &$days[$date]['diffs'];
       $times = &$days[$date]['times'];
       
@@ -169,12 +138,12 @@ class site_feed extends base_feed
   
         foreach( $diffs as $time => $diff )
         {
-          $num_operators += $diff;
-          $times[$time] = $num_operators;
+          $num_available += $diff;
+          $times[$time] = $num_available;
         }
       }
 
-      // unset times since it is a referece
+      // unset times since it is a reference
       unset( $times );
     }
 

@@ -3,21 +3,20 @@
  * voip.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\exception
+ * @package beartooth\exception
  * @filesource
  */
 
-namespace sabretooth\exception;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
+namespace beartooth\exception;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * voip: voip exceptions
  * 
  * All exceptions caused because of the voip connection.
- * @package sabretooth\exception
+ * @package beartooth\exception
  */
-class voip extends runtime
+class voip extends \cenozo\exception\runtime
 {
   /**
    * Constructor

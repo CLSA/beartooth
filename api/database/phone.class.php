@@ -3,21 +3,19 @@
  * phone.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package sabretooth\database
+ * @package beartooth\database
  * @filesource
  */
 
-namespace sabretooth\database;
-use sabretooth\log, sabretooth\util;
-use sabretooth\business as bus;
-use sabretooth\exception as exc;
+namespace beartooth\database;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * phone: record
  *
- * @package sabretooth\database
+ * @package beartooth\database
  */
-class phone extends has_rank
+class phone extends \cenozo\database\has_rank
 {
   /**
    * The type of record which the record has a rank for.
