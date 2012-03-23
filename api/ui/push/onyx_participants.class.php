@@ -40,95 +40,112 @@ class onyx_participants extends \cenozo\ui\push
   {
     $participant_class_name = lib::create( 'database\participant' );
 
+    // get the body of the request
+    $data = json_decode( http_get_request_body() );
+
     // loop through the participants array
-    foreach( $this->get_argument( 'Participants' ) as $uid => $participant_data )
+    foreach( $data->Participants as $participant_list )
     {
-      $db_participant = $participant_class_name::get_unique_record( 'uid', $uid );
-      if( is_null( $db_participant ) )
-        throw lib::create( 'exception\runtime',
-          sprintf( 'Participant UID "%s" does not exist.', $uid ), __METHOD__ );
-
-      if( !array_key_exists( 'Admin.Interview.status', $participant_data ) )
-        throw lib::create( 'exception\argument',
-          'Admin.Interview.status', NULL, __METHOD__ );
-      $interview_status = strtolower( $participant_data['Admin.Interview.status'] );
-
-      if( 'completed' == $interview_status )
+      foreach( get_object_vars( $participant_list ) as $uid => $participant_data )
       {
-        $participant_changed = false;
-        $mastodon_columns = array();
+        $object_vars = get_object_vars( $participant_data );
 
-        // process fields which we want to update
-        if( array_key_exists( 'Admin.Participant.firstName', $participant_data ) )
+        $db_participant = $participant_class_name::get_unique_record( 'uid', $uid );
+        if( is_null( $db_participant ) )
+          throw lib::create( 'exception\runtime',
+            sprintf( 'Participant UID "%s" does not exist.', $uid ), __METHOD__ );
+
+        $method = 'Admin.Interview.status';
+        if( !array_key_exists( $method, $object_vars ) )
+          throw lib::create( 'exception\argument',
+            'Admin.Interview.status', NULL, __METHOD__ );
+        $interview_status = strtolower( $participant_data->$method );
+
+        if( 'completed' == $interview_status )
         {
-          $value = $participant_data['Admin.Participant.firstName'];
-          if( 0 != strcasecmp( $value, $db_participant->first_name ) )
+          $participant_changed = false;
+          $mastodon_columns = array();
+
+          // process fields which we want to update
+          $method = 'Admin.Participant.firstName';
+          if( array_key_exists( $method, $object_vars ) )
           {
-            $db_participant->first_name = $value;
-            $participant_changed = true;
+            $value = $participant_data->$method;
+            if( 0 != strcasecmp( $value, $db_participant->first_name ) )
+            {
+              $db_participant->first_name = $value;
+              $participant_changed = true;
+            }
+          }
+
+          $method = 'Admin.Participant.lastName';
+          if( array_key_exists( $method, $object_vars ) )
+          {
+            $value = $participant_data->$method;
+            if( 0 != strcasecmp( $value, $db_participant->last_name ) )
+            {
+              $db_participant->last_name = $value;
+              $participant_changed = true;
+            }
+          }
+
+          $method = 'Admin.Participant.consentToDrawBlood';
+          if( array_key_exists( $method, $object_vars ) )
+          {
+            $value = $participant_data->$method;
+            if( $value != $db_participant->consent_to_draw_blood )
+            {
+              $db_participant->consent_to_draw_blood = $value;
+              $participant_changed = true;
+            }
+          }
+
+          $method = 'Admin.Participant.gender';
+          if( array_key_exists( $method, $object_vars ) )
+            $mastodon_columns['gender'] =
+              0 == strcasecmp( 'f', substr( $participant_data->$method, 0, 1 ) )
+              ? 'female' : 'male';
+
+          $method = 'Admin.Participant.birthDate';
+          if( array_key_exists( $method, $object_vars ) )
+            $mastodon_columns['date_of_birth'] =
+              util::get_datetime_object(
+                $participant_data->$method )->format( 'Y-m-d' );
+
+          if( $participant_changed ) $db_participant->save();
+          if( 0 < count( $mastodon_columns ) )
+          {
+            $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
+            $args = array(
+              'columns' => $mastodon_columns,
+              'noid' => array(
+                'participant.uid' => $db_participant->uid ) );
+            $mastodon_manager->push( 'participant', 'edit', $args );
           }
         }
-
-        if( array_key_exists( 'Admin.Participant.lastName', $participant_data ) )
+        else if( 'cancelled' == $interview_status || 'closed' == $interview_status )
         {
-          $value = $participant_data['Admin.Participant.lastName'];
-          if( 0 != strcasecmp( $value, $db_participant->last_name ) )
-          {
-            $db_participant->last_name = $value;
-            $participant_changed = true;
-          }
-        }
+          $method = 'Admin.Interview.endDate';
+          $date = util::get_datetime_object(
+            array_key_exists( $method, $object_vars ) ?
+              $participant_data->$method : NULL )->format( 'Y-m-d' );
 
-        if( array_key_exists( 'Admin.Participant.consentToDrawBlood', $participant_data ) )
+          // cancelled means the participant has retracted, closed means they have withdrawn
+          $event = 'cancelled' == $interview_status ? 'retract' : 'withdraw';
+
+          $columns = array( 'participant_id' => $db_participant->id,
+                            'date' => $date,
+                            'event' => $event,
+                            'note' => 'Onyx interview was cancelled.' );
+          $args = array( 'columns' => $columns );
+          $operation = lib::create( 'ui\push\consent_new', $args );
+          $operation->finish();
+        }
+        else
         {
-          $value = $participant_data['Admin.Participant.consentToDrawBlood'];
-          if( $value != $db_participant->consent_to_draw_blood )
-          {
-            $db_participant->consent_to_draw_blood = $value;
-            $participant_changed = true;
-          }
+          throw lib::create( 'exception\argument',
+            'Admin.Interview.status', $interview_status, __METHOD__ );
         }
-
-        if( array_key_exists( 'Admin.Participant.gender', $participant_data ) )
-          $mastodon_columns['gender'] =
-            0 == strcasecmp( 'f', substr( $participant_data['Admin.Participant.gender'], 0, 1 ) )
-            ? 'female' : 'male';
-
-        if( array_key_exists( 'Admin.Participant.birthDate', $participant_data ) )
-          $mastodon_columns['date_of_birth'] =
-            util::get_datetime_object(
-              $participant_data['Admin.Participant.birthDate'] )->format( 'Y-m-d' );
-
-        if( $participant_changed ) $db_participant->save();
-        if( 0 < count( $mastodon_columns ) )
-        {
-          $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
-          $args = array( 'uid' => $db_participant->uid,
-                         'columns' => $columns );
-          $mastodon_manager->push( 'participant', 'edit', $args );
-        }
-      }
-      else if( 'cancelled' == $interview_status || 'closed' == $interview_status )
-      {
-        $date = util::get_datetime_object(
-          array_key_exists( 'Admin.Interview.endDate', $participant_data ) ?
-            $participant_data['Admin.Interview.endDate'] : NULL )->format( 'Y-m-d' );
-
-        // cancelled means the participant has retracted, closed means they have withdrawn
-        $event = 'cancelled' == $interview_status ? 'retract' : 'withdraw';
-
-        $columns = array( 'date' => $date,
-                          'event' => $event,
-                          'note' => 'Onyx interview was cancelled.' );
-        $args = array( 'id' => $db_participant->id,
-                       'columns' => $columns );
-        $operation = lib::create( 'ui\push\consent_new', $args );
-        $operation->finish();
-      }
-      else
-      {
-        throw lib::create( 'exception\argument',
-          'Admin.Interview.status', $interview_status, __METHOD__ );
       }
     }
   }
