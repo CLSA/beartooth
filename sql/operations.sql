@@ -109,7 +109,7 @@ VALUES( "push", "interview", "edit", true, "Edits the details of an interview." 
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "appointment", "list", true, "Retrieves a list of appointments for an onyx instance." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "onyx", "participant", true, "Allows Onyx to update the information of one or more participants." );
+VALUES( "push", "onyx", "participants", true, "Allows Onyx to update the information of one or more participants." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "onyx", "consent", true, "Allows Onyx to update the consent details of one or more participants." );
 

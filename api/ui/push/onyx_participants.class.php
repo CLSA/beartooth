@@ -1,6 +1,6 @@
 <?php
 /**
- * onyx_participant.class.php
+ * onyx_participants.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -11,12 +11,14 @@ namespace beartooth\ui\push;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * push: onyx participant
+ * push: onyx participants
  * 
  * Allows Onyx to update participant and interview details
+ * NOTE: this class breaks the non-plural words naming convension in order to play
+ *       nicely with Onyx
  * @package beartooth\ui
  */
-class onyx_participant extends \cenozo\ui\push
+class onyx_participants extends \cenozo\ui\push
 {
   /**
    * Constructor.
@@ -26,7 +28,7 @@ class onyx_participant extends \cenozo\ui\push
    */
   public function __construct( $args )
   {
-    parent::__construct( 'onyx', 'participant', $args );
+    parent::__construct( 'onyx', 'participants', $args );
   }
   
   /**
@@ -39,13 +41,8 @@ class onyx_participant extends \cenozo\ui\push
     $participant_class_name = lib::create( 'database\participant' );
 
     // loop through the participants array
-    foreach( $this->get_argument( 'Participants' ) as $participant_data )
+    foreach( $this->get_argument( 'Participants' ) as $uid => $participant_data )
     {
-      if( !array_key_exists( 'Admin.Participant.enrollmentId', $participant_data ) )
-        throw lib::create( 'exception\argument',
-          'Admin.Participant.enrollmentId', NULL, __METHOD__ );
-      $uid = $participant_data['Admin.Participant.enrollmentId'];
-
       $db_participant = $participant_class_name::get_unique_record( 'uid', $uid );
       if( is_null( $db_participant ) )
         throw lib::create( 'exception\runtime',
