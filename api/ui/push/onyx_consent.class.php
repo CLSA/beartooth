@@ -53,10 +53,12 @@ class onyx_consent extends \cenozo\ui\push
           throw lib::create( 'exception\runtime',
             sprintf( 'Participant UID "%s" does not exist.', $uid ), __METHOD__ );
 
-        if( !array_key_exists( 'accepted', $object_vars ) )
+        if( !array_key_exists( 'ConclusiveStatus', $object_vars ) )
           throw lib::create( 'exception\argument',
-            'accepted', NULL, __METHOD__ );
-        $event = $consent_data->accepted ? 'written accept' : 'written deny';
+            'ConclusiveStatus', NULL, __METHOD__ );
+        if( 'CONSENT' == $consent_data->ConclusiveStatus ) $event = 'written accept';
+        else if( 'RETRACT' == $consent_data->ConclusiveStatus ) $event = 'retract';
+        else $event = 'withdraw';
 
         if( !array_key_exists( 'timeEnd', $object_vars ) )
           throw lib::create( 'exception\argument',
