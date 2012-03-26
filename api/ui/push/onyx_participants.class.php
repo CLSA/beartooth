@@ -110,18 +110,25 @@ class onyx_participants extends \cenozo\ui\push
         $method = 'Admin.Interview.status';
         if( !array_key_exists( $method, $object_vars ) )
           throw lib::create( 'exception\argument',
-            'Admin.Interview.status', NULL, __METHOD__ );
+            $method, NULL, __METHOD__ );
         $interview_status = strtolower( $participant_data->$method );
+
+        $method = 'Admin.ApplicationConfiguration.siteCode';
+        if( !array_key_exists( $method, $object_vars ) )
+          throw lib::create( 'exception\argument',
+            $method, NULL, __METHOD__ );
+        if( preg_match( '/dcs|site/i', $participant_data->$method ) ) $interview_type = 'site';
+        else if( preg_match( '/home/i', $participant_data->$method ) ) $interview_type = 'home';
+        else $interview_type = false;
 
         // now update the participant, interview and pass data to mastodon
         if( $participant_changed ) $db_participant->save();
         
         if( 'completed' == $interview_status )
         {
-          //$type = 'home or site...'; // TODO
           $interview_mod = lib::create( 'database\modifier' );
           $interview_mod->where( 'participant_id', '=', $db_participant->id );
-          //$interview_mod->where( 'qnaire.type', '=', $type );
+          if( $interview_type ) $interview_mod->where( 'qnaire.type', '=', $interview_type );
           $interview_mod->where( 'completed', '=', false );
           $interview_list = $interview_class_name::select( $interview_mod );
           if( 1 == count( $interview_list ) )
