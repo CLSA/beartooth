@@ -357,7 +357,7 @@ INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id
 FROM role, operation
 WHERE role.name = "administrator"
-AND operation.category != "home_appointment"
+AND operation.subject != "home_appointment"
 AND operation.name = "report";
 
 
@@ -991,7 +991,7 @@ INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id
 FROM role, operation
 WHERE role.name = "coordinator"
-AND operation.category != "home_appointment"
+AND operation.subject != "home_appointment"
 AND operation.name = "report";
 
 -- system messages
@@ -1299,7 +1299,7 @@ SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
     operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "home_appointment" AND name = "report" );
+      type = "pull" AND subject = "home_appointment" AND name = "report" );
 
 
 -- -----------------------------------------------------
@@ -1313,6 +1313,10 @@ FROM role, operation
 WHERE role.name = "onyx"
 AND operation.subject = "onyx";
 
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "onyx" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "push" AND subject = "consent" AND name = "new" );
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "onyx" ),
     operation_id = ( SELECT id FROM operation WHERE

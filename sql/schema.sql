@@ -620,6 +620,7 @@ CREATE  TABLE IF NOT EXISTS `onyx_instance` (
   INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `fk_user_id` (`user_id` ASC) ,
   INDEX `fk_interview_user_id` (`interviewer_user_id` ASC) ,
+  UNIQUE INDEX `uq_user_id` (`user_id` ASC) ,
   CONSTRAINT `fk_onyx_instance_site_id`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )

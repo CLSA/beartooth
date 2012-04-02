@@ -95,7 +95,8 @@ class appointment_list extends \cenozo\ui\pull\base_list
     }
     else
     {
-      $modifier->where( 'appointment.user_id', '=', $db_user->id );
+      // restrict the the onyx instance's interviewer
+      $modifier->where( 'appointment.user_id', '=', $db_onyx->interviewer_user_id );
       $appointment_list = $appointment_class_name::select( $modifier );
     }
 
@@ -137,8 +138,11 @@ class appointment_list extends \cenozo\ui\pull\base_list
         'street'    => is_null( $db_address ) ? 'NA' : $db_address->address1,
         'city'      => is_null( $db_address ) ? 'NA' : $db_address->city,
         'province'  => is_null( $db_address ) ? 'NA' : $db_address->get_region()->name,
-        'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode,
-        'consent_to_draw_blood' => $db_participant->consent_to_draw_blood );
+        'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode );
+
+      // include consent to draw blood if this is a site appointment
+      if( is_null( $db_onyx->interviewer_user_id ) )
+        $event_list['consent_to_draw_blood'] = $db_participant->consent_to_draw_blood;
     }
 
     return $event_list;
