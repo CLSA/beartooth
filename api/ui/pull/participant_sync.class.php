@@ -69,6 +69,12 @@ class participant_sync extends \cenozo\ui\pull
         }
         else $is_missing = true;
       }
+      // a runtime error is thrown when the participant is from the wrong cohort
+      catch( \cenozo\exception\runtime $e )
+      {
+        throw lib::create( 'exception\notice',
+          sprintf( 'Participant %s is from the wrong cohort.', $uid ), __METHOD__, $e );
+      }
       // consider errors to be missing participants (may be missing or the wrong cohort)
       catch( \cenozo\exception\cenozo_service $e ) { $is_missing = true; }
       if( $is_missing ) $missing_count++;
