@@ -30,7 +30,7 @@ class appointment_view extends base_appointment_view
     parent::__construct( 'view', $args );
     
     // only interviewers should select addresses
-    $this->select_address = 'interviewer' == lib::create( 'business\session' )->get_role()->name;
+    $this->select_address = !is_null( $this->get_record()->address_id );
     
     // add items to the view
     if( $this->select_address )
