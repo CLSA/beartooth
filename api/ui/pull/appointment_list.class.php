@@ -124,7 +124,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
 
       $db_address = $db_participant->get_primary_address();
 
-      $event_list[] = array(
+      $event = array(
         'uid'        => $db_participant->uid,
         'first_name' => $db_participant->first_name,
         'last_name'  => $db_participant->last_name,
@@ -139,6 +139,25 @@ class appointment_list extends \cenozo\ui\pull\base_list
         'city'      => is_null( $db_address ) ? 'NA' : $db_address->city,
         'province'  => is_null( $db_address ) ? 'NA' : $db_address->get_region()->name,
         'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode );
+
+      if( !is_null( $db_participant->next_of_kin_first_name ) )
+        $event['nextOfKin.firstName'] = $db_participant->next_of_kin_first_name;
+      if( !is_null( $db_participant->next_of_kin_last_name ) )
+        $event['nextOfKin.lastName'] = $db_participant->next_of_kin_last_name;
+      if( !is_null( $db_participant->next_of_kin_gender ) )
+        $event['nextOfKin.gender'] = $db_participant->next_of_kin_gender;
+      if( !is_null( $db_participant->next_of_kin_phone ) )
+        $event['nextOfKin.phone'] = $db_participant->next_of_kin_phone;
+      if( !is_null( $db_participant->next_of_kin_street ) )
+        $event['nextOfKin.street'] = $db_participant->next_of_kin_street;
+      if( !is_null( $db_participant->next_of_kin_city ) )
+        $event['nextOfKin.city'] = $db_participant->next_of_kin_city;
+      if( !is_null( $db_participant->next_of_kin_province ) )
+        $event['nextOfKin.province'] = $db_participant->next_of_kin_province;
+      if( !is_null( $db_participant->next_of_kin_postal_code ) )
+        $event['nextOfKin.postalCode'] = $db_participant->next_of_kin_postal_code;
+
+      $event_list[] = $event;
 
       // include consent to draw blood if this is a site appointment
       if( is_null( $db_onyx->interviewer_user_id ) )

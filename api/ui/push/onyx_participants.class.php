@@ -121,6 +121,94 @@ class onyx_participants extends \cenozo\ui\push
         else if( preg_match( '/home/i', $participant_data->$method ) ) $interview_type = 'home';
         else $interview_type = false;
 
+        $method = 'Admin.Participant.nextOfKin.firstName';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_first_name ) )
+          {
+            $db_participant->next_of_kin_first_name = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.lastName';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_last_name ) )
+          {
+            $db_participant->next_of_kin_last_name = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.gender';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_gender ) )
+          {
+            $db_participant->next_of_kin_gender = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.phone';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_phone ) )
+          {
+            $db_participant->next_of_kin_phone = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.street';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_street ) )
+          {
+            $db_participant->next_of_kin_street = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.city';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_city ) )
+          {
+            $db_participant->next_of_kin_city = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.province';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_province ) )
+          {
+            $db_participant->next_of_kin_province = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.postalCode';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_postal_code ) )
+          {
+            $db_participant->next_of_kin_postal_code = $value;
+            $participant_changed = true;
+          }
+        }
+
         // now update the participant, interview and pass data to mastodon
         if( $participant_changed ) $db_participant->save();
         

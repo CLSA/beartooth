@@ -20,6 +20,14 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
   `consent_to_draw_blood` TINYINT(1)  NOT NULL DEFAULT false ,
   `prior_contact_date` DATE NULL DEFAULT NULL ,
+  `next_of_kin_first_name` VARCHAR(45) NULL DEFAULT NULL ,
+  `next_of_kin_last_name` VARCHAR(45) NULL DEFAULT NULL ,
+  `next_of_kin_gender` VARCHAR(45) NULL DEFAULT NULL ,
+  `next_of_kin_phone` VARCHAR(45) NULL DEFAULT NULL ,
+  `next_of_kin_street` VARCHAR(512) NULL DEFAULT NULL ,
+  `next_of_kin_city` VARCHAR(100) NULL DEFAULT NULL ,
+  `next_of_kin_province` VARCHAR(45) NULL DEFAULT NULL ,
+  `next_of_kin_postal_code` VARCHAR(45) NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `dk_active` (`active` ASC) ,
   INDEX `dk_status` (`status` ASC) ,
@@ -654,7 +662,7 @@ CREATE TABLE IF NOT EXISTS `participant_last_assignment` (`participant_id` INT, 
 -- -----------------------------------------------------
 -- Placeholder table for view `participant_for_queue`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `participant_for_queue` (`id` INT, `update_timestamp` INT, `create_timestamp` INT, `active` INT, `uid` INT, `first_name` INT, `last_name` INT, `status` INT, `language` INT, `consent_to_draw_blood` INT, `prior_contact_date` INT, `city` INT, `region_id` INT, `postcode` INT, `timezone_offset` INT, `daylight_savings` INT, `primary_postcode` INT, `phone_number_count` INT, `last_consent` INT, `last_assignment_id` INT, `site_id` INT, `assigned` INT, `current_qnaire_id` INT, `current_qnaire_type` INT, `start_qnaire_date` INT);
+CREATE TABLE IF NOT EXISTS `participant_for_queue` (`id` INT, `update_timestamp` INT, `create_timestamp` INT, `active` INT, `uid` INT, `first_name` INT, `last_name` INT, `status` INT, `language` INT, `consent_to_draw_blood` INT, `prior_contact_date` INT, `next_of_kin_first_name` INT, `next_of_kin_last_name` INT, `next_of_kin_gender` INT, `next_of_kin_phone` INT, `next_of_kin_street` INT, `next_of_kin_city` INT, `next_of_kin_province` INT, `next_of_kin_postal_code` INT, `city` INT, `region_id` INT, `postcode` INT, `timezone_offset` INT, `daylight_savings` INT, `primary_postcode` INT, `phone_number_count` INT, `last_consent` INT, `last_assignment_id` INT, `site_id` INT, `assigned` INT, `current_qnaire_id` INT, `current_qnaire_type` INT, `start_qnaire_date` INT);
 
 -- -----------------------------------------------------
 -- Placeholder table for view `assignment_last_phone_call`
