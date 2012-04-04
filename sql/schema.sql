@@ -18,7 +18,7 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `last_name` VARCHAR(45) NOT NULL ,
   `status` ENUM('deceased', 'deaf', 'mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
-  `consent_to_draw_blood` TINYINT(1) NOT NULL DEFAULT false ,
+  `consent_to_draw_blood` TINYINT(1)  NOT NULL DEFAULT false ,
   `prior_contact_date` DATE NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `dk_active` (`active` ASC) ,
@@ -256,6 +256,8 @@ CREATE  TABLE IF NOT EXISTS `address` (
   `city` VARCHAR(100) NOT NULL ,
   `region_id` INT UNSIGNED NOT NULL ,
   `postcode` VARCHAR(10) NOT NULL ,
+  `timezone_offset` FLOAT NOT NULL ,
+  `daylight_savings` TINYINT(1)  NOT NULL ,
   `january` TINYINT(1)  NOT NULL DEFAULT true ,
   `february` TINYINT(1)  NOT NULL DEFAULT true ,
   `march` TINYINT(1)  NOT NULL DEFAULT true ,
@@ -652,7 +654,7 @@ CREATE TABLE IF NOT EXISTS `participant_last_assignment` (`participant_id` INT, 
 -- -----------------------------------------------------
 -- Placeholder table for view `participant_for_queue`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `participant_for_queue` (`id` INT, `update_timestamp` INT, `create_timestamp` INT, `active` INT, `uid` INT, `first_name` INT, `last_name` INT, `status` INT, `language` INT, `prior_contact_date` INT, `city` INT, `region_id` INT, `postcode` INT, `primary_postcode` INT, `phone_number_count` INT, `last_consent` INT, `last_assignment_id` INT, `site_id` INT, `assigned` INT, `current_qnaire_id` INT, `current_qnaire_type` INT, `start_qnaire_date` INT);
+CREATE TABLE IF NOT EXISTS `participant_for_queue` (`id` INT, `update_timestamp` INT, `create_timestamp` INT, `active` INT, `uid` INT, `first_name` INT, `last_name` INT, `status` INT, `language` INT, `consent_to_draw_blood` INT, `prior_contact_date` INT, `city` INT, `region_id` INT, `postcode` INT, `primary_postcode` INT, `phone_number_count` INT, `last_consent` INT, `last_assignment_id` INT, `site_id` INT, `assigned` INT, `current_qnaire_id` INT, `current_qnaire_type` INT, `start_qnaire_date` INT);
 
 -- -----------------------------------------------------
 -- Placeholder table for view `assignment_last_phone_call`
