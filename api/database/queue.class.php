@@ -669,7 +669,7 @@ class queue extends \cenozo\database\record
       {
         $parts = self::get_query_parts( 'phone call status ready', $phone_call_status );
         $parts['where'][] = $check_time
-                          ? $calling_time_sql;
+                          ? $calling_time_sql
                           : 'true'; // purposefully a tautology
         return $parts;
       }
