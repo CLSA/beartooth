@@ -44,13 +44,19 @@ class appointment_list extends \cenozo\ui\widget\site_restricted_list
   {
     // don't add appointments if this list isn't parented
     if( is_null( $this->parent ) ) $this->addable = false;
-    else // don't add appointments if the parent already has an incomplete appointment
+    else
     {
+      // don't add appointments if the parent already has an incomplete appointment
       $appointment_class_name = lib::get_class_name( 'database\appointment' );
       $appointment_mod = lib::create( 'database\modifier' );
       $appointment_mod->where( 'participant_id', '=', $this->parent->get_record()->id );
       $appointment_mod->where( 'completed', '=', false );
       $this->addable = 0 == $appointment_class_name::count( $appointment_mod );
+
+      // don't add HOME appointments if the user isn't an interviewer
+      if( 'home' == $this->parent->get_record()->current_qnaire_type &&
+          'interviewer' != lib::create( 'business\session' )->get_role()->name )
+        $this->addable = false;
     }
 
     parent::finish();
