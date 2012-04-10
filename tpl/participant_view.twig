@@ -15,7 +15,7 @@
       $( function() {
         // assign button
         $( function () {
-          $( "button.{{ widget.full }}_assign" ).click( function() {
+          $( "#{{ widget.full }}__assign" ).click( function() {
             if( ajax_push( "assignment", "begin", { "participant_id": {{ id }} } ) )
               window.location.reload();
           } );
@@ -38,13 +38,3 @@
   {{ include_list( 'interview', interview_list|default(false), true ) }}
   
 {% endblock record %}
-
-{% block record_items %}
-
-  {{ parent() }}
-  {% if allow_assign %}
-    <button class="{{ widget.full }}_assign"
-            style="position: absolute; top: 0.2em; right: 0.1em;">Assign Now</button>
-  {% endif %}
-
-{% endblock record_items %}

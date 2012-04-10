@@ -124,22 +124,27 @@ class participant_view extends \cenozo\ui\widget\base_view
   {
     parent::finish();
     
-    // set whether or not to show the assign now button
+    // add the assign now button, if appropriate
     $session = lib::create( 'business\session' );
-    $allow_assign = 'interviewer' != $session->get_role()->name &&
-                    'site' == $this->get_record()->current_qnaire_type &&
-                    is_null( $session->get_current_assignment() );
-    if( !is_null( $this->get_record()->status ) )
-    {
-      $allow_assign = false;
-    }
-    else
-    {
+    $allow_assign =
+      // if the user is not an interviewer
+      'interviewer' != $session->get_role()->name &&
+      // the participant is ready for a site qnaire
+      'site' == $this->get_record()->current_qnaire_type &&
+      // the participant isn't already in an assignment
+      is_null( $session->get_current_assignment() ) &&
+      // the participant does not have a permanent status
+      is_null( $this->get_record()->status );
+
+    if( $allow_assign )
+    { // make sure the participant is eligible
       $queue_class_name = lib::get_class_name( 'database\queue' );
       $db_queue = $queue_class_name::get_unique_record( 'name', 'eligible' );
       $queue_mod = lib::create( 'database\modifier' );
       $queue_mod->where( 'participant.id', '=', $this->get_record()->id );
       $allow_assign = $allow_assign && 1 == $db_queue->get_participant_count( $queue_mod );
+      $this->add_action( 'assign', 'Assign Now', NULL,
+        'Start an assignment with this participant in order to make a site appointment' );
     }
 
     $this->set_variable( 'allow_assign', $allow_assign );
