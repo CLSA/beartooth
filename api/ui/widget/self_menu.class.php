@@ -56,27 +56,35 @@ class self_menu extends \cenozo\ui\widget\self_menu
     parent::finish();
 
     $operation_class_name = lib::get_class_name( 'database\operation' );
-
     $utilities = $this->get_variable( 'utilities' );
+    $session = lib::create( 'business\session' );
     
     // insert the participant tree into the utilities
     $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'tree' );
-    if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+    if( $session->is_allowed( $db_operation ) )
       $utilities[] = array( 'heading' => 'Participant Tree',
                             'type' => 'widget',
                             'subject' => 'participant',
                             'name' => 'tree' );
 
+    // insert the participant sync operation into the utilities
+    $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'sync' );
+    if( $session->is_allowed( $db_operation ) )
+      $utilities[] = array( 'heading' => 'Participant Sync',
+                            'type' => 'widget',
+                            'subject' => 'participant',
+                            'name' => 'sync' );
+
     // insert the assignment begin operation into the utilities
     $db_operation = $operation_class_name::get_operation( 'push', 'home_assignment', 'begin' );
-    if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+    if( $session->is_allowed( $db_operation ) )
       $utilities[] = array( 'heading' => 'Home Assignment',
                             'type' => 'push',
                             'subject' => 'home_assignment',
                             'name' => 'begin' );
 
     $db_operation = $operation_class_name::get_operation( 'push', 'site_assignment', 'begin' );
-    if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+    if( $session->is_allowed( $db_operation ) )
       $utilities[] = array( 'heading' => 'Site Assignment',
                             'type' => 'push',
                             'subject' => 'site_assignment',
