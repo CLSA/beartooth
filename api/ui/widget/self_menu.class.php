@@ -29,7 +29,7 @@ class self_menu extends \cenozo\ui\widget\self_menu
   {
     parent::__construct( $args );
 
-    $exclude = array(
+    $this->exclude_list( array(
       'address',
       'appointment',
       'availability',
@@ -37,12 +37,10 @@ class self_menu extends \cenozo\ui\widget\self_menu
       'interviewer',
       'phase',
       'phone',
-      'phone_call' );
+      'phone_call' ) );
 
     if( 'interviewer' == lib::create( 'business\session' )->get_role()->name )
-      $exclude[] = 'assignment';
-
-    $this->exclude_widget_list = array_merge( $this->exclude_widget_list, $exclude );
+      $this->exclude_list( 'assignment' );
   }
 
   /**
