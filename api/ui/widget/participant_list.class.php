@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class participant_list extends \cenozo\ui\widget\site_restricted_list
+class participant_list extends site_restricted_list
 {
   /**
    * Constructor
@@ -33,6 +33,9 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     $this->add_column( 'first_name', 'string', 'First Name', true );
     $this->add_column( 'last_name', 'string', 'Last Name', true );
     $this->add_column( 'status', 'string', 'Condition', true );
+
+    // participants are jurisdiction-based
+    $this->jurisdiction_based = true;
   }
   
   /**
@@ -81,12 +84,9 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     { // restrict interview lists to those they have appointments with
       if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'appointment.user_id', '=', $session->get_user()->id );
-      $this->db_restrict_site = NULL;
     }
 
-    return is_null( $this->db_restrict_site )
-         ? parent::determine_record_count( $modifier )
-         : $participant_class_name::count_for_site( $this->db_restrict_site, $modifier );
+    return parent::determine_record_count( $modifier );
   }
   
   /**
@@ -107,12 +107,9 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
       if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'appointment.completed', '=', false );
       $modifier->where( 'appointment.user_id', '=', $session->get_user()->id );
-      $this->db_restrict_site = NULL;
     }
 
-    return is_null( $this->db_restrict_site )
-         ? parent::determine_record_list( $modifier )
-         : $participant_class_name::select_for_site( $this->db_restrict_site, $modifier );
+    return parent::determine_record_list( $modifier );
   }
 }
 ?>

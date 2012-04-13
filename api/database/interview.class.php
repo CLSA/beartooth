@@ -18,62 +18,27 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class interview extends \cenozo\database\has_note
 {
   /**
-   * Identical to the parent's select method but restrict to a particular site.
-   * 
+   * Extend the select() method by adding a custom join to the jursidiction table.
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param site $db_site The site to restrict the selection to.
-   * @param modifier $modifier Modifications to the selection.
+   * @param database\modifier $modifier Modifications to the selection.
    * @param boolean $count If true the total number of records instead of a list
    * @return array( record ) | int
    * @static
    * @access public
    */
-  public static function select_for_site( $db_site, $modifier = NULL, $count = false )
+  public static function select( $modifier = NULL, $count = false )
   {
-    // if there is no site restriction then just use the parent method
-    if( is_null( $db_site ) ) return parent::select( $modifier, $count );
-
-    // left join the participant_primary_address and address tables
-    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-    $modifier->where(
+    $jurisdiction_mod = lib::create( 'database\modifier' );
+    $jurisdiction_mod->where(
       'interview.participant_id', '=', 'participant_primary_address.participant_id', false );
-    $modifier->where( 'participant_primary_address.participant_id', '=', 'participant.id', false );
-    $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
-    $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
-    $modifier->where( 'jurisdiction.site_id', '=', $db_site->id );
-    $sql = sprintf(
-      ( $count ? 'SELECT COUNT(*) ' : 'SELECT interview.id ' ).
-      'FROM interview, participant_primary_address, participant, address, jurisdiction %s',
-      $modifier->get_sql() );
+    $jurisdiction_mod->where( 'participant_primary_address.participant_id', '=', 'participant.id', false );
+    $jurisdiction_mod->where( 'participant_primary_address.address_id', '=', 'address.id', false );
+    $jurisdiction_mod->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
+    static::customize_join( 'jurisdiction', $jurisdiction_mod );
 
-    if( $count )
-    {
-      return intval( static::db()->get_one( $sql ) );
-    }
-    else
-    {
-      $id_list = static::db()->get_col( $sql );
-      $records = array();
-      foreach( $id_list as $id ) $records[] = new static( $id );
-      return $records;
-    }
+    return parent::select( $modifier, $count );
   }
   
-  /**
-   * Identical to the parent's count method but restrict to a particular site.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param site $db_site The site to restrict the count to.
-   * @param modifier $modifier Modifications to the count.
-   * @return int
-   * @static
-   * @access public
-   */
-  public static function count_for_site( $db_site, $modifier = NULL )
-  {
-    return static::select_for_site( $db_site, $modifier, true );
-  }
-
   /**
    * Returns the time in seconds that it took to complete a particular phase of this interview
    * @author Patrick Emond <emondpd@mcmaster.ca>

@@ -60,83 +60,23 @@ class onyx_proxy extends \cenozo\ui\push
 
         $columns = array();
 
-        if( array_key_exists( 'ICF_IDPROXY_COM' ) )
+        if( array_key_exists( 'ICF_IDPROXY_COM', $object_vars ) )
           $columns['proxy'] = preg_match( '/y|yes/i', $proxy_data->ICF_IDPROXY_COM );
         else $columns['proxy'] = false;
 
-        if( array_key_exists( 'ICF_OKPROXY_COM' ) )
-          $columns['already_identified'] = preg_match( '/y|yes/i', $proxy_data->ICF_OKPROXY_COM );
-        else $columns['already_identified'] = false;
+        // TODO: translate variables into proxy (columns), address and phone arrays
 
-        if( array_key_exists( 'ICF_PXNAME_COM' ) )
-          $columns[''] = $proxy_data->ICF_PXNAME_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_PXADD_COM' ) )
-          $columns[''] = $proxy_data->ICF_PXADD_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_PXTEL_COM' ) )
-          $columns[''] = $proxy_data->ICF_PXTEL_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_INFADD_COM' ) )
-          $columns[''] = $proxy_data->ICF_INFADD_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_HCNUMB_COM' ) )
-          $columns[''] = $proxy_data->ICF_HCNUMB_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_INFNAME_COM' ) )
-          $columns[''] = $proxy_data->ICF_INFNAME_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_INFTEL_COM' ) )
-          $columns[''] = $proxy_data->ICF_INFTEL_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_SAMP_COM' ) )
-          $columns[''] = $proxy_data->ICF_SAMP_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_ANSW_COM' ) )
-          $columns[''] = $proxy_data->ICF_ANSW_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_PRXINF_COM' ) )
-          $columns[''] = $proxy_data->ICF_PRXINF_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_PRXINFSM_COM' ) )
-          $columns[''] = $proxy_data->ICF_PRXINFSM_COM;
-        else $columns[''] = ;
-
-        if( array_key_exists( 'ICF_TEST_COM' ) )
-          $columns[''] = $proxy_data->ICF_TEST_COM;
-        else $columns[''] = ;
-
-
-        
-
-        // see if this form already exists
-        /* TODO: change code to reflect proxy form instead of consent form
-        $consent_mod = lib::create( 'database\modifier' );
-        $consent_mod->where( 'event', '=', $event );
-        $consent_mod->where( 'date', '=', $date );
-        if( 0 == $db_participant->get_consent_count( $consent_mod ) )
-        {
-          $columns = array( 'participant_id' => $db_participant->id,
-                            'date' => $date,
-                            'event' => $event,
-                            'note' => 'Provided by Onyx.' );
-          $args = array( 'columns' => $columns );
-          if( array_key_exists( 'pdfForm', $object_vars ) )
-            $args['form'] = $proxy_data->pdfForm;
-          $operation = lib::create( 'ui\push\consent_new', $args );
-          $operation->finish();
-        }
-        */
+        // now pass on the data to Mastodon
+        $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
+        $args = array(
+          'columns' => $columns,
+          'address' => $address,
+          'phone' => $phone,
+          'noid' => array(
+            'participant.uid' => $db_participant->uid ) );
+        if( array_key_exists( 'pdfForm', $object_vars ) )
+          $args['form'] = $proxy_data->pdfForm;
+        $mastodon_manager->push( 'proxy_form', 'new', $args );
       }
     }
   }

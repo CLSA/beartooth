@@ -87,19 +87,16 @@ class appointment_list extends \cenozo\ui\pull\base_list
     $modifier->where( 'datetime', '<', $this->end_datetime->format( 'Y-m-d H:i:s' ) );
 
     // determine whether this is a site instance of onyx or an interviewer's laptop
-    $appointment_list = NULL;
     if( is_null( $db_onyx->interviewer_user_id ) )
-    {
-      $appointment_list =
-        $appointment_class_name::select_for_site( $db_onyx->get_site(), $modifier );
+    { // restrict by site
+      $modifier->where( 'jurisdiction.site_id', '=', $db_onyx->get_site()->id );
     }
     else
-    {
-      // restrict the the onyx instance's interviewer
+    { // restrict the the onyx instance's interviewer
       $modifier->where( 'appointment.user_id', '=', $db_onyx->interviewer_user_id );
-      $appointment_list = $appointment_class_name::select( $modifier );
     }
 
+    $appointment_list = $appointment_class_name::select( $modifier );
     if( is_null( $appointment_list ) )
       throw lib::create( 'exception\runtime', 
         'Cannot get an appointment list for onyx', __METHOD__ );
