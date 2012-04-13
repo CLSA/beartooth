@@ -60,7 +60,17 @@ class participant_sync extends \cenozo\ui\push
         $db_participant = lib::create( 'database\participant' );
 
         foreach( $db_participant->get_column_names() as $column )
-          if( 'id' != $column && 'consent_to_draw_blood' != $column )
+          if( 'id' != $column &&
+              'consent_to_draw_blood' != $column &&
+              'next_of_kin_city' != $column &&
+              'next_of_kin_first_name' != $column &&
+              'next_of_kin_last_name' != $column &&
+              'next_of_kin_gender' != $column &&
+              'next_of_kin_phone' != $column &&
+              'next_of_kin_street' != $column &&
+              'next_of_kin_city' != $column &&
+              'next_of_kin_province' != $column &&
+              'next_of_kin_postal_code' != $column )
             $db_participant->$column = $response->data->$column;
 
         $db_participant->save();
