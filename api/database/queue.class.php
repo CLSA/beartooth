@@ -69,6 +69,7 @@ class queue extends \cenozo\database\record
       'restricted',
       'appointment',
       'no appointment',
+      'assigned',
       'new participant',
       'new participant outside calling time',
       'new participant within calling time',
@@ -83,7 +84,7 @@ class queue extends \cenozo\database\record
       
       $from_sql = '';
       $first = true;
-      // reverse order to make sure join to participant_for_queue table works
+      // reverse order to make sure the join works
       foreach( array_reverse( $parts['from'] ) as $from )
       {
         $from_sql .= sprintf( $first ? 'FROM %s' : ', %s', $from );
@@ -125,7 +126,7 @@ class queue extends \cenozo\database\record
           
           $from_sql = '';
           $first = true;
-          // reverse order to make sure join to participant_for_queue table works
+          // reverse order to make sure the join works
           foreach( array_reverse( $parts['from'] ) as $from )
           {
             $from_sql .= sprintf( $first ? 'FROM %s' : ', %s', $from );
@@ -172,7 +173,7 @@ class queue extends \cenozo\database\record
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
 
     if( !is_null( $this->db_site ) )
-      $modifier->where( 'participant.site_id', '=', $this->db_site->id );
+      $modifier->where( 'jurisdiction.site_id', '=', $this->db_site->id );
     
     if( !array_key_exists( $this->name, self::$participant_count_cache ) )
       self::$participant_count_cache[$this->name] = array();
@@ -229,7 +230,7 @@ class queue extends \cenozo\database\record
 
     // restrict to the site
     if( !is_null( $this->db_site ) )
-      $modifier->where( 'participant.site_id', '=', $this->db_site->id );
+      $modifier->where( 'jurisdiction.site_id', '=', $this->db_site->id );
 
     $participant_ids = static::db()->get_col(
       sprintf( '%s %s',
@@ -289,22 +290,83 @@ class queue extends \cenozo\database\record
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $participant_status_list = $participant_class_name::get_enum_values( 'status' );
 
+    // define a few sql-derived variables
+    $phone_count =
+      '( '.
+      '  SELECT COUNT( DISTINCT phone.id ) '.
+      '  FROM phone '.
+      '  WHERE phone.participant_id = participant.id '.
+      '  AND phone.active '.
+      '  AND phone.number IS NOT NULL '.
+      ')';
+
+    $current_qnaire_id =
+      '( '.
+      '  IF '.
+      '  ( '.
+      '    current_interview.id IS NULL, '.
+      '    ( SELECT id FROM qnaire WHERE rank = 1 ), '.
+      '    IF( current_interview.completed, next_qnaire.id, current_qnaire.id ) '.
+      '  ) '.
+      ')';
+
+    $current_qnaire_type =
+      '( '.
+      '  IF '.
+      '  ( '.
+      '    current_qnaire.type IS NULL, '.
+      '    ( SELECT type FROM qnaire WHERE rank = 1 ), '.
+      '    IF( current_interview.completed, next_qnaire.type, current_qnaire.type ) '.
+      '  ) '.
+      ')';
+
+    $start_qnaire_date =
+      '( '.
+      '  IF '.
+      '  ( '.
+      '    current_interview.id IS NULL, '.
+      '    IF '.
+      '    ( '.
+      '      participant.prior_contact_date IS NULL, '.
+      '      NULL, '.
+      '      participant.prior_contact_date + INTERVAL '.
+      '      ( SELECT delay FROM qnaire WHERE rank = 1) WEEK '.
+      '    ), '.
+      '    IF '.
+      '    ( '.
+      '      current_interview.completed, '.
+      '      IF '.
+      '      ( '.
+      '        next_qnaire.id IS NULL, '.
+      '        NULL, '.
+      '        IF '.
+      '        ( '.
+      '          next_prev_assignment.end_datetime IS NULL, '.
+      '          participant.prior_contact_date, '.
+      '          next_prev_assignment.end_datetime '.
+      '        ) + INTERVAL next_qnaire.delay WEEK '.
+      '      ), '.
+      '      NULL '.
+      '    ) '.
+      '  ) '.
+      ')';
+
     // first a list of commonly used elements
     $status_where_list = array(
       'participant.active = true',
       '('.
-      '  last_consent IS NULL'.
-      '  OR last_consent NOT IN( "verbal deny", "written deny", "retract", "withdraw" )'.
+      '  consent.event IS NULL'.
+      '  OR consent.event NOT IN( "verbal deny", "written deny", "retract", "withdraw" )'.
       ')',
-      'phone_number_count > 0' );
+      $phone_count.' > 0' );
     
     // join to the queue_restriction table based on site, city, region or postcode
     $restriction_join = 
       'LEFT JOIN queue_restriction '.
-      'ON queue_restriction.site_id = participant.site_id '.
-      'OR queue_restriction.city = participant.city '.
-      'OR queue_restriction.region_id = participant.region_id '.
-      'OR queue_restriction.postcode = participant.postcode';
+      'ON queue_restriction.site_id = jurisdiction.site_id '.
+      'OR queue_restriction.city = first_address.city '.
+      'OR queue_restriction.region_id = first_address.region_id '.
+      'OR queue_restriction.postcode = first_address.postcode';
     
     $appointment_join =
       'LEFT JOIN appointment '.
@@ -316,12 +378,12 @@ class queue extends \cenozo\database\record
       'AND '.
       '( '.
       '  ( '.
-      '    current_qnaire_type = "home" '.
+      '    '.$current_qnaire_type.' = "home" '.
       '    AND appointment.address_id IS NOT NULL '.
       '  ) '.
       '  OR '.
       '  ( '.
-      '    current_qnaire_type = "site" '.
+      '    '.$current_qnaire_type.' = "site" '.
       '    AND appointment.address_id IS NULL '.
       '  ) '.
       ')';
@@ -339,22 +401,22 @@ class queue extends \cenozo\database\record
       // tests to see if the site is being restricted but the participant isn't included
       '  OR ('.
       '    queue_restriction.site_id IS NOT NULL AND'.
-      '    queue_restriction.site_id != participant.site_id'.
+      '    queue_restriction.site_id != jurisdiction.site_id'.
       '  )'.
       // tests to see if the city is being restricted but the participant isn't included
       '  OR ('.
       '    queue_restriction.city IS NOT NULL AND'.
-      '    queue_restriction.city != participant.city'.
+      '    queue_restriction.city != first_address.city'.
       '  )'.
       // tests to see if the region is being restricted but the participant isn't included
       '  OR ('.
       '    queue_restriction.region_id IS NOT NULL AND'.
-      '    queue_restriction.region_id != participant.region_id'.
+      '    queue_restriction.region_id != first_address.region_id'.
       '  )'.
       // tests to see if the postcode is being restricted but the participant isn't included
       '  OR ('.
       '    queue_restriction.postcode IS NOT NULL AND'.
-      '    queue_restriction.postcode != participant.postcode'.
+      '    queue_restriction.postcode != first_address.postcode'.
       '  )'.
       ')';
     
@@ -404,12 +466,12 @@ class queue extends \cenozo\database\record
     {
       $localtime = localtime( time(), true );
       $offset = $localtime['tm_isdst']
-              ? 'timezone_offset + daylight_savings'
-              : 'timezone_offset';
+              ? 'first_address.timezone_offset + first_address.daylight_savings'
+              : 'first_address.timezone_offset';
       $calling_time_sql = sprintf(
         '('.
-        '  timezone_offset IS NULL OR'.
-        '  daylight_savings IS NULL OR'.
+        '  first_address.timezone_offset IS NULL OR'.
+        '  first_address.daylight_savings IS NULL OR'.
         '  ('.
         '    TIME( %s + INTERVAL %s HOUR ) >= "<CALLING_START_TIME>" AND'.
         '    TIME( %s + INTERVAL %s HOUR ) < "<CALLING_END_TIME>"'.
@@ -424,31 +486,87 @@ class queue extends \cenozo\database\record
     // now determine the sql parts for the given queue
     if( 'all' == $queue )
     {
+      // NOTE: when updating this query database\participant::get_queue_data()
+      //       should also be updated as it performs a very similar query
       $parts = array(
-        'from' => array( 'participant_for_queue AS participant' ),
-        'join' => array(),
-        'where' => array() );
+        'from' => array( 'participant' ),
+        'join' => array(
+          'LEFT JOIN participant_primary_address '.
+          'ON participant.id = participant_primary_address.participant_id ',
+          'LEFT JOIN address AS primary_address '.
+          'ON participant_primary_address.address_id = primary_address.id',
+          'LEFT JOIN jurisdiction '.
+          'ON jurisdiction.postcode = primary_address.postcode',
+          'LEFT JOIN participant_first_address '.
+          'ON participant.id = participant_first_address.participant_id ',
+          'LEFT JOIN address AS first_address '.
+          'ON participant_first_address.address_id = first_address.id',
+          'LEFT JOIN participant_last_consent '.
+          'ON participant.id = participant_last_consent.participant_id ',
+          'LEFT JOIN consent '.
+          'ON consent.id = participant_last_consent.consent_id',
+          'LEFT JOIN participant_last_assignment '.
+          'ON participant.id = participant_last_assignment.participant_id ',
+          'LEFT JOIN assignment '.
+          'ON participant_last_assignment.assignment_id = assignment.id',
+          'LEFT JOIN interview AS current_interview '.
+          'ON current_interview.participant_id = participant.id',
+          'LEFT JOIN qnaire AS current_qnaire '.
+          'ON current_qnaire.id = current_interview.qnaire_id',
+          'LEFT JOIN qnaire AS next_qnaire '.
+          'ON next_qnaire.rank = ( current_qnaire.rank + 1 )',
+          'LEFT JOIN qnaire AS next_prev_qnaire '.
+          'ON next_prev_qnaire.id = next_qnaire.prev_qnaire_id',
+          'LEFT JOIN interview AS next_prev_interview '.
+          'ON next_prev_interview.qnaire_id = next_prev_qnaire.id '.
+          'AND next_prev_interview.participant_id = participant.id',
+          'LEFT JOIN assignment next_prev_assignment '.
+          'ON next_prev_assignment.interview_id = next_prev_interview.id' ),
+        'where' => array(
+          '( '.
+          '  current_qnaire.rank IS NULL OR '.
+          '  current_qnaire.rank = '.
+          '  ( '. 
+          '    SELECT MAX( qnaire.rank ) '.
+          '    FROM interview, qnaire '.
+          '    WHERE qnaire.id = interview.qnaire_id '.
+          '    AND current_interview.participant_id = interview.participant_id '.
+          '    GROUP BY current_interview.participant_id '.
+          '  ) '.
+          ')',
+          '( '.
+          '  next_prev_assignment.end_datetime IS NULL OR '.
+          '  next_prev_assignment.end_datetime = '.
+          '  ( '.
+          '    SELECT MAX( assignment.end_datetime ) '.
+          '    FROM interview, assignment '.
+          '    WHERE interview.qnaire_id = next_prev_qnaire.id '.
+          '    AND interview.id = assignment.interview_id '.
+          '    AND next_prev_assignment.id = assignment.id '.
+          '    GROUP BY next_prev_assignment.interview_id '.
+          '  ) '.
+          ')' ) );
       return $parts;
     }
     else if( 'finished' == $queue )
     {
       $parts = self::get_query_parts( 'all' );
       // no current_qnaire_id means no qnaires left to complete
-      $parts['where'][] = 'current_qnaire_id IS NULL';
+      $parts['where'][] = $current_qnaire_id.' IS NULL';
       return $parts;
     }
     else if( 'ineligible' == $queue )
     {
       $parts = self::get_query_parts( 'all' );
       // current_qnaire_id is the either the next qnaire to work on or the one in progress
-      $parts['where'][] = 'current_qnaire_id IS NOT NULL';
+      $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
       // ineligible means either inactive or with a "final" status
       $parts['where'][] =
         '('.
         '  participant.active = false'.
         '  OR participant.status IS NOT NULL'.
-        '  OR phone_number_count = 0'.
-        '  OR last_consent IN( "verbal deny", "written deny", "retract", "withdraw" )'.
+        '  OR '.$phone_count.' = 0'.
+        '  OR consent.event IN( "verbal deny", "written deny", "retract", "withdraw" )'.
         ')';
       return $parts;
     }
@@ -463,7 +581,7 @@ class queue extends \cenozo\database\record
       $parts = self::get_query_parts( 'all' );
       $parts['where'][] = 'participant.active = true';
       $parts['where'][] =
-        'last_consent IN( "verbal deny", "written deny", "retract", "withdraw" )';
+        'consent.event IN( "verbal deny", "written deny", "retract", "withdraw" )';
       return $parts;
     }
     else if( 'sourcing required' == $queue )
@@ -472,10 +590,10 @@ class queue extends \cenozo\database\record
       $parts['where'][] = 'participant.active = true';
       $parts['where'][] =
         '('.
-        '  last_consent IS NULL'.
-        '  OR last_consent NOT IN( "verbal deny", "written deny", "retract", "withdraw" )'.
+        '  consent.event IS NULL'.
+        '  OR consent.event NOT IN( "verbal deny", "written deny", "retract", "withdraw" )'.
         ')';
-      $parts['where'][] = 'phone_number_count = 0';
+      $parts['where'][] = $phone_count.' = 0';
 
       return $parts;
     }
@@ -490,30 +608,30 @@ class queue extends \cenozo\database\record
     {
       $parts = self::get_query_parts( 'all' );
       // current_qnaire_id is the either the next qnaire to work on or the one in progress
-      $parts['where'][] = 'current_qnaire_id IS NOT NULL';
+      $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
       // active participant who does not have a "final" status and has at least one phone number
       $parts['where'][] = 'participant.active = true';
       $parts['where'][] = 'participant.status IS NULL';
-      $parts['where'][] = 'phone_number_count > 0';
+      $parts['where'][] = $phone_count.' > 0';
       $parts['where'][] =
         '('.
-        '  last_consent IS NULL OR'.
-        '  last_consent NOT IN( "verbal deny", "written deny", "retract", "withdraw" )'.
+        '  consent.event IS NULL OR'.
+        '  consent.event NOT IN( "verbal deny", "written deny", "retract", "withdraw" )'.
         ')';
       return $parts;
     }
     else if( 'qnaire' == $queue )
     {
       $parts = self::get_query_parts( 'eligible' );
-      $parts['where'][] = 'participant.current_qnaire_id <QNAIRE_TEST>';
+      $parts['where'][] = $current_qnaire_id.' <QNAIRE_TEST>';
       return $parts;
     }
     else if( 'qnaire waiting' == $queue )
     {
       $parts = self::get_query_parts( 'qnaire' );
       // the current qnaire cannot start before start_qnaire_date
-      $parts['where'][] = 'participant.start_qnaire_date IS NOT NULL';
-      $parts['where'][] = sprintf( 'DATE( participant.start_qnaire_date ) > DATE( %s )',
+      $parts['where'][] = $start_qnaire_date.' IS NOT NULL';
+      $parts['where'][] = sprintf( 'DATE( '.$start_qnaire_date.' ) > DATE( %s )',
                                    $viewing_date );
       return $parts;
     }
@@ -521,9 +639,12 @@ class queue extends \cenozo\database\record
     {
       $parts = self::get_query_parts( 'qnaire' );
       // the current qnaire cannot start before start_qnaire_date
-      $parts['where'][] = sprintf( '( participant.start_qnaire_date IS NULL OR '.
-                                   '  DATE( participant.start_qnaire_date ) <= DATE( %s ) )',
-                                   $viewing_date );
+      $parts['where'][] = sprintf(
+        '('.
+        '  '.$start_qnaire_date.' IS NULL OR '.
+        '  DATE( '.$start_qnaire_date.' ) <= DATE( %s )'.
+        ')',
+        $viewing_date );
       return $parts;
     }
     else if( 'restricted' == $queue )
@@ -556,15 +677,24 @@ class queue extends \cenozo\database\record
       $parts['where'][] = 'appointment.id IS NULL';
       return $parts;
     }
+    else if( 'assigned' == $queue )
+    {
+      $parts = self::get_query_parts( 'no appointment' );
+      // include participants who are currently assigned
+      $parts['where'][] = '( assignment.id IS NOT NULL AND assignment.end_datetime IS NULL )';
+      return $parts;
+    }
     else if( 'new participant' == $queue )
     {
       $parts = self::get_query_parts( 'no appointment' );
+      // include participants who are NOT currently assigned
+      $parts['where'][] = '( assignment.id IS NULL OR assignment.end_datetime IS NOT NULL )';
       // If there is a start_qnaire_date then the current qnaire has never been started,
       // the exception is for participants who have no appointment
       $parts['where'][] =
         '('.
-        '  participant.start_qnaire_date IS NOT NULL OR'.
-        '  participant.last_assignment_id IS NULL'.
+        '  '.$start_qnaire_date.' IS NOT NULL OR'.
+        '  assignment.id IS NULL'.
         ')';
       return $parts;
     }
@@ -612,11 +742,11 @@ class queue extends \cenozo\database\record
       $parts['from'][] = 'phone_call';
       $parts['from'][] = 'assignment_last_phone_call';
       $parts['where'][] =
-        'assignment_last_phone_call.assignment_id = participant.last_assignment_id';
+        'assignment_last_phone_call.assignment_id = assignment.id';
       $parts['where'][] =
         'phone_call.id = assignment_last_phone_call.phone_call_id';
       // if there is no start_qnaire_date then the current qnaire has been started
-      $parts['where'][] = 'participant.start_qnaire_date IS NULL';
+      $parts['where'][] = $start_qnaire_date.' IS NULL';
       return $parts;
     }
     else
