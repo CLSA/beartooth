@@ -89,7 +89,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     // determine whether this is a site instance of onyx or an interviewer's laptop
     if( is_null( $db_onyx->interviewer_user_id ) )
     { // restrict by site
-      $modifier->where( 'jurisdiction.site_id', '=', $db_onyx->get_site()->id );
+      $modifier->where( 'participant_site.site_id', '=', $db_onyx->get_site()->id );
     }
     else
     { // restrict the the onyx instance's interviewer

@@ -4,6 +4,53 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='';
 
 
 -- -----------------------------------------------------
+-- Table `region`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `region` ;
+
+CREATE  TABLE IF NOT EXISTS `region` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `name` VARCHAR(45) NOT NULL ,
+  `abbreviation` VARCHAR(5) NOT NULL ,
+  `country` VARCHAR(45) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `uq_name` (`name` ASC) ,
+  UNIQUE INDEX `uq_abbreviation` (`abbreviation` ASC) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `site`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `site` ;
+
+CREATE  TABLE IF NOT EXISTS `site` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `name` VARCHAR(45) NOT NULL ,
+  `timezone` ENUM('Canada/Pacific','Canada/Mountain','Canada/Central','Canada/Eastern','Canada/Atlantic','Canada/Newfoundland') NOT NULL ,
+  `institution` VARCHAR(45) NULL ,
+  `phone_number` VARCHAR(45) NULL ,
+  `address1` VARCHAR(512) NULL ,
+  `address2` VARCHAR(512) NULL ,
+  `city` VARCHAR(100) NULL ,
+  `region_id` INT UNSIGNED NULL DEFAULT NULL ,
+  `postcode` VARCHAR(10) NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `uq_name` (`name` ASC) ,
+  INDEX `fk_region_id` (`region_id` ASC) ,
+  CONSTRAINT `fk_site_region`
+    FOREIGN KEY (`region_id` )
+    REFERENCES `region` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `participant`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `participant` ;
@@ -18,7 +65,10 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `last_name` VARCHAR(45) NOT NULL ,
   `status` ENUM('deceased', 'deaf', 'mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
+  `site_id` INT UNSIGNED NULL DEFAULT NULL ,
   `consent_to_draw_blood` TINYINT(1)  NOT NULL DEFAULT false ,
+  `consent_to_draw_blood_continue` TINYINT(1)  NULL DEFAULT NULL ,
+  `physical_tests_continue` TINYINT(1)  NULL DEFAULT NULL ,
   `prior_contact_date` DATE NULL DEFAULT NULL ,
   `next_of_kin_first_name` VARCHAR(45) NULL DEFAULT NULL ,
   `next_of_kin_last_name` VARCHAR(45) NULL DEFAULT NULL ,
@@ -32,7 +82,13 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   INDEX `dk_active` (`active` ASC) ,
   INDEX `dk_status` (`status` ASC) ,
   INDEX `dk_prior_contact_date` (`prior_contact_date` ASC) ,
-  UNIQUE INDEX `uq_uid` (`uid` ASC) )
+  UNIQUE INDEX `uq_uid` (`uid` ASC) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
+  CONSTRAINT `fk_participant_site_id`
+    FOREIGN KEY (`site_id` )
+    REFERENCES `site` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
@@ -126,53 +182,6 @@ CREATE  TABLE IF NOT EXISTS `interview` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB, 
 COMMENT = 'aka: qnaire_has_participant' ;
-
-
--- -----------------------------------------------------
--- Table `region`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `region` ;
-
-CREATE  TABLE IF NOT EXISTS `region` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `update_timestamp` TIMESTAMP NOT NULL ,
-  `create_timestamp` TIMESTAMP NOT NULL ,
-  `name` VARCHAR(45) NOT NULL ,
-  `abbreviation` VARCHAR(5) NOT NULL ,
-  `country` VARCHAR(45) NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `uq_name` (`name` ASC) ,
-  UNIQUE INDEX `uq_abbreviation` (`abbreviation` ASC) )
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `site`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `site` ;
-
-CREATE  TABLE IF NOT EXISTS `site` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `update_timestamp` TIMESTAMP NOT NULL ,
-  `create_timestamp` TIMESTAMP NOT NULL ,
-  `name` VARCHAR(45) NOT NULL ,
-  `timezone` ENUM('Canada/Pacific','Canada/Mountain','Canada/Central','Canada/Eastern','Canada/Atlantic','Canada/Newfoundland') NOT NULL ,
-  `institution` VARCHAR(45) NULL ,
-  `phone_number` VARCHAR(45) NULL ,
-  `address1` VARCHAR(512) NULL ,
-  `address2` VARCHAR(512) NULL ,
-  `city` VARCHAR(100) NULL ,
-  `region_id` INT UNSIGNED NULL DEFAULT NULL ,
-  `postcode` VARCHAR(10) NULL ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `uq_name` (`name` ASC) ,
-  INDEX `fk_region_id` (`region_id` ASC) ,
-  CONSTRAINT `fk_site_region`
-    FOREIGN KEY (`region_id` )
-    REFERENCES `region` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -680,6 +689,11 @@ CREATE TABLE IF NOT EXISTS `participant_primary_address` (`participant_id` INT, 
 CREATE TABLE IF NOT EXISTS `participant_last_contacted_phone_call` (`participant_id` INT, `phone_call_id` INT);
 
 -- -----------------------------------------------------
+-- Placeholder table for view `participant_site`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `participant_site` (`participant_id` INT, `site_id` INT);
+
+-- -----------------------------------------------------
 -- View `participant_first_address`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `participant_first_address` ;
@@ -788,6 +802,21 @@ AND phone_call_1.start_datetime = (
   AND assignment_2.interview_id = interview_2.id
   AND interview_1.participant_id = interview_2.participant_id
   GROUP BY interview_2.participant_id );
+
+-- -----------------------------------------------------
+-- View `participant_site`
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `participant_site` ;
+DROP TABLE IF EXISTS `participant_site`;
+CREATE  OR REPLACE VIEW `participant_site` AS
+SELECT participant.id AS participant_id, IF( ISNULL( participant.site_id ), jurisdiction.site_id, participant.site_id ) AS site_id
+FROM participant
+LEFT JOIN participant_primary_address
+ON participant.id = participant_primary_address.participant_id
+LEFT JOIN address
+ON participant_primary_address.address_id = address.id
+LEFT JOIN jurisdiction
+ON address.postcode = jurisdiction.postcode;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

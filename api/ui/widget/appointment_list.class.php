@@ -33,7 +33,6 @@ class appointment_list extends site_restricted_list
     $this->add_column( 'datetime', 'datetime', 'Date', true );
     $this->add_column( 'state', 'string', 'State', false );
 
-    // appointments are jurisdiction-based
     $this->extended_site_selection = true;
   }
   

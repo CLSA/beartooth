@@ -33,7 +33,6 @@ class interview_list extends site_restricted_list
     $this->add_column( 'qnaire.name', 'string', 'Questionnaire', true );
     $this->add_column( 'completed', 'boolean', 'Completed', true );
 
-    // interviews are jurisdiction-based
     $this->extended_site_selection = true;
   }
   

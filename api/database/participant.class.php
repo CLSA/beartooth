@@ -18,26 +18,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class participant extends \cenozo\database\has_note
 {
   /**
-   * Extend the select() method by adding a custom join to the jursidiction table.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param database\modifier $modifier Modifications to the selection.
-   * @param boolean $count If true the total number of records instead of a list
-   * @return array( record ) | int
-   * @static
-   * @access public
-   */
-  public static function select( $modifier = NULL, $count = false )
-  {
-    $jurisdiction_mod = lib::create( 'database\modifier' );
-    $jurisdiction_mod->where( 'participant.id', '=', 'participant_primary_address.participant_id', false );
-    $jurisdiction_mod->where( 'participant_primary_address.address_id', '=', 'address.id', false );
-    $jurisdiction_mod->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
-    static::customize_join( 'jurisdiction', $jurisdiction_mod );
-
-    return parent::select( $modifier, $count );
-  }
-
-  /**
    * Get the participant's most recent assignment.
    * This will return the participant's current assignment, or the most recently closed assignment
    * if the participant is not currently assigned.
@@ -180,12 +160,19 @@ class participant extends \cenozo\database\has_note
     
     $db_site = NULL;
 
-    $db_address = $this->get_primary_address();
-    if( !is_null( $db_address ) )
-    { // there is a primary address
-      $jurisdiction_class_name = lib::get_class_name( 'database\jurisdiction' );
-      $db_jurisdiction = $jurisdiction_class_name::get_unique_record( 'postcode', $db_address->postcode );
-      if( !is_null( $db_address ) ) $db_site = $db_jurisdiction->get_site();
+    if( !is_null( $this->site_id ) )
+    { // site is specifically defined
+      $db_site = $this->get_site();
+    }
+    else
+    {
+      $db_address = $this->get_primary_address();
+      if( !is_null( $db_address ) )
+      { // there is a primary address
+        $jurisdiction_class_name = lib::get_class_name( 'database\jurisdiction' );
+        $db_jurisdiction = $jurisdiction_class_name::get_unique_record( 'postcode', $db_address->postcode );
+        if( !is_null( $db_address ) ) $db_site = $db_jurisdiction->get_site();
+      }
     }
 
     return $db_site;

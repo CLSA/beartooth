@@ -45,7 +45,7 @@ class call_attempts_report extends \cenozo\ui\pull\base_report
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $participant_mod = lib::create( 'database\modifier' );
     if( $restrict_site_id )
-      $participant_mod->where( 'jurisdiction.site_id', '=', $restrict_site_id );
+      $participant_mod->where( 'participant_site.site_id', '=', $restrict_site_id );
     $participant_list = $participant_class_name::select( $participant_mod );
 
     $contents = array();

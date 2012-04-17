@@ -44,7 +44,7 @@ class sourcing_required_report extends \cenozo\ui\pull\base_report
     // loop through participants searching for those who have completed their most recent interview
     $participant_mod = lib::create( 'database\participant' );
     if( $restrict_site_id )
-      $participant_mod->where( 'jurisdiction.site_id', '=', $restrict_site_id );
+      $participant_mod->where( 'participant_site.site_id', '=', $restrict_site_id );
     foreach( $participant_class_name::select( $participant_mod ) as $db_participant )
     {
       // dont bother with deceased or otherwise impaired

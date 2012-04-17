@@ -60,6 +60,26 @@ class appointment extends \cenozo\database\record
   }
   
   /**
+   * Extend the select() method by adding a custom join to the participant_site table.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\modifier $modifier Modifications to the selection.
+   * @param boolean $count If true the total number of records instead of a list
+   * @return array( record ) | int
+   * @static
+   * @access public
+   */
+  public static function select( $modifier = NULL, $count = false )
+  {
+    $participant_site_mod = lib::create( 'database\modifier' );
+    $participant_site_mod->where( 'appointment.address_id', '=', NULL );
+    $participant_site_mod->where(
+      'appointment.participant_id', '=', 'participant_site.participant_id', false );
+    static::customize_join( 'participant_site', $participant_site_mod );
+
+    return parent::select( $modifier, $count );
+  }
+
+  /**
    * Determines whether there are open slots available during this appointment's date/time.
    * The result will depend on whether the appointment has an address or not.  If not then
    * it is considered to be a site interview (and so it refers to openings to the site
@@ -106,9 +126,9 @@ class appointment extends \cenozo\database\record
     $diffs = array();
     
     // and how many appointments are during this time?
-    $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
-    if( !is_null( $this->id ) ) $modifier->where( 'appointment.id', '!=', $this->id );
+    $appointment_mod = lib::create( 'database\modifier' );
+    $appointment_mod->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
+    if( !is_null( $this->id ) ) $appointment_mod->where( 'appointment.id', '!=', $this->id );
     
     $db_site = NULL;
     $db_user = NULL;
@@ -119,15 +139,15 @@ class appointment extends \cenozo\database\record
         throw lib::create( 'exception\runtime',
           'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
 
-      // link to the jursidiction's site_id column
-      $modifier->where( 'jurisdiction.site_id', '=', $db_site->id );
+      // link to the participant's site id
+      $appointment_mod->where( 'participant_site.site_id', '=', $db_site->id );
 
       // determine site slots using shift template
-      $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'site_id', '=', $db_site->id );
-      $modifier->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
-      $class_name = lib::get_class_name( 'database\shift_template' );
-      foreach( $class_name::select( $modifier ) as $db_shift_template )
+      $shift_template_mod = lib::create( 'database\modifier' );
+      $shift_template_mod->where( 'site_id', '=', $db_site->id );
+      $shift_template_mod->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
+      $shift_template_class_name = lib::get_class_name( 'database\shift_template' );
+      foreach( $shift_template_class_name::select( $shift_template_mod ) as $db_shift_template )
       {
         if( $db_shift_template->match_date( $start_datetime_obj->format( 'Y-m-d' ) ) )
         {
@@ -148,11 +168,11 @@ class appointment extends \cenozo\database\record
     // home appointments, restrict to the current user
     else
     {
-      $modifier->where(
+      $appointment_mod->where(
         'appointment.user_id', '=', lib::create( 'business\session' )->get_user()->id );
     }
 
-    $appointment_list = static::select( $modifier );
+    $appointment_list = static::select( $appointment_mod );
     foreach( $appointment_list as $db_appointment )
     {
       if( !$db_appointment->completed )
@@ -211,28 +231,6 @@ class appointment extends \cenozo\database\record
     }
     
     return true;
-  }
-
-  /**
-   * Extend the select() method by adding a custom join to the jursidiction table.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param database\modifier $modifier Modifications to the selection.
-   * @param boolean $count If true the total number of records instead of a list
-   * @return array( record ) | int
-   * @static
-   * @access public
-   */
-  public static function select( $modifier = NULL, $count = false )
-  {
-    $jurisdiction_mod = lib::create( 'database\modifier' );
-    $jurisdiction_mod->where(
-      'appointment.participant_id', '=', 'participant_primary_address.participant_id', false );
-    $jurisdiction_mod->where( 'participant_primary_address.address_id', '=', 'address.id', false );
-    $jurisdiction_mod->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
-    $jurisdiction_mod->where( 'appointment.address_id', '=', NULL );
-    static::customize_join( 'jurisdiction', $jurisdiction_mod );
-
-    return parent::select( $modifier, $count );
   }
 
   /**

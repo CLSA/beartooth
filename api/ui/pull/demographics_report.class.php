@@ -44,7 +44,7 @@ class demographics_report extends \cenozo\ui\pull\base_report
     $contents = array();
     $participant_mod = lib::create( 'database\participant' );
     if( $restrict_site_id )
-      $participant_mod->where( 'jurisdiction.site_id', '=', $restrict_site_id );
+      $participant_mod->where( 'participant_site.site_id', '=', $restrict_site_id );
     foreach( $participant_class_name::select( $participant_mod ) as $db_participant )
     {
       $db_consent = $db_participant->get_last_consent();

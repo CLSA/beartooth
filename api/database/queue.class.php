@@ -172,8 +172,8 @@ class queue extends \cenozo\database\record
 
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
 
-    if( !is_null( $this->db_site ) )
-      $modifier->where( 'jurisdiction.site_id', '=', $this->db_site->id );
+    if( !is_null( $this->db_site ) ) $modifier->where(
+      'IFNULL( participant.site_id, jurisdiction.site_id )', '=', $this->db_site->id );
     
     if( !array_key_exists( $this->name, self::$participant_count_cache ) )
       self::$participant_count_cache[$this->name] = array();
@@ -229,8 +229,8 @@ class queue extends \cenozo\database\record
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
 
     // restrict to the site
-    if( !is_null( $this->db_site ) )
-      $modifier->where( 'jurisdiction.site_id', '=', $this->db_site->id );
+    if( !is_null( $this->db_site ) ) $modifier->where(
+      'IFNULL( participant.site_id, jurisdiction.site_id )', '=', $this->db_site->id );
 
     $participant_ids = static::db()->get_col(
       sprintf( '%s %s',
@@ -363,7 +363,7 @@ class queue extends \cenozo\database\record
     // join to the queue_restriction table based on site, city, region or postcode
     $restriction_join = 
       'LEFT JOIN queue_restriction '.
-      'ON queue_restriction.site_id = jurisdiction.site_id '.
+      'ON queue_restriction.site_id = IFNULL( participant.site_id, jurisdiction.site_id ) '.
       'OR queue_restriction.city = first_address.city '.
       'OR queue_restriction.region_id = first_address.region_id '.
       'OR queue_restriction.postcode = first_address.postcode';
@@ -401,7 +401,7 @@ class queue extends \cenozo\database\record
       // tests to see if the site is being restricted but the participant isn't included
       '  OR ('.
       '    queue_restriction.site_id IS NOT NULL AND'.
-      '    queue_restriction.site_id != jurisdiction.site_id'.
+      '    queue_restriction.site_id != IFNULL( participant.site_id, jurisdiction.site_id )'.
       '  )'.
       // tests to see if the city is being restricted but the participant isn't included
       '  OR ('.
