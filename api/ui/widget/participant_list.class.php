@@ -35,7 +35,7 @@ class participant_list extends site_restricted_list
     $this->add_column( 'status', 'string', 'Condition', true );
 
     // participants are jurisdiction-based
-    $this->jurisdiction_based = true;
+    $this->extended_site_selection = true;
   }
   
   /**
