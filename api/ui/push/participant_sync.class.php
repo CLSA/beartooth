@@ -36,10 +36,11 @@ class participant_sync extends \cenozo\ui\push
    */
   public function finish()
   {
-    $site_class_name = lib::get_class_name( 'database\site' );
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $region_class_name = lib::get_class_name( 'database\region' );
     $address_class_name = lib::get_class_name( 'database\address' );
+    $source_class_name = lib::get_class_name( 'database\source' );
+    $site_class_name = lib::get_class_name( 'database\site' );
 
     $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $uid_list_string = preg_replace( '/[^a-zA-Z0-9]/', ' ', $this->get_argument( 'uid_list' ) );
@@ -73,6 +74,17 @@ class participant_sync extends \cenozo\ui\push
               'next_of_kin_postal_code' != $column )
             $db_participant->$column = $response->data->$column;
 
+        // set the source
+        $db_source = is_null( $response->data->source_name )
+                   ? NULL
+                   : $source_class_name::get_unique_record( 'name', $response->data->source_name );
+        $db_participant->source_id = is_null( $db_source ) ? NULL : $db_source->id;
+        
+        // set the site
+        $db_site = is_null( $response->data->site_name )
+                   ? NULL
+                   : $site_class_name::get_unique_record( 'name', $response->data->site_name );
+        $db_participant->site_id = is_null( $db_site ) ? NULL : $db_site->id;
         $db_participant->save();
 
         // update addresses

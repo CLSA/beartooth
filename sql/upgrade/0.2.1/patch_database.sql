@@ -5,6 +5,7 @@ SOURCE address.sql
 SOURCE participant_for_queue.sql
 SOURCE operation.sql
 SOURCE role_has_operation.sql
+SOURCE source.sql
 SOURCE participant.sql
 SOURCE participant_site.sql
 SOURCE queue.sql

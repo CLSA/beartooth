@@ -51,6 +51,21 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `source`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `source` ;
+
+CREATE  TABLE IF NOT EXISTS `source` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` VARCHAR(45) NOT NULL ,
+  `create_timestamp` VARCHAR(45) NOT NULL ,
+  `name` VARCHAR(45) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `uq_name` (`name` ASC) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `participant`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `participant` ;
@@ -61,6 +76,7 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `create_timestamp` TIMESTAMP NOT NULL ,
   `active` TINYINT(1)  NOT NULL DEFAULT true ,
   `uid` VARCHAR(45) NOT NULL COMMENT 'External unique ID' ,
+  `source_id` INT UNSIGNED NULL ,
   `first_name` VARCHAR(45) NOT NULL ,
   `last_name` VARCHAR(45) NOT NULL ,
   `status` ENUM('deceased', 'deaf', 'mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','other') NULL DEFAULT NULL ,
@@ -84,9 +100,15 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   INDEX `dk_prior_contact_date` (`prior_contact_date` ASC) ,
   UNIQUE INDEX `uq_uid` (`uid` ASC) ,
   INDEX `fk_site_id` (`site_id` ASC) ,
+  INDEX `fk_participant_source_id` (`source_id` ASC) ,
   CONSTRAINT `fk_participant_site_id`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_participant_source_id`
+    FOREIGN KEY (`source_id` )
+    REFERENCES `source` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
