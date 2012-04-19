@@ -38,6 +38,9 @@ class participant_sync extends \cenozo\ui\pull
    */
   public function finish()
   {
+    // Mastodon will only return ~400 records back at a time, so break up the list into chunks
+    $limit = 250;
+
     $existing_count = 0;
     $new_count = 0;
     $address_count = 0;
@@ -49,39 +52,69 @@ class participant_sync extends \cenozo\ui\pull
     $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $uid_list_string = preg_replace( '/[^a-zA-Z0-9]/', ' ', $this->get_argument( 'uid_list' ) );
     $uid_list_string = trim( $uid_list_string );
-    $uid_list = array_unique( preg_split( '/\s+/', $uid_list_string ) );
-    foreach( $uid_list as $uid )
-    {
-      $args = array( 'uid' => $uid, 'full' => true, 'cohort' => 'comprehensive' );
-      $is_missing = false;
-      try // if the participant is missing we'll get a mastodon error
-      {
-        $response = $mastodon_manager->pull( 'participant', 'primary', $args );
-        if( !is_null( $response ) )
-        {
-          $address_count += count( $response->data->address_list );
-          $phone_count += count( $response->data->phone_list );
-          $consent_count += count( $response->data->consent_list );
 
-          if( !is_null( $participant_class_name::get_unique_record( 'uid', $uid ) ) )
+    if( 0 == strcasecmp( 'all', $uid_list_string ) )
+    {
+      $valid_count = 'N/A';
+      $missing_count = 'N/A';
+
+      $offset = 0;
+      do
+      {
+        $args = array(
+          'full' => true,
+          'limit' => $limit,
+          'offset' => $offset,
+          'restrictions' => array(
+            'cohort' => array( 'compare' => 'is', 'value' => 'comprehensive' ),
+            'sync_datetime' => array( 'compare' => 'is', 'value' => 'NULL' ) ) );
+        $response = $mastodon_manager->pull( 'participant', 'list', $args );
+        foreach( $response->data as $data )
+        {
+          $address_count += count( $data->address_list );
+          $phone_count += count( $data->phone_list );
+          $consent_count += count( $data->consent_list );
+
+          if( !is_null( $participant_class_name::get_unique_record( 'uid', $data->uid ) ) )
             $existing_count++;
           else $new_count++;
         }
-        else $is_missing = true;
-      }
-      // a runtime error is thrown when the participant is from the wrong cohort
-      catch( \cenozo\exception\runtime $e )
+        $offset += $limit;
+      } while( count( $response->data ) );
+    }
+    else
+    {
+      $uid_list = array_unique( preg_split( '/\s+/', $uid_list_string ) );
+      $valid_count = count( $uid_list );
+
+      $count = count( $uid_list );
+      for( $offset = 0; $offset < $count; $offset += $limit )
       {
-        throw lib::create( 'exception\notice',
-          sprintf( 'Participant %s is from the wrong cohort.', $uid ), __METHOD__, $e );
+        $uid_sub_list = array_slice( $uid_list, $offset, $limit );
+        $args = array(
+          'full' => true,
+          'restrictions' => array(
+            'cohort' => array( 'compare' => 'is', 'value' => 'comprehensive' ),
+            'uid' => array( 'compare' => 'in', 'value' => implode( $uid_sub_list, ',' ) ) ) );
+
+        $response = $mastodon_manager->pull( 'participant', 'list', $args );
+        foreach( $response->data as $data )
+        {
+          $address_count += count( $data->address_list );
+          $phone_count += count( $data->phone_list );
+          $consent_count += count( $data->consent_list );
+
+          if( !is_null( $participant_class_name::get_unique_record( 'uid', $data->uid ) ) )
+            $existing_count++;
+          else $new_count++;
+        }
+        
+        $missing_count += count( $uid_sub_list ) - count( $response->data );
       }
-      // consider errors to be missing participants (may be missing or the wrong cohort)
-      catch( \cenozo\exception\cenozo_service $e ) { $is_missing = true; }
-      if( $is_missing ) $missing_count++;
     }
 
     return array(
-      'Valid participants in request' => count( $uid_list ),
+      'Valid participants in request' => $valid_count,
       'Participants missing from Mastodon' => $missing_count,
       'New participants' => $new_count,
       'Existing participants (ignored)' => $existing_count,
