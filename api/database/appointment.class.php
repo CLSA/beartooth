@@ -111,13 +111,19 @@ class appointment extends \cenozo\database\record
     return true;
 
     $db_participant = lib::create( 'database\participant', $this->participant_id );
+    $db_site = $db_participant->get_primary_site();
+    if( is_null( $db_site ) )
+      throw lib::create( 'exception\runtime',
+        'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
+
     $home = (bool) $this->address_id;
 
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
                          lib::create( 'business\setting_manager' )->get_setting(
                            'appointment',
-                           $home ? 'home duration' : 'site duration' ) );
+                           $home ? 'home duration' : 'site duration',
+                           $db_site ) );
 
     $start_datetime_obj = util::get_datetime_object( $this->datetime );
     $end_datetime_obj = clone $start_datetime_obj;
@@ -130,15 +136,8 @@ class appointment extends \cenozo\database\record
     $appointment_mod->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
     if( !is_null( $this->id ) ) $appointment_mod->where( 'appointment.id', '!=', $this->id );
     
-    $db_site = NULL;
-    $db_user = NULL;
     if( !$home )
     {
-      $db_site = $db_participant->get_primary_site();
-      if( is_null( $db_site ) )
-        throw lib::create( 'exception\runtime',
-          'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
-
       // link to the participant's site id
       $appointment_mod->where( 'participant_site.site_id', '=', $db_site->id );
 
