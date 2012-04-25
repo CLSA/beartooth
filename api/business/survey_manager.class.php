@@ -38,9 +38,6 @@ class survey_manager extends \cenozo\singleton
   {
     $session = lib::create( 'business\session' );
 
-    // only interviewers can fill out surveys
-    if( 'interviewer' != $session->get_role()->name ) return false;
-    
     // must have an assignment
     $db_assignment = $session->get_current_assignment();
     if( is_null( $db_assignment ) ) return false;
@@ -197,8 +194,8 @@ class survey_manager extends \cenozo\singleton
         }
       }
 
-      // TODO: should the interview not be completed here as it does in Sabreotooth?
-      //       need to figure out why this code was removed
+      // The interview is not completed here since the interview must be completed by Onyx
+      // and Onyx must report back when it is done.
     }
   }
   

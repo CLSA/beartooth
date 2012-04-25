@@ -1,6 +1,6 @@
 <?php
 /**
- * interviewer_assignment.class.php
+ * self_assignment.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -11,11 +11,11 @@ namespace beartooth\ui\widget;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * widget interviewer assignment
+ * widget self assignment
  * 
  * @package beartooth\ui
  */
-class interviewer_assignment extends \cenozo\ui\widget
+class self_assignment extends \cenozo\ui\widget
 {
   /**
    * Constructor
@@ -27,7 +27,7 @@ class interviewer_assignment extends \cenozo\ui\widget
    */
   public function __construct( $args )
   {
-    parent::__construct( 'interviewer', 'assignment', $args );
+    parent::__construct( 'self', 'assignment', $args );
     $this->set_heading( 'Current Assignment' );
   }
 
@@ -43,6 +43,7 @@ class interviewer_assignment extends \cenozo\ui\widget
     parent::finish();
     
     $session = lib::create( 'business\session' );
+    $db_user = $session->get_user();
     $db_role = $session->get_role();
     $db_site = $session->get_site();
 
@@ -93,7 +94,8 @@ class interviewer_assignment extends \cenozo\ui\widget
     if( 0 == count( $db_phone_list ) && 0 == $current_calls )
     {
       log::crit( sprintf(
-        'An interviewer has been assigned participant %d who has no callable phone numbers',
+        'User %s has been assigned participant %d who has no callable phone numbers',
+        $db_user->name,
         $db_participant->id ) );
     }
     else
@@ -110,8 +112,9 @@ class interviewer_assignment extends \cenozo\ui\widget
     if( 0 == $current_calls && !$on_call && $db_interview->completed )
     {
       log::crit(
-        sprintf( 'An interviewer has been assigned participant %d who\'s interview is complete '.
-                 'but the interviewer has not made any calls.',
+        sprintf( 'User %s has been assigned participant %d who\'s interview is complete '.
+                 'but the user has not made any calls.',
+                 $db_user->name,
                  $db_participant->id ) );
     }
 

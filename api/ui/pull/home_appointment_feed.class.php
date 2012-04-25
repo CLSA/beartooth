@@ -40,19 +40,18 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
   public function finish()
   {
     $setting_manager = lib::create( 'business\setting_manager' );
-
-    // get this user's interview access
-    $db_access = lib::create( 'business\session' )->get_access();
+    $db_user = lib::create( 'business\session' )->get_user();
 
     // create a list of home appointments between the feed's start and end time
     $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'appointment.user_id', '=', $db_user->id );
     $modifier->where( 'appointment.address_id', '!=', NULL );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
 
     $event_list = array();
     $class_name = lib::get_class_name( 'database\appointment' );
-    foreach( $class_name::select_for_access( $db_access, $modifier ) as $db_appointment )
+    foreach( $class_name::select( $modifier ) as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $end_datetime_obj = clone $start_datetime_obj;

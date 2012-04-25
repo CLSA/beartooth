@@ -75,10 +75,12 @@ class appointment_list extends \cenozo\ui\pull\base_list
   {
     $event_list = array();
 
+    $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
+    $appointment_class_name = lib::get_class_name( 'database\appointment' );
+
     // create a list of appointments between the start and end time
     $db_user = lib::create( 'business\session' )->get_user();
-    $class_name = lib::get_class_name( 'database\onyx_instance' );
-    $db_onyx = $class_name::get_unique_record( 'user_id' , $db_user->id );
+    $db_onyx = $onyx_instance_class_name::get_unique_record( 'user_id' , $db_user->id );
     
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'datetime', '>=', $this->start_datetime->format( 'Y-m-d H:i:s' ) );
@@ -88,19 +90,14 @@ class appointment_list extends \cenozo\ui\pull\base_list
     $appointment_list = NULL;
     if( is_null( $db_onyx->interviewer_user_id ) )
     {
-      $class_name = lib::get_class_name( 'database\appointment' );
-      $appointment_list = $class_name::select_for_site( $db_onyx->get_site(), $modifier );
+      $appointment_list =
+        $appointment_class_name::select_for_site( $db_onyx->get_site(), $modifier );
     }
     else
     {
-      $class_name = lib::get_class_name( 'database\role' );
-      $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
-      $class_name = lib::get_class_name( 'database\access' );
-      $db_access = $class_name::get_unique_record(
-        array( 'user_id', 'site_id', 'role_id' ),
-        array( $db_onyx->interviewer_user_id, $db_onyx->site_id, $db_role->id ) );
-      $class_name = lib::get_class_name( 'database\appointment' );
-      $appointment_list = $class_name::select_for_access( $db_access, $modifier );
+      // restrict the the onyx instance's interviewer
+      $modifier->where( 'appointment.user_id', '=', $db_onyx->interviewer_user_id );
+      $appointment_list = $appointment_class_name::select( $modifier );
     }
 
     if( is_null( $appointment_list ) )
@@ -141,8 +138,11 @@ class appointment_list extends \cenozo\ui\pull\base_list
         'street'    => is_null( $db_address ) ? 'NA' : $db_address->address1,
         'city'      => is_null( $db_address ) ? 'NA' : $db_address->city,
         'province'  => is_null( $db_address ) ? 'NA' : $db_address->get_region()->name,
-        'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode,
-        'consent_to_draw_blood' =>  false ); // TODO: implement this field in mastodon
+        'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode );
+
+      // include consent to draw blood if this is a site appointment
+      if( is_null( $db_onyx->interviewer_user_id ) )
+        $event_list['consent_to_draw_blood'] = $db_participant->consent_to_draw_blood;
     }
 
     return $event_list;

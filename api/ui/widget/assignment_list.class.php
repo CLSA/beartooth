@@ -78,55 +78,5 @@ class assignment_list extends \cenozo\ui\widget\site_restricted_list
 
     $this->finish_setting_rows();
   }
-
-  /**
-   * Overrides the parent class method since the record count depends on the active role
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param database\modifier $modifier Modifications to the list.
-   * @return int
-   * @access protected
-   */
-  protected function determine_record_count( $modifier = NULL )
-  {
-    $session = lib::create( 'business\session' );
-    if( 'interviewer' == $session->get_role()->name )
-    {
-      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-      $db_assignment = $session->get_current_assignment();
-      $participant_id = is_null( $db_assignment )
-                      ? 0
-                      : $db_assignment->get_interview()->participant_id;
-      $modifier->where( 'interview.participant_id', '=', $participant_id );
-      $modifier->where( 'end_datetime', '!=', NULL );
-    }
-
-    return parent::determine_record_count( $modifier );
-  }
-
-  /**
-   * Overrides the parent class method since the record list depends on the active role.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param database\modifier $modifier Modifications to the list.
-   * @return array( record )
-   * @access protected
-   */
-  protected function determine_record_list( $modifier = NULL )
-  {
-    $session = lib::create( 'business\session' );
-    if( 'interviewer' == $session->get_role()->name )
-    {
-      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-      $db_assignment = $session->get_current_assignment();
-      $participant_id = is_null( $db_assignment )
-                      ? 0
-                      : $db_assignment->get_interview()->participant_id;
-      $modifier->where( 'interview.participant_id', '=', $participant_id );
-      $modifier->where( 'end_datetime', '!=', NULL );
-    }
-
-    return parent::determine_record_list( $modifier );
-  }
 }
 ?>

@@ -26,6 +26,7 @@ class site_new extends \cenozo\ui\push\site_new
   public function finish()
   {
     // validate the postcode
+    $columns = $this->get_argument( 'columns' );
     $postcode = $columns['postcode'];
     if( !preg_match( '/^[A-Z][0-9][A-Z] [0-9][A-Z][0-9]$/', $postcode ) && // postal code
         !preg_match( '/^[0-9]{5}$/', $postcode ) )  // zip code

@@ -36,6 +36,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'last_name', 'string', 'Last Name' );
     $this->add_item( 'language', 'enum', 'Preferred Language' );
     $this->add_item( 'status', 'enum', 'Condition' );
+    $this->add_item( 'consent_to_draw_blood', 'boolean', 'Consent to Draw Blood' );
     $this->add_item( 'prior_contact_date', 'constant', 'Prior Contact Date' );
     $this->add_item( 'current_qnaire_name', 'constant', 'Current Questionnaire' );
     $this->add_item( 'start_qnaire_date', 'constant', 'Delay Questionnaire Until' );
@@ -102,14 +103,14 @@ class participant_view extends \cenozo\ui\widget\base_view
 
     try
     {
-      // create the assignment sub-list widget
-      $this->assignment_list = lib::create( 'ui\widget\assignment_list', $args );
-      $this->assignment_list->set_parent( $this );
-      $this->assignment_list->set_heading( 'Assignment history' );
+      // create the interview sub-list widget
+      $this->interview_list = lib::create( 'ui\widget\interview_list', $args );
+      $this->interview_list->set_parent( $this );
+      $this->interview_list->set_heading( 'Interview history' );
     }
     catch( \cenozo\exception\permission $e )
     {
-      $this->assignment_list = NULL;
+      $this->interview_list = NULL;
     }
   }
 
@@ -123,8 +124,11 @@ class participant_view extends \cenozo\ui\widget\base_view
   {
     parent::finish();
     
-    // set whether or not to show the assign button based on if the participant's eligibility
-    $allow_assign = 'interviewer' == lib::create( 'business\session' )->get_role()->name;
+    // set whether or not to show the assign now button
+    $session = lib::create( 'business\session' );
+    $allow_assign = 'interviewer' != $session->get_role()->name &&
+                    'site' == $this->get_record()->current_qnaire_type &&
+                    is_null( $session->get_current_assignment() );
     if( !is_null( $this->get_record()->status ) )
     {
       $allow_assign = false;
@@ -169,6 +173,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'last_name', $this->get_record()->last_name );
     $this->set_item( 'language', $this->get_record()->language, false, $languages );
     $this->set_item( 'status', $this->get_record()->status, false, $statuses );
+    $this->set_item( 'consent_to_draw_blood', $this->get_record()->consent_to_draw_blood );
     $this->set_item( 'prior_contact_date', $this->get_record()->prior_contact_date );
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );
@@ -189,6 +194,7 @@ class participant_view extends \cenozo\ui\widget\base_view
 
     if( !is_null( $this->appointment_list ) )
     {
+      $this->appointment_list->remove_column( 'uid' );
       $this->appointment_list->finish();
       $this->set_variable( 'appointment_list', $this->appointment_list->get_variables() );
     }
@@ -205,42 +211,42 @@ class participant_view extends \cenozo\ui\widget\base_view
       $this->set_variable( 'consent_list', $this->consent_list->get_variables() );
     }
 
-    if( !is_null( $this->assignment_list ) )
+    if( !is_null( $this->interview_list ) )
     {
-      $this->assignment_list->finish();
-      $this->set_variable( 'assignment_list', $this->assignment_list->get_variables() );
+      $this->interview_list->finish();
+      $this->set_variable( 'interview_list', $this->interview_list->get_variables() );
     }
   }
   
   /**
-   * Overrides the assignment list widget's method.
+   * Overrides the interview list widget's method.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\modifier $modifier Modifications to the list.
    * @return int
-   * @assignment protected
+   * @interview protected
    */
-  public function determine_assignment_count( $modifier = NULL )
+  public function determine_interview_count( $modifier = NULL )
   {
     if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'interview.participant_id', '=', $this->get_record()->id );
-    $class_name = lib::get_class_name( 'database\assignment' );
+    $modifier->where( 'participant_id', '=', $this->get_record()->id );
+    $class_name = lib::get_class_name( 'database\interview' );
     return $class_name::count( $modifier );
   }
 
   /**
-   * Overrides the assignment list widget's method.
+   * Overrides the interview list widget's method.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\modifier $modifier Modifications to the list.
    * @return array( record )
-   * @assignment protected
+   * @interview protected
    */
-  public function determine_assignment_list( $modifier = NULL )
+  public function determine_interview_list( $modifier = NULL )
   {
     if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'interview.participant_id', '=', $this->get_record()->id );
-    $class_name = lib::get_class_name( 'database\assignment' );
+    $modifier->where( 'participant_id', '=', $this->get_record()->id );
+    $class_name = lib::get_class_name( 'database\interview' );
     return $class_name::select( $modifier );
   }
 
@@ -281,9 +287,9 @@ class participant_view extends \cenozo\ui\widget\base_view
   
   /**
    * The participant list widget.
-   * @var assignment_list
+   * @var interview_list
    * @access protected
    */
-  protected $assignment_list = NULL;
+  protected $interview_list = NULL;
 }
 ?>

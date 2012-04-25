@@ -41,7 +41,11 @@ VALUES( "widget", "assignment", "view", true, "View assignment details." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "assignment", "list", true, "Lists assignments." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "assignment", "begin", true, "Requests a new assignment." );
+VALUES( "push", "home_assignment", "begin", true, "Requests from the queue a new assignment to make a home appointment." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "site_assignment", "begin", true, "Requests from the queue a new assignment to make a site appointment." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "assignment", "begin", true, "Begins a new assignment with a particular participant." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "assignment", "end", true, "Ends the current assignment." );
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -63,10 +67,6 @@ VALUES( "widget", "availability", "list", true, "Lists a participant's availabil
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "availability", "primary", true, "Retrieves base availability information." );
 
--- list
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "appointment", "list", true, "Retrieves a list of appointments for an onyx instance." );
-
 -- calendar
 -- INSERT INTO operation( type, subject, name, restricted, description )
 -- VALUES( "widget", "shift_template", "calendar", true, "Shows shift templates in a calendar format." );
@@ -80,10 +80,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "site_appointment", "calendar", true, "A calendar listing site appointments." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "site_appointment", "feed", true, "Retrieves a list of site appointment times for a given time-span." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "site", "calendar", true, "A calendar listing the number of interviewers free for an appointment." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "pull", "site", "feed", true, "Retrieves a list of free site appointment times for a given time-span." );
 
 -- consent
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -101,25 +97,21 @@ VALUES( "widget", "consent", "list", true, "Lists a participant's consent entrie
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "consent", "primary", true, "Retrieves base consent information." );
 
--- coverage
+-- interview
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "coverage", "delete", true, "Removes a coverage entry from the system." );
+VALUES( "widget", "interview", "view", true, "View interview details." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "coverage", "edit", true, "Edits the details of a coverage entry." );
+VALUES( "widget", "interview", "list", true, "Lists interviews." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "coverage", "new", true, "Creates new coverage entry." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "coverage", "add", true, "View a form for creating new coverage entry." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "coverage", "view", true, "View the details of a coverage entry." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "coverage", "list", true, "Lists a coverage entries." );
+VALUES( "push", "interview", "edit", true, "Edits the details of an interview." );
 
--- interviewer
+-- onyx operations
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "interviewer", "assignment", true, "Displays the interviewer's assignment manager." );
+VALUES( "pull", "appointment", "list", true, "Retrieves a list of appointments for an onyx instance." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "interviewer", "list", true, "Displays a list of interviewers." );
+VALUES( "push", "onyx", "participants", true, "Allows Onyx to update the information of one or more participants." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "onyx", "consent", true, "Allows Onyx to update the consent details of one or more participants." );
 
 -- onyx_instance
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -270,34 +262,40 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "queue_restriction", "primary", true, "Retrieves base queue restriction information." );
 
 -- reports
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "productivity", "report", true, "Set up a productivity report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "productivity", "report", true, "Download a productivity report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "call_attempts", "report", true, "Set up a call attempts report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "call_attempts", "report", true, "Download a call attempts report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "call_history", "report", true, "Set up a call history report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "call_history", "report", true, "Download a call history report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "sourcing_required", "report", true, "Set up a new sourcing required report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "sourcing_required", "report", true, "Download a new sourcing required report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "demographics", "report", true, "Set up a new demographics report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "demographics", "report", true, "Download a new demographics report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "productivity", "report", true, "Set up a productivity report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "productivity", "report", true, "Download a productivity report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "call_attempts", "report", true, "Set up a call attempts report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "call_attempts", "report", true, "Download a call attempts report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "call_history", "report", true, "Set up a call history report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "call_history", "report", true, "Download a call history report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "sourcing_required", "report", true, "Set up a new sourcing required report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "sourcing_required", "report", true, "Download a new sourcing required report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "widget", "demographics", "report", true, "Set up a new demographics report." );
+-- INSERT INTO operation( type, subject, name, restricted, description )
+-- VALUES( "pull", "demographics", "report", true, "Download a new demographics report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "participant_tree", "report", true, "Set up a participant tree report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "participant_tree", "report", true, "Download a participant tree report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "home_appointment", "report", true, "Set up a home appointment report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "home_appointment", "report", true, "Download a home appointment report." );
 
 -- self
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "self", "dialing_pad", false, "A telephone dialing pad widget." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "self", "assignment", false, "Displays the assignment manager." );
 
 -- shift_template
 -- INSERT INTO operation( type, subject, name, restricted, description )

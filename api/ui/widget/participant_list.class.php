@@ -70,13 +70,18 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
   protected function determine_record_count( $modifier = NULL )
   {
     $session = lib::create( 'business\session' );
-    $class_name = lib::get_class_name( 'database\participant' );
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+
     if( 'interviewer' == $session->get_role()->name )
-      return $class_name::count_for_access( $session->get_access(), $modifier );
+    { // restrict interview lists to those they have appointments with
+      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+      $modifier->where( 'appointment.user_id', '=', $session->get_user()->id );
+      $this->db_restrict_site = NULL;
+    }
 
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_count( $modifier )
-         : $class_name::count_for_site( $this->db_restrict_site, $modifier );
+         : $participant_class_name::count_for_site( $this->db_restrict_site, $modifier );
   }
   
   /**
@@ -90,13 +95,19 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
   protected function determine_record_list( $modifier = NULL )
   {
     $session = lib::create( 'business\session' );
-    $class_name = lib::get_class_name( 'database\participant' );
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+
     if( 'interviewer' == $session->get_role()->name )
-      return $class_name::select_for_access( $session->get_access(), $modifier );
+    { // restrict interview lists to those they have unfinished appointments with
+      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+      $modifier->where( 'appointment.completed', '=', false );
+      $modifier->where( 'appointment.user_id', '=', $session->get_user()->id );
+      $this->db_restrict_site = NULL;
+    }
 
     return is_null( $this->db_restrict_site )
          ? parent::determine_record_list( $modifier )
-         : $class_name::select_for_site( $this->db_restrict_site, $modifier );
+         : $participant_class_name::select_for_site( $this->db_restrict_site, $modifier );
   }
 }
 ?>

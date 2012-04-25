@@ -47,7 +47,8 @@ class participant_edit extends \cenozo\ui\push\base_edit
     parent::finish();
 
     // now send the same request to mastodon (unless we are setting the site)
-    if( !array_key_exists( 'site_id', $args['columns'] ) )
+    if( !array_key_exists( 'site_id', $args['columns'] ) &&
+        !array_key_exists( 'consent_to_draw_blood', $args['columns'] ) )
     {
       $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
       $mastodon_manager->push( 'participant', 'edit', $args );

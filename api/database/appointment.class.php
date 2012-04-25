@@ -72,7 +72,22 @@ class appointment extends \cenozo\database\record
    */
   public function validate_date()
   {
-    // TODO: once shift templates are determined the next line needs to be removed
+    // make sure the participant is ready for the appointment type (home/site)
+    // (don't use $this->get_participant(), the record may not have been created yet)
+    $db_participant = lib::create( 'database\participant', $this->participant_id );
+
+    // check the qnaire start date
+    $start_qnaire_date = $db_participant->start_qnaire_date;
+    if( !is_null( $start_qnaire_date ) &&
+        util::get_datetime_object( $start_qnaire_date ) > util::get_datetime_object() )
+      return false;
+
+    // check the qnaire type
+    $type = 0 < $this->address_id ? 'home' : 'site';
+    if( $db_participant->current_qnaire_type != $type ) return false;
+    
+    // TODO: need requirements for shift templates and appointment restricting before the
+    //       rest of this method can be implemented
     return true;
 
     $db_participant = lib::create( 'database\participant', $this->participant_id );
@@ -90,8 +105,13 @@ class appointment extends \cenozo\database\record
 
     $diffs = array();
     
+    // and how many appointments are during this time?
+    $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
+    if( !is_null( $this->id ) ) $modifier->where( 'appointment.id', '!=', $this->id );
+    
     $db_site = NULL;
-    $db_access = NULL;
+    $db_user = NULL;
     if( !$home )
     {
       $db_site = $db_participant->get_primary_site();
@@ -122,22 +142,20 @@ class appointment extends \cenozo\database\record
         }
       }
     }
-    // home appointments, we only need the current user's access
-    else $db_access = lib::create( 'business\session' )->get_access();
+    // home appointments, restrict to the current user
+    else
+    {
+      $modifier->where(
+        'appointment.user_id', '=', lib::create( 'business\session' )->get_user()->id );
+    }
 
-    // and how many appointments are during this time?
-    $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
-    if( !is_null( $this->id ) ) $modifier->where( 'appointment.id', '!=', $this->id );
-    
     $appointment_list = $home
-                      ? static::select_for_access( $db_access, $modifier )
+                      ? static::select( $modifier )
                       : static::select_for_site( $db_site, $modifier );
 
     foreach( $appointment_list as $db_appointment )
     {
-      $state = $db_appointment->get_state();
-      if( 'reached' != $state && 'not reached' != $state )
+      if( !$db_appointment->completed )
       { // incomplete appointments only
         $appointment_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
   
@@ -252,70 +270,10 @@ class appointment extends \cenozo\database\record
   }
 
   /**
-   * Identical to the parent's select method but restrict to the current user's participants.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param access $db_access The access to restrict the count to.
-   * @param modifier $modifier Modifications to the selection.
-   * @param boolean $count If true the total number of records instead of a list
-   * @return array( record ) | int
-   * @static
-   * @access public
-   */
-  public static function select_for_access( $db_access, $modifier = NULL, $count = false )
-  {
-    // if there is no access restriction then just use the parent method
-    if( is_null( $db_access ) ) return parent::select( $modifier, $count );
-
-    $coverage_class_name = lib::get_class_name( 'database\coverage' );
-
-    // left join the participant_primary_address and address tables
-    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'appointment.address_id', '=', 'address.id', false );
-    $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
-    $modifier->where( 'jurisdiction.site_id', '=', $db_access->get_site()->id );
-    $modifier =
-      $coverage_class_name::get_access_modifier( 'address.postcode', $db_access, $modifier );
-
-    $sql = sprintf(
-      ( $count ? 'SELECT COUNT(*) ' : 'SELECT appointment.id ' ).
-      'FROM appointment, address, jurisdiction %s',
-      $modifier->get_sql() );
-
-    if( $count )
-    {
-      return intval( static::db()->get_one( $sql ) );
-    }
-    else
-    {
-      $id_list = static::db()->get_col( $sql );
-      $records = array();
-      foreach( $id_list as $id ) $records[] = new static( $id );
-      return $records;
-    }
-  }
-
-  /**
-   * Identical to the parent's count method but restrict to the current user's participants.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param access $db_access The access to restrict the count to.
-   * @param modifier $modifier Modifications to the count.
-   * @return int
-   * @static
-   * @access public
-   */
-  public static function count_for_access( $db_access, $modifier = NULL )
-  {
-    return static::select_for_access( $db_access, $modifier, true );
-  }
-
-  /**
    * Get the state of the appointment as a string:
-   *   reached: the appointment was met and the participant was reached
-   *   not reached: the appointment was met but the participant was not reached
+   *   completed: the appointment has been completed and the interview is done
    *   upcoming: the appointment's date/time has not yet occurred
-   *   passed: the appointment's date/time has passed
+   *   passed: the appointment's date/time has passed and the interview is not done
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return string
    * @access public
@@ -328,8 +286,8 @@ class appointment extends \cenozo\database\record
       return NULL;
     } 
     
-    // if the appointment's reached column is set, nothing else matters
-    if( !is_null( $this->reached ) ) return $this->reached ? 'reached' : 'not reached';
+    // first see if the appointment is complete
+    if( $this->completed ) return 'completed';
 
     $now = util::get_datetime_object()->getTimestamp();
     $appointment = util::get_datetime_object( $this->datetime )->getTimestamp();

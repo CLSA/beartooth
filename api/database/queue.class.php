@@ -45,6 +45,9 @@ class queue extends \cenozo\database\record
    */
   protected static function generate_query_list()
   {
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $phone_call_class_name = lib::get_class_name( 'database\phone_call' );
+
     // define the SQL for each queue
     $queue_list = array(
       'all',
@@ -55,8 +58,7 @@ class queue extends \cenozo\database\record
       'sourcing required' );
 
     // add the participant final status types
-    $class_name = lib::get_class_name( 'database\participant' );
-    $queue_list = array_merge( $queue_list, $class_name::get_enum_values( 'status' ) );
+    $queue_list = array_merge( $queue_list, $participant_class_name::get_enum_values( 'status' ) );
     
     // finish the queue list
     $queue_list = array_merge( $queue_list, array(
@@ -102,8 +104,7 @@ class queue extends \cenozo\database\record
     }
     
     // now add the sql for each call back status
-    $class_name = lib::get_class_name( 'database\phone_call' );
-    foreach( $class_name::get_enum_values( 'status' ) as $phone_call_status )
+    foreach( $phone_call_class_name::get_enum_values( 'status' ) as $phone_call_status )
     {
       // ignore statuses which result in deactivating phone numbers
       if( 'disconnected' != $phone_call_status && 'wrong number' != $phone_call_status )
@@ -159,42 +160,34 @@ class queue extends \cenozo\database\record
    */
   public function get_participant_count( $modifier = NULL, $use_cache = true )
   {
+    $site_id = is_null( $this->db_site ) ? 0 : $this->db_site->id;
     $qnaire_id = !$this->qnaire_specific || is_null( $this->db_qnaire )
                ? 0 : $this->db_qnaire->id;
     if( $use_cache &&
         array_key_exists( $this->name, self::$participant_count_cache ) &&
-        array_key_exists( $qnaire_id, self::$participant_count_cache[$this->name] ) )
-      return self::$participant_count_cache[$this->name][$qnaire_id];
+        array_key_exists( $qnaire_id, self::$participant_count_cache[$this->name] ) &&
+        array_key_exists( $site_id, self::$participant_count_cache[$this->name][$qnaire_id] ) )
+      return self::$participant_count_cache[$this->name][$qnaire_id][$site_id];
 
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
 
-    // restrict to the site
-    if( !is_null( $this->db_access ) )
-    { // restrict to the access
-      $coverage_class_name = lib::get_class_name( 'database\coverage' );
-
-      $modifier->where( 'participant.site_id', '=', $this->db_access->get_site()->id );
-      $modifier =
-        $coverage_class_name::get_access_modifier(
-          'primary_postcode', $this->db_access, $modifier );
-    }
-    else if( !is_null( $this->db_site ) )
-    {
+    if( !is_null( $this->db_site ) )
       $modifier->where( 'participant.site_id', '=', $this->db_site->id );
-    }
     
     if( !array_key_exists( $this->name, self::$participant_count_cache ) )
       self::$participant_count_cache[$this->name] = array();
-    self::$participant_count_cache[$this->name][$qnaire_id] = (integer) static::db()->get_one(
-      sprintf( '%s %s',
-               $this->get_sql( 'COUNT( DISTINCT participant.id )' ),
-               $modifier->get_sql( true ) ) );
+    if( !array_key_exists( $qnaire_id, self::$participant_count_cache ) )
+      self::$participant_count_cache[$this->name][$qnaire_id] = array();
+    self::$participant_count_cache[$this->name][$qnaire_id][$site_id] =
+      (integer) static::db()->get_one( sprintf( '%s %s',
+        $this->get_sql( 'COUNT( DISTINCT participant.id )' ),
+        $modifier->get_sql( true ) ) );
     
     // if the value is 0 then update all child counts with 0 to save processing time
-    if( 0 == self::$participant_count_cache[$this->name][$qnaire_id] )
-      static::set_child_count_cache_to_zero( $this );
+    if( 0 == self::$participant_count_cache[$this->name][$qnaire_id][$site_id] )
+      static::set_child_count_cache_to_zero( $this, $qnaire_id, $site_id );
 
-    return self::$participant_count_cache[$this->name][$qnaire_id];
+    return self::$participant_count_cache[$this->name][$qnaire_id][$site_id];
   }
 
   /**
@@ -202,22 +195,23 @@ class queue extends \cenozo\database\record
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\queue $db_queue
-   * @param databas
+   * @param int $qnaire_id The qnaire id being processed.
+   * @param int $site_id The site id being processed.
    * @static
    * @access private
    */
-  private static function set_child_count_cache_to_zero( $db_queue )
+  private static function set_child_count_cache_to_zero( $db_queue, $qnaire_id, $site_id )
   {
-    $qnaire_id = !$db_queue->qnaire_specific || is_null( $db_queue->db_qnaire )
-               ? 0 : $db_queue->db_qnaire->id;
     $queue_mod = lib::create( 'database\modifier' );
     $queue_mod->where( 'parent_queue_id', '=', $db_queue->id );
     foreach( static::select( $queue_mod ) as $db_child_queue )
     {
       if( !array_key_exists( $db_child_queue->name, self::$participant_count_cache ) )
         self::$participant_count_cache[$db_child_queue->name] = array();
-      self::$participant_count_cache[$db_child_queue->name][$qnaire_id] = 0;
-      self::set_child_count_cache_to_zero( $db_child_queue );
+      if( !array_key_exists( $qnaire_id, self::$participant_count_cache[$db_child_queue->name] ) )
+        self::$participant_count_cache[$db_child_queue->name][$qnaire_id] = array();
+      self::$participant_count_cache[$db_child_queue->name][$qnaire_id][$site_id] = 0;
+      self::set_child_count_cache_to_zero( $db_child_queue, $qnaire_id, $site_id );
     }
   }
 
@@ -270,17 +264,6 @@ class queue extends \cenozo\database\record
   }
   
   /**
-   * The access to restrict the queue to.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param access $db_access
-   * @access public
-   */
-  public function set_access( $db_access = NULL )
-  {
-    $this->db_access = $db_access;
-  }
-  
-  /**
    * Gets the parts of the query for a particular queue.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return associative array
@@ -303,8 +286,8 @@ class queue extends \cenozo\database\record
       $check_time = false;
     }
 
-    $class_name = lib::get_class_name( 'database\participant' );
-    $participant_status_list = $class_name::get_enum_values( 'status' );
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $participant_status_list = $participant_class_name::get_enum_values( 'status' );
 
     // first a list of commonly used elements
     $status_where_list = array(
@@ -798,8 +781,8 @@ class queue extends \cenozo\database\record
     // fill in all callback timing settings
     $setting_mod = lib::create( 'database\modifier' );
     $setting_mod->where( 'category', '=', 'callback timing' );
-    $class_name = lib::get_class_name( 'database\setting' );
-    foreach( $class_name::select( $setting_mod ) as $db_setting )
+    $setting_class_name = lib::get_class_name( 'database\setting' );
+    foreach( $setting_class_name::select( $setting_mod ) as $db_setting )
     {
       $setting = $setting_manager->get_setting( 'callback timing', $db_setting->name );
       $template = sprintf( '<CALLBACK_%s>',
@@ -863,13 +846,6 @@ class queue extends \cenozo\database\record
    * @var site
    */
   protected $db_site = NULL;
-
-  /**
-   * The access to restrict the queue to.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @var access
-   */
-  protected $db_access = NULL;
 
   /**
    * The date (YYYY-MM-DD) with respect to check all queue states.

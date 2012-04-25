@@ -63,12 +63,15 @@ class assignment_view extends \cenozo\ui\widget\base_view
        
     $db_participant = $this->get_record()->get_interview()->get_participant();
     $participant = sprintf( '%s, %s', $db_participant->last_name, $db_participant->first_name );
+    $queue = is_null( $this->get_record()->get_queue() )
+           ? 'none'
+           : $this->get_record()->get_queue()->name;
 
     // set the view's items
     $this->set_item( 'user', $this->get_record()->get_user()->name );
     $this->set_item( 'site', $this->get_record()->get_site()->name );
     $this->set_item( 'participant', $participant );
-    $this->set_item( 'queue', $this->get_record()->get_queue()->name );
+    $this->set_item( 'queue', $queue );
     $this->set_item( 'datetime',
       util::get_formatted_date( $this->get_record()->start_datetime ) );
     $this->set_item( 'start_time_only',

@@ -11,7 +11,7 @@ global $SETTINGS;
 
 // tagged version
 $SETTINGS['general']['application_name'] = 'beartooth';
-$SETTINGS['general']['version'] = '0.1.0';
+$SETTINGS['general']['version'] = '0.2.0';
 
 // always leave as false when running as production server
 $SETTINGS['general']['development_mode'] = false;

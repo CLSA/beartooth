@@ -1,6 +1,6 @@
 <?php
 /**
- * productivity_report.class.php
+ * home_appointment_report.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -11,11 +11,11 @@ namespace beartooth\ui\widget;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * widget productivity report
+ * widget home_appointment report
  * 
  * @package beartooth\ui
  */
-class productivity_report extends base_report
+class home_appointment_report extends base_report
 {
   /**
    * Constructor
@@ -27,18 +27,12 @@ class productivity_report extends base_report
    */
   public function __construct( $args )
   {
-    parent::__construct( 'productivity', $args );
+    parent::__construct( 'home_appointment', $args );
 
-    $this->add_restriction( 'site' );
-    $this->add_restriction( 'qnaire' );
-    $this->add_restriction( 'dates' );
-    $this->add_parameter( 'round_times', 'boolean', 'Round Times' );
-    
     $this->set_variable( 'description',
-      'This report lists interviewer productivity.  The report can either be generated for a '.
-      'particular day (which will include start and end times), or overall.  The report '.
-      'includes the number of completed interviews, total working time calls per hour and '.
-      'average interview length.' );
+      'This report provides a list of all incomplete appointments including the '.
+      'date and time of the appointment, the participant\'s name, unique identifier, '.
+      'address and phone number(s).' );
   }
 
   /**
@@ -48,7 +42,6 @@ class productivity_report extends base_report
   public function finish()
   {
     parent::finish();
-    $this->set_parameter( 'round_times', true, true );
     $this->finish_setting_parameters();
   }
 }

@@ -29,13 +29,17 @@ class appointment_view extends base_appointment_view
   {
     parent::__construct( 'view', $args );
     
+    // only interviewers should select addresses
+    $this->select_address = 'interviewer' == lib::create( 'business\session' )->get_role()->name;
+    
     // add items to the view
-    $this->add_item( 'address_id', 'enum', 'Address',
-      'For site interviews select "site", otherwise select which address the home interview '.
-      'will take place at.' );
+    if( $this->select_address )
+    {
+      $this->add_item( 'user_id', 'hidden' );
+      $this->add_item( 'address_id', 'enum', 'Address' );
+    }
     $this->add_item( 'datetime', 'datetime', 'Date' );
-    $this->add_item( 'state', 'constant', 'State',
-      '(One of reached, not reached, upcoming or passed)' );
+    $this->add_item( 'state', 'constant', 'State', '(One of complete, upcoming or passed)' );
   }
 
   /**
@@ -56,11 +60,7 @@ class appointment_view extends base_appointment_view
     $modifier->order( 'rank' );
 
     // don't allow users to change the type (home/site) of appointment
-    if( is_null( $this->get_record()->address_id ) )
-    {
-      $address_list = array( 'NULL' => 'site' );
-    }
-    else
+    if( $this->select_address )
     {
       foreach( $db_participant->get_address_list( $modifier ) as $db_address )
         $address_list[$db_address->id] = sprintf(
@@ -70,14 +70,13 @@ class appointment_view extends base_appointment_view
           $db_address->city,
           $db_address->get_region()->abbreviation,
           $db_address->postcode );
+
+      $this->set_item( 'user_id', lib::create( 'business\session' )->get_user()->id );
+      $this->set_item(
+        'address_id', $this->get_record()->get_address()->id, true, $address_list, true );
     }
     
-    // when address is null twig needs this value to be an empty string (not null)
-    $address = $this->get_record()->address_id ? $this->get_record()->address_id : '';
-
     // set the view's items
-    $this->set_item(
-      'address_id', $address, true, $address_list, true );
     $this->set_item( 'datetime', $this->get_record()->datetime, true );
     $this->set_item( 'state', $this->get_record()->get_state(), false );
 
@@ -86,5 +85,12 @@ class appointment_view extends base_appointment_view
     // hide the calendar if requested to
     $this->set_variable( 'hide_calendar', $this->get_argument( 'hide_calendar', false ) );
   }
+  
+  /**
+   * Determines whether to allow the user to select an address for the appointment.
+   * @var boolean $select_address
+   * @access protected
+   */
+  protected $select_address = false;
 }
 ?>
