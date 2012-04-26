@@ -41,8 +41,6 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
       $this->user_view->set_parent( $this );
       $this->user_view->set_heading( '' );
       $this->user_view->set_removable( false );
-      $this->user_view->allow_reset_password( false );
-      $this->user_view->allow_set_password( true );
     }
     catch( \cenozo\exception\permission $e )
     {
