@@ -26,29 +26,6 @@ class interview_edit extends \cenozo\ui\push\base_edit
    */
   public function __construct( $args )
   {
-    if( array_key_exists( 'noid', $args ) )
-    {
-      $noid = $args['noid'];
-      unset( $args['noid'] );
-
-      //make sure there is sufficient information
-      if( !is_array( $noid ) ||
-          !array_key_exists( 'participant.uid', $noid ) ||
-          !array_key_exists( 'qnaire.type', $noid ) )
-        throw lib::create( 'exception\argument', 'noid', $noid, __METHOD );
-
-      $interview_class_name = lib::get_class_name( 'database\interview' );
-      $interview_mod = lib::create( 'database\modifier' );
-      $interview_mod->where( 'participant.uid', '=', $noid['participant.uid'] );
-      $interview_mod->where( 'qnaire.type', '=', $noid['qnaire.type'] );
-      $interview_mod->where( 'completed', '=', false );
-      $interview_list = $interview_class_name::select( $interview_mod );
-      if( 0 == count( $interview_list ) )
-        throw lib::create( 'exception\argument', 'noid', $noid, __METHOD__ );
-      $db_interview = current( $interview_list );
-      $args['id'] = $db_interview->id;
-    }
-
     parent::__construct( 'interview', $args );
   }
   

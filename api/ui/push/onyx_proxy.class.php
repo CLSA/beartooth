@@ -71,9 +71,9 @@ class onyx_proxy extends \cenozo\ui\push
         $args = array(
           'columns' => $columns,
           'address' => $address,
-          'phone' => $phone,
-          'noid' => array(
-            'participant.uid' => $db_participant->uid ) );
+          'phone' => $phone );
+        $args['noid']['participant']['uid'] = $db_participant->uid;
+
         if( array_key_exists( 'pdfForm', $object_vars ) )
           $args['form'] = $proxy_data->pdfForm;
         $mastodon_manager->push( 'proxy_form', 'new', $args );

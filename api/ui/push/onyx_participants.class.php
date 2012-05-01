@@ -230,10 +230,9 @@ class onyx_participants extends \cenozo\ui\push
         if( 0 < count( $mastodon_columns ) )
         {
           $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
-          $args = array(
-            'columns' => $mastodon_columns,
-            'noid' => array(
-              'participant.uid' => $db_participant->uid ) );
+          $args = array();
+          $args['columns'] = $mastodon_columns;
+          $args['noid']['participant']['uid'] = $db_participant->uid;
           $mastodon_manager->push( 'participant', 'edit', $args );
         }
       }

@@ -1,6 +1,6 @@
 <?php
 /**
- * access_delete.class.php
+ * base_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -8,28 +8,15 @@
  */
 
 namespace beartooth\ui\push;
-use cenozo\lib, cenozo\log, beartooth\util;
+use cenozo\lib, cenozo\log, cenozo\util;
 
 /**
- * push: access delete
+ * Extends Cenozo's base class for all record "edit" push operations.
  * 
  * @package beartooth\ui
  */
-class access_delete extends \cenozo\ui\push\access_delete
+abstract class base_edit extends \cenozo\ui\push\base_edit
 {
-  /**
-   * Constructor.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param array $args Push arguments
-   * @access public
-   */
-  public function __construct( $args )
-  {
-    parent::__construct( 'access', $args );
-    $this->set_machine_request_enabled( true );
-    $this->set_machine_request_url( MASTODON_URL );
-  }
-
   /**
    * Override the parent method to add the cohort to the site key.
    * @author Patrick Emond <emondpd@mcmaster.ca>
@@ -40,7 +27,10 @@ class access_delete extends \cenozo\ui\push\access_delete
   protected function convert_to_noid( $args )
   {
     $args = parent::convert_to_noid( $args );
-    $args['noid']['site']['cohort'] = 'comprehensive';
+    if( array_key_exists( 'columns', $args['noid'] ) &&
+        array_key_exists( 'site', $args['noid']['columns'] ) &&
+        is_array( $args['noid']['columns']['site'] ) )
+      $args['noid']['columns']['site']['cohort'] = 'comprehensive';
     return $args;
   }
 }

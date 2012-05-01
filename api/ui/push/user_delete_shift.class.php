@@ -1,6 +1,6 @@
 <?php
 /**
- * user_delete.class.php
+ * user_delete_shift.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -11,11 +11,11 @@ namespace beartooth\ui\push;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * push: user delete
+ * push: user delete_shift
  * 
  * @package beartooth\ui
  */
-class user_delete extends \cenozo\ui\push\user_delete
+class user_delete_shift extends \cenozo\ui\push\base_delete_record
 {
   /**
    * Constructor.
@@ -25,9 +25,7 @@ class user_delete extends \cenozo\ui\push\user_delete
    */
   public function __construct( $args )
   {
-    parent::__construct( 'user', $args );
-    $this->set_machine_request_enabled( true );
-    $this->set_machine_request_url( MASTODON_URL );
+    parent::__construct( 'user', 'shift', $args );
   }
 }
 ?>

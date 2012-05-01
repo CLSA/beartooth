@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Edit a availability.
  * @package beartooth\ui
  */
-class availability_edit extends \cenozo\ui\push\base_edit
+class availability_edit extends base_edit
 {
   /**
    * Constructor.
@@ -27,6 +27,8 @@ class availability_edit extends \cenozo\ui\push\base_edit
   public function __construct( $args )
   {
     parent::__construct( 'availability', $args );
+    $this->set_machine_request_enabled( true );
+    $this->set_machine_request_url( MASTODON_URL );
   }
 }
 ?>

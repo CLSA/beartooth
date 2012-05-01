@@ -16,7 +16,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Create a new availability.
  * @package beartooth\ui
  */
-class availability_new extends \cenozo\ui\push\base_new
+class availability_new extends base_new
 {
   /**
    * Constructor.
@@ -27,6 +27,8 @@ class availability_new extends \cenozo\ui\push\base_new
   public function __construct( $args )
   {
     parent::__construct( 'availability', $args );
+    $this->set_machine_request_enabled( true );
+    $this->set_machine_request_url( MASTODON_URL );
   }
 }
 ?>
