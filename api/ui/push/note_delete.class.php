@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\push;
-use cenozo\lib, cenozo\log, cenozo\util;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Extends the parent class to send machine requests.
