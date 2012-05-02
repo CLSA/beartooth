@@ -15,5 +15,5 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * @package beartooth\database
  */
-class participant_note extends \cenozo\database\record {}
+class participant_note extends \cenozo\database\base_note {}
 ?>
