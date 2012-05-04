@@ -30,7 +30,7 @@ class interview extends \cenozo\database\has_note
   {
     $participant_site_mod = lib::create( 'database\modifier' );
     $participant_site_mod->where(
-      'appointment.participant_id', '=', 'participant_site.participant_id', false );
+      'interview.participant_id', '=', 'participant_site.participant_id', false );
     static::customize_join( 'participant_site', $participant_site_mod );
 
     return parent::select( $modifier, $count );
