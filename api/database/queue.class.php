@@ -371,10 +371,6 @@ class queue extends \cenozo\database\record
     $appointment_join =
       'LEFT JOIN appointment '.
       'ON appointment.participant_id = participant.id '.
-      'AND '.sprintf( $check_time
-               ? '%s <= appointment.datetime'
-               : 'DATE( %s ) <= DATE( appointment.datetime )',
-               $viewing_date ).' '.
       'AND '.
       '( '.
       '  ( '.
