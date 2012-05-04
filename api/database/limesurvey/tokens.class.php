@@ -140,7 +140,6 @@ class tokens extends sid_record
           // introduction survey.  This code is not generic and needs to eventually be made
           // generic.
           $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
-          $source_survey_class_name = lib::get_class_name( 'database\source_survey' );
           
           $db_interview = lib::create( 'business\session')->get_current_assignment()->get_interview();
           $phase_mod = lib::create( 'database\modifier' );
@@ -151,11 +150,7 @@ class tokens extends sid_record
           if( 1 == count( $phase_list ) )
           {
             $db_phase = current( $phase_list );
-            $db_source_survey = $source_survey_class_name::get_unique_record(
-              array( 'phase_id', 'source_id' ),
-              array( $db_phase->id, $db_participant->source_id ) );
-            $survey_class_name::set_sid(
-              is_null( $db_source_survey ) ? $db_phase->sid : $db_source_survey->sid );
+            $survey_class_name::set_sid( $db_phase->sid );
 
             $survey_mod = lib::create( 'database\modifier' );
             $survey_mod->where( 'token', 'LIKE', $token_part.'%' );
