@@ -134,6 +134,52 @@ class tokens extends sid_record
         {
           $this->$key = true == $participant_info->data->hin_access ? "1" : "0";
         }
+        else if( 'INCL_2e' == $value )
+        {
+          // TODO: This is a custom token attribute which refers to a specific question in the
+          // introduction survey.  This code is not generic and needs to eventually be made
+          // generic.
+          $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
+          $source_survey_class_name = lib::get_class_name( 'database\source_survey' );
+          
+          $db_interview = lib::create( 'business\session')->get_current_assignment()->get_interview();
+          $phase_mod = lib::create( 'database\modifier' );
+          $phase_mod->where( 'rank', '=', 1 );
+          $phase_list = $db_interview->get_qnaire()->get_phase_list( $phase_mod );
+
+          // determine the SID of the first phase of the questionnaire (where the question is asked)
+          if( 1 == count( $phase_list ) )
+          {
+            $db_phase = current( $phase_list );
+            $db_source_survey = $source_survey_class_name::get_unique_record(
+              array( 'phase_id', 'source_id' ),
+              array( $db_phase->id, $db_participant->source_id ) );
+            $survey_class_name::set_sid(
+              is_null( $db_source_survey ) ? $db_phase->sid : $db_source_survey->sid );
+
+            $survey_mod = lib::create( 'database\modifier' );
+            $survey_mod->where( 'token', 'LIKE', $token_part.'%' );
+            $survey_mod->order_desc( 'datestamp' );
+            $survey_list = $survey_class_name::select( $survey_mod );
+
+            $found = false;
+            foreach( $survey_list as $db_survey )
+            { // loop through all surveys until an answer is found
+              try
+              {
+                $this->$key = $db_survey->get_response( $value );
+                // match any NON NULL response
+                if( !is_null( $this->$key ) ) $found = true;
+              }
+              catch( \cenozo\exception\runtime $e )
+              {
+                // ignore the error and continue without setting the attribute
+              }
+              
+              if( $found ) break;
+            }
+          }
+        }
         else if( 'interviewer first_name' == $value )
         {
           $this->$key = $db_user->first_name;
