@@ -1,6 +1,6 @@
--- add the new site_id, source_id and next of kin columns
--- we need to create a procedure which only alters the participant table if the
--- site_id, source_id or next of kin columns are missing
+-- add the new site_id, source_id, consent_to_draw_blood_continue, physical_tests_continue
+-- and next of kin columns we need to create a procedure which only alters the participant
+-- table if these columns are missing
 DROP PROCEDURE IF EXISTS patch_participant;
 DELIMITER //
 CREATE PROCEDURE patch_participant()
@@ -44,6 +44,21 @@ CREATE PROCEDURE patch_participant()
       REFERENCES source (id)
       ON DELETE NO ACTION
       ON UPDATE NO ACTION;
+    END IF;
+
+    SET @test =
+      ( SELECT COUNT(*)
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ( SELECT DATABASE() )
+      AND TABLE_NAME = "participant"
+      AND COLUMN_NAME = "consent_to_draw_blood_continue" );
+    IF @test = 0 THEN
+      ALTER TABLE participant
+      ADD COLUMN consent_to_draw_blood_continue TINYINT(1) NULL DEFAULT NULL
+      AFTER consent_to_draw_blood;
+      ALTER TABLE participant
+      ADD COLUMN physical_tests_continue TINYINT(1) NULL DEFAULT NULL
+      AFTER consent_to_draw_blood_continue;
     END IF;
 
     SET @test =
