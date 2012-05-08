@@ -59,9 +59,7 @@ class onyx_instance_new extends \cenozo\ui\push\base_new
     $class_name = lib::get_class_name( 'database\role' );
     $db_role = $class_name::get_unique_record( 'name', 'onyx' );
     $first_name = 'onyx instance';
-    $last_name = sprintf( '%s@%s',
-                          $db_interviewer_user ? $db_interviewer_user->name : 'site',
-                          $db_site->name );
+    $last_name = $db_site->name;
 
     // now create the user and add onyx access to it
     $args = array( 'columns' =>
