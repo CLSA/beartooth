@@ -37,8 +37,8 @@ class onyx_proxy extends \cenozo\ui\push
   public function finish()
   {
     $participant_class_name = lib::create( 'database\participant' );
-    $region_class_name = lib::create( 'database\address' );
-    $onyx_instance_class_name = lib::create( 'database\address' );
+    $region_class_name = lib::create( 'database\region' );
+    $onyx_instance_class_name = lib::create( 'database\onyx_instance' );
 
     $db_onyx_user = lib::create( 'business\session' )->get_user();
     $db_onyx_instance =
@@ -55,55 +55,59 @@ class onyx_proxy extends \cenozo\ui\push
     {
       foreach( get_object_vars( $proxy_list ) as $uid => $proxy_data )
       {
+        $noid = array( 'user.name' => $db_user->name );
         $entry = array();
         $object_vars = get_object_vars( $proxy_data );
 
         $db_participant = $participant_class_name::get_unique_record( 'uid', $uid );
         if( is_null( $db_participant ) )
           throw lib::create( 'exception\runtime',
-            sprintf( 'Participant UID "%s" does not exist.', $uid ), __METHOD__ );
+            sprintf( 'Participant UID "%s" does not exist.', $uid ),
+            __METHOD__ );
         $entry['uid'] = $db_participant->uid;
 
-        if( !array_key_exists( 'timeEnd', $object_vars ) )
+        $var_name = 'timeEnd';
+        if( !array_key_exists( $var_name, $object_vars ) || 0 == strlen( $proxy_data->$var_name ) )
           throw lib::create( 'exception\argument',
             'timeEnd', NULL, __METHOD__ );
-        $date = util::get_datetime_object( $proxy_data->timeEnd )->format( 'Y-m-d' );
+        $entry['date'] = util::get_datetime_object( $proxy_data->timeEnd )->format( 'Y-m-d' );
 
         $var_name = 'ICF_IDPROXY_COM';
-        if( !array_key_exists( $var_name, $object_vars ) )
-          throw lib::create( 'exception\runtime',
-            sprintf( 'Proxy form missing variable "%s".', $var_name, __METHOD__ ) );
-        $use_proxy = 1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name );
-        $entry['proxy'] = $use_proxy;
+        $entry['proxy'] =
+          array_key_exists( $var_name, $object_vars ) &&
+          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
         $var_name = 'ICF_OKPROXY_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
-          $entry['already_identified'] =
-            1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name );
-        else $entry['already_identified'] = false;
+        $entry['already_identified'] =
+          array_key_exists( $var_name, $object_vars ) &&
+          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
         $var_name = 'ICF_PXFIRSTNAME_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
           $entry['proxy_first_name'] = $proxy_data->$var_name;
 
         $var_name = 'ICF_PXLASTNAME_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
           $entry['proxy_last_name'] = $proxy_data->$var_name;
 
         $var_name = 'ICF_PXADD_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
-          $entry['proxy_street_name'] = $proxy_data->$var_name;
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
+        {
+          $parts = explode( ' ', $proxy_data->$var_name, 2 );
+          $entry['proxy_street_number'] = $parts[0];
+          $entry['proxy_street_name'] = $parts[1];
+        }
 
         $var_name = 'ICF_PXADD2_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
           $entry['proxy_address_other'] = $proxy_data->$var_name;
 
         $var_name = 'ICF_PXCITY_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
           $entry['proxy_city'] = $proxy_data->$var_name;
 
         $var_name = 'ICF_PXPROVINCE_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
         {
           $db_region =
             $region_class_name::get_unique_record( 'abbreviation', $proxy_data->$var_name );
@@ -112,51 +116,69 @@ class onyx_proxy extends \cenozo\ui\push
               $region_class_name::get_unique_record( 'name', $proxy_data->$var_name );
 
           if( !is_null( $db_region ) )
-            $entry['proxy_region_id'] = $db_region->id;
+            $noid['proxy_region.abbreviation'] = $db_region->abbreviation;
         }
 
         $var_name = 'ICF_PXPOSTALCODE_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
-          $entry['proxy_postcode'] = $proxy_data->$var_name;
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
+        {
+          $postcode = $proxy_data->$var_name;
+          $postcode = trim( $postcode );
+          if( 6 == strlen( $postcode ) )
+            $postcode = sprintf( '%s %s',
+                                 substr( $postcode, 0, 3 ),
+                                 substr( $postcode, 3 ) );
+          $entry['proxy_postcode'] = $postcode;
+        }
 
         $var_name = 'ICF_PXTEL_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
-          $entry['proxy_phone'] = $proxy_data->$var_name;
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
+        {
+          $phone = $proxy_data->$var_name;
+          $phone = preg_replace( '/[^0-9]/', '', $phone );
+          $phone = sprintf( '%s-%s-%s',
+                            substr( $phone, 0, 3 ),
+                            substr( $phone, 3, 3 ),
+                            substr( $phone, 6 ) );
+          $entry['proxy_phone'] = $phone;
+        }
 
         $var_name = 'ICF_PRXINF_COM';
-        if( !array_key_exists( $var_name, $object_vars ) )
-          throw lib::create( 'exception\runtime',
-            sprintf( 'Proxy form missing variable "%s".', $var_name, __METHOD__ ) );
-        $entry['informant'] = $proxy_data->$var_name;
+        $entry['informant'] =
+          array_key_exists( $var_name, $object_vars ) &&
+          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
         $var_name = 'ICF_PRXINFSM_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
-          throw lib::create( 'exception\runtime',
-            sprintf( 'Proxy form missing variable "%s".', $var_name, __METHOD__ ) );
-        $entry['same_as_proxy'] = $proxy_data->$var_name;
+        $entry['same_as_proxy'] =
+          array_key_exists( $var_name, $object_vars ) &&
+          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
         $var_name = 'ICF_INFFIRSTNAME_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
           $entry['informant_first_name'] = $proxy_data->$var_name;
 
         $var_name = 'ICF_INFLASTNAME_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
           $entry['informant_last_name'] = $proxy_data->$var_name;
 
         $var_name = 'ICF_INFADD_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
-          $entry['informant_street_name'] = $proxy_data->$var_name;
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
+        {
+          $parts = explode( ' ', $proxy_data->$var_name, 2 );
+          $entry['informant_street_number'] = $parts[0];
+          $entry['informant_street_name'] = $parts[1];
+        }
 
         $var_name = 'ICF_INFADD2_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
           $entry['informant_address_other'] = $proxy_data->$var_name;
 
         $var_name = 'ICF_INFCITY_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
           $entry['informant_city'] = $proxy_data->$var_name;
 
         $var_name = 'ICF_INFPROVINCE_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
         {
           $db_region =
             $region_class_name::get_unique_record( 'abbreviation', $proxy_data->$var_name );
@@ -165,44 +187,52 @@ class onyx_proxy extends \cenozo\ui\push
               $region_class_name::get_unique_record( 'name', $proxy_data->$var_name );
 
           if( !is_null( $db_region ) )
-            $entry['informant_region_id'] = $db_region->id;
+            $noid['informant_region.abbreviation'] = $db_region->abbreviation;
         }
 
         $var_name = 'ICF_INFPOSTALCODE_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
-          $entry['informant_postcode'] = $proxy_data->$var_name;
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
+        {
+          $postcode = $proxy_data->$var_name;
+          $postcode = trim( $postcode );
+          if( 6 == strlen( $postcode ) )
+            $postcode = sprintf( '%s %s',
+                                 substr( $postcode, 0, 3 ),
+                                 substr( $postcode, 3 ) );
+          $entry['informant_postcode'] = $postcode;
+        }
 
         $var_name = 'ICF_INFTEL_COM';
-        if( array_key_exists( $var_name, $object_vars ) )
-          $entry['informant_phone'] = $proxy_data->$var_name;
+        if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
+        {
+          $phone = $proxy_data->$var_name;
+          $phone = preg_replace( '/[^0-9]/', '', $phone );
+          $phone = sprintf( '%s-%s-%s',
+                            substr( $phone, 0, 3 ),
+                            substr( $phone, 3, 3 ),
+                            substr( $phone, 6 ) );
+          $entry['informant_phone'] = $phone;
+        }
 
         $var_name = 'ICF_ANSW_COM';
-        if( !array_key_exists( $var_name, $object_vars ) )
-          throw lib::create( 'exception\runtime',
-            sprintf( 'Proxy form missing variable "%s".', $var_name, __METHOD__ ) );
         $entry['informant_continue'] =
-          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name );
+          array_key_exists( $var_name, $object_vars ) &&
+          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
         $var_name = 'ICF_TEST_COM';
-        if( !array_key_exists( $var_name, $object_vars ) )
-          throw lib::create( 'exception\runtime',
-            sprintf( 'Proxy form missing variable "%s".', $var_name, __METHOD__ ) );
         $db_participant->physical_tests_continue =
-          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name );
+          array_key_exists( $var_name, $object_vars ) &&
+          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
         $var_name = 'ICF_SAMP_COM';
-        if( !array_key_exists( $var_name, $object_vars ) )
-          throw lib::create( 'exception\runtime',
-            sprintf( 'Proxy form missing variable "%s".', $var_name, __METHOD__ ) );
         $db_participant->consent_to_draw_blood_continue =
-          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name );
+          array_key_exists( $var_name, $object_vars ) &&
+          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
         $var_name = 'ICF_HCNUMB_COM';
-        if( !array_key_exists( $var_name, $object_vars ) )
-          throw lib::create( 'exception\runtime',
-            sprintf( 'Proxy form missing variable "%s".', $var_name, __METHOD__ ) );
         $entry['health_card'] =
-          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name );
+          array_key_exists( $var_name, $object_vars ) &&
+          1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
         // update the participant
         $db_participant->save();
@@ -211,14 +241,13 @@ class onyx_proxy extends \cenozo\ui\push
         $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
         $args = array(
           'columns' => array(
-            'complete' => false,
-            'date' => util::get_datetime_object()->format( 'Y-m-d' ) ),
+            'complete' => 0,
+            'date' => $entry['date'] ),
           'entry' => $entry,
-          'noid' => array(
-            'user.name' => $db_user->name ) );
+          'noid' => $noid );
         if( array_key_exists( 'pdfForm', $object_vars ) )
           $args['form'] = $proxy_data->pdfForm;
-        $mastodon_manager->push( 'alternate', 'new', $args );
+        $mastodon_manager->push( 'proxy_form', 'new', $args );
       }
     }
   }
