@@ -241,6 +241,7 @@ class onyx_proxy extends \cenozo\ui\push
         $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
         $args = array(
           'columns' => array(
+            'from_onyx' => 1,
             'complete' => 0,
             'date' => $entry['date'] ),
           'entry' => $entry,
