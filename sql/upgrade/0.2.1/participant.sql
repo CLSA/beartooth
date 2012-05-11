@@ -91,3 +91,7 @@ DELIMITER ;
 -- now call the procedure and remove the procedure
 CALL patch_participant();
 DROP PROCEDURE IF EXISTS patch_participant;
+
+-- the consent to draw blood variable is now an enum and may be null
+ALTER TABLE participant MODIFY consent_to_draw_blood ENUM( "YES", "NO" ) NULL DEFAULT NULL;
+UPDATE participant SET consent_to_draw_blood = NULL WHERE consent_to_draw_blood = "";
