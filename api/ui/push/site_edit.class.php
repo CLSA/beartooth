@@ -18,14 +18,24 @@ use cenozo\lib, cenozo\log, beartooth\util;
  */
 class site_edit extends \cenozo\ui\push\site_edit
 {
-  /**
-   * Overrides the parent method to make sure the postcode is valid.
+  /** 
+   * Constructor.
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @throws exception\notice
+   * @param array $args Push arguments
    * @access public
    */
-  public function finish()
+  public function __construct( $args )
   {
+    parent::__construct( $args );
+    $this->set_machine_request_enabled( true );
+    $this->set_machine_request_url( MASTODON_URL );
+  }
+
+  // TODO: document
+  protected function validate()
+  {
+    parent::validate();
+
     $columns = $this->get_argument( 'columns' );
 
     // validate the postcode
@@ -37,8 +47,35 @@ class site_edit extends \cenozo\ui\push\site_edit
         throw lib::create( 'exception\notice',
           'Postal codes must be in "A1A 1A1" format, zip codes in "01234" format.', __METHOD__ );
     }
+  }
 
-    parent::finish();
+  protected function setup()
+  {
+    parent::setup();
+
+    $columns = $this->get_argument( 'columns' );
+
+    // only send a machine request if editing the name or time zone
+    $this->set_machine_request_enabled(
+      array_key_exists( 'name', $columns ) || array_key_exists( 'timezone', $columns ) );
+  }
+
+  /**
+   * Converts primary keys to unique keys in operation arguments.
+   * All converted arguments will appear in the array under a 'noid' key.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param array $args An argument list, usually those passed to the push operation.
+   * @return array
+   * @access protected
+   */
+  protected function convert_to_noid( $args )
+  {
+    $args = parent::convert_to_noid( $args );
+
+    // add in the site's cohort
+    $args['noid']['site']['cohort'] = 'comprehensive';
+
+    return $args;
   }
 }
 ?>

@@ -57,10 +57,10 @@ class onyx_instance_delete extends \cenozo\ui\push\base_delete
     if( $db_access )
     {
       $operation = lib::create( 'ui\push\access_delete', array( 'id' => $db_access->id ) );
-      $operation->finish();
+      $operation->process();
     }
     $operation = lib::create( 'ui\push\user_delete', array( 'id' => $db_user->id ) );
-    $operation->finish();
+    $operation->process();
   }
 }
 ?>

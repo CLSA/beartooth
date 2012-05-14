@@ -79,7 +79,7 @@ class phone_call_end extends \cenozo\ui\push
               'active' => false,
               'note' => $note ) );
           $operation = lib::create( 'ui\push\phone_edit', $args );
-          $operation->finish();
+          $operation->process();
         }
       }
     }

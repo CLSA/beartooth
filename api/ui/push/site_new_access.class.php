@@ -1,6 +1,6 @@
 <?php
 /**
- * user_new.class.php
+ * site_new_access.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -11,12 +11,11 @@ namespace beartooth\ui\push;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * push: user new
- *
- * Create a new user.
+ * push: site new_access
+ * 
  * @package beartooth\ui
  */
-class user_new extends \cenozo\ui\push\user_new
+class site_new_access extends \cenozo\ui\push\site_new_access
 {
   /**
    * Constructor.
@@ -41,9 +40,9 @@ class user_new extends \cenozo\ui\push\user_new
   protected function convert_to_noid( $args )
   {
     $args = parent::convert_to_noid( $args );
-    if( array_key_exists( 'columns', $args['noid'] ) &&
-        array_key_exists( 'site', $args['noid']['columns'] ) )
-      $args['noid']['columns']['site']['cohort'] = 'tracking';
+
+    $args['noid']['site']['cohort'] = 'comprehensive';
+
     return $args;
   }
 }

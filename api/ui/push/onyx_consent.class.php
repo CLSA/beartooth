@@ -79,7 +79,7 @@ class onyx_consent extends \cenozo\ui\push
           if( array_key_exists( 'pdfForm', $object_vars ) )
             $args['form'] = $consent_data->pdfForm;
           $operation = lib::create( 'ui\push\consent_new', $args );
-          $operation->finish();
+          $operation->process();
         }
       }
     }

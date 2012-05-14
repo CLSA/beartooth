@@ -100,7 +100,7 @@ class qnaire_view extends \cenozo\ui\widget\base_view
     // finish the child widgets
     if( !is_null( $this->phase_list ) )
     {
-      $this->phase_list->finish();
+      $this->phase_list->process();
       $this->set_variable( 'phase_list', $this->phase_list->get_variables() );
     }
   }

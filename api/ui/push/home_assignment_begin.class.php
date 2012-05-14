@@ -107,7 +107,7 @@ class home_assignment_begin extends \cenozo\ui\push
     $operation = lib::create(
       'ui\push\assignment_begin',
       array( 'participant_id' => $db_participant->id ) );
-    $operation->finish();
+    $operation->process();
 
     // release the semaphore, if there is one
     if( !is_null( $semaphore ) )

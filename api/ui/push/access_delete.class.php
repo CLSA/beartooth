@@ -25,7 +25,7 @@ class access_delete extends \cenozo\ui\push\access_delete
    */
   public function __construct( $args )
   {
-    parent::__construct( 'access', $args );
+    parent::__construct( $args );
     $this->set_machine_request_enabled( true );
     $this->set_machine_request_url( MASTODON_URL );
   }
@@ -40,7 +40,7 @@ class access_delete extends \cenozo\ui\push\access_delete
   protected function convert_to_noid( $args )
   {
     $args = parent::convert_to_noid( $args );
-    $args['noid']['site']['cohort'] = 'comprehensive';
+    $args['noid']['access']['site_id']['cohort'] = 'comprehensive';
     return $args;
   }
 }

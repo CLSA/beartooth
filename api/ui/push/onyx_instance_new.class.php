@@ -74,7 +74,7 @@ class onyx_instance_new extends \cenozo\ui\push\base_new
                 'site_id' => $db_site->id ) );
     $operation = lib::create( 'ui\push\user_new', $args );
     
-    $operation->finish();
+    $operation->process();
     
     // replace the username argument with the newly created user id for the new onyx instance
     $class_name = lib::get_class_name( 'database\user' );

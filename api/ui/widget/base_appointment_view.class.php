@@ -72,14 +72,14 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
     {
       if( !is_null( $this->site_appointment_calendar ) )
       {
-        $this->site_appointment_calendar->finish();
+        $this->site_appointment_calendar->process();
         $this->set_variable( 'site_appointment_calendar', 
           $this->site_appointment_calendar->get_variables() );
       }
 
       if( !is_null( $this->home_appointment_calendar ) )
       {
-        $this->home_appointment_calendar->finish();
+        $this->home_appointment_calendar->process();
         $this->set_variable( 'home_appointment_calendar', 
           $this->home_appointment_calendar->get_variables() );
       }

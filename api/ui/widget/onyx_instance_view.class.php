@@ -79,7 +79,7 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
 
     if( !is_null( $this->user_view ) )
     {
-      $this->user_view->finish();
+      $this->user_view->process();
       $this->set_variable( 'user_view', $this->user_view->get_variables() );
     }
   }

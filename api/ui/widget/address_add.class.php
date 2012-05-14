@@ -38,7 +38,8 @@ class address_add extends \cenozo\ui\widget\base_view
     $this->add_item( 'city', 'string', 'City' );
     $this->add_item( 'postcode', 'string', 'Postcode',
       'Postal codes must be in "A1A 1A1" format, zip codes in "01234" format. '.
-      'NOTE: province, timezone and daylight savings will be determined by the postcode.' );
+      'NOTE: province, timezone and daylight savings will automatically be determined '.
+      'by the postcode.' );
     $this->add_item( 'note', 'text', 'Note' );
   }
 
