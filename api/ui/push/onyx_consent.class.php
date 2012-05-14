@@ -65,6 +65,14 @@ class onyx_consent extends \cenozo\ui\push
             'timeEnd', NULL, __METHOD__ );
         $date = util::get_datetime_object( $consent_data->timeEnd )->format( 'Y-m-d' );
 
+        // update the draw blood consent if it is provided
+        if( array_key_exists( 'PCF_CSTSAMP_COM', $object_vars ) )
+        {
+          $db_participant->consent_to_draw_blood =
+            1 == preg_match( '/y|yes|true|1/i', $consent_data->PCF_CSTSAMP_COM ) ? 'YES' : 'NO';
+          $db_participant->save();
+        }
+
         // see if this form already exists
         $consent_mod = lib::create( 'database\modifier' );
         $consent_mod->where( 'event', '=', $event );

@@ -209,8 +209,19 @@ class onyx_participants extends \cenozo\ui\push
           }
         }
 
-        // now update the participant, interview and pass data to mastodon
+        // now update the participant, appointment andinterview, then pass data to mastodon
         if( $participant_changed ) $db_participant->save();
+
+        // complete all appointments in the past
+        $appointment_mod = lib::create( 'database\modifier' );
+        $appointment_mod->where( 'completed', '=', false );
+        if( 'home' == $interview_type ) $appointment_mod->where( 'address_id', '!=', NULL );
+        else if( 'site' == $interview_type ) $appointment_mod->where( 'address_id', '=', NULL );
+        foreach( $db_participant->get_appointment_list( $appointment_mod ) as $db_appointment )
+        {
+          $db_appointment->completed = true;
+          $db_appointment->save();
+        }
         
         if( 'completed' == $interview_status )
         {

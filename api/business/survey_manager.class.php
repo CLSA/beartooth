@@ -178,6 +178,12 @@ class survey_manager extends \cenozo\singleton
             $db_tokens->firstname = $db_participant->first_name;
             $db_tokens->lastname = $db_participant->last_name;
             $db_tokens->update_attributes( $db_participant );
+
+            // TODO: this is temporary code to fix the TOKEN != "NO" problem in limesurvey
+            //       for survey 63834
+            if( 63834 == $sid && is_null( $db_tokens->attribute_9 ) )
+              $db_tokens->attribute_9 = "UNKNOWN";
+
             $db_tokens->save();
   
             $this->current_sid = $db_phase->sid;

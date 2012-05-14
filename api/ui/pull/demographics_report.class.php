@@ -37,7 +37,7 @@ class demographics_report extends \cenozo\ui\pull\base_report
 
     // get the report arguments
     $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
-    $consent_status = $this->get_argument( 'restrict_consent_id' );
+    $consent_status = $this->get_argument( 'restrict_consent_type' );
     $province_id = $this->get_argument( 'restrict_province_id' );
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
 
