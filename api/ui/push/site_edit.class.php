@@ -52,6 +52,7 @@ class site_edit extends \cenozo\ui\push\site_edit
     }
   }
 
+  // TODO: document
   protected function setup()
   {
     parent::setup();
