@@ -27,23 +27,27 @@ class participant_edit extends base_edit
   public function __construct( $args )
   {
     parent::__construct( 'participant', $args );
+  }
+
+  // TODO: document
+  public function prepare()
+  {
+    parent::prepare();
+
     $this->set_machine_request_enabled( true );
     $this->set_machine_request_url( MASTODON_URL );
   }
 
-  /**
-   * Overrides the parent method to prevent some columns from being sent in machine requests
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
-   */
-  public function finish()
+  // TODO: document
+  public function setup()
   {
-    // don't send information 
+    parent::setup();
+
     $columns = $this->get_argument( 'columns', array() );
+
+    // don't send information 
     if( array_key_exists( 'consent_to_draw_blood', $columns ) )
       $this->set_machine_request_enabled( false );
-
-    parent::finish();
   }
 }
 ?>
