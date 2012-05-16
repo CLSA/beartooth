@@ -44,11 +44,16 @@ class site_edit extends \cenozo\ui\push\site_edit
     // validate the postcode
     if( array_key_exists( 'postcode', $columns ) )
     {
-      $postcode = $columns['postcode'];
-      if( !preg_match( '/^[A-Z][0-9][A-Z] [0-9][A-Z][0-9]$/', $postcode ) && // postal code
-          !preg_match( '/^[0-9]{5}$/', $postcode ) )  // zip code
+      if( !preg_match( '/^[A-Z][0-9][A-Z] [0-9][A-Z][0-9]$/', $columns['postcode'] ) &&
+          !preg_match( '/^[0-9]{5}$/', $columns['postcode'] ) )
         throw lib::create( 'exception\notice',
           'Postal codes must be in "A1A 1A1" format, zip codes in "01234" format.', __METHOD__ );
+
+      $postcode_class_name = lib::get_class_name( 'database\postcode' );
+      $db_postcode = $postcode_class_name::get_match( $columns['postcode'] );
+      if( is_null( $db_postcode ) )
+        throw lib::create( 'exception\notice',
+          'The postcode is invalid and cannot be used.', __METHOD__ );
     }
   }
 
@@ -62,6 +67,24 @@ class site_edit extends \cenozo\ui\push\site_edit
     // only send a machine request if editing the name or time zone
     $this->set_machine_request_enabled(
       array_key_exists( 'name', $columns ) || array_key_exists( 'timezone', $columns ) );
+  }
+
+  // TODO: document
+  protected function execute()
+  {
+    parent::execute();
+
+    $columns = $this->get_argument( 'columns' );
+
+    if( array_key_exists( 'postcode', $columns ) )
+    {
+      // source the postcode to determine the region
+      $db_address = lib::create( 'database\address' );
+      $db_address->postcode = $columns['postcode'];
+      $db_address->source_postcode();
+      $this->get_record()->region_id = $db_address->region_id;
+      $this->get_record()->save();
+    }
   }
 
   /**
