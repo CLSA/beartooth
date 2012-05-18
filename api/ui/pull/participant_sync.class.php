@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\pull;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Base class for all list pull operations.
@@ -34,10 +34,12 @@ class participant_sync extends \cenozo\ui\pull
    * Returns a summary of the participant sync request as an associative array.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return array
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function execute()
   {
+    parent::execute();
+
     // Mastodon will only return ~400 records back at a time, so break up the list into chunks
     $limit = 250;
 
@@ -46,13 +48,15 @@ class participant_sync extends \cenozo\ui\pull
     $address_count = 0;
     $phone_count = 0;
     $consent_count = 0;
+    $availability_count = 0;
+    $note_count = 0;
     $missing_count = 0;
     
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $uid_list_string = preg_replace( '/[^a-zA-Z0-9]/', ' ', $this->get_argument( 'uid_list' ) );
     $uid_list_string = trim( $uid_list_string );
-
+    
     if( 0 == strcasecmp( 'all', $uid_list_string ) )
     {
       $valid_count = 'N/A';
@@ -74,6 +78,8 @@ class participant_sync extends \cenozo\ui\pull
           $address_count += count( $data->address_list );
           $phone_count += count( $data->phone_list );
           $consent_count += count( $data->consent_list );
+          $availability_count += count( $data->availability_list );
+          $note_count += count( $data->note_list );
 
           if( !is_null( $participant_class_name::get_unique_record( 'uid', $data->uid ) ) )
             $existing_count++;
@@ -86,7 +92,7 @@ class participant_sync extends \cenozo\ui\pull
     {
       $uid_list = array_unique( preg_split( '/\s+/', $uid_list_string ) );
       $valid_count = count( $uid_list );
-
+      
       $count = count( $uid_list );
       for( $offset = 0; $offset < $count; $offset += $limit )
       {
@@ -96,31 +102,34 @@ class participant_sync extends \cenozo\ui\pull
           'restrictions' => array(
             'cohort' => array( 'compare' => 'is', 'value' => 'comprehensive' ),
             'uid' => array( 'compare' => 'in', 'value' => implode( $uid_sub_list, ',' ) ) ) );
-
         $response = $mastodon_manager->pull( 'participant', 'list', $args );
         foreach( $response->data as $data )
         {
           $address_count += count( $data->address_list );
           $phone_count += count( $data->phone_list );
           $consent_count += count( $data->consent_list );
+          $availability_count += count( $data->availability_list );
+          $note_count += count( $data->note_list );
 
           if( !is_null( $participant_class_name::get_unique_record( 'uid', $data->uid ) ) )
             $existing_count++;
           else $new_count++;
         }
-        
+
         $missing_count += count( $uid_sub_list ) - count( $response->data );
       }
     }
 
-    return array(
+    $this->data = array(
       'Valid participants in request' => $valid_count,
       'Participants missing from Mastodon' => $missing_count,
       'New participants' => $new_count,
       'Existing participants (ignored)' => $existing_count,
       'Addresses' => $address_count,
       'Phone numbers' => $phone_count,
-      'Consent entries' => $consent_count );
+      'Consent entries' => $consent_count,
+      'Availability entries' => $availability_count,
+      'Note entries' => $note_count );
   }
   
   /**
