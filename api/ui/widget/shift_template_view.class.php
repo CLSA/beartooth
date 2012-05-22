@@ -28,6 +28,18 @@ class shift_template_view extends \cenozo\ui\widget\base_view
   public function __construct( $args )
   {
     parent::__construct( 'shift_template', 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     // add items to the view
     $this->add_item( 'start_time', 'time', 'Start Time' );
@@ -37,14 +49,14 @@ class shift_template_view extends \cenozo\ui\widget\base_view
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
 
     $this->set_variable( 'repeats',
       'weekly' == $this->get_record()->repeat_type ? 'weekly' : 'monthly' );
@@ -64,8 +76,6 @@ class shift_template_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'end_time', $this->get_record()->end_time, true );
     $this->set_item( 'start_date', $this->get_record()->start_date, true );
     $this->set_item( 'end_date', $this->get_record()->end_date, false );
-    
-    $this->finish_setting_items();
   }
 }
 ?>

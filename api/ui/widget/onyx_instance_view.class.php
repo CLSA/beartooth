@@ -28,6 +28,18 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
   public function __construct( $args )
   {
     parent::__construct( 'onyx_instance', 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     // define all columns defining this record
 
@@ -49,14 +61,15 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
+
     $session = lib::create( 'business\session' );
 
     $class_name = lib::get_class_name( 'database\role' );
@@ -74,8 +87,6 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'site', $this->get_record()->get_site()->name );
     $this->set_item(
       'interviewer_user_id', $this->get_record()->interviewer_user_id, true, $interviewers );
-
-    $this->finish_setting_items();
 
     if( !is_null( $this->user_view ) )
     {

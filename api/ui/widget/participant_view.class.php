@@ -28,6 +28,18 @@ class participant_view extends \cenozo\ui\widget\base_view
   public function __construct( $args )
   {
     parent::__construct( 'participant', 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     // create an associative array with everything we want to display about the participant
     $this->add_item( 'active', 'boolean', 'Active' );
@@ -118,14 +130,14 @@ class participant_view extends \cenozo\ui\widget\base_view
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $source_class_name = lib::get_class_name( 'database\source' );
@@ -203,8 +215,6 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'prior_contact_date', $this->get_record()->prior_contact_date );
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );
-
-    $this->finish_setting_items();
 
     if( !is_null( $this->address_list ) )
     {

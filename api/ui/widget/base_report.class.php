@@ -30,6 +30,18 @@ abstract class base_report extends \cenozo\ui\widget\base_report
   public function __construct( $subject, $args )
   {
     parent::__construct( $subject, 'report', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     $this->restrictions['source'] = false;
     $this->restrictions['qnaire'] = false;
@@ -75,12 +87,15 @@ abstract class base_report extends \cenozo\ui\widget\base_report
   }
 
   /**
-   * Extending the parent finish class with extra restrictions.
-   * @author Dean Inglis <inglisd@mcmaster.ca>
-   * @access public
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
+    parent::setup();
+
     if( $this->restrictions[ 'source' ] )
     {
       $source_list = array( 'Any' );
@@ -123,8 +138,6 @@ abstract class base_report extends \cenozo\ui\widget\base_report
       $this->set_parameter(
         'restrict_mailout_type', key( $mailout_list ), true, $mailout_list );
     }
-
-    parent::finish();
   }
 }
 ?>

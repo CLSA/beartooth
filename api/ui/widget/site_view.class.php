@@ -28,6 +28,18 @@ class site_view extends \cenozo\ui\widget\site_view
   public function __construct( $args )
   {
     parent::__construct( $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     // create an associative array with everything we want to display about the site
     $this->add_item( 'institution', 'string', 'Institution' );
@@ -42,14 +54,14 @@ class site_view extends \cenozo\ui\widget\site_view
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     $regions = array();
     $class_name = lib::get_class_name( 'database\region' );
@@ -66,8 +78,6 @@ class site_view extends \cenozo\ui\widget\site_view
     $this->set_item( 'region_id', $this->get_record()->region_id, false, $regions );
     $this->set_item( 'postcode', $this->get_record()->postcode, true );
     $this->set_item( 'users', $this->get_record()->get_user_count() );
-
-    $this->finish_setting_items();
   }
 }
 ?>

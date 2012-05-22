@@ -28,24 +28,28 @@ class appointment_list extends site_restricted_list
   public function __construct( $args )
   {
     parent::__construct( 'appointment', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
+
     $this->add_column( 'uid', 'string', 'UID', false );
     $this->add_column( 'address', 'string', 'Address', false );
     $this->add_column( 'datetime', 'datetime', 'Date', true );
     $this->add_column( 'state', 'string', 'State', false );
 
     $this->extended_site_selection = true;
-  }
-  
-  /**
-   * Set the rows array needed by the template.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
-   */
-  public function finish()
-  {
+
     // don't add appointments if this list isn't parented
-    if( is_null( $this->parent ) ) $this->addable = false;
+    if( is_null( $this->parent ) ) $this->set_addable( false );
     else
     {
       // don't add appointments if the parent already has an incomplete appointment
@@ -53,15 +57,24 @@ class appointment_list extends site_restricted_list
       $appointment_mod = lib::create( 'database\modifier' );
       $appointment_mod->where( 'participant_id', '=', $this->parent->get_record()->id );
       $appointment_mod->where( 'completed', '=', false );
-      $this->addable = 0 == $appointment_class_name::count( $appointment_mod );
+      $this->set_addable( 0 == $appointment_class_name::count( $appointment_mod ) );
 
       // don't add HOME appointments if the user isn't an interviewer
       if( 'home' == $this->parent->get_record()->current_qnaire_type &&
           'interviewer' != lib::create( 'business\session' )->get_role()->name )
-        $this->addable = false;
+        $this->set_addable( false );
     }
-
-    parent::finish();
+  }
+  
+  /**
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function setup()
+  {
+    parent::setup();
 
     foreach( $this->get_record_list() as $record )
     {
@@ -81,8 +94,6 @@ class appointment_list extends site_restricted_list
                'datetime' => $record->datetime,
                'state' => $record->get_state() ) );
     }
-
-    $this->finish_setting_rows();
   }
 }
 ?>

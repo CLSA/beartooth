@@ -28,6 +28,18 @@ class interview_view extends \cenozo\ui\widget\base_view
   public function __construct( $args )
   {
     parent::__construct( 'interview', 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     // create an associative array with everything we want to display about the interview
     $this->add_item( 'uid', 'constant', 'UID' );
@@ -49,14 +61,14 @@ class interview_view extends \cenozo\ui\widget\base_view
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
        
     $db_participant = $this->get_record()->get_participant();
     $participant = sprintf( '%s, %s', $db_participant->last_name, $db_participant->first_name );
@@ -67,9 +79,7 @@ class interview_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'qnaire', $this->get_record()->get_qnaire()->name );
     $this->set_item( 'completed', $this->get_record()->completed, true );
 
-    $this->finish_setting_items();
-
-    // finish the child widgets
+    // process the child widgets
     if( !is_null( $this->assignment_list ) )
     {
       $this->assignment_list->process();

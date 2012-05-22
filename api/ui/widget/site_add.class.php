@@ -28,6 +28,18 @@ class site_add extends \cenozo\ui\widget\site_add
   public function __construct( $args )
   {
     parent::__construct( 'site', 'add', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     // define additional columns defining this record
     $this->add_item( 'institution', 'string', 'Institution' );
@@ -42,14 +54,14 @@ class site_add extends \cenozo\ui\widget\site_add
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     // set the view's items
     $this->set_item( 'institution', '' );
@@ -58,8 +70,6 @@ class site_add extends \cenozo\ui\widget\site_add
     $this->set_item( 'address2', '' );
     $this->set_item( 'city', '' );
     $this->set_item( 'postcode', '' );
-
-    $this->finish_setting_items();
   }
 }
 ?>
