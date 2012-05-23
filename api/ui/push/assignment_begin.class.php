@@ -27,25 +27,34 @@ class assignment_begin extends \cenozo\ui\push
   public function __construct( $args )
   {
     parent::__construct( 'assignment', 'begin', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     $participant_id = $this->get_argument( 'participant_id' );
     $this->db_participant = lib::create( 'database\participant', $participant_id );
   }
 
   /**
-   * Executes the push.
+   * Validate the operation.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @throws exception\notice
+   * @access protected
    */
-  public function finish()
+  protected function validate()
   {
-    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
-    $queue_class_name = lib::get_class_name( 'database\queue' );
-    $interview_class_name = lib::get_class_name( 'database\interview' );
+    parent::validate();
 
     $session = lib::create( 'business\session' );
-    $setting_manager = lib::create( 'business\setting_manager' );
-    $db_origin_queue = NULL;
 
     if( !is_null( $session->get_current_assignment() ) )
       throw lib::create( 'exception\notice',
@@ -59,7 +68,20 @@ class assignment_begin extends \cenozo\ui\push
         'This participant\'s next questionnaire is not yet ready.  '.
         'Please immediately report this problem to a superior.',
         __METHOD__ );
-    
+  }
+
+  /**
+   * This method executes the operation's purpose.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function execute()
+  {
+    parent::execute();
+
+    $interview_class_name = lib::get_class_name( 'database\interview' );
+
     // get this participant's interview or create a new one if none exists yet
     $interview_mod = lib::create( 'database\modifier' );
     $interview_mod->where( 'participant_id', '=', $this->db_participant->id );
@@ -103,7 +125,7 @@ class assignment_begin extends \cenozo\ui\push
     $db_assignment->user_id = $session->get_user()->id;
     $db_assignment->site_id = $session->get_site()->id;
     $db_assignment->interview_id = $db_interview->id;
-    $db_assignment->queue_id = is_null( $db_origin_queue ) ? NULL : $db_origin_queue->id;
+    $db_assignment->queue_id = $this->get_argument( 'queue_id', NULL );
     $db_assignment->save();
   }
 

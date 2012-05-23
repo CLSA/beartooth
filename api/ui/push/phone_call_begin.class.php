@@ -30,33 +30,48 @@ class phone_call_begin extends \cenozo\ui\push
   }
 
   /**
-   * Executes the push.
+   * Validate the operation.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @throws exception\notice
+   * @access protected
    */
-  public function finish()
+  protected function validate()
   {
-    $session = lib::create( 'business\session' );
-    $is_interviewer = 'interviewer' == $session->get_role()->name;
-    
-    $db_phone = lib::create( 'database\phone', $this->get_argument( 'phone_id' ) );
+    parent::validate();
+
     $db_assignment = $session->get_current_assignment();
 
-    if( $is_interviewer )
-    { // make sure that interviewers are calling their current assignment only
+    // make sure that interviewers are calling their current assignment only
+    if( 'interviewer' == lib::create( 'business\session' )->get_role()->name )
       if( is_null( $db_assignment ) )
         throw lib::create( 'exception\runtime',
           'Interviewer tried to make call without an assignment.', __METHOD__ );
-    }
 
+    // make sure the person being called is the same one who is assigned
     if( !is_null( $db_assignment ) )
-    { // make sure the person being called is the same one who is assigned
+    {
+      $db_phone = lib::create( 'database\phone', $this->get_argument( 'phone_id' ) );
       if( $db_phone->participant_id != $db_assignment->get_interview()->participant_id )
         throw lib::create( 'exception\runtime',
           'User tried to make call to a different participant than who is currently assigned.',
           __METHOD__ );
     }
-    
+  }
+
+  /**
+   * This method executes the operation's purpose.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function execute()
+  {
+    parent::execute();
+
+    $db_phone = lib::create( 'database\phone', $this->get_argument( 'phone_id' ) );
+    $db_assignment = lib::create( 'business\session' )->get_current_assignment();
+
     // connect voip to phone
     lib::create( 'business\voip_manager' )->call( $db_phone );
 

@@ -22,8 +22,6 @@ class site_edit extends \cenozo\ui\push\site_edit
    * Processes arguments, preparing them for the operation.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @throws exception\notice
-   * @abstract
    * @access protected
    */
   protected function prepare()
@@ -34,7 +32,13 @@ class site_edit extends \cenozo\ui\push\site_edit
     $this->set_machine_request_url( MASTODON_URL );
   }
 
-  // TODO: document
+  /**
+   * Validate the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
   protected function validate()
   {
     parent::validate();
@@ -57,7 +61,12 @@ class site_edit extends \cenozo\ui\push\site_edit
     }
   }
 
-  // TODO: document
+  /**
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
   protected function setup()
   {
     parent::setup();
@@ -69,7 +78,12 @@ class site_edit extends \cenozo\ui\push\site_edit
       array_key_exists( 'name', $columns ) || array_key_exists( 'timezone', $columns ) );
   }
 
-  // TODO: document
+  /**
+   * This method executes the operation's purpose.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
   protected function execute()
   {
     parent::execute();

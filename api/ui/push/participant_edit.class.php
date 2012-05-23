@@ -29,8 +29,13 @@ class participant_edit extends base_edit
     parent::__construct( 'participant', $args );
   }
 
-  // TODO: document
-  public function prepare()
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function prepare()
   {
     parent::prepare();
 
@@ -38,8 +43,13 @@ class participant_edit extends base_edit
     $this->set_machine_request_url( MASTODON_URL );
   }
 
-  // TODO: document
-  public function setup()
+  /**
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function setup()
   {
     parent::setup();
 

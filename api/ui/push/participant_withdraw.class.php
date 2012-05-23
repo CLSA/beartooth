@@ -30,12 +30,15 @@ class participant_withdraw extends \cenozo\ui\push\base_record
   }
 
   /**
-   * Executes the push.
+   * This method executes the operation's purpose.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function execute()
   {
+    parent::execute();
+
     if( $this->get_argument( 'cancel', false ) )
     { // if the most recent consent is a withdraw, remove it
       $consent_mod = lib::create( 'database\modifier' );

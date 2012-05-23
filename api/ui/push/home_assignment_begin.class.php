@@ -27,27 +27,43 @@ class home_assignment_begin extends \cenozo\ui\push
   public function __construct( $args )
   {
     parent::__construct( 'home_assignment', 'begin', $args );
+
+    // we can't use a transaction, otherwise the semaphore in the execute() method won't work
+    lib::create( 'business\session' )->set_use_transaction( false );
   }
 
   /**
-   * Executes the push.
+   * Validate the operation.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @throws exception\notice
+   * @access protected
    */
-  public function finish()
+  protected function validate()
   {
-    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
-    $queue_class_name = lib::get_class_name( 'database\queue' );
-    $interview_class_name = lib::get_class_name( 'database\interview' );
+    parent::validate();
 
-    $session = lib::create( 'business\session' );
-    $setting_manager = lib::create( 'business\setting_manager' );
-    $db_origin_queue = NULL;
-
-    if( !is_null( $session->get_current_assignment() ) )
+    if( !is_null( lib::create( 'business\session' )->get_current_assignment() ) )
       throw lib::create( 'exception\notice',
         'Please click the refresh button.  If this message appears more than twice '.
         'consecutively report this error to a superior.', __METHOD__ );
+  }
+
+  /**
+   * This method executes the operation's purpose.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function execute()
+  {
+    parent::execute();
+
+    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+
+    $session = lib::create( 'business\session' );
+    $setting_manager = lib::create( 'business\setting_manager' );
 
     // we need to use a semaphore to avoid race conditions
     $semaphore = sem_get( getmyinode() );
@@ -64,7 +80,9 @@ class home_assignment_begin extends \cenozo\ui\push
     // Search through every queue for a new assignment until one is found.
     // This search has to be done one qnaire at a time in queues which have
     // a home interview based qnaire.
+    $db_origin_queue = NULL;
     $db_participant = NULL;
+
     $qnaire_mod = lib::create( 'database\modifier' );
     $qnaire_mod->where( 'type', '=', 'home' );
     $qnaire_mod->order( 'rank' );
@@ -86,6 +104,7 @@ class home_assignment_begin extends \cenozo\ui\push
           $participant_list = $db_queue->get_participant_list( $participant_mod );
           if( 1 == count( $participant_list ) )
           {
+            $db_origin_qnaire = $db_qnaire;
             $db_origin_queue = $db_queue;
             $db_participant = current( $participant_list );
           }
@@ -102,6 +121,13 @@ class home_assignment_begin extends \cenozo\ui\push
     if( is_null( $db_participant ) )
       throw lib::create( 'exception\notice',
         'There are no participants currently available.', __METHOD__ );
+
+    // make sure the qnaire has phases
+    if( 0 == $db_origin_qnaire->get_phase_count() )
+      throw lib::create( 'exception\notice',
+        'This participant\'s next questionnaire is not yet ready. '.
+        'Please immediately report this problem to a superior.',
+        __METHOD__ );
 
     // start the assignment with the participant
     $operation = lib::create(

@@ -22,8 +22,6 @@ class site_new extends \cenozo\ui\push\site_new
    * Processes arguments, preparing them for the operation.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @throws exception\notice
-   * @abstract
    * @access protected
    */
   protected function prepare()
@@ -34,8 +32,14 @@ class site_new extends \cenozo\ui\push\site_new
     $this->set_machine_request_url( MASTODON_URL );
   }
 
-  // TODO: document
-  public function validate()
+  /**
+   * Validate the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function validate()
   {
     parent::validate();
 
@@ -58,12 +62,12 @@ class site_new extends \cenozo\ui\push\site_new
   }
 
   /**
-   * Overrides the parent method to make sure the postcode is valid.
+   * This method executes the operation's purpose.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @throws exception\notice
-   * @access public
+   * @access protected
    */
-  public function execute()
+  protected function execute()
   {
     $columns = $this->get_argument( 'columns' );
 

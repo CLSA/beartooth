@@ -30,16 +30,17 @@ class interview_edit extends \cenozo\ui\push\base_edit
   }
   
   /**
-   * Make sure to complete appointments when an interview is completed.
+   * This method executes the operation's purpose.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @throws exception\permission
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function execute()
   {
-    parent::finish();
+    parent::execute();
 
     $columns = $this->get_argument( 'columns', array() );
+
     if( array_key_exists( 'completed', $columns ) && 1 == $columns['completed'] )
     {
       $appointment_class_name = lib::create( 'database\appointment' );

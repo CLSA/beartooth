@@ -31,14 +31,15 @@ class shift_template_feed extends \cenozo\ui\pull\base_feed
   }
   
   /**
-   * Returns the data provided by this feed.
+   * This method executes the operation's purpose.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @return array
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function execute()
   {
+    parent::execute();
+
     $event_list = array();
     $db_site = lib::create( 'business\session' )->get_site();
 
@@ -129,7 +130,7 @@ class shift_template_feed extends \cenozo\ui\pull\base_feed
       }
     }
 
-    return $event_list;
+    $this->data = $event_list;
   }
 }
 ?>

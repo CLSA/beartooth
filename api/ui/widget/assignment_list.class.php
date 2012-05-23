@@ -89,7 +89,7 @@ class assignment_list extends site_restricted_list
     }
   }
 
-  /** 
+  /**
    * Overrides the parent class method since the record count depends on the active role
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
@@ -114,7 +114,7 @@ class assignment_list extends site_restricted_list
     return parent::determine_record_count( $modifier );
   }
 
-  /** 
+  /**
    * Overrides the parent class method since the record list depends on the active role.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
