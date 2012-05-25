@@ -56,7 +56,7 @@ class qnaire_view extends \cenozo\ui\widget\base_view
     try
     {
       // create the phase sub-list widget
-      $this->phase_list = lib::create( 'ui\widget\phase_list', $args );
+      $this->phase_list = lib::create( 'ui\widget\phase_list', $this->arguments );
       $this->phase_list->set_parent( $this );
       $this->phase_list->set_heading( 'Questionnaire phases' );
     }

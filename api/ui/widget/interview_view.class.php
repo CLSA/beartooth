@@ -50,7 +50,7 @@ class interview_view extends \cenozo\ui\widget\base_view
     try
     {
       // create the assignment sub-list widget      
-      $this->assignment_list = lib::create( 'ui\widget\assignment_list', $args );
+      $this->assignment_list = lib::create( 'ui\widget\assignment_list', $this->arguments );
       $this->assignment_list->set_parent( $this );
       $this->assignment_list->set_heading( 'Assignments associated with this interview' );
     }

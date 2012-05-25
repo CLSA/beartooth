@@ -70,7 +70,7 @@ class queue_view extends \cenozo\ui\widget\base_view
     try
     {
       // create the participant sub-list widget
-      $this->participant_list = lib::create( 'ui\widget\participant_list', $args );
+      $this->participant_list = lib::create( 'ui\widget\participant_list', $this->arguments );
       $this->participant_list->set_parent( $this );
       $this->participant_list->set_heading( 'Queue participant list' );
     }

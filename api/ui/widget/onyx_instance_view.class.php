@@ -51,8 +51,8 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
       $this->user_view = lib::create( 'ui\widget\user_view',
         array( 'user_view' => array( 'id' => $this->get_record()->user_id ) ) );
       $this->user_view->set_parent( $this );
-      $this->user_view->set_heading( '' );
       $this->user_view->set_removable( false );
+      $this->user_view->set_heading( '' );
     }
     catch( \cenozo\exception\permission $e )
     {
@@ -91,6 +91,8 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
     if( !is_null( $this->user_view ) )
     {
       $this->user_view->process();
+      $this->user_view->remove_action( 'reset_password' );
+      $this->user_view->execute();
       $this->set_variable( 'user_view', $this->user_view->get_variables() );
     }
   }

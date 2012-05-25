@@ -46,7 +46,7 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
     {
       // create the site calendar widget
       $this->site_appointment_calendar =
-        lib::create( 'ui\widget\site_appointment_calendar', $args );
+        lib::create( 'ui\widget\site_appointment_calendar', $this->arguments );
       $this->site_appointment_calendar->set_parent( $this );
       $this->site_appointment_calendar->set_editable( false );
     }
@@ -59,7 +59,7 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
     {
       // create the home calendar widget
       $this->home_appointment_calendar =
-        lib::create( 'ui\widget\home_appointment_calendar', $args );
+        lib::create( 'ui\widget\home_appointment_calendar', $this->arguments );
       $this->home_appointment_calendar->set_parent( $this );
       $this->home_appointment_calendar->set_editable( false );
     }

@@ -53,7 +53,7 @@ class assignment_view extends \cenozo\ui\widget\base_view
     try
     {
       // create the phone_call sub-list widget
-      $this->phone_call_list = lib::create( 'ui\widget\phone_call_list', $args );
+      $this->phone_call_list = lib::create( 'ui\widget\phone_call_list', $this->arguments );
       $this->phone_call_list->set_parent( $this );
       $this->phone_call_list->set_heading( 'Phone calls made during this assignment' );
     }

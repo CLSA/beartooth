@@ -28,6 +28,18 @@ class appointment_view extends base_appointment_view
   public function __construct( $args )
   {
     parent::__construct( 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     // only interviewers should select addresses
     $this->select_address = !is_null( $this->get_record()->address_id );
