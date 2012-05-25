@@ -99,7 +99,7 @@ class onyx_proxy extends \cenozo\ui\push
         $var_name = 'ICF_PXADD_COM';
         if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
         {
-          $parts = explode( ' ', $proxy_data->$var_name, 2 );
+          $parts = explode( ' ', trim( $proxy_data->$var_name ), 2 );
           $entry['proxy_street_number'] = $parts[0];
           $entry['proxy_street_name'] = $parts[1];
         }
@@ -170,7 +170,7 @@ class onyx_proxy extends \cenozo\ui\push
         $var_name = 'ICF_INFADD_COM';
         if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
         {
-          $parts = explode( ' ', $proxy_data->$var_name, 2 );
+          $parts = explode( ' ', trim( $proxy_data->$var_name ), 2 );
           $entry['informant_street_number'] = $parts[0];
           $entry['informant_street_name'] = $parts[1];
         }
