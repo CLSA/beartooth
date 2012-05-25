@@ -30,7 +30,20 @@ abstract class base_report extends \cenozo\ui\widget\base_report
   public function __construct( $subject, $args )
   {
     parent::__construct( $subject, 'report', $args );
-    
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
+
+    $this->restrictions['source'] = false;
     $this->restrictions['qnaire'] = false;
     $this->restrictions['consent'] = false;
     $this->restrictions['mailout'] = false;
@@ -47,7 +60,13 @@ abstract class base_report extends \cenozo\ui\widget\base_report
   {
     parent::add_restriction( $restriction_type );
 
-    if( 'qnaire' == $restriction_type )
+    if( 'source' == $restriction_type )
+    {
+      $this->restrictions[ 'source' ] = true;
+
+      $this->add_parameter( 'restrict_source_id', 'enum', 'Source' );
+    }
+    else if( 'qnaire' == $restriction_type )
     {
       $this->restrictions[ 'qnaire' ] = true;
 
@@ -57,55 +76,68 @@ abstract class base_report extends \cenozo\ui\widget\base_report
     {
       $this->restrictions[ 'consent' ] = true;
 
-      $this->add_parameter( 'restrict_consent_id', 'enum', 'Consent Status');
+      $this->add_parameter( 'restrict_consent_type', 'enum', 'Consent Status');
     }
     else if( 'mailout' == $restriction_type )
     {
       $this->restrictions[ 'mailout' ] = true;
 
-      $this->add_parameter( 'restrict_mailout_id', 'enum', 'Mailout' );
+      $this->add_parameter( 'restrict_mailout_type', 'enum', 'Mailout' );
     }
   }
 
   /**
-   * Extending the parent finish class with extra restrictions.
-   * @author Dean Inglis <inglisd@mcmaster.ca>
-   * @access public
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
+    parent::setup();
+
+    if( $this->restrictions[ 'source' ] )
+    {
+      $source_list = array( 'Any' );
+      $class_name = lib::get_class_name( 'database\source' );
+      foreach( $class_name::select() as $db_source )
+        $source_list[ $db_source->id ] = $db_source->name;
+
+      $this->set_parameter(
+        'restrict_source_id', key( $source_list ), true, $source_list );
+    }
+
     if( $this->restrictions[ 'qnaire' ] )
     {
-      $qnaires = array();
+      $qnaire_list = array();
       $class_name = lib::get_class_name( 'database\qnaire' );
-      foreach( $class_name::select() as $db_qnaire ) 
-        $qnaires[ $db_qnaire->id ] = $db_qnaire->name;
+      foreach( $class_name::select() as $db_qnaire )
+        $qnaire_list[ $db_qnaire->id ] = $db_qnaire->name;
 
-      $this->set_parameter( 'restrict_qnaire_id', current( $qnaires ), true, $qnaires );  
+      $this->set_parameter(
+        'restrict_qnaire_id', key( $qnaire_list ), true, $qnaire_list );
     }
 
     if( $this->restrictions[ 'consent' ] )
     {
+      $consent_list = array( 'Any' );
       $class_name = lib::get_class_name( 'database\consent' );
-      $consent_types = $class_name::get_enum_values( 'event' );
-      array_unshift( $consent_types, 'Any' );
-      $consent_types = array_combine( $consent_types, $consent_types );
+      $consent_list = array_merge( $consent_list, $class_name::get_enum_values( 'event' ) );
+      $consent_list = array_combine( $consent_list, $consent_list );
 
       $this->set_parameter(
-        'restrict_consent_id', current( $consent_types ), true, $consent_types );
+        'restrict_consent_type', key( $consent_list ), true, $consent_list );
     }
 
     if( $this->restrictions[ 'mailout' ] )
     {
-      $mailout_types = array( 'Participant information package',
+      $mailout_list = array( 'Participant information package',
                               'Proxy information package' );
-      $mailout_types = array_combine( $mailout_types, $mailout_types );
+      $mailout_list = array_combine( $mailout_list, $mailout_list );
 
       $this->set_parameter(
-        'restrict_mailout_id', current( $mailout_types ), true, $mailout_types );
+        'restrict_mailout_type', key( $mailout_list ), true, $mailout_list );
     }
-
-    parent::finish();
   }
 }
 ?>

@@ -29,12 +29,24 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
   public function __construct( $name, $args )
   {
     parent::__construct( 'appointment', $name, $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     try
     {
       // create the site calendar widget
       $this->site_appointment_calendar =
-        lib::create( 'ui\widget\site_appointment_calendar', $args );
+        lib::create( 'ui\widget\site_appointment_calendar', $this->arguments );
       $this->site_appointment_calendar->set_parent( $this );
       $this->site_appointment_calendar->set_editable( false );
     }
@@ -47,7 +59,7 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
     {
       // create the home calendar widget
       $this->home_appointment_calendar =
-        lib::create( 'ui\widget\home_appointment_calendar', $args );
+        lib::create( 'ui\widget\home_appointment_calendar', $this->arguments );
       $this->home_appointment_calendar->set_parent( $this );
       $this->home_appointment_calendar->set_editable( false );
     }
@@ -58,28 +70,28 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     // set up the site calendar if editing is enabled
-    if( $this->editable || 'add' == $this->get_name() )
+    if( $this->get_editable() || 'add' == $this->get_name() )
     {
       if( !is_null( $this->site_appointment_calendar ) )
       {
-        $this->site_appointment_calendar->finish();
+        $this->site_appointment_calendar->process();
         $this->set_variable( 'site_appointment_calendar', 
           $this->site_appointment_calendar->get_variables() );
       }
 
       if( !is_null( $this->home_appointment_calendar ) )
       {
-        $this->home_appointment_calendar->finish();
+        $this->home_appointment_calendar->process();
         $this->set_variable( 'home_appointment_calendar', 
           $this->home_appointment_calendar->get_variables() );
       }

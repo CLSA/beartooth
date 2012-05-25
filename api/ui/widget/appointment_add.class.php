@@ -28,6 +28,18 @@ class appointment_add extends base_appointment_view
   public function __construct( $args )
   {
     parent::__construct( 'add', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     // only interviewers should select addresses
     $this->select_address = 'interviewer' == lib::create( 'business\session' )->get_role()->name;
@@ -43,14 +55,14 @@ class appointment_add extends base_appointment_view
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     // this widget must have a parent, and it's subject must be a participant
     if( is_null( $this->parent ) || 'participant' != $this->parent->get_subject() )
@@ -93,8 +105,6 @@ class appointment_add extends base_appointment_view
     
     $this->set_variable( 'current_qnaire_type', $this->parent->get_record()->current_qnaire_type );
     $this->set_variable( 'is_mid_tier', 2 == $session->get_role()->tier );
-
-    $this->finish_setting_items();
   }
   
   /**

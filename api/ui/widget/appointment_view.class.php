@@ -28,6 +28,18 @@ class appointment_view extends base_appointment_view
   public function __construct( $args )
   {
     parent::__construct( 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     // only interviewers should select addresses
     $this->select_address = !is_null( $this->get_record()->address_id );
@@ -43,14 +55,14 @@ class appointment_view extends base_appointment_view
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
 
     $db_participant = lib::create( 'database\participant', $this->get_record()->participant_id );
   
@@ -79,8 +91,6 @@ class appointment_view extends base_appointment_view
     // set the view's items
     $this->set_item( 'datetime', $this->get_record()->datetime, true );
     $this->set_item( 'state', $this->get_record()->get_state(), false );
-
-    $this->finish_setting_items();
 
     // hide the calendar if requested to
     $this->set_variable( 'hide_calendar', $this->get_argument( 'hide_calendar', false ) );

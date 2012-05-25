@@ -28,7 +28,17 @@ class appointment_list extends \cenozo\ui\pull\base_list
   public function __construct( $args )
   {
     parent::__construct( 'appointment', $args );
-  
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Dean Inglis <inglisd@mcmaster.ca>
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     $now_datetime_obj = util::get_datetime_object();
     $interval = lib::create( 'business\setting_manager' )->get_setting( 
@@ -65,14 +75,15 @@ class appointment_list extends \cenozo\ui\pull\base_list
   }
 
   /**
-   * Returns the data provided by this appointment list.
+   * This method executes the operation's purpose.
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @return array
-   * @access public
+   * @author Dean Inglis <inglisd@mcmaster.ca>
+   * @access protected
    */
-  public function finish()
+  protected function execute()
   {
+    parent::execute();
+
     $event_list = array();
 
     $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
@@ -154,14 +165,14 @@ class appointment_list extends \cenozo\ui\pull\base_list
       if( !is_null( $db_participant->next_of_kin_postal_code ) )
         $event['nextOfKin.postalCode'] = $db_participant->next_of_kin_postal_code;
 
-      $event_list[] = $event;
+      // include consent to draw blood if this is a site appointment (value is a string: YES or NO)
+      if( is_null( $db_onyx->interviewer_user_id ) && $db_participant->consent_to_draw_blood )
+        $event['consent_to_draw_blood'] = $db_participant->consent_to_draw_blood;
 
-      // include consent to draw blood if this is a site appointment
-      if( is_null( $db_onyx->interviewer_user_id ) )
-        $event_list['consent_to_draw_blood'] = $db_participant->consent_to_draw_blood;
+      $event_list[] = $event;
     }
 
-    return $event_list;
+    $this->data = $event_list;
   }
 
   /**

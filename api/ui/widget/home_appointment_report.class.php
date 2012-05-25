@@ -28,21 +28,23 @@ class home_appointment_report extends base_report
   public function __construct( $args )
   {
     parent::__construct( 'home_appointment', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     $this->set_variable( 'description',
       'This report provides a list of all incomplete appointments including the '.
       'date and time of the appointment, the participant\'s name, unique identifier, '.
       'address and phone number(s).' );
-  }
-
-  /**
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
-   */
-  public function finish()
-  {
-    parent::finish();
-    $this->finish_setting_parameters();
   }
 }
 ?>

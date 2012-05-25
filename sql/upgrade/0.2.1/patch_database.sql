@@ -9,3 +9,4 @@ SOURCE source.sql
 SOURCE participant.sql
 SOURCE participant_site.sql
 SOURCE queue.sql
+SOURCE onyx_instance.sql

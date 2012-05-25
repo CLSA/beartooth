@@ -28,6 +28,18 @@ class address_add extends \cenozo\ui\widget\base_view
   public function __construct( $args )
   {
     parent::__construct( 'address', 'add', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     // add items to the view
     $this->add_item( 'participant_id', 'hidden' );
@@ -38,19 +50,20 @@ class address_add extends \cenozo\ui\widget\base_view
     $this->add_item( 'city', 'string', 'City' );
     $this->add_item( 'postcode', 'string', 'Postcode',
       'Postal codes must be in "A1A 1A1" format, zip codes in "01234" format. '.
-      'NOTE: province, timezone and daylight savings will be determined by the postcode.' );
+      'NOTE: province, timezone and daylight savings will automatically be determined '.
+      'by the postcode.' );
     $this->add_item( 'note', 'text', 'Note' );
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     $this->set_variable( 'january', true );
     $this->set_variable( 'february', true );
@@ -88,8 +101,6 @@ class address_add extends \cenozo\ui\widget\base_view
     $this->set_item( 'city', '' );
     $this->set_item( 'postcode', '' );
     $this->set_item( 'note', '' );
-
-    $this->finish_setting_items();
   }
 }
 ?>

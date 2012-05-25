@@ -31,14 +31,15 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
   }
   
   /**
-   * Returns the data provided by this feed.
+   * This method executes the operation's purpose.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @return array
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function execute()
   {
+    parent::execute();
+
     $setting_manager = lib::create( 'business\setting_manager' );
     $db_role = lib::create( 'business\session' )->get_role();
 
@@ -86,7 +87,7 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
         'end'     => $end_datetime_obj->format( \DateTime::ISO8601 ) );
     }
 
-    return $event_list;
+    $this->data = $event_list;
   }
 }
 ?>

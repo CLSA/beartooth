@@ -8,7 +8,7 @@
  */
 
 namespace beartooth\ui\widget;
-use cenozo\lib, cenozo\log;
+use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget participant sync
@@ -28,17 +28,6 @@ class participant_sync extends \cenozo\ui\widget
   public function __construct( $args )
   {
     parent::__construct( 'participant', 'sync', $args );
-  }
-
-  /**
-   * Finish setting the variables in a widget.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
-   */
-  public function finish()
-  {
-    parent::finish();
   }
 }
 ?>

@@ -28,6 +28,18 @@ class participant_view extends \cenozo\ui\widget\base_view
   public function __construct( $args )
   {
     parent::__construct( 'participant', 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     // create an associative array with everything we want to display about the participant
     $this->add_item( 'active', 'boolean', 'Active' );
@@ -47,7 +59,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     try
     {
       // create the address sub-list widget
-      $this->address_list = lib::create( 'ui\widget\address_list', $args );
+      $this->address_list = lib::create( 'ui\widget\address_list', $this->arguments );
       $this->address_list->set_parent( $this );
       $this->address_list->set_heading( 'Addresses' );
     }
@@ -59,7 +71,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     try
     {
       // create the phone sub-list widget
-      $this->phone_list = lib::create( 'ui\widget\phone_list', $args );
+      $this->phone_list = lib::create( 'ui\widget\phone_list', $this->arguments );
       $this->phone_list->set_parent( $this );
       $this->phone_list->set_heading( 'Phone numbers' );
     }
@@ -71,7 +83,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     try
     {
       // create the appointment sub-list widget
-      $this->appointment_list = lib::create( 'ui\widget\appointment_list', $args );
+      $this->appointment_list = lib::create( 'ui\widget\appointment_list', $this->arguments );
       $this->appointment_list->set_parent( $this );
       $this->appointment_list->set_heading( 'Appointments' );
     }
@@ -83,7 +95,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     try
     {
       // create the availability sub-list widget
-      $this->availability_list = lib::create( 'ui\widget\availability_list', $args );
+      $this->availability_list = lib::create( 'ui\widget\availability_list', $this->arguments );
       $this->availability_list->set_parent( $this );
       $this->availability_list->set_heading( 'Availability' );
     }
@@ -95,7 +107,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     try
     {
       // create the consent sub-list widget
-      $this->consent_list = lib::create( 'ui\widget\consent_list', $args );
+      $this->consent_list = lib::create( 'ui\widget\consent_list', $this->arguments );
       $this->consent_list->set_parent( $this );
       $this->consent_list->set_heading( 'Consent information' );
     }
@@ -107,7 +119,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     try
     {
       // create the interview sub-list widget
-      $this->interview_list = lib::create( 'ui\widget\interview_list', $args );
+      $this->interview_list = lib::create( 'ui\widget\interview_list', $this->arguments );
       $this->interview_list->set_parent( $this );
       $this->interview_list->set_heading( 'Interview history' );
     }
@@ -118,14 +130,14 @@ class participant_view extends \cenozo\ui\widget\base_view
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $source_class_name = lib::get_class_name( 'database\source' );
@@ -186,7 +198,9 @@ class participant_view extends \cenozo\ui\widget\base_view
       $start_qnaire_date = util::get_formatted_date( $start_qnaire_date, 'immediately' );
     }
 
-    
+    $db_default_site = $this->get_record()->get_default_site();
+    $default_site = is_null( $db_default_site ) ? 'None' : $db_default_site->name;
+
     // set the view's items
     $this->set_item( 'active', $this->get_record()->active, true );
     $this->set_item( 'uid', $this->get_record()->uid );
@@ -195,49 +209,47 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'last_name', $this->get_record()->last_name );
     $this->set_item( 'language', $this->get_record()->language, false, $languages );
     $this->set_item( 'status', $this->get_record()->status, false, $statuses );
-    $this->set_item( 'default_site', $this->get_record()->get_default_site()->name );
+    $this->set_item( 'default_site', $default_site );
     $this->set_item( 'site_id', $site_id, false, $sites );
     $this->set_item( 'consent_to_draw_blood', $this->get_record()->consent_to_draw_blood );
     $this->set_item( 'prior_contact_date', $this->get_record()->prior_contact_date );
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );
 
-    $this->finish_setting_items();
-
     if( !is_null( $this->address_list ) )
     {
-      $this->address_list->finish();
+      $this->address_list->process();
       $this->set_variable( 'address_list', $this->address_list->get_variables() );
     }
 
     if( !is_null( $this->phone_list ) )
     {
-      $this->phone_list->finish();
+      $this->phone_list->process();
       $this->set_variable( 'phone_list', $this->phone_list->get_variables() );
     }
 
     if( !is_null( $this->appointment_list ) )
     {
       $this->appointment_list->remove_column( 'uid' );
-      $this->appointment_list->finish();
+      $this->appointment_list->process();
       $this->set_variable( 'appointment_list', $this->appointment_list->get_variables() );
     }
 
     if( !is_null( $this->availability_list ) )
     {
-      $this->availability_list->finish();
+      $this->availability_list->process();
       $this->set_variable( 'availability_list', $this->availability_list->get_variables() );
     }
 
     if( !is_null( $this->consent_list ) )
     {
-      $this->consent_list->finish();
+      $this->consent_list->process();
       $this->set_variable( 'consent_list', $this->consent_list->get_variables() );
     }
 
     if( !is_null( $this->interview_list ) )
     {
-      $this->interview_list->finish();
+      $this->interview_list->process();
       $this->set_variable( 'interview_list', $this->interview_list->get_variables() );
     }
   }

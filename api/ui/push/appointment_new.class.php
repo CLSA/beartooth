@@ -30,24 +30,26 @@ class appointment_new extends \cenozo\ui\push\base_new
   }
 
   /**
-   * Overrides the parent method to make sure the datetime isn't blank and that check for
-   * appointment slot availability.
+   * Validate the operation.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @throws exception\notice
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function validate()
   {
-    // make sure the datetime column isn't blank
+    parent::validate();
+
     $columns = $this->get_argument( 'columns' );
+
+    // make sure the datetime column isn't blank
     if( !array_key_exists( 'datetime', $columns ) || 0 == strlen( $columns['datetime'] ) )
       throw lib::create( 'exception\notice', 'The date/time cannot be left blank.', __METHOD__ );
-    
-    foreach( $columns as $column => $value ) $this->get_record()->$column = $value;
-    
-    // do not include the user_id if this is a site appointment
-    if( 0 < $this->get_record()->address_id ) $this->get_record()->user_id = NULL;
-    
+
+    // validate the appointment time
+    $this->get_record()->participant_id = $columns['participant_id'];
+    $this->get_record()->address_id = $columns['address_id'];
+    $this->get_record()->datetime = $columns['datetime'];
     if( !$this->get_record()->validate_date() )
     {
       $db_participant = lib::create( 'database\participant', $this->get_record()->participant_id );
@@ -67,15 +69,24 @@ class appointment_new extends \cenozo\ui\push\base_new
           $start_datetime_obj->format( 'H:i' ),
           $end_datetime_obj->format( 'H:i' ) ),
         __METHOD__ );
-      
-      throw lib::create( 'exception\notice',
-        sprintf(
-          'The participant is not ready for a %s appointment.',
-          0 < $this->get_record()->address_id ? 'home' : 'site' ), __METHOD__ );
     }
-    
-    // no errors, go ahead and make the change
-    parent::finish();
+  }
+
+  /**
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function setup()
+  {
+    parent::setup();
+
+    $columns = $this->get_argument( 'columns' );
+
+    // remove the user_id from the columns if this is a site appointment
+    if( 0 < $columns['site_id'] && array_key_exists( 'user_id', $columns ) )
+      unset( $this->arguments['columns']['user_id'] );
   }
 }
 ?>

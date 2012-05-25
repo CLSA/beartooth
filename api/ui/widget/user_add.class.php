@@ -18,14 +18,14 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class user_add extends \cenozo\ui\widget\user_add
 {
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
@@ -40,8 +40,6 @@ class user_add extends \cenozo\ui\widget\user_add
     
     // set the view's items
     $this->set_item( 'role_id', array_search( 'interviewer', $roles ), true, $roles );
-
-    $this->finish_setting_items();
   }
 }
 ?>

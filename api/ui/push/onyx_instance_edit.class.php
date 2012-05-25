@@ -30,13 +30,16 @@ class onyx_instance_edit extends \cenozo\ui\push\base_edit
   }
 
   /**
-   * Executes the push.
+   * Validate the operation.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @throws exception\notice
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function validate()
   {
+    parent::validate();
+
     // make sure that only top tier roles can edit onyx instances not belonging to the current site
     $session = lib::create( 'business\session' );
 
@@ -46,8 +49,6 @@ class onyx_instance_edit extends \cenozo\ui\push\base_edit
       throw lib::create( 'exception\notice',
         'You do not have access to edit this onyx instance.', __METHOD__ );
     }
-
-    parent::finish();
   }
 }
 ?>

@@ -29,13 +29,16 @@ class onyx_instance_delete extends \cenozo\ui\push\base_delete
   }
 
   /**
-   * Executes the push.
+   * Validate the operation.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @throws exception\notice
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function validate()
   {
+    parent::validate();
+
     // make sure that only admins can remove onyx instances not belonging to the current site
     $session = lib::create( 'business\session' );
     $is_administrator = 'administrator' == $session->get_role()->name;
@@ -45,22 +48,31 @@ class onyx_instance_delete extends \cenozo\ui\push\base_delete
         'You do not have access to remove this onyx instance.', __METHOD__ );
     
     $db_user = $this->get_record()->get_user();
-
     if( 1 < count( $db_user->get_access_count() ) )
       throw lib::create( 'exception\notice',
         'Cannot delete the onyx instance since it holds more than one role.', __METHOD__ );
+  }
 
+  /**
+   * Finishes the operation by deleting the access and user records.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function finish()
+  {
     parent::finish();
 
-    // now delete the user and access
+    // finish by deleting the user and access
+    $db_user = $this->get_record()->get_user();
     $db_access = current( $db_user->get_access_list() );
     if( $db_access )
     {
       $operation = lib::create( 'ui\push\access_delete', array( 'id' => $db_access->id ) );
-      $operation->finish();
+      $operation->process();
     }
     $operation = lib::create( 'ui\push\user_delete', array( 'id' => $db_user->id ) );
-    $operation->finish();
+    $operation->process();
   }
 }
 ?>

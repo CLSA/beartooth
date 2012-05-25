@@ -30,64 +30,76 @@ class onyx_instance_new extends \cenozo\ui\push\base_new
   }
 
   /**
-   * Executes the push.
+   * Validate the operation.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @throws exception\notice
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function validate()
   {
-    // make sure that the username is not empty
+    parent::validate();
+
     $columns = $this->get_argument( 'columns' );
+
+    // make sure that the username is not empty
     if( !$columns['username'] )
       throw lib::create( 'exception\notice',
         'The onyx instance\'s user name cannot be left blank.', __METHOD__ );
-    else if( !$columns['password'] )
+    
+    if( !$columns['password'] )
       throw lib::create( 'exception\notice',
         'You must provide a password at least 6 characters long.', __METHOD__ );
-    else if( 6 > strlen( $columns['password'] ) )
+    
+    if( 6 > strlen( $columns['password'] ) )
       throw lib::create( 'exception\notice',
         'Passwords must be at least 6 characters long.', __METHOD__ );
-    else if( 'password' == $columns['password'] )
+
+    if( 'password' == $columns['password'] )
       throw lib::create( 'exception\notice',
         'You cannot choose "password" as a password.', __METHOD__ );
-    
+  }
+
+  /**
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function setup()
+  {
+    parent::setup();
+
     $db_interviewer_user = $columns['interviewer_user_id']
              ? lib::create( 'database\user', $columns['interviewer_user_id'] )
              : NULL;
     $db_site = lib::create( 'database\site', $columns['site_id'] );
     $class_name = lib::get_class_name( 'database\role' );
     $db_role = $class_name::get_unique_record( 'name', 'onyx' );
-    $first_name = 'onyx instance';
-    $last_name = sprintf( '%s@%s',
-                          $db_interviewer_user ? $db_interviewer_user->name : 'site',
-                          $db_site->name );
 
     // now create the user and add onyx access to it
     $args = array( 'columns' =>
               array(
                 'name' => $columns['username'],
-                'first_name' => $first_name,
-                'last_name' => $last_name,
+                'first_name' => $db_site->name.' onyx instance',
+                'last_name' => $columns['username'],
                 'active' => true,
                 'role_id' => $db_role->id,
                 'site_id' => $db_site->id ) );
     $operation = lib::create( 'ui\push\user_new', $args );
     
-    $operation->finish();
-    
-    // replace the username argument with the newly created user id for the new onyx instance
+    $operation->process();
+
+    // get the newly created user and set its password
     $class_name = lib::get_class_name( 'database\user' );
     $db_user = $class_name::get_unique_record( 'name', $columns['username'] );
+    lib::create( 'business\ldap_manager' )->set_user_password(
+      $db_user->name, $columns['password'] );
+    
+    // replace the username argument with the newly created user id for the new onyx instance
     unset( $this->arguments['columns']['username'] );
     unset( $this->arguments['columns']['password'] );
     $this->arguments['columns']['user_id'] = $db_user->id;
-
-    // set user's password
-    lib::create( 'business\ldap_manager' )->set_user_password(
-      $db_user->name, $columns['password'] );
-
-    parent::finish();
   }
 }
 ?>

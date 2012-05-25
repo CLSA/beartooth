@@ -32,12 +32,15 @@ class onyx_participants extends \cenozo\ui\push
   }
   
   /**
-   * Executes the push.
+   * This method executes the operation's purpose.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function execute()
   {
+    parent::execute();
+
     $participant_class_name = lib::create( 'database\participant' );
     $interview_class_name = lib::create( 'database\interview' );
 
@@ -209,8 +212,19 @@ class onyx_participants extends \cenozo\ui\push
           }
         }
 
-        // now update the participant, interview and pass data to mastodon
+        // now update the participant, appointment andinterview, then pass data to mastodon
         if( $participant_changed ) $db_participant->save();
+
+        // complete all appointments in the past
+        $appointment_mod = lib::create( 'database\modifier' );
+        $appointment_mod->where( 'completed', '=', false );
+        if( 'home' == $interview_type ) $appointment_mod->where( 'address_id', '!=', NULL );
+        else if( 'site' == $interview_type ) $appointment_mod->where( 'address_id', '=', NULL );
+        foreach( $db_participant->get_appointment_list( $appointment_mod ) as $db_appointment )
+        {
+          $db_appointment->completed = true;
+          $db_appointment->save();
+        }
         
         if( 'completed' == $interview_status )
         {
@@ -230,10 +244,9 @@ class onyx_participants extends \cenozo\ui\push
         if( 0 < count( $mastodon_columns ) )
         {
           $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
-          $args = array(
-            'columns' => $mastodon_columns,
-            'noid' => array(
-              'participant.uid' => $db_participant->uid ) );
+          $args = array();
+          $args['columns'] = $mastodon_columns;
+          $args['noid']['participant']['uid'] = $db_participant->uid;
           $mastodon_manager->push( 'participant', 'edit', $args );
         }
       }
