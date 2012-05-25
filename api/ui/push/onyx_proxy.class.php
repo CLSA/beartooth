@@ -43,7 +43,11 @@ class onyx_proxy extends \cenozo\ui\push
     $db_onyx_user = lib::create( 'business\session' )->get_user();
     $db_onyx_instance =
       $onyx_instance_class_name::get_unique_record( 'user_id', $db_onyx_user->id );
+
+    // get the user who is sending the request
+    // NOTE: if this is a site instance then there is no interviewer, so use the instance itself
     $db_user = $db_onyx_instance->get_interviewer_user();
+    if( is_null( $db_user ) ) $db_user = $db_onyx_instance->get_user();
 
     // get the body of the request
     $data = json_decode( http_get_request_body() );
@@ -55,9 +59,11 @@ class onyx_proxy extends \cenozo\ui\push
     {
       foreach( get_object_vars( $proxy_list ) as $uid => $proxy_data )
       {
+        $object_vars = get_object_vars( $proxy_data );
+        if( 1 >= count( $object_vars ) ) continue;
+
         $noid = array( 'user.name' => $db_user->name );
         $entry = array();
-        $object_vars = get_object_vars( $proxy_data );
 
         $db_participant = $participant_class_name::get_unique_record( 'uid', $uid );
         if( is_null( $db_participant ) )
@@ -65,8 +71,6 @@ class onyx_proxy extends \cenozo\ui\push
             sprintf( 'Participant UID "%s" does not exist.', $uid ),
             __METHOD__ );
         $entry['uid'] = $db_participant->uid;
-
-        if( 1 >= count( $object_vars ) ) continue;
 
         $var_name = 'timeEnd';
         if( !array_key_exists( $var_name, $object_vars ) || 0 == strlen( $proxy_data->$var_name ) )
