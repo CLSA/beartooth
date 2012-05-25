@@ -45,7 +45,6 @@ class assignment_begin extends \cenozo\ui\push
 
     $session = lib::create( 'business\session' );
     $setting_manager = lib::create( 'business\setting_manager' );
-    $db_origin_queue = NULL;
 
     if( !is_null( $session->get_current_assignment() ) )
       throw lib::create( 'exception\notice',
@@ -103,7 +102,7 @@ class assignment_begin extends \cenozo\ui\push
     $db_assignment->user_id = $session->get_user()->id;
     $db_assignment->site_id = $session->get_site()->id;
     $db_assignment->interview_id = $db_interview->id;
-    $db_assignment->queue_id = is_null( $db_origin_queue ) ? NULL : $db_origin_queue->id;
+    $db_assignment->queue_id = $this->get_argument( 'queue_id', NULL );
     $db_assignment->save();
   }
 
