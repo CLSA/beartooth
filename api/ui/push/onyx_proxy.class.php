@@ -66,6 +66,8 @@ class onyx_proxy extends \cenozo\ui\push
             __METHOD__ );
         $entry['uid'] = $db_participant->uid;
 
+        if( 1 >= count( $object_vars ) ) continue;
+
         $var_name = 'timeEnd';
         if( !array_key_exists( $var_name, $object_vars ) || 0 == strlen( $proxy_data->$var_name ) )
           throw lib::create( 'exception\argument',
