@@ -72,11 +72,19 @@ class onyx_proxy extends \cenozo\ui\push
             __METHOD__ );
         $entry['uid'] = $db_participant->uid;
 
+        // try timeEnd, if null then try timeStart
         $var_name = 'timeEnd';
-        if( !array_key_exists( $var_name, $object_vars ) || 0 == strlen( $proxy_data->$var_name ) )
-          throw lib::create( 'exception\argument',
-            'timeEnd', NULL, __METHOD__ );
-        $entry['date'] = util::get_datetime_object( $proxy_data->timeEnd )->format( 'Y-m-d' );
+        if( !array_key_exists( $var_name, $object_vars ) ||
+            0 == strlen( $proxy_data->$var_name ) )
+        {
+          $var_name = 'timeStart';
+          if( !array_key_exists( $var_name, $object_vars ) ||
+              0 == strlen( $proxy_data->$var_name ) )
+            throw lib::create( 'exception\argument',
+              $var_name, NULL, __METHOD__ );
+        
+        }
+        $entry['date'] = util::get_datetime_object( $proxy_data->$var_name )->format( 'Y-m-d' );
 
         $var_name = 'ICF_IDPROXY_COM';
         $entry['proxy'] =
