@@ -56,77 +56,35 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'current_qnaire_name', 'constant', 'Current Questionnaire' );
     $this->add_item( 'start_qnaire_date', 'constant', 'Delay Questionnaire Until' );
     
-    try
-    {
-      // create the address sub-list widget
-      $this->address_list = lib::create( 'ui\widget\address_list', $this->arguments );
-      $this->address_list->set_parent( $this );
-      $this->address_list->set_heading( 'Addresses' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->address_list = NULL;
-    }
+    // create the address sub-list widget
+    $this->address_list = lib::create( 'ui\widget\address_list', $this->arguments );
+    $this->address_list->set_parent( $this );
+    $this->address_list->set_heading( 'Addresses' );
 
-    try
-    {
-      // create the phone sub-list widget
-      $this->phone_list = lib::create( 'ui\widget\phone_list', $this->arguments );
-      $this->phone_list->set_parent( $this );
-      $this->phone_list->set_heading( 'Phone numbers' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->phone_list = NULL;
-    }
+    // create the phone sub-list widget
+    $this->phone_list = lib::create( 'ui\widget\phone_list', $this->arguments );
+    $this->phone_list->set_parent( $this );
+    $this->phone_list->set_heading( 'Phone numbers' );
 
-    try
-    {
-      // create the appointment sub-list widget
-      $this->appointment_list = lib::create( 'ui\widget\appointment_list', $this->arguments );
-      $this->appointment_list->set_parent( $this );
-      $this->appointment_list->set_heading( 'Appointments' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->appointment_list = NULL;
-    }
+    // create the appointment sub-list widget
+    $this->appointment_list = lib::create( 'ui\widget\appointment_list', $this->arguments );
+    $this->appointment_list->set_parent( $this );
+    $this->appointment_list->set_heading( 'Appointments' );
 
-    try
-    {
-      // create the availability sub-list widget
-      $this->availability_list = lib::create( 'ui\widget\availability_list', $this->arguments );
-      $this->availability_list->set_parent( $this );
-      $this->availability_list->set_heading( 'Availability' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->availability_list = NULL;
-    }
+    // create the availability sub-list widget
+    $this->availability_list = lib::create( 'ui\widget\availability_list', $this->arguments );
+    $this->availability_list->set_parent( $this );
+    $this->availability_list->set_heading( 'Availability' );
 
-    try
-    {
-      // create the consent sub-list widget
-      $this->consent_list = lib::create( 'ui\widget\consent_list', $this->arguments );
-      $this->consent_list->set_parent( $this );
-      $this->consent_list->set_heading( 'Consent information' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->consent_list = NULL;
-    }
+    // create the consent sub-list widget
+    $this->consent_list = lib::create( 'ui\widget\consent_list', $this->arguments );
+    $this->consent_list->set_parent( $this );
+    $this->consent_list->set_heading( 'Consent information' );
 
-    try
-    {
-      // create the interview sub-list widget
-      $this->interview_list = lib::create( 'ui\widget\interview_list', $this->arguments );
-      $this->interview_list->set_parent( $this );
-      $this->interview_list->set_heading( 'Interview history' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->interview_list = NULL;
-    }
+    // create the interview sub-list widget
+    $this->interview_list = lib::create( 'ui\widget\interview_list', $this->arguments );
+    $this->interview_list->set_parent( $this );
+    $this->interview_list->set_heading( 'Interview history' );
   }
 
   /**
@@ -216,43 +174,49 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );
 
-    if( !is_null( $this->address_list ) )
+    try
     {
       $this->address_list->process();
       $this->set_variable( 'address_list', $this->address_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
 
-    if( !is_null( $this->phone_list ) )
+    try
     {
       $this->phone_list->process();
       $this->set_variable( 'phone_list', $this->phone_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
 
-    if( !is_null( $this->appointment_list ) )
+    try
     {
       $this->appointment_list->process();
       $this->appointment_list->remove_column( 'uid' );
       $this->appointment_list->execute();
       $this->set_variable( 'appointment_list', $this->appointment_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
 
-    if( !is_null( $this->availability_list ) )
+    try
     {
       $this->availability_list->process();
       $this->set_variable( 'availability_list', $this->availability_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
 
-    if( !is_null( $this->consent_list ) )
+    try
     {
       $this->consent_list->process();
       $this->set_variable( 'consent_list', $this->consent_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
 
-    if( !is_null( $this->interview_list ) )
+    try
     {
       $this->interview_list->process();
       $this->set_variable( 'interview_list', $this->interview_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
   }
   
   /**

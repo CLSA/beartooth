@@ -53,17 +53,10 @@ class qnaire_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'phases', 'constant', 'Number of phases' );
     $this->add_item( 'description', 'text', 'Description' );
 
-    try
-    {
-      // create the phase sub-list widget
-      $this->phase_list = lib::create( 'ui\widget\phase_list', $this->arguments );
-      $this->phase_list->set_parent( $this );
-      $this->phase_list->set_heading( 'Questionnaire phases' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->phase_list = NULL;
-    }
+    // create the phase sub-list widget
+    $this->phase_list = lib::create( 'ui\widget\phase_list', $this->arguments );
+    $this->phase_list->set_parent( $this );
+    $this->phase_list->set_heading( 'Questionnaire phases' );
   }
 
   /**
@@ -108,11 +101,12 @@ class qnaire_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'description', $this->get_record()->description );
     
     // process the child widgets
-    if( !is_null( $this->phase_list ) )
+    try
     {
       $this->phase_list->process();
       $this->set_variable( 'phase_list', $this->phase_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
   }
   
   /**

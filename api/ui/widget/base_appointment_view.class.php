@@ -42,31 +42,17 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
   {
     parent::prepare();
     
-    try
-    {
-      // create the site calendar widget
-      $this->site_appointment_calendar =
-        lib::create( 'ui\widget\site_appointment_calendar', $this->arguments );
-      $this->site_appointment_calendar->set_parent( $this );
-      $this->site_appointment_calendar->set_editable( false );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->site_appointment_calendar = NULL;
-    }
-    
-    try
-    {
-      // create the home calendar widget
-      $this->home_appointment_calendar =
-        lib::create( 'ui\widget\home_appointment_calendar', $this->arguments );
-      $this->home_appointment_calendar->set_parent( $this );
-      $this->home_appointment_calendar->set_editable( false );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->home_appointment_calendar = NULL;
-    }
+    // create the site calendar widget
+    $this->site_appointment_calendar =
+      lib::create( 'ui\widget\site_appointment_calendar', $this->arguments );
+    $this->site_appointment_calendar->set_parent( $this );
+    $this->site_appointment_calendar->set_editable( false );
+
+    // create the home calendar widget
+    $this->home_appointment_calendar =
+      lib::create( 'ui\widget\home_appointment_calendar', $this->arguments );
+    $this->home_appointment_calendar->set_parent( $this );
+    $this->home_appointment_calendar->set_editable( false );
   }
 
   /**
@@ -82,19 +68,21 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
     // set up the site calendar if editing is enabled
     if( $this->get_editable() || 'add' == $this->get_name() )
     {
-      if( !is_null( $this->site_appointment_calendar ) )
+      try
       {
         $this->site_appointment_calendar->process();
         $this->set_variable( 'site_appointment_calendar', 
           $this->site_appointment_calendar->get_variables() );
       }
+      catch( \cenozo\exception\permission $e ) {}
 
-      if( !is_null( $this->home_appointment_calendar ) )
+      try
       {
         $this->home_appointment_calendar->process();
         $this->set_variable( 'home_appointment_calendar', 
           $this->home_appointment_calendar->get_variables() );
       }
+      catch( \cenozo\exception\permission $e ) {}
     }
   }
 

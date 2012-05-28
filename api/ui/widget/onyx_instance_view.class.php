@@ -46,18 +46,11 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'site', 'constant', 'Site' );
     $this->add_item( 'interviewer_user_id', 'enum', 'Instance' );
 
-    try
-    {
-      $this->user_view = lib::create( 'ui\widget\user_view',
-        array( 'user_view' => array( 'id' => $this->get_record()->user_id ) ) );
-      $this->user_view->set_parent( $this );
-      $this->user_view->set_removable( false );
-      $this->user_view->set_heading( '' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->user_view = NULL;
-    }
+    $this->user_view = lib::create( 'ui\widget\user_view',
+      array( 'user_view' => array( 'id' => $this->get_record()->user_id ) ) );
+    $this->user_view->set_parent( $this );
+    $this->user_view->set_removable( false );
+    $this->user_view->set_heading( '' );
   }
 
   /**
@@ -88,13 +81,14 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
     $this->set_item(
       'interviewer_user_id', $this->get_record()->interviewer_user_id, true, $interviewers );
 
-    if( !is_null( $this->user_view ) )
+    try
     {
       $this->user_view->process();
       $this->user_view->remove_action( 'reset_password' );
       $this->user_view->execute();
       $this->set_variable( 'user_view', $this->user_view->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
   }
 }
 ?>
