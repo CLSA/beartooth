@@ -5,3 +5,4 @@ SOURCE access.sql
 SOURCE role_has_operation.sql
 SOURCE role.sql
 SOURCE operation.sql
+SOURCE setting.sql

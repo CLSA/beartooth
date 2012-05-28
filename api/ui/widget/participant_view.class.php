@@ -230,8 +230,9 @@ class participant_view extends \cenozo\ui\widget\base_view
 
     if( !is_null( $this->appointment_list ) )
     {
-      $this->appointment_list->remove_column( 'uid' );
       $this->appointment_list->process();
+      $this->appointment_list->remove_column( 'uid' );
+      $this->appointment_list->execute();
       $this->set_variable( 'appointment_list', $this->appointment_list->get_variables() );
     }
 

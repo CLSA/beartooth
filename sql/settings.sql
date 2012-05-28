@@ -26,8 +26,8 @@ VALUES( "appointment", "site duration", "integer", "120",
 "The length of time a site appointment is estimated to take, in minutes." );
 
 INSERT INTO setting( category, name, type, value, description )
-VALUES( "appointment", "update interval", "string", "W",
-"The length of time between site appointment list updates in either one month (M), one week (W) or daily (D)." );
+VALUES( "appointment", "update span", "integer", "30",
+"How many days into the future to include appointments when fetching the appointment list." );
 
 -- calling times
 INSERT INTO setting( category, name, type, value, description )
