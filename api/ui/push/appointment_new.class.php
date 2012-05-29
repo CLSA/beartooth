@@ -48,7 +48,8 @@ class appointment_new extends \cenozo\ui\push\base_new
 
     // validate the appointment time
     $this->get_record()->participant_id = $columns['participant_id'];
-    $this->get_record()->address_id = $columns['address_id'];
+    $this->get_record()->address_id = array_key_exists( 'address_id', $columns )
+                                    ? $columns['address_id'] : NULL;
     $this->get_record()->datetime = $columns['datetime'];
     if( !$this->get_record()->validate_date() )
     {
@@ -85,7 +86,7 @@ class appointment_new extends \cenozo\ui\push\base_new
     $columns = $this->get_argument( 'columns' );
 
     // remove the user_id from the columns if this is a site appointment
-    if( 0 < $columns['site_id'] && array_key_exists( 'user_id', $columns ) )
+    if( !array_key_exists( 'address_id', $columns ) && array_key_exists( 'user_id', $columns ) )
       unset( $this->arguments['columns']['user_id'] );
   }
 }

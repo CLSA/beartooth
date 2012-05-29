@@ -212,7 +212,7 @@ class onyx_participants extends \cenozo\ui\push
           }
         }
 
-        // now update the participant, appointment andinterview, then pass data to mastodon
+        // now update the participant, appointment and interview, then pass data to mastodon
         if( $participant_changed ) $db_participant->save();
 
         // complete all appointments in the past

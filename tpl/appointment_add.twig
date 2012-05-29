@@ -48,7 +48,6 @@
 
       {% if 'home' == current_qnaire_type %}
         // select the first address instead of site if a home appointment is expected
-        $( "#{{ widget.full }}__address_id" ).attr( 'selectedIndex', 1 );
         $( "#site_appointment_calendar_header" ).hide();
         $( "#site_appointment_calendar_calendar" ).hide();
       {% else %}

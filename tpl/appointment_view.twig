@@ -12,7 +12,7 @@
   {{ parent() }}
   {% if not hide_calendar %}
     {% from "macros.twig" import include_calendar %}
-    {% if item.address_id.value != "" and "main" != slot %}
+    {% if select_address and "main" != slot %}
       {{ include_calendar( "home_appointment", home_appointment_calendar|default(false), true ) }}
     {% else %}
       {{ include_calendar( "site_appointment", site_appointment_calendar|default(false), true ) }}

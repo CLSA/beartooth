@@ -83,7 +83,7 @@ class appointment extends \cenozo\database\record
       return false;
 
     // check the qnaire type
-    $type = 0 < $this->address_id ? 'home' : 'site';
+    $type = is_null( $this->address_id ) ? 'site' : 'home';
     if( $db_participant->current_qnaire_type != $type ) return false;
     
     // TODO: need requirements for shift templates and appointment restricting before the
@@ -96,13 +96,11 @@ class appointment extends \cenozo\database\record
       throw lib::create( 'exception\runtime',
         'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
 
-    $home = (bool) $this->address_id;
-
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
                          lib::create( 'business\setting_manager' )->get_setting(
                            'appointment',
-                           $home ? 'home duration' : 'site duration',
+                           'home' == $type ? 'home duration' : 'site duration',
                            $db_site ) );
 
     $start_datetime_obj = util::get_datetime_object( $this->datetime );
@@ -116,7 +114,7 @@ class appointment extends \cenozo\database\record
     $appointment_mod->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
     if( !is_null( $this->id ) ) $appointment_mod->where( 'appointment.id', '!=', $this->id );
     
-    if( !$home )
+    if( 'site' == $type )
     {
       // link to the participant's site id
       $appointment_mod->where( 'participant_site.site_id', '=', $db_site->id );
@@ -170,12 +168,12 @@ class appointment extends \cenozo\database\record
     }
     
     // if we have no diffs on this day, then the site has no slots and home has 1 slot
-    if( 0 == count( $diffs ) ) return $home ? true : false;
+    if( 0 == count( $diffs ) ) return 'home' == $type ? true : false;
 
     // use the 'diff' arrays to define the 'times' array
     $times = array();
     ksort( $diffs );
-    $num_openings = $home ? 1 : 0;
+    $num_openings = 'home' == $type ? 1 : 0;
     foreach( $diffs as $time => $diff )
     {
       $num_openings += $diff;
@@ -183,14 +181,14 @@ class appointment extends \cenozo\database\record
     }
 
     // end day with no openings (4800 is used because it is long after the end of the day)
-    $times[4800] = $home ? 1 : 0;
+    $times[4800] = 'home' == $type ? 1 : 0;
     
     // Now search the times array for any 0's inside the appointment time
     // NOTE: we need to include the time immediately prior to the appointment start time
     $start_time_as_int = intval( $start_datetime_obj->format( 'Gi' ) );
     $end_time_as_int = intval( $end_datetime_obj->format( 'Gi' ) );
     $match = false;
-    $last_slots = $home ? 1 : 0;
+    $last_slots = 'home' == $type ? 1 : 0;
     $last_time = 0;
 
     foreach( $times as $time => $slots )
