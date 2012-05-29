@@ -49,6 +49,8 @@ class participant_tree extends \cenozo\ui\pull
       $db_site = $site_id ? lib::create( 'database\site', $site_id ) : NULL;
     }
     
+    $restrict_language = $this->get_argument( 'restrict_language', 'any' );
+
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
     $viewing_date = $this->get_argument( 'viewing_date', 'current' );
     if( $current_date == $viewing_date ) $viewing_date = 'current';
@@ -57,6 +59,21 @@ class participant_tree extends \cenozo\ui\pull
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     if( 'current' != $viewing_date ) $queue_class_name::set_viewing_date( $viewing_date );
+
+    // restrict by language
+    $queue_mod = lib::create( 'database\modifier' );
+    if( 'any' != $restrict_language )
+    {
+      // english is default, so if the language is english allow null values
+      if( 'en' == $restrict_language )
+      {
+        $queue_mod->where_bracket( true );
+        $queue_mod->where( 'participant.language', '=', $restrict_language );
+        $queue_mod->or_where( 'participant.language', '=', NULL );
+        $queue_mod->where_bracket( false );
+      }
+      else $queue_mod->where( 'participant.language', '=', $restrict_language );
+    }
 
     // get the participant count for every node in the tree
     $this->data = array();
@@ -70,7 +87,7 @@ class participant_tree extends \cenozo\ui\pull
       if( !$db_queue->qnaire_specific )
       {
         $index = sprintf( '%d_%d', 0, $db_queue->id );
-        $this->data[$index] = $db_queue->get_participant_count();
+        $this->data[$index] = $db_queue->get_participant_count( $queue_mod );
       }
       else // handle queues which are qnaire specific
       {
@@ -78,7 +95,7 @@ class participant_tree extends \cenozo\ui\pull
         {
           $db_queue->set_qnaire( $db_qnaire );
           $index = sprintf( '%d_%d', $db_qnaire->id, $db_queue->id );
-          $this->data[$index] = $db_queue->get_participant_count();
+          $this->data[$index] = $db_queue->get_participant_count( $queue_mod );
         }
       }
     }

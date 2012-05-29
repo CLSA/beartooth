@@ -17,6 +17,11 @@
           $( "#{{ widget.full }}__update" ).click();
         } );
       {% endif %}
+
+      // reload page if language selector is changed
+      $( "#{{ widget.full }}__restrict_language" ).change( function() {
+        $( "#{{ widget.full }}__update" ).click();
+      } );
       
       // create the datepicker UI for the viewing date
       $( "#{{ widget.full }}__viewing_date" ).datepicker( {
@@ -42,6 +47,7 @@
         {% else %}
           args.site_id = 0;
         {% endif %}
+        args.language = $( "#{{ widget.full }}__restrict_language option:selected" ).val();
         args.viewing_date = $( "#{{ widget.full }}__viewing_date" ).val();
           
         // if today's date is selected change it to "current"
@@ -87,6 +93,7 @@
         {% else %}
           args.site_id = 0;
         {% endif %}
+        args.restrict_language = $( "#{{ widget.full }}__restrict_language option:selected" ).val();
 
         var data = ajax_pull( "participant", "tree", args );
         for( var index in data )
@@ -117,6 +124,16 @@
         {% endfor %}
       </select>
     {% endif %}
+
+    <span>
+      Restrict to language:
+      <select id="{{ widget.full }}__restrict_language" class="ui-state-default">
+        {% for language in languages %}
+          <option {% if language == restrict_language %}selected{% endif %}
+                  value="{{ language }}">{{ language }}</option>
+        {% endfor %}
+      </select>
+    </span>
 
     {% set viewing_date = viewing_date|default('current') %}
     <span>

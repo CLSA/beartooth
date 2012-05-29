@@ -56,6 +56,11 @@ class participant_tree extends \cenozo\ui\widget
   {
     parent::setup();
     
+    $site_class_name = lib::get_class_name( 'database\site' );
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
+
     $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
     $is_interviewer = 'interviewer' == $session->get_role()->name;
@@ -64,8 +69,7 @@ class participant_tree extends \cenozo\ui\widget
     if( $is_top_tier )
     {
       $sites = array();
-      $class_name = lib::get_class_name( 'database\site' );
-      foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
+      foreach( $site_class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
       $this->set_variable( 'sites', $sites );
     }
 
@@ -73,6 +77,14 @@ class participant_tree extends \cenozo\ui\widget
     $this->set_variable( 'site_id', $site_id );
     $db_site = $site_id ? lib::create( 'database\site', $site_id ) : NULL;
     
+    $languages = array( 'any' );
+    foreach( $participant_class_name::get_enum_values( 'language' ) as $language )
+      $languages[] = $language;
+    $this->set_variable( 'languages', $languages );
+    
+    $restrict_language = $this->get_argument( 'restrict_language', 'any' );
+    $this->set_variable( 'restrict_language', $restrict_language );
+
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
     $this->set_variable( 'current_date', $current_date );
     $viewing_date = $this->get_argument( 'viewing_date', 'current' );
@@ -80,13 +92,12 @@ class participant_tree extends \cenozo\ui\widget
     $this->set_variable( 'viewing_date', $viewing_date );
 
     // set the viewing date if it is not "current"
-    $class_name = lib::get_class_name( 'database\queue' );
-    if( 'current' != $viewing_date ) $class_name::set_viewing_date( $viewing_date );
+    if( 'current' != $viewing_date ) $queue_class_name::set_viewing_date( $viewing_date );
 
     $show_queue_index = $this->get_argument( 'show_queue_index', NULL );
     if( is_null( $show_queue_index ) )
     {
-      $db_show_queue = $class_name::get_unique_record( 'name', 'qnaire' );
+      $db_show_queue = $queue_class_name::get_unique_record( 'name', 'qnaire' );
       $show_qnaire_id = 0;
     }
     else
@@ -101,7 +112,7 @@ class participant_tree extends \cenozo\ui\widget
     $tree = array(); // NOTE: holds references to the nodes array
     $modifier = lib::create( 'database\modifier' );
     $modifier->order( 'parent_queue_id' );
-    foreach( $class_name::select( $modifier ) as $db_queue )
+    foreach( $queue_class_name::select( $modifier ) as $db_queue )
     {
       // restrict queue based on user's role
       if( !$is_top_tier ) $db_queue->set_site( $session->get_site() );
@@ -129,8 +140,7 @@ class participant_tree extends \cenozo\ui\widget
       {
         $modifier = lib::create( 'database\modifier' );
         $modifier->order( 'rank' );
-        $class_name = lib::get_class_name( 'database\qnaire' );
-        foreach( $class_name::select( $modifier ) as $db_qnaire )
+        foreach( $qnaire_class_name::select( $modifier ) as $db_qnaire )
         {
           $db_queue->set_qnaire( $db_qnaire );
           

@@ -28,6 +28,13 @@
                    { "restrict_qnaire_id": qnaire_id } );
       } );
 
+      // reload page if language selector is changed
+      $( "#{{ widget.full }}__restrict_language" ).change( function() {
+        var language = $( "#{{ widget.full }}__restrict_language option:selected" ).val();
+        slot_load( {{ slot }}, "{{ widget.subject }}", "{{ widget.name }}",
+                   { "restrict_language": language } );
+      } );
+
       // create the datepicker UI for the viewing date
       $( "#{{ widget.full }}__viewing_date" ).datepicker( {
         dateFormat: 'yy-mm-dd',
@@ -51,8 +58,8 @@
         var args = new Object();
         args.id = parseInt( id_string.substring( id_string.lastIndexOf('_') + 1 ) );
         args.site_id = $( "#{{ widget.full }}__restrict_site option:selected" ).val();
-        args.site_id = $( "#{{ widget.full }}__restrict_site option:selected" ).val();
         args.qnaire_id = $( "#{{ widget.full }}__restrict_qnaire option:selected" ).val();
+        args.language = $( "#{{ widget.full }}__restrict_language option:selected" ).val();
         args.viewing_date = $( "#{{ widget.full }}__viewing_date" ).val();
           
         // if today's date is selected change it to "current"
@@ -96,6 +103,17 @@
       </select>
     </span>
   
+    <span>
+      Restrict to language:
+      <select id="{{ widget.full }}__restrict_language" class="ui-state-default">
+        {% for language in languages %}
+          <option {% if language == restrict_language %}selected{% endif %}
+                  value="{{ language }}">{{ language }}</option>
+        {% endfor %}
+      </select>
+    </span>
+  
+    {% set viewing_date = viewing_date|default('current') %}
     {% set viewing_date = viewing_date|default('current') %}
     <span>
       Viewing date:
