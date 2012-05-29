@@ -37,7 +37,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     if( $interval == 'M' )
     {
       $timeStamp = mktime( 0, 0, 0, date( 'm' ), 1, date( 'Y' ) );
-      $firstDay = date( 'Y:m:d H:i:s', $timeStamp );
+      $firstDay = date( 'Y-m-d H:i:s', $timeStamp );
       $this->start_datetime = new \DateTime( $firstDay );
       $this->end_datetime = clone $this->start_datetime;
       $this->end_datetime->add( new \DateInterval( 'P1M' ) );
@@ -45,7 +45,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     else if( $interval == 'W' )
     {
       $timeStamp = mktime( 1, 0, 0, date( 'm' ), date( 'd' ) - date( 'w' ), date( 'Y' ) );
-      $firstDay = date( 'Y:m:d', $timeStamp ) . ' 00:00:00';
+      $firstDay = date( 'Y-m-d', $timeStamp ) . ' 00:00:00';
       $this->start_datetime = new \DateTime( $firstDay );
       $this->end_datetime = clone $this->start_datetime;
       $this->end_datetime->add( new \DateInterval( 'P1W' ) );
