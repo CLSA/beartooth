@@ -1,6 +1,6 @@
 <?php
 /**
- * user_add.class.php
+ * user_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -11,11 +11,11 @@ namespace beartooth\ui\widget;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * widget user add
+ * widget user view
  * 
  * @package beartooth\ui
  */
-class user_add extends \cenozo\ui\widget\user_add
+class user_view extends \cenozo\ui\widget\user_view
 {
   /** 
    * Processes arguments, preparing them for the operation.
@@ -33,7 +33,7 @@ class user_add extends \cenozo\ui\widget\user_add
   }
 
   /**
-   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * Defines all items in the view.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @access protected
@@ -41,30 +41,15 @@ class user_add extends \cenozo\ui\widget\user_add
   protected function setup()
   {
     parent::setup();
-    
-    $role_class_name = lib::get_class_name( 'database\role' );
-    $participant_class_name = lib::get_class_name( 'database\participant' );
 
-    $session = lib::create( 'business\session' );
-    $is_top_tier = 3 == $session->get_role()->tier;
-
-    // create enum arrays
-    $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'name', '!=', 'onyx' );
-    $modifier->where( 'tier', '<=', $session->get_role()->tier );
-    $roles = array();
-    foreach( $role_class_name::select( $modifier ) as $db_role )
-      $roles[$db_role->id] = $db_role->name;
-
+    // get the enum arrays
     $user_class_name = lib::get_class_name( 'database\user' );
     $languages = array();
     foreach( $user_class_name::get_enum_values( 'language' ) as $language )
       $languages[] = $language;
     $languages = array_combine( $languages, $languages );
 
-    // set the view's items
-    $this->set_item( 'role_id', array_search( 'interviewer', $roles ), true, $roles );
-    $this->set_item( 'language', 'en', true, $languages );
+    $this->set_item( 'language', $this->get_record()->language, true, $languages );
   }
 }
 ?>
