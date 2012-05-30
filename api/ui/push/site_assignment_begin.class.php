@@ -64,14 +64,13 @@ class site_assignment_begin extends \cenozo\ui\push
 
     $session = lib::create( 'business\session' );
     $setting_manager = lib::create( 'business\setting_manager' );
+    $db_user = $session->get_user();
 
     // we need to use a semaphore to avoid race conditions
     $semaphore = sem_get( getmyinode() );
     if( !sem_acquire( $semaphore ) )
     {
-      log::err( sprintf(
-        'Unable to aquire semaphore for user id %d',
-        $session->get_user()->id ) );
+      log::err( sprintf( 'Unable to aquire semaphore for user "%s"', $db_user()->name ) );
       throw lib::create( 'exception\notice',
         'The server is busy, please wait a few seconds then click the refresh button.',
         __METHOD__ );
@@ -97,8 +96,22 @@ class site_assignment_begin extends \cenozo\ui\push
       {
         if( $setting_manager->get_setting( 'queue state', $db_queue->name ) )
         {
+          // make sure to restrict by language, if necessary
           $participant_mod = lib::create( 'database\modifier' );
           $participant_mod->limit( 1 );
+          if( 'any' != $db_user->language )
+          {
+            // english is default, so if the language is english allow null values
+            if( 'en' == $db_user->language )
+            {
+              $participant_mod->where_bracket( true );
+              $participant_mod->where( 'participant.language', '=', $db_user->language );
+              $participant_mod->or_where( 'participant.language', '=', NULL );
+              $participant_mod->where_bracket( false );
+            }
+            else $participant_mod->where( 'participant.language', '=', $db_user->language );
+          }
+
           $db_queue->set_site( $session->get_site() );
           $db_queue->set_qnaire( $db_qnaire );
           $participant_list = $db_queue->get_participant_list( $participant_mod );
@@ -136,15 +149,8 @@ class site_assignment_begin extends \cenozo\ui\push
     $operation->process();
 
     // release the semaphore, if there is one
-    if( !is_null( $semaphore ) )
-    {
-      if( !sem_release( $semaphore ) )
-      {
-        log::err( sprintf(
-          'Unable to release semaphore for user id %d',
-          $session->get_user()->id ) );
-      }
-    }
+    if( !sem_release( $semaphore ) )
+      log::err( sprintf( 'Unable to release semaphore for user %s', $db_user->name ) );
   }
 }
 ?>
