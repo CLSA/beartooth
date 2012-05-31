@@ -40,10 +40,11 @@ class phone_call_begin extends \cenozo\ui\push
   {
     parent::validate();
 
+    $session = lib::create( 'business\session' );
     $db_assignment = $session->get_current_assignment();
 
     // make sure that interviewers are calling their current assignment only
-    if( 'interviewer' == lib::create( 'business\session' )->get_role()->name )
+    if( 'interviewer' == $session->get_role()->name )
       if( is_null( $db_assignment ) )
         throw lib::create( 'exception\runtime',
           'Interviewer tried to make call without an assignment.', __METHOD__ );
