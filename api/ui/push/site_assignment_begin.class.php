@@ -145,7 +145,8 @@ class site_assignment_begin extends \cenozo\ui\push
     // start the assignment with the participant
     $operation = lib::create(
       'ui\push\assignment_begin',
-      array( 'participant_id' => $db_participant->id ) );
+      array( 'participant_id' => $db_participant->id,
+             'queue_id' => $db_origin_queue->id ) );
     $operation->process();
 
     // release the semaphore, if there is one
