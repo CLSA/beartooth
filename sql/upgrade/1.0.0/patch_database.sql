@@ -1,4 +1,4 @@
--- Patch to upgrade database to version 0.2.2
+-- Patch to upgrade database to version 1.0.0
 
 SOURCE activity.sql
 SOURCE access.sql
