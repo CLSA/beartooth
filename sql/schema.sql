@@ -82,6 +82,7 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `status` ENUM('deceased', 'deaf', 'mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
   `site_id` INT UNSIGNED NULL DEFAULT NULL ,
+  `defer_until` DATE NULL ,
   `consent_to_draw_blood` TINYINT(1) NOT NULL DEFAULT false ,
   `consent_to_draw_blood_continue` TINYINT(1) NULL DEFAULT NULL ,
   `physical_tests_continue` TINYINT(1) NULL DEFAULT NULL ,
@@ -101,6 +102,7 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   UNIQUE INDEX `uq_uid` (`uid` ASC) ,
   INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `fk_participant_source_id` (`source_id` ASC) ,
+  INDEX `dk_defer_until` (`defer_until` ASC) ,
   CONSTRAINT `fk_participant_site_id`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )

@@ -66,8 +66,9 @@ class queue extends \cenozo\database\record
       'qnaire',
       'qnaire waiting',
       'qnaire ready',
-      'restricted',
       'appointment',
+      'deferred',
+      'restricted',
       'no appointment',
       'assigned',
       'new participant',
@@ -643,34 +644,59 @@ class queue extends \cenozo\database\record
         $viewing_date );
       return $parts;
     }
-    else if( 'restricted' == $queue )
-    {
-      $parts = self::get_query_parts( 'qnaire ready' );
-      // make sure to only include participants who are restricted
-      $parts['join'][] = $restriction_join;
-      $parts['where'][] = 'NOT '.$check_restriction_sql;
-      return $parts;
-    }
     else if( 'appointment' == $queue )
     {
       $parts = self::get_query_parts( 'qnaire ready' );
-      // make sure to only include participants who are not restricted
-      $parts['join'][] = $restriction_join;
-      $parts['join'][] = $appointment_join;
-      $parts['where'][] = $check_restriction_sql;
       // participants with a future appointment
+      $parts['join'][] = $appointment_join;
       $parts['where'][] = 'appointment.id IS NOT NULL';
+      return $parts;
+    }
+    else if( 'deferred' == $queue )
+    {
+      $parts = self::get_query_parts( 'qnaire ready' );
+      // participants without a future appointment
+      $parts['join'][] = $appointment_join;
+      $parts['where'][] = 'appointment.id IS NULL';
+      // only include participants who are deferred
+      $parts['where'][] = 'participant.defer_until IS NOT NULL';
+      $parts['where'][] = sprintf( 'participant.defer_until > DATE( %s )', $viewing_date );
+      return $parts;
+    }
+    else if( 'restricted' == $queue )
+    {
+      $parts = self::get_query_parts( 'qnaire ready' );
+      // participants without a future appointment
+      $parts['join'][] = $appointment_join;
+      $parts['where'][] = 'appointment.id IS NULL';
+      // only include participants who are restricted 
+      $parts['join'][] = $restriction_join;
+      $parts['where'][] = 'NOT '.$check_restriction_sql;
+      // only include participants who are not deferred
+      $parts['where'][] = sprintf(
+        '('.
+        '  participant.defer_until IS NULL OR '.
+        '  participant.defer_until <= DATE( %s )'.
+        ')',
+        $viewing_date );
       return $parts;
     }
     else if( 'no appointment' == $queue )
     {
       $parts = self::get_query_parts( 'qnaire ready' );
-      // make sure to only include participants who are not restricted
+      // participants without a future appointment
+      $parts['join'][] = $appointment_join;
+      $parts['where'][] = 'appointment.id IS NULL';
+      // only include participants who are not restricted
       $parts['join'][] = $restriction_join;
       $parts['where'][] = $check_restriction_sql;
-      $parts['join'][] = $appointment_join;
-      // participants without a future appointment
-      $parts['where'][] = 'appointment.id IS NULL';
+      // only include participants who are not deferred
+      $parts['where'][] = sprintf(
+        '('.
+        '  participant.defer_until IS NULL OR '.
+        '  participant.defer_until <= DATE( %s )'.
+        ')',
+        $viewing_date );
       return $parts;
     }
     else if( 'assigned' == $queue )
@@ -713,21 +739,21 @@ class queue extends \cenozo\database\record
     else if( 'new participant always available' == $queue )
     {
       $parts = self::get_query_parts( 'new participant within calling time' );
-      // make sure the participant doesn't specify availability
+      // the participant hasn't specified any availability
       $parts['where'][] = $check_availability_sql.' IS NULL';
       return $parts;
     }
     else if( 'new participant available' == $queue )
     {
       $parts = self::get_query_parts( 'new participant within calling time' );
-      // make sure the participant has availability and is currently available
+      // the participant has availability and is currently available
       $parts['where'][] = $check_availability_sql.' = true';
       return $parts;
     }
     else if( 'new participant not available' == $queue )
     {
       $parts = self::get_query_parts( 'new participant within calling time' );
-      // make sure the participant has availability and is currently not available
+      // the participant has availability and is currently not available
       $parts['where'][] = $check_availability_sql.' = false';
       return $parts;
     }
@@ -747,7 +773,7 @@ class queue extends \cenozo\database\record
     }
     else
     {
-      // make sure a phone call status has been included (all remaining queues require it)
+      // a phone call status has been included (all remaining queues require it)
       if( is_null( $phone_call_status ) )
         throw lib::create( 'exception\argument',
           'phone_call_status', $phone_call_status, __METHOD__ );
@@ -803,7 +829,7 @@ class queue extends \cenozo\database\record
       {
         $parts = self::get_query_parts(
           'phone call status within calling time', $phone_call_status );
-        // make sure the participant doesn't specify availability
+        // the participant hasn't specified availability
         $parts['where'][] = $check_availability_sql.' IS NULL';
         return $parts;
       }
@@ -811,7 +837,7 @@ class queue extends \cenozo\database\record
       {
         $parts = self::get_query_parts(
           'phone call status within calling time', $phone_call_status );
-        // make sure the participant has availability and is currently not available
+        // the participant has availability and is currently not available
         $parts['where'][] = $check_availability_sql.' = false';
         return $parts;
       }
@@ -819,7 +845,7 @@ class queue extends \cenozo\database\record
       {
         $parts = self::get_query_parts(
           'phone call status within calling time', $phone_call_status );
-        // make sure the participant has availability and is currently available
+        // the participant has availability and is currently available
         $parts['where'][] = $check_availability_sql.' = true';
         return $parts;
       }

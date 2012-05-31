@@ -55,6 +55,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'prior_contact_date', 'constant', 'Prior Contact Date' );
     $this->add_item( 'current_qnaire_name', 'constant', 'Current Questionnaire' );
     $this->add_item( 'start_qnaire_date', 'constant', 'Delay Questionnaire Until' );
+    $this->add_item( 'defer_until', 'date', 'Defer Contact Until' );
     
     // create the address sub-list widget
     $this->address_list = lib::create( 'ui\widget\address_list', $this->arguments );
@@ -101,24 +102,26 @@ class participant_view extends \cenozo\ui\widget\base_view
     $source_class_name = lib::get_class_name( 'database\source' );
     $site_class_name = lib::get_class_name( 'database\site' );
 
+    $db_participant = $this->get_record();
+
     // add the assign now button, if appropriate
     $session = lib::create( 'business\session' );
     $allow_assign =
       // if the user is not an interviewer
       'interviewer' != $session->get_role()->name &&
       // the participant is ready for a site qnaire
-      'site' == $this->get_record()->current_qnaire_type &&
+      'site' == $db_participant->current_qnaire_type &&
       // the participant isn't already in an assignment
       is_null( $session->get_current_assignment() ) &&
       // the participant does not have a permanent status
-      is_null( $this->get_record()->status );
+      is_null( $db_participant->status );
 
     if( $allow_assign )
     { // make sure the participant is eligible
       $queue_class_name = lib::get_class_name( 'database\queue' );
       $db_queue = $queue_class_name::get_unique_record( 'name', 'eligible' );
       $queue_mod = lib::create( 'database\modifier' );
-      $queue_mod->where( 'participant.id', '=', $this->get_record()->id );
+      $queue_mod->where( 'participant.id', '=', $db_participant->id );
       $allow_assign = $allow_assign && 1 == $db_queue->get_participant_count( $queue_mod );
       $this->add_action( 'assign', 'Assign Now', NULL,
         'Start an assignment with this participant in order to make a site appointment' );
@@ -135,15 +138,15 @@ class participant_view extends \cenozo\ui\widget\base_view
     $site_mod->order( 'name' );
     foreach( $site_class_name::select( $site_mod ) as $db_site )
       $sites[$db_site->id] = $db_site->name;
-    $db_site = $this->get_record()->get_site();
+    $db_site = $db_participant->get_site();
     $site_id = is_null( $db_site ) ? '' : $db_site->id;
     $languages = $participant_class_name::get_enum_values( 'language' );
     $languages = array_combine( $languages, $languages );
     $statuses = $participant_class_name::get_enum_values( 'status' );
     $statuses = array_combine( $statuses, $statuses );
     
-    $start_qnaire_date = $this->get_record()->start_qnaire_date;
-    if( is_null( $this->get_record()->current_qnaire_id ) )
+    $start_qnaire_date = $db_participant->start_qnaire_date;
+    if( is_null( $db_participant->current_qnaire_id ) )
     {
       $current_qnaire_name = '(none)';
 
@@ -151,28 +154,29 @@ class participant_view extends \cenozo\ui\widget\base_view
     }
     else
     {
-      $db_current_qnaire = lib::create( 'database\qnaire', $this->get_record()->current_qnaire_id );
+      $db_current_qnaire = lib::create( 'database\qnaire', $db_participant->current_qnaire_id );
       $current_qnaire_name = $db_current_qnaire->name;
       $start_qnaire_date = util::get_formatted_date( $start_qnaire_date, 'immediately' );
     }
 
-    $db_default_site = $this->get_record()->get_default_site();
+    $db_default_site = $db_participant->get_default_site();
     $default_site = is_null( $db_default_site ) ? 'None' : $db_default_site->name;
 
     // set the view's items
-    $this->set_item( 'active', $this->get_record()->active, true );
-    $this->set_item( 'uid', $this->get_record()->uid );
-    $this->set_item( 'source_id', $this->get_record()->source_id, false, $sources );
-    $this->set_item( 'first_name', $this->get_record()->first_name );
-    $this->set_item( 'last_name', $this->get_record()->last_name );
-    $this->set_item( 'language', $this->get_record()->language, false, $languages );
-    $this->set_item( 'status', $this->get_record()->status, false, $statuses );
+    $this->set_item( 'active', $db_participant->active, true );
+    $this->set_item( 'uid', $db_participant->uid );
+    $this->set_item( 'source_id', $db_participant->source_id, false, $sources );
+    $this->set_item( 'first_name', $db_participant->first_name );
+    $this->set_item( 'last_name', $db_participant->last_name );
+    $this->set_item( 'language', $db_participant->language, false, $languages );
+    $this->set_item( 'status', $db_participant->status, false, $statuses );
     $this->set_item( 'default_site', $default_site );
     $this->set_item( 'site_id', $site_id, false, $sites );
-    $this->set_item( 'consent_to_draw_blood', $this->get_record()->consent_to_draw_blood );
-    $this->set_item( 'prior_contact_date', $this->get_record()->prior_contact_date );
+    $this->set_item( 'consent_to_draw_blood', $db_participant->consent_to_draw_blood );
+    $this->set_item( 'prior_contact_date', $db_participant->prior_contact_date );
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );
+    $this->set_item( 'defer_until', $db_participant->defer_until, false );
 
     try
     {

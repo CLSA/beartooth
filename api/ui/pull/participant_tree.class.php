@@ -60,25 +60,26 @@ class participant_tree extends \cenozo\ui\pull
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     if( 'current' != $viewing_date ) $queue_class_name::set_viewing_date( $viewing_date );
 
-    // restrict by language
-    $queue_mod = lib::create( 'database\modifier' );
-    if( 'any' != $restrict_language )
-    {
-      // english is default, so if the language is english allow null values
-      if( 'en' == $restrict_language )
-      {
-        $queue_mod->where_bracket( true );
-        $queue_mod->where( 'participant.language', '=', $restrict_language );
-        $queue_mod->or_where( 'participant.language', '=', NULL );
-        $queue_mod->where_bracket( false );
-      }
-      else $queue_mod->where( 'participant.language', '=', $restrict_language );
-    }
-
     // get the participant count for every node in the tree
     $this->data = array();
     foreach( $queue_class_name::select() as $db_queue )
     {
+      // restrict by language
+      // Note: a new queue mod needs to be created for every iteration of the loop
+      $queue_mod = lib::create( 'database\modifier' );
+      if( 'any' != $restrict_language )
+      {
+        // english is default, so if the language is english allow null values
+        if( 'en' == $restrict_language )
+        {
+          $queue_mod->where_bracket( true );
+          $queue_mod->where( 'participant.language', '=', $restrict_language );
+          $queue_mod->or_where( 'participant.language', '=', NULL );
+          $queue_mod->where_bracket( false );
+        }
+        else $queue_mod->where( 'participant.language', '=', $restrict_language );
+      }
+
       // restrict queue based on user's role
       if( !$is_top_tier ) $db_queue->set_site( $session->get_site() );
       else if( !is_null( $db_site ) ) $db_queue->set_site( $db_site );

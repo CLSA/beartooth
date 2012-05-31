@@ -7,3 +7,5 @@ SOURCE role.sql
 SOURCE operation.sql
 SOURCE setting.sql
 SOURCE user.sql
+SOURCE participant.sql
+SOURCE queue.sql

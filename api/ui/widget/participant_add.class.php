@@ -52,6 +52,7 @@ class participant_add extends \cenozo\ui\widget\base_view
     $this->add_item( 'site_id', 'enum', 'Prefered Site' );
     $this->add_item( 'consent_to_draw_blood', 'boolean', 'Consent to Draw Blood' );
     $this->add_item( 'prior_contact_date', 'date', 'Prior Contact Date' );
+    $this->add_item( 'defer_until', 'date', 'Defer Contact Until' );
   }
 
   /**
@@ -94,6 +95,7 @@ class participant_add extends \cenozo\ui\widget\base_view
     $this->set_item( 'site_id', '', false, $sites );
     $this->set_item( 'consent_to_draw_blood', false, true );
     $this->set_item( 'prior_contact_date', '' );
+    $this->add_item( 'defer_until', '' );
   }
 }
 ?>
