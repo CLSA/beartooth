@@ -70,6 +70,8 @@ class onyx_instance_new extends \cenozo\ui\push\base_new
   {
     parent::setup();
 
+    $columns = $this->get_argument( 'columns' );
+
     $db_interviewer_user = $columns['interviewer_user_id']
              ? lib::create( 'database\user', $columns['interviewer_user_id'] )
              : NULL;

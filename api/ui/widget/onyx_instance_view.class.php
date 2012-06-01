@@ -42,15 +42,21 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
     parent::prepare();
 
     // define all columns defining this record
-
+    $this->add_item( 'username', 'constant', 'Username' );
     $this->add_item( 'site', 'constant', 'Site' );
     $this->add_item( 'interviewer_user_id', 'enum', 'Instance' );
+    $this->add_item( 'active', 'boolean', 'Active' );
+    $this->add_item( 'last_activity', 'constant', 'Last activity' );
 
-    $this->user_view = lib::create( 'ui\widget\user_view',
-      array( 'user_view' => array( 'id' => $this->get_record()->user_id ) ) );
-    $this->user_view->set_parent( $this );
-    $this->user_view->set_removable( false );
-    $this->user_view->set_heading( '' );
+    // create the access sub-list widget
+    $this->access_list = lib::create( 'ui\widget\access_list', $this->arguments );
+    $this->access_list->set_parent( $this );
+    $this->access_list->set_heading( 'Onyx instance\'s site access list' );
+
+    // create the activity sub-list widget
+    $this->activity_list = lib::create( 'ui\widget\activity_list', $this->arguments );
+    $this->activity_list->set_parent( $this );
+    $this->activity_list->set_heading( 'Onyx instance activity' );
   }
 
   /**
@@ -77,18 +83,95 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
       $interviewers[$db_user->id] = $db_user->name;
 
     // set the view's items
+    $this->set_item( 'username', $this->get_record()->get_user()->name, true );
     $this->set_item( 'site', $this->get_record()->get_site()->name );
     $this->set_item(
       'interviewer_user_id', $this->get_record()->interviewer_user_id, true, $interviewers );
+    $this->set_item( 'active', $this->get_record()->get_user()->active, true );
+    
+    $db_activity = $this->get_record()->get_user()->get_last_activity();
+    $last = util::get_fuzzy_period_ago( is_null( $db_activity ) ? null : $db_activity->datetime );
+    $this->set_item( 'last_activity', $last );
 
     try
     {
-      $this->user_view->process();
-      $this->user_view->remove_action( 'reset_password' );
-      $this->user_view->execute();
-      $this->set_variable( 'user_view', $this->user_view->get_variables() );
+      $this->access_list->process();
+      $this->set_variable( 'access_list', $this->access_list->get_variables() );
+    }
+    catch( \cenozo\exception\permission $e ) {}
+
+    try
+    {
+      $this->activity_list->process();
+      $this->set_variable( 'activity_list', $this->activity_list->get_variables() );
     }
     catch( \cenozo\exception\permission $e ) {}
   }
+
+  /**
+   * Overrides the access list widget's list to get records from instance's user
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\modifier $modifier Modifications to the list.
+   * @return int
+   * @access protected
+   */
+  public function determine_access_count( $modifier = NULL )
+  {
+    return $this->get_record()->get_user()->get_access_count( $modifier );
+  }
+
+  /**
+   * Overrides the access list widget's method to only include this queue's access.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\modifier $modifier Modifications to the list.
+   * @return array( record )
+   * @access protected
+   */
+  public function determine_access_list( $modifier = NULL )
+  {
+    return $this->get_record()->get_user()->get_access_list( $modifier );
+  }
+
+  /**
+   * Overrides the activity list widget's list to get records from instance's user
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\modifier $modifier Modifications to the list.
+   * @return int
+   * @activity protected
+   */
+  public function determine_activity_count( $modifier = NULL )
+  {
+    return $this->get_record()->get_user()->get_activity_count( $modifier );
+  }
+
+  /**
+   * Overrides the activity list widget's method to only include this queue's activity.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\modifier $modifier Modifications to the list.
+   * @return array( record )
+   * @activity protected
+   */
+  public function determine_activity_list( $modifier = NULL )
+  {
+    return $this->get_record()->get_user()->get_activity_list( $modifier );
+  }
+
+  /** 
+   * The access list widget.
+   * @var access_list
+   * @access protected
+   */
+  protected $access_list = NULL;
+
+  /** 
+   * The activity list widget.
+   * @var activity_list
+   * @access protected
+   */
+  protected $activity_list = NULL;
 }
 ?>
