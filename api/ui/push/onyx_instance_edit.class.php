@@ -29,6 +29,27 @@ class onyx_instance_edit extends \cenozo\ui\push\base_edit
     parent::__construct( 'onyx_instance', $args );
   }
 
+  /** 
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
+
+    $columns = $this->get_argument( 'columns', array() );
+
+    // check to see if active is in the column list
+    if( array_key_exists( 'active', $columns ) ) 
+    {   
+      $this->active = $columns['active'];
+      unset( $this->arguments['columns']['active'] );
+    }   
+  }
+
   /**
    * Validate the operation.
    * 
@@ -49,27 +70,6 @@ class onyx_instance_edit extends \cenozo\ui\push\base_edit
       throw lib::create( 'exception\notice',
         'You do not have access to edit this onyx instance.', __METHOD__ );
     }
-  }
-
-  /** 
-   * Processes arguments, preparing them for the operation.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @throws exception\notice
-   * @access protected
-   */
-  protected function prepare()
-  {
-    parent::prepare();
-
-    $columns = $this->get_argument( 'columns', array() );
-
-    // check to see if active is in the column list
-    if( array_key_exists( 'active', $columns ) ) 
-    {   
-      $this->active = $columns['active'];
-      unset( $this->arguments['columns']['active'] );
-    }   
   }
 
   /** 
