@@ -51,7 +51,7 @@ class appointment_list extends site_restricted_list
 
     // don't add appointments if this list isn't parented
     if( is_null( $this->parent ) ) $this->set_addable( false );
-    else
+    else if( $this->get_addable() )
     {
       // don't add appointments if the parent already has an incomplete appointment in the future
       $appointment_class_name = lib::get_class_name( 'database\appointment' );
