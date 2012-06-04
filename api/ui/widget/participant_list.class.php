@@ -45,7 +45,7 @@ class participant_list extends site_restricted_list
     $this->add_column( 'first_name', 'string', 'First', true );
     $this->add_column( 'last_name', 'string', 'Last', true );
     $this->add_column( 'source.name', 'string', 'Source', true );
-    $this->add_column( 'primary_site', 'string', 'Site', true );
+    $this->add_column( 'primary_site', 'string', 'Site', false );
 
     $this->extended_site_selection = true;
   }
