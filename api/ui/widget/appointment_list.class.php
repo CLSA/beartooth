@@ -61,6 +61,13 @@ class appointment_list extends site_restricted_list
       $appointment_mod->where(
         'datetime', '>', util::get_datetime_object()->format( 'Y-m-d H:i:s' ) );
       $this->set_addable( 0 == $appointment_class_name::count( $appointment_mod ) );
+
+      // don't add appointments if the user isn't currently assigned to the participant
+      $db_assignment = lib::create( 'business\session' )->get_current_assignment();
+      if( is_null( $db_assignment ) ||
+          $db_assignment->get_interview()->get_participant()->id !=
+          $this->parent->get_record()->id )
+        $this->addable = false;
     }
   }
   
