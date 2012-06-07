@@ -48,6 +48,8 @@ class appointment_list extends site_restricted_list
     if( is_null( $this->parent ) ) $this->addable = false;
     else
     {
+      $session = lib::create( 'business\session' );
+
       // don't add appointments if the parent already has an incomplete appointment
       $appointment_class_name = lib::get_class_name( 'database\appointment' );
       $appointment_mod = lib::create( 'database\modifier' );
@@ -57,7 +59,14 @@ class appointment_list extends site_restricted_list
 
       // don't add HOME appointments if the user isn't an interviewer
       if( 'home' == $this->parent->get_record()->current_qnaire_type &&
-          'interviewer' != lib::create( 'business\session' )->get_role()->name )
+          'interviewer' != $session->get_role()->name )
+        $this->addable = false;
+
+      // don't add appointments if the user isn't currently assigned to the participant
+      $db_assignment = $session->get_current_assignment();
+      if( is_null( $db_assignment ) ||
+          $db_assignment->get_interview()->get_participant()->id !=
+          $this->parent->get_record()->id )
         $this->addable = false;
     }
 
