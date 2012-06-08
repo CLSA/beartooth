@@ -48,7 +48,7 @@ class assignment_list extends site_restricted_list
     // only add the participant column if we are not restricting by interview
     if( is_null( $interview_id ) ) $this->add_column( 'uid', 'string', 'UID' );
     $this->add_column( 'calls', 'number', 'Calls' );
-    $this->add_column( 'start_datetime', 'date', 'Date' );
+    $this->add_column( 'start_datetime', 'date', 'Date', true );
     $this->add_column( 'start_time', 'time', 'Start Time' );
     $this->add_column( 'end_time', 'time', 'End Time' );
     $this->add_column( 'status', 'string', 'Status' );
@@ -81,7 +81,7 @@ class assignment_list extends site_restricted_list
       $this->add_row( $record->id,
         array( 'user.name' => $record->get_user()->name,
                'site.name' => $record->get_site()->name,
-               'participant' => $db_participant->uid, // only used if not restricting by interview_id
+               'uid' => $db_participant->uid, // only used if not restricting by interview_id
                'calls' => $record->get_phone_call_count(),
                'start_datetime' => $record->start_datetime,
                'start_time' => $record->start_datetime,
