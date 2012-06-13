@@ -50,7 +50,7 @@ class onyx_proxy extends \cenozo\ui\push
     if( is_null( $db_user ) ) $db_user = $db_onyx_instance->get_user();
 
     // get the body of the request
-    $data = json_decode( http_get_request_body() );
+    $data = util::json_decode( http_get_request_body() );
 
     // loop through the proxy array, if everything works then send the data to
     // Mastodon as a new alternate, if anything goes wrong then send it into the

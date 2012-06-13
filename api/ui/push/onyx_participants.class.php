@@ -43,7 +43,7 @@ class onyx_participants extends \cenozo\ui\push
 
     // get the body of the request
     $body = http_get_request_body();
-    $data = json_decode( $body );
+    $data = util::json_decode( $body );
 
     if( !is_object( $data ) )
       throw lib::create( 'exception\runtime',
