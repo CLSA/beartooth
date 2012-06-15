@@ -45,7 +45,12 @@ class onyx_participants extends \cenozo\ui\push
     $interview_class_name = lib::create( 'database\interview' );
 
     // get the body of the request
-    $data = json_decode( http_get_request_body() );
+    $body = http_get_request_body();
+    $data = util::json_decode( $body );
+
+    if( !is_object( $data ) )
+      throw lib::create( 'exception\runtime',
+        'Unable to decode request body, received: '.print_r( $body, true ), __METHOD__ );
 
     // loop through the participants array
     foreach( $data->Participants as $participant_list )
