@@ -104,6 +104,9 @@ class participant_view extends \cenozo\ui\widget\base_view
 
     $db_participant = $this->get_record();
 
+    /*
+      DISABLING THIS FUNCTIONALITY UNLESS IT IS RE-REQUESTED
+
     // add the assign now button, if appropriate
     $session = lib::create( 'business\session' );
     $allow_assign =
@@ -126,7 +129,9 @@ class participant_view extends \cenozo\ui\widget\base_view
       $this->add_action( 'assign', 'Assign Now', NULL,
         'Start an assignment with this participant in order to make a site appointment' );
     }
+    */
 
+    $allow_assign = false;
     $this->set_variable( 'allow_assign', $allow_assign );
 
     // create enum arrays
