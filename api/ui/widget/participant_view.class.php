@@ -44,7 +44,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     // create an associative array with everything we want to display about the participant
     $this->add_item( 'active', 'boolean', 'Active' );
     $this->add_item( 'uid', 'constant', 'Unique ID' );
-    $this->add_item( 'source_id', 'enum', 'Source' );
+    $this->add_item( 'source', 'constant', 'Source' );
     $this->add_item( 'first_name', 'string', 'First Name' );
     $this->add_item( 'last_name', 'string', 'Last Name' );
     $this->add_item( 'language', 'enum', 'Preferred Language' );
@@ -99,7 +99,6 @@ class participant_view extends \cenozo\ui\widget\base_view
     parent::setup();
     
     $participant_class_name = lib::get_class_name( 'database\participant' );
-    $source_class_name = lib::get_class_name( 'database\source' );
     $site_class_name = lib::get_class_name( 'database\site' );
 
     $db_participant = $this->get_record();
@@ -135,9 +134,6 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->set_variable( 'allow_assign', $allow_assign );
 
     // create enum arrays
-    $sources = array();
-    foreach( $source_class_name::select() as $db_source )
-      $sources[$db_source->id] = $db_source->name;
     $sites = array();
     $site_mod = lib::create( 'database\modifier' );
     $site_mod->order( 'name' );
@@ -170,7 +166,7 @@ class participant_view extends \cenozo\ui\widget\base_view
     // set the view's items
     $this->set_item( 'active', $db_participant->active, true );
     $this->set_item( 'uid', $db_participant->uid );
-    $this->set_item( 'source_id', $db_participant->source_id, false, $sources );
+    $this->set_item( 'source', $db_participant->get_source()->name );
     $this->set_item( 'first_name', $db_participant->first_name );
     $this->set_item( 'last_name', $db_participant->last_name );
     $this->set_item( 'language', $db_participant->language, false, $languages );
