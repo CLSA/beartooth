@@ -66,6 +66,23 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `age_group`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `age_group` ;
+
+CREATE  TABLE IF NOT EXISTS `age_group` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `lower` INT NOT NULL ,
+  `upper` INT NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `uq_lower` (`lower` ASC) ,
+  UNIQUE INDEX `uq_upper` (`upper` ASC) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `participant`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `participant` ;
@@ -79,10 +96,13 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `source_id` INT UNSIGNED NULL ,
   `first_name` VARCHAR(45) NOT NULL ,
   `last_name` VARCHAR(45) NOT NULL ,
-  `status` ENUM('deceased', 'deaf', 'mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','other') NULL DEFAULT NULL ,
+  `gender` ENUM('male','female') NOT NULL ,
+  `date_of_birth` DATE NULL ,
+  `age_group_id` INT UNSIGNED NULL ,
+  `status` ENUM('deceased','deaf','mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','noncompliant','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
   `site_id` INT UNSIGNED NULL DEFAULT NULL ,
-  `defer_until` DATE NULL ,
+  `defer_until` DATE NULL DEFAULT NULL ,
   `consent_to_draw_blood` TINYINT(1) NOT NULL DEFAULT false ,
   `consent_to_draw_blood_continue` TINYINT(1) NULL DEFAULT NULL ,
   `physical_tests_continue` TINYINT(1) NULL DEFAULT NULL ,
@@ -102,6 +122,7 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   UNIQUE INDEX `uq_uid` (`uid` ASC) ,
   INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `fk_participant_source_id` (`source_id` ASC) ,
+  INDEX `fk_age_group_id` (`age_group_id` ASC) ,
   INDEX `dk_defer_until` (`defer_until` ASC) ,
   CONSTRAINT `fk_participant_site_id`
     FOREIGN KEY (`site_id` )
@@ -111,6 +132,11 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   CONSTRAINT `fk_participant_source_id`
     FOREIGN KEY (`source_id` )
     REFERENCES `source` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_participant_age_group_id`
+    FOREIGN KEY (`age_group_id` )
+    REFERENCES `age_group` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
