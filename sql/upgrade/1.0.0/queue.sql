@@ -1,4 +1,5 @@
--- add the new "noncompliant" participant condition to the queue
+-- add the new "noncompliant" and missing "not canadian", "federal reserve", "armed forces" and
+-- "institutionalized" participant conditions to the queue
 DROP PROCEDURE IF EXISTS patch_queue;
 DELIMITER //
 CREATE PROCEDURE patch_queue()
@@ -169,6 +170,72 @@ CREATE PROCEDURE patch_queue()
           WHERE name = "ineligible" ) AS tmp ),
       description = "Participants who are not eligible for answering questionnaires because their age is
       not within the valid range.";
+
+      INSERT INTO queue SET
+      name = "not canadian",
+      title = "Participants who are not Canadian",
+      rank = NULL,
+      qnaire_specific = false,
+      parent_queue_id = (
+        SELECT id FROM(
+          SELECT id
+          FROM queue
+          WHERE name = "ineligible" ) AS tmp ),
+      description = "Participants who are not eligible for answering questionnaires because they are not
+      a Canadian citizen.";
+
+      INSERT INTO queue SET
+      name = "federal reserve",
+      title = "Participants who live on a federal reserve",
+      rank = NULL,
+      qnaire_specific = false,
+      parent_queue_id = (
+        SELECT id FROM(
+          SELECT id
+          FROM queue
+          WHERE name = "ineligible" ) AS tmp ),
+      description = "Participants who are not eligible for answering questionnaires because they reside
+      on a federal reserve.";
+
+      INSERT INTO queue SET
+      name = "armed forces",
+      title = "Participants who are in the armed forces",
+      rank = NULL,
+      qnaire_specific = false,
+      parent_queue_id = (
+        SELECT id FROM(
+          SELECT id
+          FROM queue
+          WHERE name = "ineligible" ) AS tmp ),
+      description = "Participants who are not eligible for answering questionnaires because they are full
+      time members of the armed forces.";
+
+      INSERT INTO queue SET
+      name = "institutionalized",
+      title = "Participants who are intitutionalized",
+      rank = NULL,
+      qnaire_specific = false,
+      parent_queue_id = (
+        SELECT id FROM(
+          SELECT id
+          FROM queue
+          WHERE name = "ineligible" ) AS tmp ),
+      description = "Participants who are not eligible for answering questionnaires because they are
+      institutionalized.";
+
+      INSERT INTO queue SET
+      name = "noncompliant",
+      title = "Participants who are not complying to the rules of the study.",
+      rank = NULL,
+      qnaire_specific = false,
+      parent_queue_id = (
+        SELECT id FROM(
+          SELECT id
+          FROM queue
+          WHERE name = "ineligible" ) AS tmp ),
+      description = "Participants who are not eligible for answering questionnaires because they are
+      not complying the rules of the study.  This list may include participants who are being abusive
+      to CLSA staff.";
 
       INSERT INTO queue SET
       name = "other",
@@ -1315,89 +1382,94 @@ CREATE PROCEDURE patch_queue()
       times.";
 
       -- update the assignments with the new queue IDs
-      UPDATE assignment SET queue_id = 100 WHERE queue_id = 99;
-      UPDATE assignment SET queue_id = 99 WHERE queue_id = 98;
-      UPDATE assignment SET queue_id = 98 WHERE queue_id = 97;
-      UPDATE assignment SET queue_id = 97 WHERE queue_id = 96;
-      UPDATE assignment SET queue_id = 96 WHERE queue_id = 95;
-      UPDATE assignment SET queue_id = 95 WHERE queue_id = 94;
-      UPDATE assignment SET queue_id = 94 WHERE queue_id = 93;
-      UPDATE assignment SET queue_id = 93 WHERE queue_id = 92;
-      UPDATE assignment SET queue_id = 92 WHERE queue_id = 91;
-      UPDATE assignment SET queue_id = 91 WHERE queue_id = 90;
-      UPDATE assignment SET queue_id = 90 WHERE queue_id = 89;
-      UPDATE assignment SET queue_id = 89 WHERE queue_id = 88;
-      UPDATE assignment SET queue_id = 88 WHERE queue_id = 87;
-      UPDATE assignment SET queue_id = 87 WHERE queue_id = 86;
-      UPDATE assignment SET queue_id = 86 WHERE queue_id = 85;
-      UPDATE assignment SET queue_id = 85 WHERE queue_id = 84;
-      UPDATE assignment SET queue_id = 84 WHERE queue_id = 83;
-      UPDATE assignment SET queue_id = 83 WHERE queue_id = 82;
-      UPDATE assignment SET queue_id = 82 WHERE queue_id = 81;
-      UPDATE assignment SET queue_id = 81 WHERE queue_id = 80;
-      UPDATE assignment SET queue_id = 80 WHERE queue_id = 79;
-      UPDATE assignment SET queue_id = 79 WHERE queue_id = 78;
-      UPDATE assignment SET queue_id = 78 WHERE queue_id = 77;
-      UPDATE assignment SET queue_id = 77 WHERE queue_id = 76;
-      UPDATE assignment SET queue_id = 76 WHERE queue_id = 75;
-      UPDATE assignment SET queue_id = 75 WHERE queue_id = 74;
-      UPDATE assignment SET queue_id = 74 WHERE queue_id = 73;
-      UPDATE assignment SET queue_id = 73 WHERE queue_id = 72;
-      UPDATE assignment SET queue_id = 72 WHERE queue_id = 71;
-      UPDATE assignment SET queue_id = 71 WHERE queue_id = 70;
-      UPDATE assignment SET queue_id = 70 WHERE queue_id = 69;
-      UPDATE assignment SET queue_id = 69 WHERE queue_id = 68;
-      UPDATE assignment SET queue_id = 68 WHERE queue_id = 67;
-      UPDATE assignment SET queue_id = 67 WHERE queue_id = 66;
-      UPDATE assignment SET queue_id = 66 WHERE queue_id = 65;
-      UPDATE assignment SET queue_id = 65 WHERE queue_id = 64;
-      UPDATE assignment SET queue_id = 64 WHERE queue_id = 63;
-      UPDATE assignment SET queue_id = 63 WHERE queue_id = 62;
-      UPDATE assignment SET queue_id = 62 WHERE queue_id = 61;
-      UPDATE assignment SET queue_id = 61 WHERE queue_id = 60;
-      UPDATE assignment SET queue_id = 60 WHERE queue_id = 59;
-      UPDATE assignment SET queue_id = 59 WHERE queue_id = 58;
-      UPDATE assignment SET queue_id = 58 WHERE queue_id = 57;
-      UPDATE assignment SET queue_id = 57 WHERE queue_id = 56;
-      UPDATE assignment SET queue_id = 56 WHERE queue_id = 55;
-      UPDATE assignment SET queue_id = 55 WHERE queue_id = 54;
-      UPDATE assignment SET queue_id = 54 WHERE queue_id = 53;
-      UPDATE assignment SET queue_id = 53 WHERE queue_id = 52;
-      UPDATE assignment SET queue_id = 52 WHERE queue_id = 51;
-      UPDATE assignment SET queue_id = 51 WHERE queue_id = 50;
-      UPDATE assignment SET queue_id = 50 WHERE queue_id = 49;
-      UPDATE assignment SET queue_id = 49 WHERE queue_id = 48;
-      UPDATE assignment SET queue_id = 48 WHERE queue_id = 47;
-      UPDATE assignment SET queue_id = 47 WHERE queue_id = 46;
-      UPDATE assignment SET queue_id = 46 WHERE queue_id = 45;
-      UPDATE assignment SET queue_id = 45 WHERE queue_id = 44;
-      UPDATE assignment SET queue_id = 44 WHERE queue_id = 43;
-      UPDATE assignment SET queue_id = 43 WHERE queue_id = 42;
-      UPDATE assignment SET queue_id = 42 WHERE queue_id = 41;
-      UPDATE assignment SET queue_id = 41 WHERE queue_id = 40;
-      UPDATE assignment SET queue_id = 40 WHERE queue_id = 39;
-      UPDATE assignment SET queue_id = 39 WHERE queue_id = 38;
-      UPDATE assignment SET queue_id = 38 WHERE queue_id = 37;
-      UPDATE assignment SET queue_id = 37 WHERE queue_id = 36;
-      UPDATE assignment SET queue_id = 36 WHERE queue_id = 35;
-      UPDATE assignment SET queue_id = 35 WHERE queue_id = 34;
-      UPDATE assignment SET queue_id = 34 WHERE queue_id = 33;
-      UPDATE assignment SET queue_id = 33 WHERE queue_id = 32;
-      UPDATE assignment SET queue_id = 32 WHERE queue_id = 31;
-      UPDATE assignment SET queue_id = 31 WHERE queue_id = 30;
-      UPDATE assignment SET queue_id = 30 WHERE queue_id = 29;
-      UPDATE assignment SET queue_id = 29 WHERE queue_id = 28;
-      UPDATE assignment SET queue_id = 28 WHERE queue_id = 27;
-      UPDATE assignment SET queue_id = 27 WHERE queue_id = 26;
-      UPDATE assignment SET queue_id = 26 WHERE queue_id = 25;
-      UPDATE assignment SET queue_id = 25 WHERE queue_id = 24;
-      UPDATE assignment SET queue_id = 24 WHERE queue_id = 23;
-      UPDATE assignment SET queue_id = 23 WHERE queue_id = 22;
-      UPDATE assignment SET queue_id = 22 WHERE queue_id = 21;
-      UPDATE assignment SET queue_id = 21 WHERE queue_id = 20;
-      UPDATE assignment SET queue_id = 20 WHERE queue_id = 19;
-      UPDATE assignment SET queue_id = 19 WHERE queue_id = 17;
-      UPDATE assignment SET queue_id = 17 WHERE queue_id = 18;
+      UPDATE assignment SET queue_id = 105 WHERE queue_id = 99;
+      UPDATE assignment SET queue_id = 104 WHERE queue_id = 98;
+      UPDATE assignment SET queue_id = 103 WHERE queue_id = 97;
+      UPDATE assignment SET queue_id = 102 WHERE queue_id = 96;
+      UPDATE assignment SET queue_id = 101 WHERE queue_id = 95;
+      UPDATE assignment SET queue_id = 100 WHERE queue_id = 94;
+      UPDATE assignment SET queue_id = 99 WHERE queue_id = 93;
+      UPDATE assignment SET queue_id = 98 WHERE queue_id = 92;
+      UPDATE assignment SET queue_id = 97 WHERE queue_id = 91;
+      UPDATE assignment SET queue_id = 96 WHERE queue_id = 90;
+      UPDATE assignment SET queue_id = 95 WHERE queue_id = 89;
+      UPDATE assignment SET queue_id = 94 WHERE queue_id = 88;
+      UPDATE assignment SET queue_id = 93 WHERE queue_id = 87;
+      UPDATE assignment SET queue_id = 92 WHERE queue_id = 86;
+      UPDATE assignment SET queue_id = 91 WHERE queue_id = 85;
+      UPDATE assignment SET queue_id = 90 WHERE queue_id = 84;
+      UPDATE assignment SET queue_id = 89 WHERE queue_id = 83;
+      UPDATE assignment SET queue_id = 88 WHERE queue_id = 82;
+      UPDATE assignment SET queue_id = 87 WHERE queue_id = 81;
+      UPDATE assignment SET queue_id = 86 WHERE queue_id = 80;
+      UPDATE assignment SET queue_id = 85 WHERE queue_id = 79;
+      UPDATE assignment SET queue_id = 84 WHERE queue_id = 78;
+      UPDATE assignment SET queue_id = 83 WHERE queue_id = 77;
+      UPDATE assignment SET queue_id = 82 WHERE queue_id = 76;
+      UPDATE assignment SET queue_id = 81 WHERE queue_id = 75;
+      UPDATE assignment SET queue_id = 80 WHERE queue_id = 74;
+      UPDATE assignment SET queue_id = 79 WHERE queue_id = 73;
+      UPDATE assignment SET queue_id = 78 WHERE queue_id = 72;
+      UPDATE assignment SET queue_id = 77 WHERE queue_id = 71;
+      UPDATE assignment SET queue_id = 76 WHERE queue_id = 70;
+      UPDATE assignment SET queue_id = 75 WHERE queue_id = 69;
+      UPDATE assignment SET queue_id = 74 WHERE queue_id = 68;
+      UPDATE assignment SET queue_id = 73 WHERE queue_id = 67;
+      UPDATE assignment SET queue_id = 72 WHERE queue_id = 66;
+      UPDATE assignment SET queue_id = 71 WHERE queue_id = 65;
+      UPDATE assignment SET queue_id = 70 WHERE queue_id = 64;
+      UPDATE assignment SET queue_id = 69 WHERE queue_id = 63;
+      UPDATE assignment SET queue_id = 68 WHERE queue_id = 62;
+      UPDATE assignment SET queue_id = 67 WHERE queue_id = 61;
+      UPDATE assignment SET queue_id = 66 WHERE queue_id = 60;
+      UPDATE assignment SET queue_id = 65 WHERE queue_id = 59;
+      UPDATE assignment SET queue_id = 64 WHERE queue_id = 58;
+      UPDATE assignment SET queue_id = 63 WHERE queue_id = 57;
+      UPDATE assignment SET queue_id = 62 WHERE queue_id = 56;
+      UPDATE assignment SET queue_id = 61 WHERE queue_id = 55;
+      UPDATE assignment SET queue_id = 60 WHERE queue_id = 54;
+      UPDATE assignment SET queue_id = 59 WHERE queue_id = 53;
+      UPDATE assignment SET queue_id = 58 WHERE queue_id = 52;
+      UPDATE assignment SET queue_id = 57 WHERE queue_id = 51;
+      UPDATE assignment SET queue_id = 56 WHERE queue_id = 50;
+      UPDATE assignment SET queue_id = 55 WHERE queue_id = 49;
+      UPDATE assignment SET queue_id = 54 WHERE queue_id = 48;
+      UPDATE assignment SET queue_id = 53 WHERE queue_id = 47;
+      UPDATE assignment SET queue_id = 52 WHERE queue_id = 46;
+      UPDATE assignment SET queue_id = 51 WHERE queue_id = 45;
+      UPDATE assignment SET queue_id = 50 WHERE queue_id = 44;
+      UPDATE assignment SET queue_id = 49 WHERE queue_id = 43;
+      UPDATE assignment SET queue_id = 48 WHERE queue_id = 42;
+      UPDATE assignment SET queue_id = 47 WHERE queue_id = 41;
+      UPDATE assignment SET queue_id = 46 WHERE queue_id = 40;
+      UPDATE assignment SET queue_id = 45 WHERE queue_id = 39;
+      UPDATE assignment SET queue_id = 44 WHERE queue_id = 38;
+      UPDATE assignment SET queue_id = 43 WHERE queue_id = 37;
+      UPDATE assignment SET queue_id = 42 WHERE queue_id = 36;
+      UPDATE assignment SET queue_id = 41 WHERE queue_id = 35;
+      UPDATE assignment SET queue_id = 40 WHERE queue_id = 34;
+      UPDATE assignment SET queue_id = 39 WHERE queue_id = 33;
+      UPDATE assignment SET queue_id = 38 WHERE queue_id = 32;
+      UPDATE assignment SET queue_id = 37 WHERE queue_id = 31;
+      UPDATE assignment SET queue_id = 36 WHERE queue_id = 30;
+      UPDATE assignment SET queue_id = 35 WHERE queue_id = 29;
+      UPDATE assignment SET queue_id = 34 WHERE queue_id = 28;
+      UPDATE assignment SET queue_id = 33 WHERE queue_id = 27;
+      UPDATE assignment SET queue_id = 32 WHERE queue_id = 26;
+      UPDATE assignment SET queue_id = 31 WHERE queue_id = 25;
+      UPDATE assignment SET queue_id = 30 WHERE queue_id = 24;
+      UPDATE assignment SET queue_id = 29 WHERE queue_id = 23;
+      UPDATE assignment SET queue_id = 28 WHERE queue_id = 22;
+      UPDATE assignment SET queue_id = 27 WHERE queue_id = 21;
+      UPDATE assignment SET queue_id = 26 WHERE queue_id = 20;
+      UPDATE assignment SET queue_id = 25 WHERE queue_id = 19;
+      UPDATE assignment SET queue_id = 22 WHERE queue_id = 18;
+      UPDATE assignment SET queue_id = 24 WHERE queue_id = 17;
+      UPDATE assignment SET queue_id = 21 WHERE queue_id = 16;
+      UPDATE assignment SET queue_id = 20 WHERE queue_id = 15;
+      UPDATE assignment SET queue_id = 19 WHERE queue_id = 14;
+      UPDATE assignment SET queue_id = 18 WHERE queue_id = 13;
+      UPDATE assignment SET queue_id = 17 WHERE queue_id = 12;
 
       -- add back assignment's foreign key to the queue table
       ALTER TABLE assignment
