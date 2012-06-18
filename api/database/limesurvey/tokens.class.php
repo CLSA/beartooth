@@ -198,7 +198,7 @@ class tokens extends sid_record
         else if( 'dcs address street' == $value )
         {
           $this->$key =
-            $db_site->address1.( !is_null( $db_site->address2 ) ? '' : ', '.$db_site->address2 );
+            $db_site->address1.( is_null( $db_site->address2 ) ? '' : ', '.$db_site->address2 );
         }
         else if( 'dcs address city' == $value )
         {
