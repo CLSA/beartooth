@@ -45,8 +45,10 @@ class appointment_new extends \cenozo\ui\push\base_new
     
     foreach( $columns as $column => $value ) $this->get_record()->$column = $value;
     
+    $type = 0 < $this->get_record()->address_id ? 'home' : 'site';
+
     // do not include the user_id if this is a site appointment
-    if( 0 < $this->get_record()->address_id ) $this->get_record()->user_id = NULL;
+    if( 'home' == $type ) $this->get_record()->user_id = NULL;
     
     if( !$this->get_record()->validate_date() )
     {
@@ -54,7 +56,7 @@ class appointment_new extends \cenozo\ui\push\base_new
       $db_site = $db_participant->get_primary_site();
 
       $setting_manager = lib::create( 'business\setting_manager' );
-      $duration = $setting_manager->get_setting( 'appointment', 'full duration', $db_site );
+      $duration = $setting_manager->get_setting( 'appointment', $type.' duration', $db_site );
 
       $start_datetime_obj = util::get_datetime_object( $this->get_record()->datetime );
       $end_datetime_obj = clone $start_datetime_obj;
@@ -69,9 +71,7 @@ class appointment_new extends \cenozo\ui\push\base_new
         __METHOD__ );
       
       throw lib::create( 'exception\notice',
-        sprintf(
-          'The participant is not ready for a %s appointment.',
-          0 < $this->get_record()->address_id ? 'home' : 'site' ), __METHOD__ );
+        sprintf( 'The participant is not ready for a %s appointment.', $type ), __METHOD__ );
     }
     
     // no errors, go ahead and make the change
