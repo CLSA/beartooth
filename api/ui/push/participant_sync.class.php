@@ -105,6 +105,7 @@ class participant_sync extends \cenozo\ui\push
 
     foreach( $db_participant->get_column_names() as $column )
       if( 'id' != $column &&
+          'defer_until' != $column &&
           'consent_to_draw_blood' != $column &&
           'consent_to_draw_blood_continue' != $column &&
           'physical_tests_continue' != $column &&
