@@ -76,10 +76,12 @@ class appointment_list extends \cenozo\ui\pull\base_list
     if( is_null( $db_onyx->interviewer_user_id ) )
     { // restrict by site
       $modifier->where( 'participant_site.site_id', '=', $db_onyx->get_site()->id );
+      $modifier->where( 'appointment.address_id', '=', NULL );
     }
     else
     { // restrict the the onyx instance's interviewer
       $modifier->where( 'appointment.user_id', '=', $db_onyx->interviewer_user_id );
+      $modifier->where( 'appointment.address_id', '!=', NULL );
     }
 
     $appointment_list = $appointment_class_name::select( $modifier );
