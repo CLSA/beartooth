@@ -4,6 +4,68 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='';
 
 
 -- -----------------------------------------------------
+-- Table `region`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `region` ;
+
+CREATE  TABLE IF NOT EXISTS `region` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `name` VARCHAR(45) NOT NULL ,
+  `abbreviation` VARCHAR(5) NOT NULL ,
+  `country` VARCHAR(45) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `uq_name` (`name` ASC) ,
+  UNIQUE INDEX `uq_abbreviation` (`abbreviation` ASC) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `site`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `site` ;
+
+CREATE  TABLE IF NOT EXISTS `site` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `name` VARCHAR(45) NOT NULL ,
+  `timezone` ENUM('Canada/Pacific','Canada/Mountain','Canada/Central','Canada/Eastern','Canada/Atlantic','Canada/Newfoundland') NOT NULL ,
+  `institution` VARCHAR(45) NULL ,
+  `phone_number` VARCHAR(45) NULL ,
+  `address1` VARCHAR(512) NULL ,
+  `address2` VARCHAR(512) NULL ,
+  `city` VARCHAR(100) NULL ,
+  `region_id` INT UNSIGNED NULL DEFAULT NULL ,
+  `postcode` VARCHAR(10) NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `uq_name` (`name` ASC) ,
+  INDEX `fk_region_id` (`region_id` ASC) ,
+  CONSTRAINT `fk_site_region`
+    FOREIGN KEY (`region_id` )
+    REFERENCES `region` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `source`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `source` ;
+
+CREATE  TABLE IF NOT EXISTS `source` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` VARCHAR(45) NOT NULL ,
+  `create_timestamp` VARCHAR(45) NOT NULL ,
+  `name` VARCHAR(45) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `uq_name` (`name` ASC) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `participant`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `participant` ;
@@ -14,17 +76,41 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `create_timestamp` TIMESTAMP NOT NULL ,
   `active` TINYINT(1)  NOT NULL DEFAULT true ,
   `uid` VARCHAR(45) NOT NULL COMMENT 'External unique ID' ,
+  `source_id` INT UNSIGNED NULL ,
   `first_name` VARCHAR(45) NOT NULL ,
   `last_name` VARCHAR(45) NOT NULL ,
   `status` ENUM('deceased', 'deaf', 'mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
-  `consent_to_draw_blood` TINYINT(1) NOT NULL DEFAULT false ,
+  `site_id` INT UNSIGNED NULL DEFAULT NULL ,
+  `consent_to_draw_blood` TINYINT(1)  NOT NULL DEFAULT false ,
+  `consent_to_draw_blood_continue` TINYINT(1)  NULL DEFAULT NULL ,
+  `physical_tests_continue` TINYINT(1)  NULL DEFAULT NULL ,
   `prior_contact_date` DATE NULL DEFAULT NULL ,
+  `next_of_kin_first_name` VARCHAR(45) NULL DEFAULT NULL ,
+  `next_of_kin_last_name` VARCHAR(45) NULL DEFAULT NULL ,
+  `next_of_kin_gender` VARCHAR(45) NULL DEFAULT NULL ,
+  `next_of_kin_phone` VARCHAR(45) NULL DEFAULT NULL ,
+  `next_of_kin_street` VARCHAR(512) NULL DEFAULT NULL ,
+  `next_of_kin_city` VARCHAR(100) NULL DEFAULT NULL ,
+  `next_of_kin_province` VARCHAR(45) NULL DEFAULT NULL ,
+  `next_of_kin_postal_code` VARCHAR(45) NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `dk_active` (`active` ASC) ,
   INDEX `dk_status` (`status` ASC) ,
   INDEX `dk_prior_contact_date` (`prior_contact_date` ASC) ,
-  UNIQUE INDEX `uq_uid` (`uid` ASC) )
+  UNIQUE INDEX `uq_uid` (`uid` ASC) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
+  INDEX `fk_participant_source_id` (`source_id` ASC) ,
+  CONSTRAINT `fk_participant_site_id`
+    FOREIGN KEY (`site_id` )
+    REFERENCES `site` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_participant_source_id`
+    FOREIGN KEY (`source_id` )
+    REFERENCES `source` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
@@ -121,53 +207,6 @@ COMMENT = 'aka: qnaire_has_participant' ;
 
 
 -- -----------------------------------------------------
--- Table `region`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `region` ;
-
-CREATE  TABLE IF NOT EXISTS `region` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `update_timestamp` TIMESTAMP NOT NULL ,
-  `create_timestamp` TIMESTAMP NOT NULL ,
-  `name` VARCHAR(45) NOT NULL ,
-  `abbreviation` VARCHAR(5) NOT NULL ,
-  `country` VARCHAR(45) NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `uq_name` (`name` ASC) ,
-  UNIQUE INDEX `uq_abbreviation` (`abbreviation` ASC) )
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `site`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `site` ;
-
-CREATE  TABLE IF NOT EXISTS `site` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `update_timestamp` TIMESTAMP NOT NULL ,
-  `create_timestamp` TIMESTAMP NOT NULL ,
-  `name` VARCHAR(45) NOT NULL ,
-  `timezone` ENUM('Canada/Pacific','Canada/Mountain','Canada/Central','Canada/Eastern','Canada/Atlantic','Canada/Newfoundland') NOT NULL ,
-  `institution` VARCHAR(45) NULL ,
-  `phone_number` VARCHAR(45) NULL ,
-  `address1` VARCHAR(512) NULL ,
-  `address2` VARCHAR(512) NULL ,
-  `city` VARCHAR(100) NULL ,
-  `region_id` INT UNSIGNED NULL DEFAULT NULL ,
-  `postcode` VARCHAR(10) NULL ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `uq_name` (`name` ASC) ,
-  INDEX `fk_region_id` (`region_id` ASC) ,
-  CONSTRAINT `fk_site_region`
-    FOREIGN KEY (`region_id` )
-    REFERENCES `region` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `queue`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `queue` ;
@@ -256,6 +295,8 @@ CREATE  TABLE IF NOT EXISTS `address` (
   `city` VARCHAR(100) NOT NULL ,
   `region_id` INT UNSIGNED NOT NULL ,
   `postcode` VARCHAR(10) NOT NULL ,
+  `timezone_offset` FLOAT NOT NULL ,
+  `daylight_savings` TINYINT(1)  NOT NULL ,
   `january` TINYINT(1)  NOT NULL DEFAULT true ,
   `february` TINYINT(1)  NOT NULL DEFAULT true ,
   `march` TINYINT(1)  NOT NULL DEFAULT true ,
@@ -650,11 +691,6 @@ CREATE TABLE IF NOT EXISTS `participant_first_address` (`participant_id` INT, `a
 CREATE TABLE IF NOT EXISTS `participant_last_assignment` (`participant_id` INT, `assignment_id` INT);
 
 -- -----------------------------------------------------
--- Placeholder table for view `participant_for_queue`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `participant_for_queue` (`id` INT, `update_timestamp` INT, `create_timestamp` INT, `active` INT, `uid` INT, `first_name` INT, `last_name` INT, `status` INT, `language` INT, `prior_contact_date` INT, `city` INT, `region_id` INT, `postcode` INT, `primary_postcode` INT, `phone_number_count` INT, `last_consent` INT, `last_assignment_id` INT, `site_id` INT, `assigned` INT, `current_qnaire_id` INT, `current_qnaire_type` INT, `start_qnaire_date` INT);
-
--- -----------------------------------------------------
 -- Placeholder table for view `assignment_last_phone_call`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `assignment_last_phone_call` (`assignment_id` INT, `phone_call_id` INT);
@@ -673,6 +709,11 @@ CREATE TABLE IF NOT EXISTS `participant_primary_address` (`participant_id` INT, 
 -- Placeholder table for view `participant_last_contacted_phone_call`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `participant_last_contacted_phone_call` (`participant_id` INT, `phone_call_id` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `participant_site`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `participant_site` (`participant_id` INT, `site_id` INT);
 
 -- -----------------------------------------------------
 -- View `participant_first_address`
@@ -718,102 +759,6 @@ AND assignment_1.start_datetime = (
   WHERE interview_2.id = assignment_2.interview_id
   AND interview_1.participant_id = interview_2.participant_id
   GROUP BY interview_2.participant_id );
-
--- -----------------------------------------------------
--- View `participant_for_queue`
--- -----------------------------------------------------
-DROP VIEW IF EXISTS `participant_for_queue` ;
-DROP TABLE IF EXISTS `participant_for_queue`;
-CREATE  OR REPLACE VIEW `participant_for_queue` AS
-SELECT participant.*,
-       first_address.city,
-       first_address.region_id,
-       first_address.postcode,
-       primary_address.postcode AS primary_postcode,
-       COUNT( DISTINCT phone.id ) AS phone_number_count,
-       consent.event AS last_consent,
-       assignment.id AS last_assignment_id,
-       jurisdiction.site_id,
-       assignment.id IS NOT NULL AND assignment.end_datetime IS NULL AS assigned,
-       IF( current_interview.id IS NULL,
-           ( SELECT id FROM qnaire WHERE rank = 1 ),
-           IF( current_interview.completed, next_qnaire.id, current_qnaire.id )
-       ) AS current_qnaire_id,
-       IF( current_interview.id IS NULL,
-           ( SELECT type FROM qnaire WHERE rank = 1 ),
-           IF( current_interview.completed, next_qnaire.type, current_qnaire.type )
-       ) AS current_qnaire_type,
-       IF( current_interview.id IS NULL,
-           IF( participant.prior_contact_date IS NULL,
-               NULL,
-               participant.prior_contact_date + INTERVAL(
-                 SELECT delay FROM qnaire WHERE rank = 1
-               ) WEEK ),
-           IF( current_interview.completed,
-               IF( next_qnaire.id IS NULL,
-                   NULL,
-                   IF( next_prev_assignment.end_datetime IS NULL,
-                       participant.prior_contact_date,
-                       next_prev_assignment.end_datetime
-                   ) + INTERVAL next_qnaire.delay WEEK
-               ),
-               NULL
-           )
-       ) AS start_qnaire_date
-FROM participant
-LEFT JOIN phone
-ON phone.participant_id = participant.id
-AND phone.active
-AND phone.number IS NOT NULL
-LEFT JOIN participant_primary_address
-ON participant.id = participant_primary_address.participant_id 
-LEFT JOIN address AS primary_address
-ON participant_primary_address.address_id = primary_address.id
-LEFT JOIN jurisdiction
-ON jurisdiction.postcode = primary_address.postcode
-LEFT JOIN participant_first_address
-ON participant.id = participant_first_address.participant_id 
-LEFT JOIN address AS first_address
-ON participant_first_address.address_id = first_address.id
-LEFT JOIN participant_last_consent
-ON participant.id = participant_last_consent.participant_id 
-LEFT JOIN consent
-ON consent.id = participant_last_consent.consent_id
-LEFT JOIN participant_last_assignment
-ON participant.id = participant_last_assignment.participant_id 
-LEFT JOIN assignment
-ON participant_last_assignment.assignment_id = assignment.id
-LEFT JOIN interview AS current_interview
-ON current_interview.participant_id = participant.id
-LEFT JOIN qnaire AS current_qnaire
-ON current_qnaire.id = current_interview.qnaire_id
-LEFT JOIN qnaire AS next_qnaire
-ON next_qnaire.rank = ( current_qnaire.rank + 1 )
-LEFT JOIN qnaire AS next_prev_qnaire
-ON next_prev_qnaire.id = next_qnaire.prev_qnaire_id
-LEFT JOIN interview AS next_prev_interview
-ON next_prev_interview.qnaire_id = next_prev_qnaire.id
-AND next_prev_interview.participant_id = participant.id
-LEFT JOIN assignment next_prev_assignment
-ON next_prev_assignment.interview_id = next_prev_interview.id
-WHERE (
-  current_qnaire.rank IS NULL OR
-  current_qnaire.rank = (
-    SELECT MAX( qnaire.rank )
-    FROM interview, qnaire
-    WHERE qnaire.id = interview.qnaire_id
-    AND current_interview.participant_id = interview.participant_id
-    GROUP BY current_interview.participant_id ) )
-AND (
-  next_prev_assignment.end_datetime IS NULL OR
-  next_prev_assignment.end_datetime = (
-    SELECT MAX( assignment.end_datetime )
-    FROM interview, assignment
-    WHERE interview.qnaire_id = next_prev_qnaire.id
-    AND interview.id = assignment.interview_id
-    AND next_prev_assignment.id = assignment.id
-    GROUP BY next_prev_assignment.interview_id ) )
-GROUP BY participant.id;
 
 -- -----------------------------------------------------
 -- View `assignment_last_phone_call`
@@ -879,6 +824,21 @@ AND phone_call_1.start_datetime = (
   AND assignment_2.interview_id = interview_2.id
   AND interview_1.participant_id = interview_2.participant_id
   GROUP BY interview_2.participant_id );
+
+-- -----------------------------------------------------
+-- View `participant_site`
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `participant_site` ;
+DROP TABLE IF EXISTS `participant_site`;
+CREATE  OR REPLACE VIEW `participant_site` AS
+SELECT participant.id AS participant_id, IF( ISNULL( participant.site_id ), jurisdiction.site_id, participant.site_id ) AS site_id
+FROM participant
+LEFT JOIN participant_primary_address
+ON participant.id = participant_primary_address.participant_id
+LEFT JOIN address
+ON participant_primary_address.address_id = address.id
+LEFT JOIN jurisdiction
+ON address.postcode = jurisdiction.postcode;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

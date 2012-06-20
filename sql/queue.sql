@@ -241,6 +241,18 @@ parent_queue_id = (
 description = "Participants whose interview has not been scheduled.";
 
 INSERT INTO queue SET
+name = "assigned",
+title = "Currently Assigned",
+rank = NULL,
+qnaire_specific = true,
+parent_queue_id = (
+  SELECT id FROM(
+    SELECT id
+    FROM queue
+    WHERE name = "no appointment" ) AS tmp ),
+description = "Participants who are currently assigned to an interviewer.";
+
+INSERT INTO queue SET
 name = "new participant",
 title = "Never assigned participants",
 rank = NULL,

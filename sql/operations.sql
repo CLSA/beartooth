@@ -112,6 +112,8 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "onyx", "participants", true, "Allows Onyx to update the information of one or more participants." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "onyx", "consent", true, "Allows Onyx to update the consent details of one or more participants." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "onyx", "proxy", true, "Allows Onyx to update the proxy details of one or more participants." );
 
 -- onyx_instance
 INSERT INTO operation( type, subject, name, restricted, description )

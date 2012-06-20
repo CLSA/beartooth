@@ -37,7 +37,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     if( $interval == 'M' )
     {
       $timeStamp = mktime( 0, 0, 0, date( 'm' ), 1, date( 'Y' ) );
-      $firstDay = date( 'Y:m:d H:i:s', $timeStamp );
+      $firstDay = date( 'Y-m-d H:i:s', $timeStamp );
       $this->start_datetime = new \DateTime( $firstDay );
       $this->end_datetime = clone $this->start_datetime;
       $this->end_datetime->add( new \DateInterval( 'P1M' ) );
@@ -45,7 +45,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     else if( $interval == 'W' )
     {
       $timeStamp = mktime( 1, 0, 0, date( 'm' ), date( 'd' ) - date( 'w' ), date( 'Y' ) );
-      $firstDay = date( 'Y:m:d', $timeStamp ) . ' 00:00:00';
+      $firstDay = date( 'Y-m-d', $timeStamp ) . ' 00:00:00';
       $this->start_datetime = new \DateTime( $firstDay );
       $this->end_datetime = clone $this->start_datetime;
       $this->end_datetime->add( new \DateInterval( 'P1W' ) );
@@ -87,19 +87,16 @@ class appointment_list extends \cenozo\ui\pull\base_list
     $modifier->where( 'datetime', '<', $this->end_datetime->format( 'Y-m-d H:i:s' ) );
 
     // determine whether this is a site instance of onyx or an interviewer's laptop
-    $appointment_list = NULL;
     if( is_null( $db_onyx->interviewer_user_id ) )
-    {
-      $appointment_list =
-        $appointment_class_name::select_for_site( $db_onyx->get_site(), $modifier );
+    { // restrict by site
+      $modifier->where( 'participant_site.site_id', '=', $db_onyx->get_site()->id );
     }
     else
-    {
-      // restrict the the onyx instance's interviewer
+    { // restrict the the onyx instance's interviewer
       $modifier->where( 'appointment.user_id', '=', $db_onyx->interviewer_user_id );
-      $appointment_list = $appointment_class_name::select( $modifier );
     }
 
+    $appointment_list = $appointment_class_name::select( $modifier );
     if( is_null( $appointment_list ) )
       throw lib::create( 'exception\runtime', 
         'Cannot get an appointment list for onyx', __METHOD__ );
@@ -124,7 +121,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
 
       $db_address = $db_participant->get_primary_address();
 
-      $event_list[] = array(
+      $event = array(
         'uid'        => $db_participant->uid,
         'first_name' => $db_participant->first_name,
         'last_name'  => $db_participant->last_name,
@@ -140,9 +137,28 @@ class appointment_list extends \cenozo\ui\pull\base_list
         'province'  => is_null( $db_address ) ? 'NA' : $db_address->get_region()->name,
         'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode );
 
-      // include consent to draw blood if this is a site appointment
-      if( is_null( $db_onyx->interviewer_user_id ) )
-        $event_list['consent_to_draw_blood'] = $db_participant->consent_to_draw_blood;
+      if( !is_null( $db_participant->next_of_kin_first_name ) )
+        $event['nextOfKin.firstName'] = $db_participant->next_of_kin_first_name;
+      if( !is_null( $db_participant->next_of_kin_last_name ) )
+        $event['nextOfKin.lastName'] = $db_participant->next_of_kin_last_name;
+      if( !is_null( $db_participant->next_of_kin_gender ) )
+        $event['nextOfKin.gender'] = $db_participant->next_of_kin_gender;
+      if( !is_null( $db_participant->next_of_kin_phone ) )
+        $event['nextOfKin.phone'] = $db_participant->next_of_kin_phone;
+      if( !is_null( $db_participant->next_of_kin_street ) )
+        $event['nextOfKin.street'] = $db_participant->next_of_kin_street;
+      if( !is_null( $db_participant->next_of_kin_city ) )
+        $event['nextOfKin.city'] = $db_participant->next_of_kin_city;
+      if( !is_null( $db_participant->next_of_kin_province ) )
+        $event['nextOfKin.province'] = $db_participant->next_of_kin_province;
+      if( !is_null( $db_participant->next_of_kin_postal_code ) )
+        $event['nextOfKin.postalCode'] = $db_participant->next_of_kin_postal_code;
+
+      // include consent to draw blood if this is a site appointment (value is a string: YES or NO)
+      if( is_null( $db_onyx->interviewer_user_id ) && $db_participant->consent_to_draw_blood )
+        $event['consent_to_draw_blood'] = (bool) $db_participant->consent_to_draw_blood;
+
+      $event_list[] = $event;
     }
 
     return $event_list;

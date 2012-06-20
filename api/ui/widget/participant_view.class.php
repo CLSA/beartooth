@@ -32,10 +32,13 @@ class participant_view extends \cenozo\ui\widget\base_view
     // create an associative array with everything we want to display about the participant
     $this->add_item( 'active', 'boolean', 'Active' );
     $this->add_item( 'uid', 'constant', 'Unique ID' );
+    $this->add_item( 'source_id', 'enum', 'Source' );
     $this->add_item( 'first_name', 'string', 'First Name' );
     $this->add_item( 'last_name', 'string', 'Last Name' );
     $this->add_item( 'language', 'enum', 'Preferred Language' );
     $this->add_item( 'status', 'enum', 'Condition' );
+    $this->add_item( 'default_site', 'constant', 'Default Site' );
+    $this->add_item( 'site_id', 'enum', 'Prefered Site' );
     $this->add_item( 'consent_to_draw_blood', 'boolean', 'Consent to Draw Blood' );
     $this->add_item( 'prior_contact_date', 'constant', 'Prior Contact Date' );
     $this->add_item( 'current_qnaire_name', 'constant', 'Current Questionnaire' );
@@ -124,31 +127,49 @@ class participant_view extends \cenozo\ui\widget\base_view
   {
     parent::finish();
     
-    // set whether or not to show the assign now button
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $source_class_name = lib::get_class_name( 'database\source' );
+    $site_class_name = lib::get_class_name( 'database\site' );
+
+    // add the assign now button, if appropriate
     $session = lib::create( 'business\session' );
-    $allow_assign = 'interviewer' != $session->get_role()->name &&
-                    'site' == $this->get_record()->current_qnaire_type &&
-                    is_null( $session->get_current_assignment() );
-    if( !is_null( $this->get_record()->status ) )
-    {
-      $allow_assign = false;
-    }
-    else
-    {
+    $allow_assign =
+      // if the user is not an interviewer
+      'interviewer' != $session->get_role()->name &&
+      // the participant is ready for a site qnaire
+      'site' == $this->get_record()->current_qnaire_type &&
+      // the participant isn't already in an assignment
+      is_null( $session->get_current_assignment() ) &&
+      // the participant does not have a permanent status
+      is_null( $this->get_record()->status );
+
+    if( $allow_assign )
+    { // make sure the participant is eligible
       $queue_class_name = lib::get_class_name( 'database\queue' );
       $db_queue = $queue_class_name::get_unique_record( 'name', 'eligible' );
       $queue_mod = lib::create( 'database\modifier' );
       $queue_mod->where( 'participant.id', '=', $this->get_record()->id );
       $allow_assign = $allow_assign && 1 == $db_queue->get_participant_count( $queue_mod );
+      $this->add_action( 'assign', 'Assign Now', NULL,
+        'Start an assignment with this participant in order to make a site appointment' );
     }
 
     $this->set_variable( 'allow_assign', $allow_assign );
 
     // create enum arrays
-    $class_name = lib::get_class_name( 'database\participant' );
-    $languages = $class_name::get_enum_values( 'language' );
+    $sources = array();
+    foreach( $source_class_name::select() as $db_source )
+      $sources[$db_source->id] = $db_source->name;
+    $sites = array();
+    $site_mod = lib::create( 'database\modifier' );
+    $site_mod->order( 'name' );
+    foreach( $site_class_name::select( $site_mod ) as $db_site )
+      $sites[$db_site->id] = $db_site->name;
+    $db_site = $this->get_record()->get_site();
+    $site_id = is_null( $db_site ) ? '' : $db_site->id;
+    $languages = $participant_class_name::get_enum_values( 'language' );
     $languages = array_combine( $languages, $languages );
-    $statuses = $class_name::get_enum_values( 'status' );
+    $statuses = $participant_class_name::get_enum_values( 'status' );
     $statuses = array_combine( $statuses, $statuses );
     
     $start_qnaire_date = $this->get_record()->start_qnaire_date;
@@ -169,10 +190,13 @@ class participant_view extends \cenozo\ui\widget\base_view
     // set the view's items
     $this->set_item( 'active', $this->get_record()->active, true );
     $this->set_item( 'uid', $this->get_record()->uid );
+    $this->set_item( 'source_id', $this->get_record()->source_id, false, $sources );
     $this->set_item( 'first_name', $this->get_record()->first_name );
     $this->set_item( 'last_name', $this->get_record()->last_name );
     $this->set_item( 'language', $this->get_record()->language, false, $languages );
     $this->set_item( 'status', $this->get_record()->status, false, $statuses );
+    $this->set_item( 'default_site', $this->get_record()->get_default_site()->name );
+    $this->set_item( 'site_id', $site_id, false, $sites );
     $this->set_item( 'consent_to_draw_blood', $this->get_record()->consent_to_draw_blood );
     $this->set_item( 'prior_contact_date', $this->get_record()->prior_contact_date );
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
@@ -230,8 +254,8 @@ class participant_view extends \cenozo\ui\widget\base_view
   {
     if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'participant_id', '=', $this->get_record()->id );
-    $class_name = lib::get_class_name( 'database\interview' );
-    return $class_name::count( $modifier );
+    $interview_class_name = lib::get_class_name( 'database\interview' );
+    return $interview_class_name::count( $modifier );
   }
 
   /**
@@ -246,8 +270,8 @@ class participant_view extends \cenozo\ui\widget\base_view
   {
     if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'participant_id', '=', $this->get_record()->id );
-    $class_name = lib::get_class_name( 'database\interview' );
-    return $class_name::select( $modifier );
+    $interview_class_name = lib::get_class_name( 'database\interview' );
+    return $interview_class_name::select( $modifier );
   }
 
   /**

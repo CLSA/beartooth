@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class participant_list extends \cenozo\ui\widget\site_restricted_list
+class participant_list extends site_restricted_list
 {
   /**
    * Constructor
@@ -30,9 +30,12 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     parent::__construct( 'participant', $args );
 
     $this->add_column( 'uid', 'string', 'Unique ID', true );
+    $this->add_column( 'source.name', 'string', 'Source', true );
     $this->add_column( 'first_name', 'string', 'First Name', true );
     $this->add_column( 'last_name', 'string', 'Last Name', true );
     $this->add_column( 'status', 'string', 'Condition', true );
+
+    $this->extended_site_selection = true;
   }
   
   /**
@@ -47,14 +50,23 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
 
     foreach( $this->get_record_list() as $record )
     {
+      $db_source = $record->get_source();
+      $source_name = is_null( $db_source ) ? '(none)' : $db_source->name;
       $this->add_row( $record->id,
         array( 'uid' => $record->uid ? $record->uid : '(none)',
+               'source.name' => $source_name,
                'first_name' => $record->first_name,
                'last_name' => $record->last_name,
                'status' => $record->status ? $record->status : '(none)',
                // note count isn't a column, it's used for the note button
                'note_count' => $record->get_note_count() ) );
     }
+
+    $operation_class_name = lib::get_class_name( 'database\operation' );
+    $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'sync' );
+    if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+      $this->add_action( 'sync', 'Participant Sync', $db_operation,
+        'Synchronize participants with Mastodon' );
 
     $this->finish_setting_rows();
   }
@@ -76,12 +88,9 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     { // restrict interview lists to those they have appointments with
       if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'appointment.user_id', '=', $session->get_user()->id );
-      $this->db_restrict_site = NULL;
     }
 
-    return is_null( $this->db_restrict_site )
-         ? parent::determine_record_count( $modifier )
-         : $participant_class_name::count_for_site( $this->db_restrict_site, $modifier );
+    return parent::determine_record_count( $modifier );
   }
   
   /**
@@ -102,12 +111,9 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
       if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'appointment.completed', '=', false );
       $modifier->where( 'appointment.user_id', '=', $session->get_user()->id );
-      $this->db_restrict_site = NULL;
     }
 
-    return is_null( $this->db_restrict_site )
-         ? parent::determine_record_list( $modifier )
-         : $participant_class_name::select_for_site( $this->db_restrict_site, $modifier );
+    return parent::determine_record_list( $modifier );
   }
 }
 ?>

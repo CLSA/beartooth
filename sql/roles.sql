@@ -571,14 +571,14 @@ SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
       type = "widget" AND subject = "setting" AND name = "list" );
 
 -- calendars
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "widget" AND subject = "site" AND name = "calendar" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "pull" AND subject = "site" AND name = "feed" );
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "widget" AND subject = "home_appointment" AND name = "calendar" );
+INSERT INTO role_has_operation
+SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
+    operation_id = ( SELECT id FROM operation WHERE
+      type = "pull" AND subject = "home_appointment" AND name = "feed" );
 INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
     operation_id = ( SELECT id FROM operation WHERE

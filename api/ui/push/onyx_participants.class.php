@@ -42,7 +42,12 @@ class onyx_participants extends \cenozo\ui\push
     $interview_class_name = lib::create( 'database\interview' );
 
     // get the body of the request
-    $data = json_decode( http_get_request_body() );
+    $body = http_get_request_body();
+    $data = util::json_decode( $body );
+
+    if( !is_object( $data ) )
+      throw lib::create( 'exception\runtime',
+        'Unable to decode request body, received: '.print_r( $body, true ), __METHOD__ );
 
     // loop through the participants array
     foreach( $data->Participants as $participant_list )
@@ -121,8 +126,107 @@ class onyx_participants extends \cenozo\ui\push
         else if( preg_match( '/home/i', $participant_data->$method ) ) $interview_type = 'home';
         else $interview_type = false;
 
-        // now update the participant, interview and pass data to mastodon
+        $method = 'Admin.Participant.nextOfKin.firstName';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_first_name ) )
+          {
+            $db_participant->next_of_kin_first_name = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.lastName';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_last_name ) )
+          {
+            $db_participant->next_of_kin_last_name = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.gender';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_gender ) )
+          {
+            $db_participant->next_of_kin_gender = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.phone';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_phone ) )
+          {
+            $db_participant->next_of_kin_phone = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.street';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_street ) )
+          {
+            $db_participant->next_of_kin_street = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.city';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_city ) )
+          {
+            $db_participant->next_of_kin_city = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.province';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_province ) )
+          {
+            $db_participant->next_of_kin_province = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.nextOfKin.postalCode';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_postal_code ) )
+          {
+            $db_participant->next_of_kin_postal_code = $value;
+            $participant_changed = true;
+          }
+        }
+
+        // now update the participant, appointment andinterview, then pass data to mastodon
         if( $participant_changed ) $db_participant->save();
+
+        // complete all appointments in the past
+        $appointment_mod = lib::create( 'database\modifier' );
+        $appointment_mod->where( 'completed', '=', false );
+        if( 'home' == $interview_type ) $appointment_mod->where( 'address_id', '!=', NULL );
+        else if( 'site' == $interview_type ) $appointment_mod->where( 'address_id', '=', NULL );
+        foreach( $db_participant->get_appointment_list( $appointment_mod ) as $db_appointment )
+        {
+          $db_appointment->completed = true;
+          $db_appointment->save();
+        }
         
         if( 'completed' == $interview_status )
         {

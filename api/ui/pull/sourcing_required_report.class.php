@@ -31,15 +31,10 @@ class sourcing_required_report extends \cenozo\ui\pull\base_report
 
   public function finish()
   {
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+
     // get the report args
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
-    $class_name = lib::get_class_name( 'database\participant' );
-    if( $restrict_site_id )
-    {
-      $db_site = lib::create( 'database\site', $restrict_site_id );
-      $participant_list = $class_name::select_for_site( $db_site );                      
-    }
-    else $participant_list = $class_name::select();
 
     $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     $this->add_title( sprintf( 'Participants requiring sourcing for the '.
@@ -47,7 +42,10 @@ class sourcing_required_report extends \cenozo\ui\pull\base_report
 
     $contents = array();
     // loop through participants searching for those who have completed their most recent interview
-    foreach( $participant_list as $db_participant )
+    $participant_mod = lib::create( 'database\participant' );
+    if( $restrict_site_id )
+      $participant_mod->where( 'participant_site.site_id', '=', $restrict_site_id );
+    foreach( $participant_class_name::select( $participant_mod ) as $db_participant )
     {
       // dont bother with deceased or otherwise impaired
       if( !is_null( $db_participant->status ) ) continue;
@@ -88,7 +86,7 @@ class sourcing_required_report extends \cenozo\ui\pull\base_report
           $done = true;
         }
         else if( !is_null( $db_recent_failed_call ) )
-        {              
+        {
           if( 'disconnected' == $db_recent_failed_call->status ||
               'wrong number' == $db_recent_failed_call->status )
           {
@@ -100,11 +98,11 @@ class sourcing_required_report extends \cenozo\ui\pull\base_report
         {
           $db_address = $db_participant->get_primary_address();
           $db_region = $db_address->get_region();
-        
+
           $date_completed = 'NA';
           if( !is_null( $db_recent_failed_call ) )
           {
-            $date_completed = substr( $db_recent_failed_call->start_datetime, 0, 
+            $date_completed = substr( $db_recent_failed_call->start_datetime, 0,
               strpos( $db_recent_failed_call->start_datetime, ' ' ) );
           }
 
@@ -119,8 +117,8 @@ class sourcing_required_report extends \cenozo\ui\pull\base_report
             $db_address->postcode,
             $date_completed );
         }
-      } // end non-null incomplete interview  
-    } // end loop on participants 
+      } // end non-null incomplete interview
+    } // end loop on participants
 
     // TODO we need two alternate contacts added to the report fields
     // but this functionality will have to come from mastodon manager
@@ -134,7 +132,7 @@ class sourcing_required_report extends \cenozo\ui\pull\base_report
       "Country",
       "Postcode",
       "Date Completed" );
-  
+
     $this->add_table( NULL, $header, $contents, NULL );
 
     return parent::finish();

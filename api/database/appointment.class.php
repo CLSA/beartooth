@@ -60,6 +60,26 @@ class appointment extends \cenozo\database\record
   }
   
   /**
+   * Extend the select() method by adding a custom join to the participant_site table.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\modifier $modifier Modifications to the selection.
+   * @param boolean $count If true the total number of records instead of a list
+   * @return array( record ) | int
+   * @static
+   * @access public
+   */
+  public static function select( $modifier = NULL, $count = false )
+  {
+    $participant_site_mod = lib::create( 'database\modifier' );
+    $participant_site_mod->where( 'appointment.address_id', '=', NULL );
+    $participant_site_mod->where(
+      'appointment.participant_id', '=', 'participant_site.participant_id', false );
+    static::customize_join( 'participant_site', $participant_site_mod );
+
+    return parent::select( $modifier, $count );
+  }
+
+  /**
    * Determines whether there are open slots available during this appointment's date/time.
    * The result will depend on whether the appointment has an address or not.  If not then
    * it is considered to be a site interview (and so it refers to openings to the site
@@ -91,13 +111,19 @@ class appointment extends \cenozo\database\record
     return true;
 
     $db_participant = lib::create( 'database\participant', $this->participant_id );
+    $db_site = $db_participant->get_primary_site();
+    if( is_null( $db_site ) )
+      throw lib::create( 'exception\runtime',
+        'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
+
     $home = (bool) $this->address_id;
 
     // determine the appointment interval
     $interval = sprintf( 'PT%dM',
                          lib::create( 'business\setting_manager' )->get_setting(
                            'appointment',
-                           $home ? 'home duration' : 'site duration' ) );
+                           $home ? 'home duration' : 'site duration',
+                           $db_site ) );
 
     $start_datetime_obj = util::get_datetime_object( $this->datetime );
     $end_datetime_obj = clone $start_datetime_obj;
@@ -106,25 +132,21 @@ class appointment extends \cenozo\database\record
     $diffs = array();
     
     // and how many appointments are during this time?
-    $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
-    if( !is_null( $this->id ) ) $modifier->where( 'appointment.id', '!=', $this->id );
+    $appointment_mod = lib::create( 'database\modifier' );
+    $appointment_mod->where( 'DATE( datetime )', '=', $start_datetime_obj->format( 'Y-m-d' ) );
+    if( !is_null( $this->id ) ) $appointment_mod->where( 'appointment.id', '!=', $this->id );
     
-    $db_site = NULL;
-    $db_user = NULL;
     if( !$home )
     {
-      $db_site = $db_participant->get_primary_site();
-      if( is_null( $db_site ) )
-        throw lib::create( 'exception\runtime',
-          'Cannot validate an appointment date, participant has no primary address.', __METHOD__ );
+      // link to the participant's site id
+      $appointment_mod->where( 'participant_site.site_id', '=', $db_site->id );
 
       // determine site slots using shift template
-      $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'site_id', '=', $db_site->id );
-      $modifier->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
-      $class_name = lib::get_class_name( 'database\shift_template' );
-      foreach( $class_name::select( $modifier ) as $db_shift_template )
+      $shift_template_mod = lib::create( 'database\modifier' );
+      $shift_template_mod->where( 'site_id', '=', $db_site->id );
+      $shift_template_mod->where( 'start_date', '<=', $start_datetime_obj->format( 'Y-m-d' ) );
+      $shift_template_class_name = lib::get_class_name( 'database\shift_template' );
+      foreach( $shift_template_class_name::select( $shift_template_mod ) as $db_shift_template )
       {
         if( $db_shift_template->match_date( $start_datetime_obj->format( 'Y-m-d' ) ) )
         {
@@ -145,14 +167,11 @@ class appointment extends \cenozo\database\record
     // home appointments, restrict to the current user
     else
     {
-      $modifier->where(
+      $appointment_mod->where(
         'appointment.user_id', '=', lib::create( 'business\session' )->get_user()->id );
     }
 
-    $appointment_list = $home
-                      ? static::select( $modifier )
-                      : static::select_for_site( $db_site, $modifier );
-
+    $appointment_list = static::select( $appointment_mod );
     foreach( $appointment_list as $db_appointment )
     {
       if( !$db_appointment->completed )
@@ -211,62 +230,6 @@ class appointment extends \cenozo\database\record
     }
     
     return true;
-  }
-
-  /**
-   * Identical to the parent's select method but restrict to a particular site.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param site $db_site The site to restrict the selection to.
-   * @param modifier $modifier Modifications to the selection.
-   * @param boolean $count If true the total number of records instead of a list
-   * @return array( record ) | int
-   * @static
-   * @access public
-   */
-  public static function select_for_site( $db_site, $modifier = NULL, $count = false )
-  {
-    // if there is no site restriction then just use the parent method
-    if( is_null( $db_site ) ) return parent::select( $modifier, $count );
-    // straight join the tables
-    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-    $modifier->where(
-      'appointment.participant_id', '=', 'participant_primary_address.participant_id', false );
-    $modifier->where( 'participant_primary_address.address_id', '=', 'address.id', false );
-    $modifier->where( 'address.postcode', '=', 'jurisdiction.postcode', false );
-    $modifier->where( 'appointment.address_id', '=', NULL );
-    $modifier->where( 'jurisdiction.site_id', '=', $db_site->id );
-    $sql = sprintf(
-      ( $count ? 'SELECT COUNT(*) ' : 'SELECT appointment.id ' ).
-      'FROM appointment, participant_primary_address, address, jurisdiction %s',
-      $modifier->get_sql() );
-
-    if( $count )
-    {
-      return intval( static::db()->get_one( $sql ) );
-    }
-    else
-    {
-      $id_list = static::db()->get_col( $sql );
-      $records = array();
-      foreach( $id_list as $id ) $records[] = new static( $id );
-      return $records;
-    }
-  }
-
-  /**
-   * Identical to the parent's count method but restrict to a particular site.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param site $db_site The site to restrict the count to.
-   * @param modifier $modifier Modifications to the count.
-   * @return int
-   * @static
-   * @access public
-   */
-  public static function count_for_site( $db_site, $modifier = NULL )
-  {
-    return static::select_for_site( $db_site, $modifier, true );
   }
 
   /**

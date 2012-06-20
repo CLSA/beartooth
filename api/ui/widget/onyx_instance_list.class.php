@@ -15,7 +15,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * 
  * @package beartooth\ui
  */
-class onyx_instance_list extends \cenozo\ui\widget\site_restricted_list
+class onyx_instance_list extends site_restricted_list
 {
   /**
    * Constructor

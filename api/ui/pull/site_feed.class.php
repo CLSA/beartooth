@@ -39,6 +39,8 @@ class site_feed extends \cenozo\ui\pull\base_feed
    */
   public function finish()
   {
+    $shift_template_class_name = lib::get_class_name( 'database\shift_template' );
+    $appointment_class_name = lib::get_class_name( 'database\appointment' );
     $db_site = lib::create( 'business\session' )->get_site();
 
     // determine the appointment interval
@@ -65,8 +67,7 @@ class site_feed extends \cenozo\ui\pull\base_feed
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'site_id', '=', $db_site->id );
     $modifier->where( 'start_date', '<=', $this->end_datetime );
-    $class_name = lib::get_class_name( 'database\shift_template' );
-    foreach( $class_name::select( $modifier ) as $db_shift_template )
+    foreach( $shift_template_class_name::select( $modifier ) as $db_shift_template )
     {
       foreach( $days as $date => $day )
       {
@@ -96,12 +97,12 @@ class site_feed extends \cenozo\ui\pull\base_feed
 
     // fill in the appointments which have not been complete
     $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'participant_site.site_id', '=', $db_site->id );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
     $modifier->where( 'appointment.address_id', '=', NULL );
     $modifier->order( 'datetime' );
-    $class_name = lib::get_class_name( 'database\appointment' );
-    foreach( $class_name::select_for_site( $db_site, $modifier ) as $db_appointment )
+    foreach( $appointment_class_name::select( $modifier ) as $db_appointment )
     {
       if( !$db_appointment->completed )
       { // incomplete appointments only

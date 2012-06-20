@@ -39,7 +39,12 @@ class onyx_consent extends \cenozo\ui\push
     $participant_class_name = lib::create( 'database\participant' );
 
     // get the body of the request
-    $data = json_decode( http_get_request_body() );
+    $body = http_get_request_body();
+    $data = util::json_decode( $body );
+
+    if( !is_object( $data ) )
+      throw lib::create( 'exception\runtime',
+        'Unable to decode request body, received: '.print_r( $body, true ), __METHOD__ );
 
     // loop through the consent array
     foreach( $data->Consent as $consent_list )
@@ -60,10 +65,27 @@ class onyx_consent extends \cenozo\ui\push
         else if( 'RETRACT' == $consent_data->ConclusiveStatus ) $event = 'retract';
         else $event = 'withdraw';
 
-        if( !array_key_exists( 'timeEnd', $object_vars ) )
-          throw lib::create( 'exception\argument',
-            'timeEnd', NULL, __METHOD__ );
-        $date = util::get_datetime_object( $consent_data->timeEnd )->format( 'Y-m-d' );
+        // try timeEnd, if null then try timeStart
+        $var_name = 'timeEnd';
+        if( !array_key_exists( $var_name, $object_vars ) ||
+            0 == strlen( $consent_data->$var_name ) )
+        {
+          $var_name = 'timeStart';
+          if( !array_key_exists( $var_name, $object_vars ) ||
+              0 == strlen( $consent_data->$var_name ) )
+            throw lib::create( 'exception\argument',
+              $var_name, NULL, __METHOD__ );
+        
+        }
+        $date = util::get_datetime_object( $consent_data->$var_name )->format( 'Y-m-d' );
+
+        // update the draw blood consent if it is provided
+        if( array_key_exists( 'PCF_CSTSAMP_COM', $object_vars ) )
+        {
+          $db_participant->consent_to_draw_blood =
+            1 == preg_match( '/y|yes|true|1/i', $consent_data->PCF_CSTSAMP_COM ) ? 'YES' : 'NO';
+          $db_participant->save();
+        }
 
         // see if this form already exists
         $consent_mod = lib::create( 'database\modifier' );

@@ -45,37 +45,7 @@
     
         if( ajax_push( "{{ widget.subject }}", "new", args ) ) slot_prev( {{ slot }} );
       } );
-    } );
-  </script>
 
-{% endblock javascript %}
-
-{# Uncomment once there is a need to force appointments
-{% block record_items %}
-  {{ parent() }}
-  {% if is_mid_tier %}
-    <hr class="ui-widget ui-widget-content">
-    <table>
-      <tr id="{{widget.full }}__force_row">
-        <td class="heading">Force appointment:</td>
-        <td class="content">
-          <input id="{{ widget.full }}__force" type="checkbox" />
-        </td>  
-      </tr>
-    </table>
-  {% endif %}  
-{% endblock record_items %}
-#}
-
-{% block record %}
-  
-  {{ parent() }}
-  {% from 'macros.twig' import include_calendar %}
-  {{ include_calendar( 'site_appointment', site_appointment_calendar|default(false), true ) }}
-  {{ include_calendar( 'home_appointment', home_appointment_calendar|default(false), true ) }}
-
-  <script type="text/javascript">
-    $( function () {
       {% if 'home' == current_qnaire_type %}
         // select the first address instead of site if a home appointment is expected
         $( "#{{ widget.full }}__address_id" ).attr( 'selectedIndex', 1 );
@@ -87,4 +57,14 @@
       {% endif %}
     } );
   </script>
+
+{% endblock javascript %}
+
+{% block record %}
+  
+  {{ parent() }}
+  {% from 'macros.twig' import include_calendar %}
+  {{ include_calendar( 'site_appointment', site_appointment_calendar|default(false), true ) }}
+  {{ include_calendar( 'home_appointment', home_appointment_calendar|default(false), true ) }}
+
 {% endblock record %}
