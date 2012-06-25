@@ -29,9 +29,7 @@ class base_add_access extends \cenozo\ui\widget\base_add_access
   {
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'name', '!=', 'onyx' );
-    $modifier->where( 'tier', '<=', lib::create( 'business\session' )->get_role()->tier );
-    $class_name = lib::get_class_name( 'database\role' );
-    return $class_name::count( $modifier );
+    return parent::determine_role_count( $modifier );
   }
 
   /**
@@ -46,9 +44,7 @@ class base_add_access extends \cenozo\ui\widget\base_add_access
   {
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'name', '!=', 'onyx' );
-    $modifier->where( 'tier', '<=', lib::create( 'business\session' )->get_role()->tier );
-    $class_name = lib::get_class_name( 'database\role' );
-    return $class_name::select( $modifier );
+    return parent::determine_role_list( $modifier );
   }
 }
 ?>
