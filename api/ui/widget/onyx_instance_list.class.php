@@ -44,6 +44,8 @@ class onyx_instance_list extends site_restricted_list
     $this->add_column( 'user.name', 'string', 'Name', false );
     $this->add_column( 'site.name', 'string', 'Site', true );
     $this->add_column( 'instance', 'string', 'Instance', false );
+    $this->add_column( 'active', 'boolean', 'Active', true );
+    $this->add_column( 'last_activity', 'fuzzy', 'Last activity', false );
   }
   
   /**
@@ -58,16 +60,24 @@ class onyx_instance_list extends site_restricted_list
     
     foreach( $this->get_record_list() as $record )
     {
+      $db_user = $record->get_user();
+
       $db_interviewer_user = $record->get_interviewer_user();
       $instance = is_null( $db_interviewer_user )
                         ? 'site'
                         : $db_interviewer_user->name;
 
+      // determine the last activity
+      $db_activity = $db_user->get_last_activity();
+      $last = is_null( $db_activity ) ? null : $db_activity->datetime;
+
       // assemble the row for this record
       $this->add_row( $record->id,
-        array( 'user.name' => $record->get_user()->name,
+        array( 'user.name' => $db_user->name,
                'site.name' => $record->get_site()->name,
-               'instance' => $instance ) );
+               'instance' => $instance,
+               'active' => $db_user->active,
+               'last_activity' => $last ) );
     }
   }
 
