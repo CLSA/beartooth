@@ -11,7 +11,6 @@
 
   {{ parent() }}
   {% from 'macros.twig' import confirm_buttons, include_list %}
-  {{ include_list( 'access', access_list|default(false), true ) }}
   {{ include_list( 'activity', activity_list|default(false), true ) }}
   {{ confirm_buttons( slot, widget.full, '', 'Back', 'right', true ) }}
 

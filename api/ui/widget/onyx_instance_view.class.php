@@ -48,11 +48,6 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'active', 'boolean', 'Active' );
     $this->add_item( 'last_activity', 'constant', 'Last activity' );
 
-    // create the access sub-list widget
-    $this->access_list = lib::create( 'ui\widget\access_list', $this->arguments );
-    $this->access_list->set_parent( $this );
-    $this->access_list->set_heading( 'Onyx instance\'s site access list' );
-
     // create the activity sub-list widget
     $this->activity_list = lib::create( 'ui\widget\activity_list', $this->arguments );
     $this->activity_list->set_parent( $this );
@@ -95,43 +90,10 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
 
     try
     {
-      $this->access_list->process();
-      $this->set_variable( 'access_list', $this->access_list->get_variables() );
-    }
-    catch( \cenozo\exception\permission $e ) {}
-
-    try
-    {
       $this->activity_list->process();
       $this->set_variable( 'activity_list', $this->activity_list->get_variables() );
     }
     catch( \cenozo\exception\permission $e ) {}
-  }
-
-  /**
-   * Overrides the access list widget's list to get records from instance's user
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param database\modifier $modifier Modifications to the list.
-   * @return int
-   * @access protected
-   */
-  public function determine_access_count( $modifier = NULL )
-  {
-    return $this->get_record()->get_user()->get_access_count( $modifier );
-  }
-
-  /**
-   * Overrides the access list widget's method to only include this queue's access.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param database\modifier $modifier Modifications to the list.
-   * @return array( record )
-   * @access protected
-   */
-  public function determine_access_list( $modifier = NULL )
-  {
-    return $this->get_record()->get_user()->get_access_list( $modifier );
   }
 
   /**
@@ -159,13 +121,6 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
   {
     return $this->get_record()->get_user()->get_activity_list( $modifier );
   }
-
-  /** 
-   * The access list widget.
-   * @var access_list
-   * @access protected
-   */
-  protected $access_list = NULL;
 
   /** 
    * The activity list widget.
