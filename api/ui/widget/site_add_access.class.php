@@ -1,6 +1,6 @@
 <?php
 /**
- * user_add_access.class.php
+ * site_add_access.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @package beartooth\ui
@@ -11,11 +11,11 @@ namespace beartooth\ui\widget;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * widget user add_access
+ * widget site add_access
  * 
  * @package beartooth\ui
  */
-class user_add_access extends base_add_access
+class site_add_access extends base_add_access
 {
   /** 
    * Constructor
@@ -28,7 +28,7 @@ class user_add_access extends base_add_access
    */
   public function __construct( $args )
   {
-    parent::__construct( 'user', $args );
+    parent::__construct( 'site', $args );
   }
 }
 ?>
