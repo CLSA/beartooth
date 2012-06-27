@@ -74,8 +74,8 @@ class queue extends \cenozo\database\record
       'new participant',
       'new participant outside calling time',
       'new participant within calling time',
-      'new participant always available',
       'new participant available',
+      'new participant always available',
       'new participant not available',
       'old participant' ) );
      
@@ -117,9 +117,9 @@ class queue extends \cenozo\database\record
           'phone call status ready',
           'phone call status outside calling time',
           'phone call status within calling time',
+          'phone call status available',
           'phone call status always available',
-          'phone call status not available',
-          'phone call status available' );
+          'phone call status not available' );
 
         foreach( $queue_list as $queue )
         {
@@ -736,18 +736,18 @@ class queue extends \cenozo\database\record
                         : 'true'; // purposefully a tautology
       return $parts;
     }
-    else if( 'new participant always available' == $queue )
-    {
-      $parts = self::get_query_parts( 'new participant within calling time' );
-      // the participant hasn't specified any availability
-      $parts['where'][] = $check_availability_sql.' IS NULL';
-      return $parts;
-    }
     else if( 'new participant available' == $queue )
     {
       $parts = self::get_query_parts( 'new participant within calling time' );
       // the participant has availability and is currently available
       $parts['where'][] = $check_availability_sql.' = true';
+      return $parts;
+    }
+    else if( 'new participant always available' == $queue )
+    {
+      $parts = self::get_query_parts( 'new participant within calling time' );
+      // the participant hasn't specified any availability
+      $parts['where'][] = $check_availability_sql.' IS NULL';
       return $parts;
     }
     else if( 'new participant not available' == $queue )
@@ -825,6 +825,14 @@ class queue extends \cenozo\database\record
                           : 'true'; // purposefully a tautology
         return $parts;
       }
+      else if( 'phone call status available' == $queue )
+      {
+        $parts = self::get_query_parts(
+          'phone call status within calling time', $phone_call_status );
+        // the participant has availability and is currently available
+        $parts['where'][] = $check_availability_sql.' = true';
+        return $parts;
+      }
       else if( 'phone call status always available' == $queue )
       {
         $parts = self::get_query_parts(
@@ -839,14 +847,6 @@ class queue extends \cenozo\database\record
           'phone call status within calling time', $phone_call_status );
         // the participant has availability and is currently not available
         $parts['where'][] = $check_availability_sql.' = false';
-        return $parts;
-      }
-      else if( 'phone call status available' == $queue )
-      {
-        $parts = self::get_query_parts(
-          'phone call status within calling time', $phone_call_status );
-        // the participant has availability and is currently available
-        $parts['where'][] = $check_availability_sql.' = true';
         return $parts;
       }
       else // invalid queue name
