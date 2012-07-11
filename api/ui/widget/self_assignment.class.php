@@ -137,6 +137,8 @@ class self_assignment extends \cenozo\ui\widget
     $this->set_variable( 'participant_uid', $db_participant->uid );
     $this->set_variable( 'participant_language', $language );
     $this->set_variable( 'participant_consent', $consent );
+    $this->set_variable( 'withdrawing', 'withdraw' == $consent );
+    $this->set_variable( 'allow_withdraw', !is_null( $db_interview->get_qnaire()->withdraw_sid ) );
     
     if( !is_null( $db_last_assignment ) )
     {
