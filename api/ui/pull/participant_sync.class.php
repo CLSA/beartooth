@@ -93,13 +93,13 @@ class participant_sync extends \cenozo\ui\pull
     {
       $uid_list = array_unique( preg_split( '/\s+/', $uid_list_string ) );
       $valid_count = count( $uid_list );
-      
       $count = count( $uid_list );
       for( $offset = 0; $offset < $count; $offset += $limit )
       {
+        $uid_sub_list = array_slice( $uid_list, $offset, $limit );
         $modifier = lib::create( 'database\modifier' );
         $modifier->where( 'cohort', '=', $cohort );
-        $modifier->where( 'uid', 'IN', array_slice( $uid_list, $offset, $limit ) );
+        $modifier->where( 'uid', 'IN', $uid_sub_list );
         $args = array(
           'full' => true,
           'modifier' => $modifier );
