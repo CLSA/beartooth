@@ -191,24 +191,24 @@ class tokens extends sid_record
         {
           $this->$key = count( $alternate_info->data );
         }
-        else if( 'dcs phone_number' )
+        else if( 'dcs phone_number' == $value )
         {
           $this->$key = $db_site->phone_number;
         }
-        else if( 'dcs address street' )
+        else if( 'dcs address street' == $value )
         {
           $this->$key =
-            $db_site->address1.( !is_null( $db_site->address2 ) ? '' : ', '.$db_site->address2 );
+            $db_site->address1.( is_null( $db_site->address2 ) ? '' : ', '.$db_site->address2 );
         }
-        else if( 'dcs address city' )
+        else if( 'dcs address city' == $value )
         {
           $this->$key = $db_site->city;
         }
-        else if( 'dcs address province' )
+        else if( 'dcs address province' == $value )
         {
           $this->$key = $db_site->get_region()->name;
         }
-        else if( 'dcs address postal code' )
+        else if( 'dcs address postal code' == $value )
         {
           $this->$key = $db_site->postcode;
         }
@@ -218,9 +218,19 @@ class tokens extends sid_record
           $alt_number = intval( $matches[1] );
           $aspect = $matches[2];
 
-          $this->$key = $alt_number <= count( $alternate_info->data )
-                      ? $alternate_info->data[$alt_number - 1]->$aspect
-                      : "";
+          if( 'phone' == $aspect )
+          {
+            $phone_list = $alternate_info->data[$alt_number - 1]->phone_list;
+            $this->$key = $alt_number <= count( $alternate_info->data )
+                        ? ( is_array( $phone_list ) ? $phone_list[0]->number : '' )
+                        : '';
+          }
+          else
+          {
+            $this->$key = $alt_number <= count( $alternate_info->data )
+                        ? $alternate_info->data[$alt_number - 1]->$aspect
+                        : "";
+          }
         }
         else if( 'previously completed' == $value )
         {

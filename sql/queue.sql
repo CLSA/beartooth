@@ -143,6 +143,72 @@ description = "Participants who are not eligible for answering questionnaires be
 not within the valid range.";
 
 INSERT INTO queue SET
+name = "not canadian",
+title = "Participants who are not Canadian",
+rank = NULL,
+qnaire_specific = false,
+parent_queue_id = (
+  SELECT id FROM(
+    SELECT id
+    FROM queue
+    WHERE name = "ineligible" ) AS tmp ),
+description = "Participants who are not eligible for answering questionnaires because they are not
+a Canadian citizen.";
+
+INSERT INTO queue SET
+name = "federal reserve",
+title = "Participants who live on a federal reserve",
+rank = NULL,
+qnaire_specific = false,
+parent_queue_id = (
+  SELECT id FROM(
+    SELECT id
+    FROM queue
+    WHERE name = "ineligible" ) AS tmp ),
+description = "Participants who are not eligible for answering questionnaires because they reside
+on a federal reserve.";
+
+INSERT INTO queue SET
+name = "armed forces",
+title = "Participants who are in the armed forces",
+rank = NULL,
+qnaire_specific = false,
+parent_queue_id = (
+  SELECT id FROM(
+    SELECT id
+    FROM queue
+    WHERE name = "ineligible" ) AS tmp ),
+description = "Participants who are not eligible for answering questionnaires because they are full
+time members of the armed forces.";
+
+INSERT INTO queue SET
+name = "institutionalized",
+title = "Participants who are intitutionalized",
+rank = NULL,
+qnaire_specific = false,
+parent_queue_id = (
+  SELECT id FROM(
+    SELECT id
+    FROM queue
+    WHERE name = "ineligible" ) AS tmp ),
+description = "Participants who are not eligible for answering questionnaires because they are
+institutionalized.";
+
+INSERT INTO queue SET
+name = "noncompliant",
+title = "Participants who are not complying to the rules of the study.",
+rank = NULL,
+qnaire_specific = false,
+parent_queue_id = (
+  SELECT id FROM(
+    SELECT id
+    FROM queue
+    WHERE name = "ineligible" ) AS tmp ),
+description = "Participants who are not eligible for answering questionnaires because they are
+not complying the rules of the study.  This list may include participants who are being abusive
+to CLSA staff.";
+
+INSERT INTO queue SET
 name = "other",
 title = "Participants with an undefined condition",
 rank = NULL,
@@ -205,18 +271,6 @@ parent_queue_id = (
 description = "Eligible participants who are ready to begin the questionnaire.";
 
 INSERT INTO queue SET
-name = "restricted",
-title = "Restricted from calling",
-rank = NULL,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "qnaire ready" ) AS tmp ),
-description = "Eligible participants whose city, province or postcode have been restricted.";
-
-INSERT INTO queue SET
 name = "appointment",
 title = "Appointment scheduled",
 rank = NULL,
@@ -227,6 +281,30 @@ parent_queue_id = (
     FROM queue
     WHERE name = "qnaire ready" ) AS tmp ),
 description = "Participants whose interview has been scheduled.";
+
+INSERT INTO queue SET
+name = "deferred",
+title = "Contact is deferred",
+rank = NULL,
+qnaire_specific = true,
+parent_queue_id = (
+  SELECT id FROM(
+    SELECT id
+    FROM queue
+    WHERE name = "qnaire ready" ) AS tmp ),
+description = "Participants whose contact is deferred until a future date.";
+
+INSERT INTO queue SET
+name = "restricted",
+title = "Restricted from calling",
+rank = NULL,
+qnaire_specific = true,
+parent_queue_id = (
+  SELECT id FROM(
+    SELECT id
+    FROM queue
+    WHERE name = "qnaire ready" ) AS tmp ),
+description = "Eligible participants whose city, province or postcode have been restricted.";
 
 INSERT INTO queue SET
 name = "no appointment",

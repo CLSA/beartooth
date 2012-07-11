@@ -7,48 +7,11 @@
  #}
 {% extends "base_view.twig" %}
 
-{% block javascript %}
-  
-  {{ parent() }}
-  <script type="text/javascript">
-    // reload page when site selection changes
-    $( function () {
-      $( "#{{ widget.full }}__site_id" ).change( function() {
-        // get the list of interviewers at the selected site
-        var site_id = $( "#{{ widget.full }}__site_id option:selected" ).val();
-        var args = {
-          "restrictions": {
-            "site.id": {
-              "compare": "is",
-              "value": site_id
-            },
-            "role.name": {
-              "compare": "is",
-              "value": "interviewer"
-            }
-          }
-        };
-        var user_list = ajax_pull( "user", "list", args );
-
-        // repopulate interviewer list using the new user_list
-        var options = '<option value="" selected="">site</option>';
-        for( var index = 0; index < user_list.length; index++ )
-          options += '<option value="' +
-                     user_list[index].id + '">' +
-                     user_list[index].name + '</option>';
-
-        $( "#{{ widget.full }}__interviewer_user_id" ).html( options );
-      } );
-    } );
-  </script>
-
-{% endblock javascript %}
-
 {% block post_record %}
 
   {{ parent() }}
-  {% from 'macros.twig' import confirm_buttons, include_view %}
-  {{ include_view( 'user', user_view|default(false), true ) }}
+  {% from 'macros.twig' import confirm_buttons, include_list %}
+  {{ include_list( 'activity', activity_list|default(false), true ) }}
   {{ confirm_buttons( slot, widget.full, '', 'Back', 'right', true ) }}
 
 {% endblock post_record %}

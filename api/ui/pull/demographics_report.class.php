@@ -31,8 +31,16 @@ class demographics_report extends \cenozo\ui\pull\base_report
     parent::__construct( 'demographics', $args );
   }
 
-  public function finish()
+  /**
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Dean Inglis <inglisd@mcmaster.ca>
+   * @access protected
+   */
+  protected function setup()
   {
+    parent::setup();
+
     $participant_class_name = lib::get_class_name( 'database\participant' );
 
     // get the report arguments
@@ -115,8 +123,6 @@ class demographics_report extends \cenozo\ui\pull\base_report
       "Proxy" );
 
     $this->add_table( NULL, $header, $contents, NULL );
-
-    return parent::finish();
-  }// end finish
-}// end class def
+  }
+}
 ?>

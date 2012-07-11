@@ -32,12 +32,15 @@ class onyx_participants extends \cenozo\ui\push
   }
   
   /**
-   * Executes the push.
+   * This method executes the operation's purpose.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function execute()
   {
+    parent::execute();
+
     $participant_class_name = lib::create( 'database\participant' );
     $interview_class_name = lib::create( 'database\interview' );
 
@@ -214,7 +217,7 @@ class onyx_participants extends \cenozo\ui\push
           }
         }
 
-        // now update the participant, appointment andinterview, then pass data to mastodon
+        // now update the participant, appointment and interview, then pass data to mastodon
         if( $participant_changed ) $db_participant->save();
 
         // complete all appointments in the past
@@ -235,7 +238,35 @@ class onyx_participants extends \cenozo\ui\push
           if( $interview_type ) $interview_mod->where( 'qnaire.type', '=', $interview_type );
           $interview_mod->where( 'completed', '=', false );
           $interview_list = $interview_class_name::select( $interview_mod );
-          if( 1 == count( $interview_list ) )
+          
+          // if the interview was never created, create it now
+          if( 0 == count( $interview_list ) )
+          {
+            // get the next qnaire of the next interview by seeing which was last completed
+            $last_interview_mod = lib::create( 'database\modifier' );
+            $last_interview_mod->where( 'participant_id', '=', $db_participant->id );
+            $last_interview_mod->where( 'completed', '=', true );
+            $last_interview_mod->order_desc( 'qnaire.rank' );
+            $last_interview_mod->limit( 1 );
+            $last_interview_list = $interview_class_name::select( $last_interview_mod );
+            $rank = 1;
+            if( 0 < count( $last_interview_list ) )
+            {
+              $db_last_interview = current( $last_interview_list );
+              $rank = $db_last_interview->rank + 1;
+            }
+            $db_qnaire = $qnaire_class_name::get_unique_record( 'rank', $rank );
+            
+            if( !is_null( $db_qnaire ) )
+            {
+              $db_interview = lib::create( 'database\interview' );
+              $db_interview->qnaire_id = $db_qnaire->id;
+              $db_interview->participant_id = $db_participant->id;
+              $db_interview->completed = true;
+              $db_interview->save();
+            }
+          }
+          else // otherwise use the one we found
           {
             $db_interview = current( $interview_list );
             $db_interview->completed = true;
@@ -246,10 +277,9 @@ class onyx_participants extends \cenozo\ui\push
         if( 0 < count( $mastodon_columns ) )
         {
           $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
-          $args = array(
-            'columns' => $mastodon_columns,
-            'noid' => array(
-              'participant.uid' => $db_participant->uid ) );
+          $args = array();
+          $args['columns'] = $mastodon_columns;
+          $args['noid']['participant']['uid'] = $db_participant->uid;
           $mastodon_manager->push( 'participant', 'edit', $args );
         }
       }

@@ -28,11 +28,23 @@ class participant_view extends \cenozo\ui\widget\base_view
   public function __construct( $args )
   {
     parent::__construct( 'participant', 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     // create an associative array with everything we want to display about the participant
     $this->add_item( 'active', 'boolean', 'Active' );
     $this->add_item( 'uid', 'constant', 'Unique ID' );
-    $this->add_item( 'source_id', 'enum', 'Source' );
+    $this->add_item( 'source', 'constant', 'Source' );
     $this->add_item( 'first_name', 'string', 'First Name' );
     $this->add_item( 'last_name', 'string', 'Last Name' );
     $this->add_item( 'language', 'enum', 'Preferred Language' );
@@ -43,93 +55,56 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'prior_contact_date', 'constant', 'Prior Contact Date' );
     $this->add_item( 'current_qnaire_name', 'constant', 'Current Questionnaire' );
     $this->add_item( 'start_qnaire_date', 'constant', 'Delay Questionnaire Until' );
+    $this->add_item( 'defer_until', 'date', 'Defer Contact Until' );
     
-    try
-    {
-      // create the address sub-list widget
-      $this->address_list = lib::create( 'ui\widget\address_list', $args );
-      $this->address_list->set_parent( $this );
-      $this->address_list->set_heading( 'Addresses' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->address_list = NULL;
-    }
+    // create the address sub-list widget
+    $this->address_list = lib::create( 'ui\widget\address_list', $this->arguments );
+    $this->address_list->set_parent( $this );
+    $this->address_list->set_heading( 'Addresses' );
 
-    try
-    {
-      // create the phone sub-list widget
-      $this->phone_list = lib::create( 'ui\widget\phone_list', $args );
-      $this->phone_list->set_parent( $this );
-      $this->phone_list->set_heading( 'Phone numbers' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->phone_list = NULL;
-    }
+    // create the phone sub-list widget
+    $this->phone_list = lib::create( 'ui\widget\phone_list', $this->arguments );
+    $this->phone_list->set_parent( $this );
+    $this->phone_list->set_heading( 'Phone numbers' );
 
-    try
-    {
-      // create the appointment sub-list widget
-      $this->appointment_list = lib::create( 'ui\widget\appointment_list', $args );
-      $this->appointment_list->set_parent( $this );
-      $this->appointment_list->set_heading( 'Appointments' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->appointment_list = NULL;
-    }
+    // create the appointment sub-list widget
+    $this->appointment_list = lib::create( 'ui\widget\appointment_list', $this->arguments );
+    $this->appointment_list->set_parent( $this );
+    $this->appointment_list->set_heading( 'Appointments' );
 
-    try
-    {
-      // create the availability sub-list widget
-      $this->availability_list = lib::create( 'ui\widget\availability_list', $args );
-      $this->availability_list->set_parent( $this );
-      $this->availability_list->set_heading( 'Availability' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->availability_list = NULL;
-    }
+    // create the availability sub-list widget
+    $this->availability_list = lib::create( 'ui\widget\availability_list', $this->arguments );
+    $this->availability_list->set_parent( $this );
+    $this->availability_list->set_heading( 'Availability' );
 
-    try
-    {
-      // create the consent sub-list widget
-      $this->consent_list = lib::create( 'ui\widget\consent_list', $args );
-      $this->consent_list->set_parent( $this );
-      $this->consent_list->set_heading( 'Consent information' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->consent_list = NULL;
-    }
+    // create the consent sub-list widget
+    $this->consent_list = lib::create( 'ui\widget\consent_list', $this->arguments );
+    $this->consent_list->set_parent( $this );
+    $this->consent_list->set_heading( 'Consent information' );
 
-    try
-    {
-      // create the interview sub-list widget
-      $this->interview_list = lib::create( 'ui\widget\interview_list', $args );
-      $this->interview_list->set_parent( $this );
-      $this->interview_list->set_heading( 'Interview history' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->interview_list = NULL;
-    }
+    // create the interview sub-list widget
+    $this->interview_list = lib::create( 'ui\widget\interview_list', $this->arguments );
+    $this->interview_list->set_parent( $this );
+    $this->interview_list->set_heading( 'Interview history' );
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     $participant_class_name = lib::get_class_name( 'database\participant' );
-    $source_class_name = lib::get_class_name( 'database\source' );
     $site_class_name = lib::get_class_name( 'database\site' );
+
+    $db_participant = $this->get_record();
+
+    /*
+      DISABLING THIS FUNCTIONALITY UNLESS IT IS RE-REQUESTED
 
     // add the assign now button, if appropriate
     $session = lib::create( 'business\session' );
@@ -137,43 +112,42 @@ class participant_view extends \cenozo\ui\widget\base_view
       // if the user is not an interviewer
       'interviewer' != $session->get_role()->name &&
       // the participant is ready for a site qnaire
-      'site' == $this->get_record()->current_qnaire_type &&
+      'site' == $db_participant->current_qnaire_type &&
       // the participant isn't already in an assignment
       is_null( $session->get_current_assignment() ) &&
       // the participant does not have a permanent status
-      is_null( $this->get_record()->status );
+      is_null( $db_participant->status );
 
     if( $allow_assign )
     { // make sure the participant is eligible
       $queue_class_name = lib::get_class_name( 'database\queue' );
       $db_queue = $queue_class_name::get_unique_record( 'name', 'eligible' );
       $queue_mod = lib::create( 'database\modifier' );
-      $queue_mod->where( 'participant.id', '=', $this->get_record()->id );
+      $queue_mod->where( 'participant.id', '=', $db_participant->id );
       $allow_assign = $allow_assign && 1 == $db_queue->get_participant_count( $queue_mod );
       $this->add_action( 'assign', 'Assign Now', NULL,
         'Start an assignment with this participant in order to make a site appointment' );
     }
+    */
 
+    $allow_assign = false;
     $this->set_variable( 'allow_assign', $allow_assign );
 
     // create enum arrays
-    $sources = array();
-    foreach( $source_class_name::select() as $db_source )
-      $sources[$db_source->id] = $db_source->name;
     $sites = array();
     $site_mod = lib::create( 'database\modifier' );
     $site_mod->order( 'name' );
     foreach( $site_class_name::select( $site_mod ) as $db_site )
       $sites[$db_site->id] = $db_site->name;
-    $db_site = $this->get_record()->get_site();
+    $db_site = $db_participant->get_site();
     $site_id = is_null( $db_site ) ? '' : $db_site->id;
     $languages = $participant_class_name::get_enum_values( 'language' );
     $languages = array_combine( $languages, $languages );
     $statuses = $participant_class_name::get_enum_values( 'status' );
     $statuses = array_combine( $statuses, $statuses );
     
-    $start_qnaire_date = $this->get_record()->start_qnaire_date;
-    if( is_null( $this->get_record()->current_qnaire_id ) )
+    $start_qnaire_date = $db_participant->start_qnaire_date;
+    if( is_null( $db_participant->current_qnaire_id ) )
     {
       $current_qnaire_name = '(none)';
 
@@ -181,65 +155,73 @@ class participant_view extends \cenozo\ui\widget\base_view
     }
     else
     {
-      $db_current_qnaire = lib::create( 'database\qnaire', $this->get_record()->current_qnaire_id );
+      $db_current_qnaire = lib::create( 'database\qnaire', $db_participant->current_qnaire_id );
       $current_qnaire_name = $db_current_qnaire->name;
       $start_qnaire_date = util::get_formatted_date( $start_qnaire_date, 'immediately' );
     }
 
-    
+    $db_default_site = $db_participant->get_default_site();
+    $default_site = is_null( $db_default_site ) ? 'None' : $db_default_site->name;
+
     // set the view's items
-    $this->set_item( 'active', $this->get_record()->active, true );
-    $this->set_item( 'uid', $this->get_record()->uid );
-    $this->set_item( 'source_id', $this->get_record()->source_id, false, $sources );
-    $this->set_item( 'first_name', $this->get_record()->first_name );
-    $this->set_item( 'last_name', $this->get_record()->last_name );
-    $this->set_item( 'language', $this->get_record()->language, false, $languages );
-    $this->set_item( 'status', $this->get_record()->status, false, $statuses );
-    $this->set_item( 'default_site', $this->get_record()->get_default_site()->name );
+    $this->set_item( 'active', $db_participant->active, true );
+    $this->set_item( 'uid', $db_participant->uid );
+    $this->set_item( 'source', $db_participant->get_source()->name );
+    $this->set_item( 'first_name', $db_participant->first_name );
+    $this->set_item( 'last_name', $db_participant->last_name );
+    $this->set_item( 'language', $db_participant->language, false, $languages );
+    $this->set_item( 'status', $db_participant->status, false, $statuses );
+    $this->set_item( 'default_site', $default_site );
     $this->set_item( 'site_id', $site_id, false, $sites );
-    $this->set_item( 'consent_to_draw_blood', $this->get_record()->consent_to_draw_blood );
-    $this->set_item( 'prior_contact_date', $this->get_record()->prior_contact_date );
+    $this->set_item( 'consent_to_draw_blood', $db_participant->consent_to_draw_blood );
+    $this->set_item( 'prior_contact_date', $db_participant->prior_contact_date );
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );
+    $this->set_item( 'defer_until', $db_participant->defer_until, false );
 
-    $this->finish_setting_items();
-
-    if( !is_null( $this->address_list ) )
+    try
     {
-      $this->address_list->finish();
+      $this->address_list->process();
       $this->set_variable( 'address_list', $this->address_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
 
-    if( !is_null( $this->phone_list ) )
+    try
     {
-      $this->phone_list->finish();
+      $this->phone_list->process();
       $this->set_variable( 'phone_list', $this->phone_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
 
-    if( !is_null( $this->appointment_list ) )
+    try
     {
+      $this->appointment_list->process();
       $this->appointment_list->remove_column( 'uid' );
-      $this->appointment_list->finish();
+      $this->appointment_list->execute();
       $this->set_variable( 'appointment_list', $this->appointment_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
 
-    if( !is_null( $this->availability_list ) )
+    try
     {
-      $this->availability_list->finish();
+      $this->availability_list->process();
       $this->set_variable( 'availability_list', $this->availability_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
 
-    if( !is_null( $this->consent_list ) )
+    try
     {
-      $this->consent_list->finish();
+      $this->consent_list->process();
       $this->set_variable( 'consent_list', $this->consent_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
 
-    if( !is_null( $this->interview_list ) )
+    try
     {
-      $this->interview_list->finish();
+      $this->interview_list->process();
       $this->set_variable( 'interview_list', $this->interview_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
   }
   
   /**

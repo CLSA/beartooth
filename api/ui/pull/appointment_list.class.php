@@ -28,51 +28,37 @@ class appointment_list extends \cenozo\ui\pull\base_list
   public function __construct( $args )
   {
     parent::__construct( 'appointment', $args );
-  
-
-    $now_datetime_obj = util::get_datetime_object();
-    $interval = lib::create( 'business\setting_manager' )->get_setting( 
-        'appointment', 'update interval' );
-
-    if( $interval == 'M' )
-    {
-      $timeStamp = mktime( 0, 0, 0, date( 'm' ), 1, date( 'Y' ) );
-      $firstDay = date( 'Y-m-d H:i:s', $timeStamp );
-      $this->start_datetime = new \DateTime( $firstDay );
-      $this->end_datetime = clone $this->start_datetime;
-      $this->end_datetime->add( new \DateInterval( 'P1M' ) );
-    }
-    else if( $interval == 'W' )
-    {
-      $timeStamp = mktime( 1, 0, 0, date( 'm' ), date( 'd' ) - date( 'w' ), date( 'Y' ) );
-      $firstDay = date( 'Y-m-d', $timeStamp ) . ' 00:00:00';
-      $this->start_datetime = new \DateTime( $firstDay );
-      $this->end_datetime = clone $this->start_datetime;
-      $this->end_datetime->add( new \DateInterval( 'P1W' ) );
-    }
-    else if( $interval == 'D' )
-    {
-      $this->start_datetime = clone $now_datetime_obj;
-      $this->start_datetime->setTime(0,0);
-      $this->end_datetime = clone( $this->start_datetime );
-      $this->end_datetime->add( new \DateInterval( 'P1D' ) );
-    }
-    else
-    {
-      throw lib::create( 'exception\notice', 
-        'Invalid appointment list interval (must be either M, W or D): '.$interval, __METHOD__ );
-    }
   }
 
   /**
-   * Returns the data provided by this appointment list.
+   * Processes arguments, preparing them for the operation.
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @return array
-   * @access public
+   * @author Dean Inglis <inglisd@mcmaster.ca>
+   * @access protected
    */
-  public function finish()
+  protected function prepare()
   {
+    parent::prepare();
+
+    $span_in_days = lib::create( 'business\setting_manager' )->get_setting( 
+        'appointment', 'update span' );
+
+    $this->start_datetime = util::get_datetime_object();
+    $this->start_datetime->setTime( 0, 0 );
+    $this->end_datetime = clone( $this->start_datetime );
+    $this->end_datetime->add( new \DateInterval( sprintf( 'P%dD', $span_in_days ) ) );
+  }
+
+  /**
+   * This method executes the operation's purpose.
+   * 
+   * @author Dean Inglis <inglisd@mcmaster.ca>
+   * @access protected
+   */
+  protected function execute()
+  {
+    parent::execute();
+
     $event_list = array();
 
     $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
@@ -90,10 +76,12 @@ class appointment_list extends \cenozo\ui\pull\base_list
     if( is_null( $db_onyx->interviewer_user_id ) )
     { // restrict by site
       $modifier->where( 'participant_site.site_id', '=', $db_onyx->get_site()->id );
+      $modifier->where( 'appointment.address_id', '=', NULL );
     }
     else
     { // restrict the the onyx instance's interviewer
       $modifier->where( 'appointment.user_id', '=', $db_onyx->interviewer_user_id );
+      $modifier->where( 'appointment.address_id', '!=', NULL );
     }
 
     $appointment_list = $appointment_class_name::select( $modifier );
@@ -161,7 +149,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
       $event_list[] = $event;
     }
 
-    return $event_list;
+    $this->data = $event_list;
   }
 
   /**

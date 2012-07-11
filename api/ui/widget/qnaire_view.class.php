@@ -28,6 +28,18 @@ class qnaire_view extends \cenozo\ui\widget\base_view
   public function __construct( $args )
   {
     parent::__construct( 'qnaire', 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     // create an associative array with everything we want to display about the qnaire
     $this->add_item( 'name', 'string', 'Name' );
@@ -41,28 +53,21 @@ class qnaire_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'phases', 'constant', 'Number of phases' );
     $this->add_item( 'description', 'text', 'Description' );
 
-    try
-    {
-      // create the phase sub-list widget
-      $this->phase_list = lib::create( 'ui\widget\phase_list', $args );
-      $this->phase_list->set_parent( $this );
-      $this->phase_list->set_heading( 'Questionnaire phases' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->phase_list = NULL;
-    }
+    // create the phase sub-list widget
+    $this->phase_list = lib::create( 'ui\widget\phase_list', $this->arguments );
+    $this->phase_list->set_parent( $this );
+    $this->phase_list->set_heading( 'Questionnaire phases' );
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
 
     // create enum arrays
     $qnaires = array();
@@ -94,15 +99,14 @@ class qnaire_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'withdraw_sid', $this->get_record()->withdraw_sid, false, $surveys );
     $this->set_item( 'phases', $this->get_record()->get_phase_count() );
     $this->set_item( 'description', $this->get_record()->description );
-
-    $this->finish_setting_items();
     
-    // finish the child widgets
-    if( !is_null( $this->phase_list ) )
+    // process the child widgets
+    try
     {
-      $this->phase_list->finish();
+      $this->phase_list->process();
       $this->set_variable( 'phase_list', $this->phase_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
   }
   
   /**

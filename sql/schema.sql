@@ -66,6 +66,23 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `age_group`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `age_group` ;
+
+CREATE  TABLE IF NOT EXISTS `age_group` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `lower` INT NOT NULL ,
+  `upper` INT NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `uq_lower` (`lower` ASC) ,
+  UNIQUE INDEX `uq_upper` (`upper` ASC) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `participant`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `participant` ;
@@ -74,17 +91,21 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `update_timestamp` TIMESTAMP NOT NULL ,
   `create_timestamp` TIMESTAMP NOT NULL ,
-  `active` TINYINT(1)  NOT NULL DEFAULT true ,
+  `active` TINYINT(1) NOT NULL DEFAULT true ,
   `uid` VARCHAR(45) NOT NULL COMMENT 'External unique ID' ,
   `source_id` INT UNSIGNED NULL ,
   `first_name` VARCHAR(45) NOT NULL ,
   `last_name` VARCHAR(45) NOT NULL ,
-  `status` ENUM('deceased', 'deaf', 'mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','other') NULL DEFAULT NULL ,
+  `gender` ENUM('male','female') NOT NULL ,
+  `date_of_birth` DATE NULL ,
+  `age_group_id` INT UNSIGNED NULL ,
+  `status` ENUM('deceased','deaf','mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','noncompliant','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
   `site_id` INT UNSIGNED NULL DEFAULT NULL ,
-  `consent_to_draw_blood` TINYINT(1)  NOT NULL DEFAULT false ,
-  `consent_to_draw_blood_continue` TINYINT(1)  NULL DEFAULT NULL ,
-  `physical_tests_continue` TINYINT(1)  NULL DEFAULT NULL ,
+  `defer_until` DATE NULL DEFAULT NULL ,
+  `consent_to_draw_blood` TINYINT(1) NOT NULL DEFAULT false ,
+  `consent_to_draw_blood_continue` TINYINT(1) NULL DEFAULT NULL ,
+  `physical_tests_continue` TINYINT(1) NULL DEFAULT NULL ,
   `prior_contact_date` DATE NULL DEFAULT NULL ,
   `next_of_kin_first_name` VARCHAR(45) NULL DEFAULT NULL ,
   `next_of_kin_last_name` VARCHAR(45) NULL DEFAULT NULL ,
@@ -101,6 +122,8 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   UNIQUE INDEX `uq_uid` (`uid` ASC) ,
   INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `fk_participant_source_id` (`source_id` ASC) ,
+  INDEX `fk_age_group_id` (`age_group_id` ASC) ,
+  INDEX `dk_defer_until` (`defer_until` ASC) ,
   CONSTRAINT `fk_participant_site_id`
     FOREIGN KEY (`site_id` )
     REFERENCES `site` (`id` )
@@ -109,6 +132,11 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   CONSTRAINT `fk_participant_source_id`
     FOREIGN KEY (`source_id` )
     REFERENCES `source` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_participant_age_group_id`
+    FOREIGN KEY (`age_group_id` )
+    REFERENCES `age_group` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -154,7 +182,7 @@ CREATE  TABLE IF NOT EXISTS `phase` (
   `qnaire_id` INT UNSIGNED NOT NULL ,
   `sid` INT NOT NULL COMMENT 'limesurvey surveys.sid' ,
   `rank` SMALLINT UNSIGNED NOT NULL ,
-  `repeated` TINYINT(1)  NOT NULL DEFAULT false ,
+  `repeated` TINYINT(1) NOT NULL DEFAULT false ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_qnaire_id` (`qnaire_id` ASC) ,
   UNIQUE INDEX `uq_qnaire_id_rank` (`qnaire_id` ASC, `rank` ASC) ,
@@ -164,7 +192,7 @@ CREATE  TABLE IF NOT EXISTS `phase` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
-COMMENT = 'aka: qnaire_has_survey' ;
+COMMENT = 'aka: qnaire_has_survey';
 
 
 -- -----------------------------------------------------
@@ -178,8 +206,8 @@ CREATE  TABLE IF NOT EXISTS `interview` (
   `create_timestamp` TIMESTAMP NOT NULL ,
   `qnaire_id` INT UNSIGNED NOT NULL ,
   `participant_id` INT UNSIGNED NOT NULL ,
-  `require_supervisor` TINYINT(1)  NOT NULL DEFAULT false ,
-  `completed` TINYINT(1)  NOT NULL DEFAULT false ,
+  `require_supervisor` TINYINT(1) NOT NULL DEFAULT false ,
+  `completed` TINYINT(1) NOT NULL DEFAULT false ,
   `duplicate_qnaire_id` INT UNSIGNED NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
@@ -202,8 +230,8 @@ CREATE  TABLE IF NOT EXISTS `interview` (
     REFERENCES `qnaire` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB, 
-COMMENT = 'aka: qnaire_has_participant' ;
+ENGINE = InnoDB
+COMMENT = 'aka: qnaire_has_participant';
 
 
 -- -----------------------------------------------------
@@ -218,7 +246,7 @@ CREATE  TABLE IF NOT EXISTS `queue` (
   `name` VARCHAR(45) NOT NULL ,
   `title` VARCHAR(255) NOT NULL ,
   `rank` INT UNSIGNED NULL DEFAULT NULL ,
-  `qnaire_specific` TINYINT(1)  NOT NULL ,
+  `qnaire_specific` TINYINT(1) NOT NULL ,
   `parent_queue_id` INT UNSIGNED NULL DEFAULT NULL ,
   `description` TEXT NULL ,
   PRIMARY KEY (`id`) ,
@@ -288,7 +316,7 @@ CREATE  TABLE IF NOT EXISTS `address` (
   `update_timestamp` TIMESTAMP NOT NULL ,
   `create_timestamp` TIMESTAMP NOT NULL ,
   `participant_id` INT UNSIGNED NOT NULL ,
-  `active` TINYINT(1)  NOT NULL DEFAULT true ,
+  `active` TINYINT(1) NOT NULL DEFAULT true ,
   `rank` INT NOT NULL ,
   `address1` VARCHAR(512) NOT NULL ,
   `address2` VARCHAR(512) NULL DEFAULT NULL ,
@@ -296,19 +324,19 @@ CREATE  TABLE IF NOT EXISTS `address` (
   `region_id` INT UNSIGNED NOT NULL ,
   `postcode` VARCHAR(10) NOT NULL ,
   `timezone_offset` FLOAT NOT NULL ,
-  `daylight_savings` TINYINT(1)  NOT NULL ,
-  `january` TINYINT(1)  NOT NULL DEFAULT true ,
-  `february` TINYINT(1)  NOT NULL DEFAULT true ,
-  `march` TINYINT(1)  NOT NULL DEFAULT true ,
-  `april` TINYINT(1)  NOT NULL DEFAULT true ,
-  `may` TINYINT(1)  NOT NULL DEFAULT true ,
-  `june` TINYINT(1)  NOT NULL DEFAULT true ,
-  `july` TINYINT(1)  NOT NULL DEFAULT true ,
-  `august` TINYINT(1)  NOT NULL DEFAULT true ,
-  `september` TINYINT(1)  NOT NULL DEFAULT true ,
-  `october` TINYINT(1)  NOT NULL DEFAULT true ,
-  `november` TINYINT(1)  NOT NULL DEFAULT true ,
-  `december` TINYINT(1)  NOT NULL DEFAULT true ,
+  `daylight_savings` TINYINT(1) NOT NULL ,
+  `january` TINYINT(1) NOT NULL DEFAULT true ,
+  `february` TINYINT(1) NOT NULL DEFAULT true ,
+  `march` TINYINT(1) NOT NULL DEFAULT true ,
+  `april` TINYINT(1) NOT NULL DEFAULT true ,
+  `may` TINYINT(1) NOT NULL DEFAULT true ,
+  `june` TINYINT(1) NOT NULL DEFAULT true ,
+  `july` TINYINT(1) NOT NULL DEFAULT true ,
+  `august` TINYINT(1) NOT NULL DEFAULT true ,
+  `september` TINYINT(1) NOT NULL DEFAULT true ,
+  `october` TINYINT(1) NOT NULL DEFAULT true ,
+  `november` TINYINT(1) NOT NULL DEFAULT true ,
+  `december` TINYINT(1) NOT NULL DEFAULT true ,
   `note` TEXT NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
@@ -340,7 +368,7 @@ CREATE  TABLE IF NOT EXISTS `phone` (
   `create_timestamp` TIMESTAMP NOT NULL ,
   `participant_id` INT UNSIGNED NOT NULL ,
   `address_id` INT UNSIGNED NULL DEFAULT NULL ,
-  `active` TINYINT(1)  NOT NULL DEFAULT true ,
+  `active` TINYINT(1) NOT NULL DEFAULT true ,
   `rank` INT NOT NULL ,
   `type` ENUM('home','home2','work','work2','mobile','mobile2','other','other2') NOT NULL ,
   `number` VARCHAR(45) NOT NULL ,
@@ -430,13 +458,13 @@ CREATE  TABLE IF NOT EXISTS `availability` (
   `update_timestamp` TIMESTAMP NOT NULL ,
   `create_timestamp` TIMESTAMP NOT NULL ,
   `participant_id` INT UNSIGNED NOT NULL ,
-  `monday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `tuesday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `wednesday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `thursday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `friday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `saturday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `sunday` TINYINT(1)  NOT NULL DEFAULT false ,
+  `monday` TINYINT(1) NOT NULL DEFAULT false ,
+  `tuesday` TINYINT(1) NOT NULL DEFAULT false ,
+  `wednesday` TINYINT(1) NOT NULL DEFAULT false ,
+  `thursday` TINYINT(1) NOT NULL DEFAULT false ,
+  `friday` TINYINT(1) NOT NULL DEFAULT false ,
+  `saturday` TINYINT(1) NOT NULL DEFAULT false ,
+  `sunday` TINYINT(1) NOT NULL DEFAULT false ,
   `start_time` TIME NOT NULL ,
   `end_time` TIME NOT NULL ,
   PRIMARY KEY (`id`) ,
@@ -462,7 +490,7 @@ CREATE  TABLE IF NOT EXISTS `participant_note` (
   `create_timestamp` TIMESTAMP NOT NULL ,
   `user_id` INT UNSIGNED NOT NULL ,
   `participant_id` INT UNSIGNED NOT NULL ,
-  `sticky` TINYINT(1)  NOT NULL DEFAULT false ,
+  `sticky` TINYINT(1) NOT NULL DEFAULT false ,
   `datetime` DATETIME NOT NULL ,
   `note` TEXT NOT NULL ,
   PRIMARY KEY (`id`) ,
@@ -493,7 +521,7 @@ CREATE  TABLE IF NOT EXISTS `assignment_note` (
   `create_timestamp` TIMESTAMP NOT NULL ,
   `user_id` INT UNSIGNED NOT NULL ,
   `assignment_id` INT UNSIGNED NOT NULL ,
-  `sticky` TINYINT(1)  NOT NULL DEFAULT false ,
+  `sticky` TINYINT(1) NOT NULL DEFAULT false ,
   `datetime` DATETIME NOT NULL ,
   `note` TEXT NOT NULL ,
   PRIMARY KEY (`id`) ,
@@ -526,7 +554,7 @@ CREATE  TABLE IF NOT EXISTS `appointment` (
   `user_id` INT UNSIGNED NULL COMMENT 'NULL for site appointments' ,
   `address_id` INT UNSIGNED NULL COMMENT 'NULL for site appointments' ,
   `datetime` DATETIME NOT NULL ,
-  `completed` TINYINT(1)  NOT NULL DEFAULT false ,
+  `completed` TINYINT(1) NOT NULL DEFAULT false ,
   PRIMARY KEY (`id`) ,
   INDEX `dk_reached` (`completed` ASC) ,
   INDEX `fk_address_id` (`address_id` ASC) ,
@@ -567,13 +595,13 @@ CREATE  TABLE IF NOT EXISTS `shift_template` (
   `end_date` DATE NULL ,
   `repeat_type` ENUM('weekly','day of month','day of week') NOT NULL DEFAULT "weekly" ,
   `repeat_every` INT NOT NULL DEFAULT 1 ,
-  `monday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `tuesday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `wednesday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `thursday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `friday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `saturday` TINYINT(1)  NOT NULL DEFAULT false ,
-  `sunday` TINYINT(1)  NOT NULL DEFAULT false ,
+  `monday` TINYINT(1) NOT NULL DEFAULT false ,
+  `tuesday` TINYINT(1) NOT NULL DEFAULT false ,
+  `wednesday` TINYINT(1) NOT NULL DEFAULT false ,
+  `thursday` TINYINT(1) NOT NULL DEFAULT false ,
+  `friday` TINYINT(1) NOT NULL DEFAULT false ,
+  `saturday` TINYINT(1) NOT NULL DEFAULT false ,
+  `sunday` TINYINT(1) NOT NULL DEFAULT false ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `dk_start_time` (`start_time` ASC) ,
@@ -677,6 +705,26 @@ CREATE  TABLE IF NOT EXISTS `onyx_instance` (
     REFERENCES `user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `user`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `user` ;
+
+CREATE  TABLE IF NOT EXISTS `user` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `name` VARCHAR(45) NOT NULL ,
+  `first_name` VARCHAR(255) NOT NULL ,
+  `last_name` VARCHAR(255) NOT NULL ,
+  `active` TINYINT(1) NOT NULL DEFAULT true ,
+  `theme` VARCHAR(45) NULL DEFAULT NULL ,
+  `language` ENUM('any','en','fr') NOT NULL DEFAULT 'en' ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `uq_name` (`name` ASC) )
 ENGINE = InnoDB;
 
 

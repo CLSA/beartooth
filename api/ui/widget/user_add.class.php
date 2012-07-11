@@ -17,16 +17,34 @@ use cenozo\lib, cenozo\log, beartooth\util;
  */
 class user_add extends \cenozo\ui\widget\user_add
 {
-  /**
-   * Finish setting the variables in a widget.
+  /** 
+   * Processes arguments, preparing them for the operation.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @throws exception\notice
+   * @access protected
    */
-  public function finish()
+  protected function prepare()
   {
-    parent::finish();
+    parent::prepare();
+
+    // create an associative array with everything we want to display about the user
+    $this->add_item( 'language', 'enum', 'Language' );
+  }
+
+  /**
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function setup()
+  {
+    parent::setup();
     
+    $role_class_name = lib::get_class_name( 'database\role' );
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+
     $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
 
@@ -35,13 +53,18 @@ class user_add extends \cenozo\ui\widget\user_add
     $modifier->where( 'name', '!=', 'onyx' );
     $modifier->where( 'tier', '<=', $session->get_role()->tier );
     $roles = array();
-    $class_name = lib::get_class_name( 'database\role' );
-    foreach( $class_name::select( $modifier ) as $db_role ) $roles[$db_role->id] = $db_role->name;
-    
+    foreach( $role_class_name::select( $modifier ) as $db_role )
+      $roles[$db_role->id] = $db_role->name;
+
+    $user_class_name = lib::get_class_name( 'database\user' );
+    $languages = array();
+    foreach( $user_class_name::get_enum_values( 'language' ) as $language )
+      $languages[] = $language;
+    $languages = array_combine( $languages, $languages );
+
     // set the view's items
     $this->set_item( 'role_id', array_search( 'interviewer', $roles ), true, $roles );
-
-    $this->finish_setting_items();
+    $this->set_item( 'language', 'en', true, $languages );
   }
 }
 ?>

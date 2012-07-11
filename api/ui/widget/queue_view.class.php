@@ -28,6 +28,18 @@ class queue_view extends \cenozo\ui\widget\base_view
   public function __construct( $args )
   {
     parent::__construct( 'queue', 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
@@ -36,12 +48,14 @@ class queue_view extends \cenozo\ui\widget\base_view
     if( !$is_top_tier ) $this->db_site = $session->get_site();
     else
     {
-      $site_id = $this->get_argument( 'site_id' );
-      if( $site_id ) $this->db_site = lib::create( 'database\site', $site_id );
+      $site_id = $this->get_argument( 'site_id', NULL );
+      if( !is_null( $site_id ) ) $this->db_site = lib::create( 'database\site', $site_id );
     }
 
     $qnaire_id = $this->get_argument( 'qnaire_id' );
     if( $qnaire_id ) $this->db_qnaire = lib::create( 'database\qnaire', $qnaire_id );
+
+    $this->language = $this->get_argument( 'language' );
 
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
     $viewing_date = $this->get_argument( 'viewing_date', 'current' );
@@ -53,46 +67,43 @@ class queue_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'description', 'constant', 'Description' );
     $this->add_item( 'site', 'constant', 'Site' );
     $this->add_item( 'qnaire', 'constant', 'Questionnaire' );
+    $this->add_item( 'language', 'constant', 'Language' );
     $this->add_item( 'viewing_date', 'constant', 'Viewing date' );
 
-    try
-    {
-      // create the participant sub-list widget
-      $this->participant_list = lib::create( 'ui\widget\participant_list', $args );
-      $this->participant_list->set_parent( $this );
-      $this->participant_list->set_heading( 'Queue participant list' );
-    }
-    catch( \cenozo\exception\permission $e )
-    {
-      $this->participant_list = NULL;
-    }
+    // create the participant sub-list widget
+    $this->participant_list = lib::create( 'ui\widget\participant_list', $this->arguments );
+    $this->participant_list->set_parent( $this );
+    $this->participant_list->set_heading( 'Queue participant list' );
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     // set the view's items
     $this->set_item( 'title', $this->get_record()->title, true );
     $this->set_item( 'description', $this->get_record()->description );
     $this->set_item( 'site', $this->db_site ? $this->db_site->name : 'All sites' );
     $this->set_item( 'qnaire', $this->db_qnaire ? $this->db_qnaire->name : 'All questionnaires' );
+    $this->set_item( 'language', $this->language );
     $this->set_item( 'viewing_date', $this->viewing_date );
-    
-    $this->finish_setting_items();
 
-    // finish the child widgets
-    if( !is_null( $this->participant_list ) )
+    // process the child widgets
+    try
     {
-      $this->participant_list->finish();
+      $this->participant_list->process();
+      // can't sort by the source
+      $this->participant_list->add_column( 'source.name', 'string', 'Source', false );
+      $this->participant_list->execute();
       $this->set_variable( 'participant_list', $this->participant_list->get_variables() );
     }
+    catch( \cenozo\exception\permission $e ) {}
   }
 
   /**
@@ -108,6 +119,20 @@ class queue_view extends \cenozo\ui\widget\base_view
     $db_queue = $this->get_record();
     $db_queue->set_site( $this->db_site );
     $db_queue->set_qnaire( $this->db_qnaire );
+
+    if( 'any' != $this->language )
+    {
+      // english is default, so if the language is english allow null values
+      if( 'en' == $this->language )
+      {
+        $modifier->where_bracket( true );
+        $modifier->where( 'participant.language', '=', $this->language );
+        $modifier->or_where( 'participant.language', '=', NULL );
+        $modifier->where_bracket( false );
+      }
+      else $modifier->where( 'participant.language', '=', $this->language );
+    }
+  
     return $db_queue->get_participant_count( $modifier );
   }
 
@@ -124,6 +149,20 @@ class queue_view extends \cenozo\ui\widget\base_view
     $db_queue = $this->get_record();
     $db_queue->set_site( $this->db_site );
     $db_queue->set_qnaire( $this->db_qnaire );
+
+    if( 'any' != $this->language )
+    {
+      // english is default, so if the language is english allow null values
+      if( 'en' == $this->language )
+      {
+        $modifier->where_bracket( true );
+        $modifier->where( 'participant.language', '=', $this->language );
+        $modifier->or_where( 'participant.language', '=', NULL );
+        $modifier->where_bracket( false );
+      }
+      else $modifier->where( 'participant.language', '=', $this->language );
+    }
+  
     return $db_queue->get_participant_list( $modifier );
   }
 
@@ -147,6 +186,13 @@ class queue_view extends \cenozo\ui\widget\base_view
    * @access protected
    */
   protected $db_qnaire = NULL;
+
+  /**
+   * The language to restrict the queue to (may be NULL)
+   * @var string
+   * @access protected
+   */
+  protected $language = 'any';
 
   /**
    * The viewing date to restrict the queue to

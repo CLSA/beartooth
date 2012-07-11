@@ -28,18 +28,32 @@ class appointment_calendar extends \cenozo\ui\widget\base_calendar
   public function __construct( $args )
   {
     parent::__construct( 'appointment', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
+
     $this->set_heading( 'Appointments for '.lib::create( 'business\session' )->get_site()->name );
   }
   
   /**
-   * Set the rows array needed by the template.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
+
     $this->set_variable( 'allow_all_day', false );
     $this->set_variable( 'editable', true );
   }

@@ -30,6 +30,18 @@ abstract class base_report extends \cenozo\ui\widget\base_report
   public function __construct( $subject, $args )
   {
     parent::__construct( $subject, 'report', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     $this->restrictions['source'] = false;
     $this->restrictions['qnaire'] = false;
@@ -75,15 +87,18 @@ abstract class base_report extends \cenozo\ui\widget\base_report
   }
 
   /**
-   * Extending the parent finish class with extra restrictions.
-   * @author Dean Inglis <inglisd@mcmaster.ca>
-   * @access public
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
+    parent::setup();
+
     if( $this->restrictions[ 'source' ] )
     {
-      $source_list = array( 'Any' );
+      $source_list = array( 'any' );
       $class_name = lib::get_class_name( 'database\source' );
       foreach( $class_name::select() as $db_source )
         $source_list[ $db_source->id ] = $db_source->name;
@@ -105,7 +120,7 @@ abstract class base_report extends \cenozo\ui\widget\base_report
 
     if( $this->restrictions[ 'consent' ] )
     {
-      $consent_list = array( 'Any' );
+      $consent_list = array( 'any' );
       $class_name = lib::get_class_name( 'database\consent' );
       $consent_list = array_merge( $consent_list, $class_name::get_enum_values( 'event' ) );
       $consent_list = array_combine( $consent_list, $consent_list );
@@ -123,8 +138,6 @@ abstract class base_report extends \cenozo\ui\widget\base_report
       $this->set_parameter(
         'restrict_mailout_type', key( $mailout_list ), true, $mailout_list );
     }
-
-    parent::finish();
   }
 }
 ?>

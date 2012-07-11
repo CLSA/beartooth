@@ -19,25 +19,34 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class user_edit extends \cenozo\ui\push\user_edit
 {
   /**
-   * Extends the base action by sending the same request to Mastodon
+   * Processes arguments, preparing them for the operation.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function prepare()
   {
-    // we'll need the arguments to send to mastodon
-    $args = $this->arguments;
+    parent::prepare();
 
-    // replace the user id with a unique key
-    $db_user = $this->get_record();
-    unset( $args['id'] );
-    $args['noid']['user.name'] = $db_user->name;
+    $this->set_machine_request_enabled( true );
+    $this->set_machine_request_url( MASTODON_URL );
+  }
 
-    parent::finish();
+  /** 
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function setup()
+  {
+    parent::setup();
 
-    // now send the same request to mastodon
-    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
-    $mastodon_manager->push( 'user', 'edit', $args );
+    $columns = $this->get_argument( 'columns', array() );
+
+    // don't send information 
+    if( array_key_exists( 'language', $columns ) ) 
+      $this->set_machine_request_enabled( false );
   }
 }
 ?>

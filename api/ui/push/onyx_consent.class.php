@@ -30,12 +30,15 @@ class onyx_consent extends \cenozo\ui\push
   }
   
   /**
-   * Executes the push.
+   * This method executes the operation's purpose.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function execute()
   {
+    parent::execute();
+
     $participant_class_name = lib::create( 'database\participant' );
 
     // get the body of the request
@@ -101,7 +104,7 @@ class onyx_consent extends \cenozo\ui\push
           if( array_key_exists( 'pdfForm', $object_vars ) )
             $args['form'] = $consent_data->pdfForm;
           $operation = lib::create( 'ui\push\consent_new', $args );
-          $operation->finish();
+          $operation->process();
         }
       }
     }

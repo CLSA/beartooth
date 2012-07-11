@@ -29,14 +29,38 @@ class onyx_instance_edit extends \cenozo\ui\push\base_edit
     parent::__construct( 'onyx_instance', $args );
   }
 
-  /**
-   * Executes the push.
+  /** 
+   * Processes arguments, preparing them for the operation.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @throws exception\notice
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function prepare()
   {
+    parent::prepare();
+
+    $columns = $this->get_argument( 'columns', array() );
+
+    // check to see if active is in the column list
+    if( array_key_exists( 'active', $columns ) ) 
+    {   
+      $this->active = $columns['active'];
+      unset( $this->arguments['columns']['active'] );
+    }   
+  }
+
+  /**
+   * Validate the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function validate()
+  {
+    parent::validate();
+
     // make sure that only top tier roles can edit onyx instances not belonging to the current site
     $session = lib::create( 'business\session' );
 
@@ -46,8 +70,35 @@ class onyx_instance_edit extends \cenozo\ui\push\base_edit
       throw lib::create( 'exception\notice',
         'You do not have access to edit this onyx instance.', __METHOD__ );
     }
-
-    parent::finish();
   }
+
+  /** 
+   * This method executes the operation's purpose.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function execute()
+  {
+    parent::execute();
+
+    $columns = $this->get_argument( 'columns', array() );
+
+    if( !is_null( $this->active ) ) 
+    {
+      // send the request to change the active column of the instance's user through an operation
+      $args = array( 'id' => $this->get_record()->get_user()->id,
+                     'columns' => array( 'active' => $this->active ) );
+      $db_operation = lib::create( 'ui\push\user_edit', $args );
+      $db_operation->process();
+    }
+  }
+
+  /** 
+   * If a site-specific value is being set this member holds its new value.
+   * @var string $active
+   * @access protected
+   */
+  protected $active = NULL;
 }
 ?>

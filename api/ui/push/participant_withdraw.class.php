@@ -30,12 +30,15 @@ class participant_withdraw extends \cenozo\ui\push\base_record
   }
 
   /**
-   * Executes the push.
+   * This method executes the operation's purpose.
+   * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function execute()
   {
+    parent::execute();
+
     if( $this->get_argument( 'cancel', false ) )
     { // if the most recent consent is a withdraw, remove it
       $consent_mod = lib::create( 'database\modifier' );
@@ -46,7 +49,7 @@ class participant_withdraw extends \cenozo\ui\push\base_record
       {
         // apply the change using an operation (so that Mastodon is also updated)
         $operation = lib::create( 'ui\push\consent_delete', array( 'id' => $db_consent->id ) );
-        $operation->finish();
+        $operation->process();
       }
       else throw lib::create( 'exception\runtime',
         sprintf( 'Trying to cancel withdraw for participant id %d but most recent consent is not '.
@@ -62,7 +65,7 @@ class participant_withdraw extends \cenozo\ui\push\base_record
           'date' => util::get_datetime_object()->format( 'Y-m-d' ),
           'note' => 'Automatically added by the "withdraw" button.' ) );
       $operation = lib::create( 'ui\push\consent_new', $args );
-      $operation->finish();
+      $operation->process();
     }
   }
 }

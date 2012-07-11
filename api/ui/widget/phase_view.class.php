@@ -28,6 +28,18 @@ class phase_view extends \cenozo\ui\widget\base_view
   public function __construct( $args )
   {
     parent::__construct( 'phase', 'view', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     // add items to the view
     $this->add_item( 'sid', 'enum', 'Survey' );
@@ -36,14 +48,14 @@ class phase_view extends \cenozo\ui\widget\base_view
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
 
     // create enum arrays
     $surveys = array();
@@ -63,8 +75,6 @@ class phase_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'sid', $this->get_record()->sid, true, $surveys );
     $this->set_item( 'rank', $this->get_record()->rank, true, $ranks );
     $this->set_item( 'repeated', $this->get_record()->repeated, true );
-
-    $this->finish_setting_items();
   }
 }
 ?>

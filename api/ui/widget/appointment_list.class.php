@@ -28,49 +28,58 @@ class appointment_list extends site_restricted_list
   public function __construct( $args )
   {
     parent::__construct( 'appointment', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
+
+    $this->add_column( 'user.name', 'string', 'Interviewer', true );
     $this->add_column( 'uid', 'string', 'UID', false );
     $this->add_column( 'address', 'string', 'Address', false );
     $this->add_column( 'datetime', 'datetime', 'Date', true );
     $this->add_column( 'state', 'string', 'State', false );
 
     $this->extended_site_selection = true;
-  }
-  
-  /**
-   * Set the rows array needed by the template.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
-   */
-  public function finish()
-  {
-    // don't add appointments if this list isn't parented
-    if( is_null( $this->parent ) ) $this->addable = false;
-    else
-    {
-      $session = lib::create( 'business\session' );
 
-      // don't add appointments if the parent already has an incomplete appointment
+    // don't add appointments if this list isn't parented
+    if( is_null( $this->parent ) ) $this->set_addable( false );
+    else if( $this->get_addable() )
+    {
+      // don't add appointments if the parent already has an incomplete appointment in the future
       $appointment_class_name = lib::get_class_name( 'database\appointment' );
       $appointment_mod = lib::create( 'database\modifier' );
       $appointment_mod->where( 'participant_id', '=', $this->parent->get_record()->id );
       $appointment_mod->where( 'completed', '=', false );
-      $this->addable = 0 == $appointment_class_name::count( $appointment_mod );
-
-      // don't add HOME appointments if the user isn't an interviewer
-      if( 'home' == $this->parent->get_record()->current_qnaire_type &&
-          'interviewer' != $session->get_role()->name )
-        $this->addable = false;
+      $appointment_mod->where(
+        'datetime', '>', util::get_datetime_object()->format( 'Y-m-d H:i:s' ) );
+      $this->set_addable( 0 == $appointment_class_name::count( $appointment_mod ) );
 
       // don't add appointments if the user isn't currently assigned to the participant
-      $db_assignment = $session->get_current_assignment();
+      $db_assignment = lib::create( 'business\session' )->get_current_assignment();
       if( is_null( $db_assignment ) ||
           $db_assignment->get_interview()->get_participant()->id !=
           $this->parent->get_record()->id )
         $this->addable = false;
     }
-
-    parent::finish();
+  }
+  
+  /**
+   * Sets up the operation with any pre-execution instructions that may be necessary.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function setup()
+  {
+    parent::setup();
 
     foreach( $this->get_record_list() as $record )
     {
@@ -84,14 +93,14 @@ class appointment_list extends site_restricted_list
           $db_address->get_region()->abbreviation,
           $db_address->postcode );
 
+      $db_user = $record->get_user();
       $this->add_row( $record->id,
-        array( 'uid' => $record->get_participant()->uid,
+        array( 'user.name' => is_null( $db_user ) ? 'none' : $record->get_user()->name,
+               'uid' => $record->get_participant()->uid,
                'address' => $address,
                'datetime' => $record->datetime,
                'state' => $record->get_state() ) );
     }
-
-    $this->finish_setting_rows();
   }
 }
 ?>

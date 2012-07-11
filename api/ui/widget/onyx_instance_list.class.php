@@ -28,21 +28,33 @@ class onyx_instance_list extends site_restricted_list
   public function __construct( $args )
   {
     parent::__construct( 'onyx_instance', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
-    $this->add_column( 'user.name', 'string', 'Name', true );
+    $this->add_column( 'user.name', 'string', 'Name', false );
     $this->add_column( 'site.name', 'string', 'Site', true );
     $this->add_column( 'instance', 'string', 'Instance', false );
   }
   
   /**
-   * Set the rows array needed by the template.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     foreach( $this->get_record_list() as $record )
     {
@@ -57,8 +69,6 @@ class onyx_instance_list extends site_restricted_list
                'site.name' => $record->get_site()->name,
                'instance' => $instance ) );
     }
-
-    $this->finish_setting_rows();
   }
 
   /**

@@ -28,6 +28,18 @@ class qnaire_list extends \cenozo\ui\widget\base_list
   public function __construct( $args )
   {
     parent::__construct( 'qnaire', $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
     
     $this->add_column( 'name', 'string', 'Name', true );
     $this->add_column( 'rank', 'number', 'Rank', true );
@@ -38,14 +50,14 @@ class qnaire_list extends \cenozo\ui\widget\base_list
   }
   
   /**
-   * Set the rows array needed by the template.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
     
     foreach( $this->get_record_list() as $record )
     {
@@ -65,8 +77,6 @@ class qnaire_list extends \cenozo\ui\widget\base_list
                'delay' => $record->delay,
                'phases' => $record->get_phase_count() ) );
     }
-
-    $this->finish_setting_rows();
   }
 }
 ?>

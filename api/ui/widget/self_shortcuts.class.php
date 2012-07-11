@@ -18,14 +18,14 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class self_shortcuts extends \cenozo\ui\widget\self_shortcuts
 {
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
 
     $setting_manager = lib::create( 'business\setting_manager' );
     $voip_manager = lib::create( 'business\voip_manager' );

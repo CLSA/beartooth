@@ -28,6 +28,18 @@ class self_menu extends \cenozo\ui\widget\self_menu
   public function __construct( $args )
   {
     parent::__construct( $args );
+  }
+
+  /**
+   * Processes arguments, preparing them for the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function prepare()
+  {
+    parent::prepare();
 
     $this->exclude_list( array(
       'address',
@@ -44,14 +56,14 @@ class self_menu extends \cenozo\ui\widget\self_menu
   }
 
   /**
-   * Finish setting the variables in a widget.
+   * Sets up the operation with any pre-execution instructions that may be necessary.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
+   * @access protected
    */
-  public function finish()
+  protected function setup()
   {
-    parent::finish();
+    parent::setup();
 
     $operation_class_name = lib::get_class_name( 'database\operation' );
     $utilities = $this->get_variable( 'utilities' );
