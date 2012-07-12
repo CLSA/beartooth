@@ -253,7 +253,7 @@ class onyx_participants extends \cenozo\ui\push
             if( 0 < count( $last_interview_list ) )
             {
               $db_last_interview = current( $last_interview_list );
-              $rank = $db_last_interview->rank + 1;
+              $rank = $db_last_interview->get_qnaire()->rank + 1;
             }
             $db_qnaire = $qnaire_class_name::get_unique_record( 'rank', $rank );
             

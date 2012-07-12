@@ -33,6 +33,16 @@
         } );
       } );
     
+      {% if allow_withdraw %}
+        // withdraw button
+        $( "#{{ widget.full }}__withdraw" ).click( function() {
+          if( ajax_push( "participant", "withdraw",
+                         { "id": {{ participant_id }},
+                           "cancel": {{ withdrawing ? "1" : "0" }} } ) )
+            window.location.reload();
+        } );
+      {% endif %}
+
       // end assignment button
       $( "#{{ widget.full }}__end_assignment" ).click( function() {
         if( ajax_push( "assignment", "end" ) ) window.location.reload();
@@ -146,6 +156,11 @@
                           false, "Assignment Notes" ) }}
         </td>
         <td align="right">
+          {% if allow_withdraw %}
+            <button id="{{ widget.full }}__withdraw"
+                    {{ on_call ? "" : "disabled" }}
+                    style="width: 180px;">{{ withdrawing ? "Cancel " : "" }}Withdraw</button>
+          {% endif %}
         </td>
       </tr>
     </table>
