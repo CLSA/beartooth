@@ -45,6 +45,7 @@ class appointment_view extends base_appointment_view
     $this->select_address = !is_null( $this->get_record()->address_id );
     
     $this->add_item( 'type', 'constant', 'Type' );
+    $this->add_item( 'uid', 'constant', 'UID' );
 
     // add items to the view
     if( $this->select_address )
@@ -68,6 +69,8 @@ class appointment_view extends base_appointment_view
   protected function setup()
   {
     parent::setup();
+
+    $operation_class_name = lib::get_class_name( 'database\operation' );
 
     $db_participant = lib::create( 'database\participant', $this->get_record()->participant_id );
   
@@ -108,12 +111,19 @@ class appointment_view extends base_appointment_view
     
     // set the view's items
     $this->set_item( 'type', $this->select_address ? 'home' : 'site' );
+    $this->set_item( 'uid', $db_participant->uid );
     $this->set_item( 'datetime', $this->get_record()->datetime, true );
     $this->set_item( 'state', $this->get_record()->get_state(), false );
 
     // hide the calendar if requested to
     $this->set_variable( 'select_address', $this->select_address );
     $this->set_variable( 'hide_calendar', $this->get_argument( 'hide_calendar', false ) );
+    $this->set_variable( 'participant_id', $db_participant->id );
+
+    // add an action to view the participant's details
+    $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'view' );
+    if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+      $this->add_action( 'view_details', 'View Details', NULL, 'View the participant\'s details' );
   }
   
   /**
