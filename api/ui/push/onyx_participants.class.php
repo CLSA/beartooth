@@ -43,6 +43,7 @@ class onyx_participants extends \cenozo\ui\push
 
     $participant_class_name = lib::create( 'database\participant' );
     $interview_class_name = lib::create( 'database\interview' );
+    $qnaire_class_name = lib::create( 'database\qnaire' );
 
     // get the body of the request
     $body = http_get_request_body();
