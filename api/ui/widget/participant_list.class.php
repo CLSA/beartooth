@@ -93,14 +93,15 @@ class participant_list extends site_restricted_list
    * @return int
    * @access protected
    */
-  protected function determine_record_count( $modifier = NULL )
+  public function determine_record_count( $modifier = NULL )
   {
     $session = lib::create( 'business\session' );
     $participant_class_name = lib::get_class_name( 'database\participant' );
 
     if( 'interviewer' == $session->get_role()->name )
-    { // restrict interview lists to those they have appointments with
+    { // restrict interview lists to those they have unfinished appointments with
       if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+      $modifier->where( 'appointment.completed', '=', false );
       $modifier->where( 'appointment.user_id', '=', $session->get_user()->id );
     }
 
@@ -115,7 +116,7 @@ class participant_list extends site_restricted_list
    * @return array( record )
    * @access protected
    */
-  protected function determine_record_list( $modifier = NULL )
+  public function determine_record_list( $modifier = NULL )
   {
     $session = lib::create( 'business\session' );
     $participant_class_name = lib::get_class_name( 'database\participant' );

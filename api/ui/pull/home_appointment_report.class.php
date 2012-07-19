@@ -74,6 +74,7 @@ class home_appointment_report extends \cenozo\ui\pull\base_report
       {
         $phone_mod->order( 'rank' );
         $first = true;
+        $phone = '';
         foreach( $db_participant->get_phone_list( $phone_mod ) as $db_phone )
         {
           $phone .= sprintf( '%s%s: %s',

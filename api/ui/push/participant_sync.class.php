@@ -39,8 +39,8 @@ class participant_sync extends \cenozo\ui\push
   {
     parent::execute();
 
-    // Mastodon will only return ~400 records back at a time, so break up the list into chunks
-    $limit = 250;
+    // need to cut large participant lists into several consecutive requests
+    $limit = 100;
 
     $cohort = lib::create( 'business\setting_manager' )->get_setting( 'general', 'cohort' );
     $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
@@ -52,15 +52,16 @@ class participant_sync extends \cenozo\ui\push
       $offset = 0;
       do
       {
+        $modifier = lib::create( 'database\modifier' );
+        $modifier->where( 'cohort', '=', $cohort );
+        $modifier->where( 'sync_datetime', '=', NULL );
+        $modifier->limit( $limit, $offset );
         $args = array(
           'full' => true,
-          'limit' => $limit,
-          'offset' => $offset,
-          'restrictions' => array(
-            'cohort' => array( 'compare' => 'is', 'value' => $cohort ),
-            'sync_datetime' => array( 'compare' => 'is', 'value' => 'NULL' ) ) );
+          'modifier' => $modifier );
         $response = $mastodon_manager->pull( 'participant', 'list', $args );
         foreach( $response->data as $data ) $this->sync( $data );
+        $offset += $limit;
       } while( count( $response->data ) );
     }
     else
@@ -70,11 +71,12 @@ class participant_sync extends \cenozo\ui\push
       for( $offset = 0; $offset < $count; $offset += $limit )
       {
         $uid_sub_list = array_slice( $uid_list, $offset, $limit );
+        $modifier = lib::create( 'database\modifier' );
+        $modifier->where( 'cohort', '=', $cohort );
+        $modifier->where( 'uid', 'IN', $uid_sub_list );
         $args = array(
           'full' => true,
-          'restrictions' => array(
-            'cohort' => array( 'compare' => 'is', 'value' => $cohort ),
-            'uid' => array( 'compare' => 'in', 'value' => implode( $uid_sub_list, ',' ) ) ) );
+          'modifier' => $modifier );
         $response = $mastodon_manager->pull( 'participant', 'list', $args );
         foreach( $response->data as $data ) $this->sync( $data );
       }
@@ -97,10 +99,10 @@ class participant_sync extends \cenozo\ui\push
     $source_class_name = lib::get_class_name( 'database\source' );
     $site_class_name = lib::get_class_name( 'database\site' );
 
-    // if the participant already exists then quit
+    // if the participant already exists then don't sync
     $db_participant = $participant_class_name::get_unique_record( 'uid', $data->uid );
     if( !is_null( $db_participant ) ) return;
-    
+
     $db_participant = lib::create( 'database\participant' );
 
     foreach( $db_participant->get_column_names() as $column )
@@ -142,7 +144,7 @@ class participant_sync extends \cenozo\ui\push
     $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $mastodon_manager->push( 'participant', 'edit', $arguments );
   }
-  
+
   /**
    * Creates database records based on a list provided by Mastodon
    * 
@@ -155,12 +157,12 @@ class participant_sync extends \cenozo\ui\push
   protected function sync_list( $db_participant, $subject, $list )
   {
     foreach( $list as $data )
-    {   
+    {
       $record = lib::create( 'database\\'.$subject );
       $record->participant_id = $db_participant->id;
 
       foreach( $data as $column_name => $value )
-      {   
+      {
         if( '_id' == substr( $column_name, -3 ) )
         {
           $column_subject = substr( $column_name, 0, -3 );
