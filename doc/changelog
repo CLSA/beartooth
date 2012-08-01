@@ -1,0 +1,24 @@
+====================================================================================================
+1.0.2
+====================================================================================================
+
+* View details added to appointment view
+  - When viewing appointments a new "view details" button has been added which shows the
+    participant's details
+  - The participant's UID has been added to the appointment view
+
+* Various bug fixes
+
+====================================================================================================
+1.0.1
+====================================================================================================
+
+* Availability changed from "only call when" to "prefer calling when"
+  - operators are not restricted to calling participants within available times anymore, instead
+    availability only causes a priority in queues
+  - all availability sub-queues now have the three "ready to call" options:
+    1. call participants who are currently available
+    2. call participants who are always available
+    3. call participants who are not currently available
+
+* Various bug fixes

@@ -41,9 +41,17 @@ class phone_call_begin extends \cenozo\ui\push
     parent::validate();
 
     $session = lib::create( 'business\session' );
-    $db_assignment = $session->get_current_assignment();
+
+    // if the user is already in a phone call then don't start another one
+    $db_phone_call = $session->get_current_phone_call();
+    if( !is_null( $db_phone_call ) )
+      throw lib::create( 'exception\notice',
+        'You are already registered in a call, please refresh the application. '.
+        'If this problem persists please report it to your coordinator.',
+        __METHOD__ );
 
     // make sure that interviewers are calling their current assignment only
+    $db_assignment = $session->get_current_assignment();
     if( 'interviewer' == $session->get_role()->name )
       if( is_null( $db_assignment ) )
         throw lib::create( 'exception\runtime',

@@ -117,7 +117,7 @@ class session extends \cenozo\business\session
         sprintf( 'User %s has more than one active assignment!',
                  $this->get_user()->name ) );
 
-    return 1 == count( $assignment_list ) ? current( $assignment_list ) : NULL;
+    return 0 < count( $assignment_list ) ? current( $assignment_list ) : NULL;
   }
 
   /**
@@ -145,7 +145,7 @@ class session extends \cenozo\business\session
         sprintf( 'User %s has more than one active phone call!',
                  $this->get_user()->name ) );
 
-    return 1 == count( $phone_call_list ) ? current( $phone_call_list ) : NULL;
+    return 0 < count( $phone_call_list ) ? current( $phone_call_list ) : NULL;
   }
 
   /**
