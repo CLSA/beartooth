@@ -41,11 +41,33 @@ class participant_list extends site_restricted_list
   {
     parent::prepare();
 
+    // determine if the parent is an assignment select widget
+    if( !is_null( $this->parent ) )
+    {
+      if( 'home_assignment_select' == $this->parent->get_class_name() )
+        $this->assignment_type = 'home';
+      else if( 'site_assignment_select' == $this->parent->get_class_name() )
+        $this->assignment_type = 'site';
+    }
+    $this->set_variable( 'assignment_type', $this->assignment_type );
+
     $this->add_column( 'uid', 'string', 'UID', true );
     $this->add_column( 'first_name', 'string', 'First', true );
     $this->add_column( 'last_name', 'string', 'Last', true );
-    $this->add_column( 'source.name', 'string', 'Source', true );
-    $this->add_column( 'primary_site', 'string', 'Site', false );
+    if( is_null( $this->assignment_type ) )
+    {
+      $this->add_column( 'source.name', 'string', 'Source', true );
+      $this->add_column( 'primary_site', 'string', 'Site', false );
+    }
+    else
+    {
+      // When the list is parented by an assignment select widget the internal query
+      // comes from the queue class, so every participant is linked to their first
+      // address using table alias "first_address"
+      $this->add_column( 'first_address.address1', 'string', 'Address', true );
+      $this->add_column( 'first_address.city', 'string', 'City', true );
+      $this->add_column( 'first_address.postcode', 'string', 'Postcode', true );
+    }
 
     $this->extended_site_selection = true;
   }
@@ -63,13 +85,23 @@ class participant_list extends site_restricted_list
     foreach( $this->get_record_list() as $record )
     {
       $db_source = $record->get_source();
+      $db_address = $record->get_first_address();
       $source_name = is_null( $db_source ) ? '(none)' : $db_source->name;
       $this->add_row( $record->id,
+        is_null( $this->assignment_type ) ?
         array( 'uid' => $record->uid ? $record->uid : '(none)',
                'first_name' => $record->first_name,
                'last_name' => $record->last_name,
                'source.name' => $source_name,
                'primary_site' => $record->get_primary_site()->name,
+               // note count isn't a column, it's used for the note button
+               'note_count' => $record->get_note_count() ) :
+        array( 'uid' => $record->uid ? $record->uid : '(none)',
+               'first_name' => $record->first_name,
+               'last_name' => $record->last_name,
+               'first_address.address1' => $db_address->address1,
+               'first_address.city' => $db_address->city,
+               'first_address.postcode' => $db_address->postcode,
                // note count isn't a column, it's used for the note button
                'note_count' => $record->get_note_count() ) );
     }
@@ -130,5 +162,12 @@ class participant_list extends site_restricted_list
 
     return parent::determine_record_list( $modifier );
   }
+
+  /**
+   * The type of assignment select, or null if the list is not being used to select an assignment
+   * @var string assignment_type
+   * @access @protected
+   */
+  protected $assignment_type = NULL;
 }
 ?>

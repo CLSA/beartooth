@@ -86,19 +86,19 @@ class self_menu extends \cenozo\ui\widget\self_menu
                             'name' => 'sync' );
 
     // insert the assignment begin operation into the utilities
-    $db_operation = $operation_class_name::get_operation( 'push', 'home_assignment', 'begin' );
+    $db_operation = $operation_class_name::get_operation( 'widget', 'home_assignment', 'select' );
     if( $session->is_allowed( $db_operation ) )
       $utilities[] = array( 'heading' => 'Home Assignment',
-                            'type' => 'push',
+                            'type' => 'widget',
                             'subject' => 'home_assignment',
-                            'name' => 'begin' );
+                            'name' => 'select' );
 
-    $db_operation = $operation_class_name::get_operation( 'push', 'site_assignment', 'begin' );
+    $db_operation = $operation_class_name::get_operation( 'widget', 'site_assignment', 'select' );
     if( $session->is_allowed( $db_operation ) )
       $utilities[] = array( 'heading' => 'Site Assignment',
-                            'type' => 'push',
+                            'type' => 'widget',
                             'subject' => 'site_assignment',
-                            'name' => 'begin' );
+                            'name' => 'select' );
 
     $this->set_variable( 'utilities', $utilities );
   }
