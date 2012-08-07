@@ -52,7 +52,7 @@ class queue_view extends \cenozo\ui\widget\base_view
       if( !is_null( $site_id ) ) $this->db_site = lib::create( 'database\site', $site_id );
     }
 
-    $qnaire_id = $this->get_argument( 'qnaire_id' );
+    $qnaire_id = $this->get_argument( 'qnaire_id', 0 );
     if( $qnaire_id ) $this->db_qnaire = lib::create( 'database\qnaire', $qnaire_id );
 
     $this->language = $this->get_argument( 'language' );
