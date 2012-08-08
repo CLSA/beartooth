@@ -237,17 +237,18 @@ class onyx_participants extends \cenozo\ui\push
           $interview_mod = lib::create( 'database\modifier' );
           $interview_mod->where( 'participant_id', '=', $db_participant->id );
           if( $interview_type ) $interview_mod->where( 'qnaire.type', '=', $interview_type );
-          $interview_mod->where( 'completed', '=', false );
           $interview_list = $interview_class_name::select( $interview_mod );
           
           // make sure the interview exists
           if( 0 == count( $interview_list ) )
             throw lib::create( 'exception\runtime',
-              sprintf( 'Trying to export %s interview for participant %s which doesn\'t exist.',
+              sprintf( 'Trying to export %s interview for participant %s but the '.
+                       'interview doesn\'t exist.',
                        $interview_type,
                        $db_participant->uid ),
               __METHOD__ );
           
+          // mark the interview as completed
           $db_interview = current( $interview_list );
           $db_interview->completed = true;
           $db_interview->save();
