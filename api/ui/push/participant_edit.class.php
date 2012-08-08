@@ -3,7 +3,6 @@
  * participant_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: participant edit
  *
  * Edit a participant.
- * @package beartooth\ui
  */
 class participant_edit extends base_edit
 {

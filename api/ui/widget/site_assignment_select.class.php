@@ -3,7 +3,6 @@
  * site_assignment_select.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget site assignment select
- * 
- * @package beartooth\ui
  */
 class site_assignment_select extends \cenozo\ui\widget
 {

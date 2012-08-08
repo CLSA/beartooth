@@ -3,7 +3,6 @@
  * shift_template_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: shift template edit
  *
  * Edit a shift template.
- * @package beartooth\ui
  */
 class shift_template_edit extends \cenozo\ui\push\base_edit
 {

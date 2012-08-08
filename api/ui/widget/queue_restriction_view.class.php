@@ -3,7 +3,6 @@
  * queue_restriction_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget queue_restriction view
- * 
- * @package beartooth\ui
  */
 class queue_restriction_view extends \cenozo\ui\widget\base_view
 {

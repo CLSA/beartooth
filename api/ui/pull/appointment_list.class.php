@@ -3,7 +3,6 @@
  * appointment_list.class.php
  * 
  * @author Dean Inglis <inglisd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Class for appointment list pull operations.
  * 
  * @abstract
- * @package beartooth\ui
  */
 class appointment_list extends \cenozo\ui\pull\base_list
 {

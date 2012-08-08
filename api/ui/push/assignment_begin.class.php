@@ -3,7 +3,6 @@
  * assignment_begin.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: assignment begin
  *
  * Assigns a participant to the user.
- * @package beartooth\ui
  */
 class assignment_begin extends \cenozo\ui\push
 {

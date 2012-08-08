@@ -3,7 +3,6 @@
  * onyx_instance_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget onyx_instance view
- * 
- * @package beartooth\ui
  */
 class onyx_instance_view extends \cenozo\ui\widget\base_view
 {

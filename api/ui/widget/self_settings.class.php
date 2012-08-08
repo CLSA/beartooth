@@ -3,7 +3,6 @@
  * self_settings.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget self settings
- * 
- * @package beartooth\ui
  */
 class self_settings extends \cenozo\ui\widget\self_settings
 {

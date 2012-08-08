@@ -3,7 +3,6 @@
  * home_assignment_select.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget home assignment select
- * 
- * @package beartooth\ui
  */
 class home_assignment_select extends \cenozo\ui\widget
 {

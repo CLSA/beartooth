@@ -3,7 +3,6 @@
  * participant_new.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: participant new
  *
  * Create a new participant.
- * @package beartooth\ui
  */
 class participant_new extends base_new
 {

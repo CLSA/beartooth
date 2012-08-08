@@ -3,7 +3,6 @@
  * shift_template_delete.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: shift template delete
- * 
- * @package beartooth\ui
  */
 class shift_template_delete extends \cenozo\ui\push\base_delete
 {

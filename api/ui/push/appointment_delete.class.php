@@ -3,7 +3,6 @@
  * appointment_delete.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: appointment delete
- * 
- * @package beartooth\ui
  */
 class appointment_delete extends \cenozo\ui\push\base_delete
 {

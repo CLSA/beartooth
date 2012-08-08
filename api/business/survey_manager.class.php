@@ -3,7 +3,6 @@
  * survey_manager.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\business
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * survey_manager: record
- *
- * @package beartooth\business
  */
 class survey_manager extends \cenozo\singleton
 {

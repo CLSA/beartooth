@@ -3,7 +3,6 @@
  * participant_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget participant view
- * 
- * @package beartooth\ui
  */
 class participant_view extends \cenozo\ui\widget\base_view
 {

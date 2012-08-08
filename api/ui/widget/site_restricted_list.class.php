@@ -3,7 +3,6 @@
  * site_restricted_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Base class for all list widgets which may be restricted by site.
- * 
- * @package beartooth\ui
  */
 abstract class site_restricted_list extends \cenozo\ui\widget\site_restricted_list
 {

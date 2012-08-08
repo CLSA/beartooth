@@ -3,7 +3,6 @@
  * self_menu.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget self menu
- * 
- * @package beartooth\ui
  */
 class self_menu extends \cenozo\ui\widget\self_menu
 {

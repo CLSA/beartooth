@@ -3,7 +3,6 @@
  * onyx_instance_new.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: onyx_instance new
  *
  * Create a new onyx_instance.
- * @package beartooth\ui
  */
 class onyx_instance_new extends \cenozo\ui\push\base_new
 {

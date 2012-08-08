@@ -3,7 +3,6 @@
  * sourcing_required_report.class.php
  * 
  * @author Dean Inglis <inglisd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget sourcing required report
- * 
- * @package beartooth\ui
  */
 class sourcing_required_report extends base_report
 {

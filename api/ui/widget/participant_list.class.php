@@ -3,7 +3,6 @@
  * participant_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget participant list
- * 
- * @package beartooth\ui
  */
 class participant_list extends site_restricted_list
 {

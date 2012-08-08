@@ -3,7 +3,6 @@
  * note_new.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,7 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Extends the parent class to send machine requests.
- * @package beartooth\ui
  */
 class note_new extends \cenozo\ui\push\note_new
 {

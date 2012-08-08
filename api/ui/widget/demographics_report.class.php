@@ -3,7 +3,6 @@
  * demographics_report.class.php
  * 
  * @author Dean Inglis <inglisd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget demographics report
- * 
- * @package beartooth\ui
  */
 class demographics_report extends base_report
 {

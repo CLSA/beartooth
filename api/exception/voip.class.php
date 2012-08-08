@@ -3,7 +3,6 @@
  * voip.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\exception
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * voip: voip exceptions
  * 
  * All exceptions caused because of the voip connection.
- * @package beartooth\exception
  */
 class voip extends \cenozo\exception\runtime
 {

@@ -3,7 +3,6 @@
  * onyx_participants.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -16,7 +15,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Allows Onyx to update participant and interview details
  * NOTE: this class breaks the non-plural words naming convension in order to play
  *       nicely with Onyx
- * @package beartooth\ui
  */
 class onyx_participants extends \cenozo\ui\push
 {
