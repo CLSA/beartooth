@@ -234,9 +234,11 @@ class onyx_participants extends \cenozo\ui\push
         
         if( 'completed' == $interview_status )
         {
+          // get the most recent interview of the appropriate type
           $interview_mod = lib::create( 'database\modifier' );
           $interview_mod->where( 'participant_id', '=', $db_participant->id );
           if( $interview_type ) $interview_mod->where( 'qnaire.type', '=', $interview_type );
+          $interview_mod->order_desc( 'qnaire.rank' );
           $interview_list = $interview_class_name::select( $interview_mod );
           
           // make sure the interview exists
