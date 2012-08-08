@@ -1,22 +1,33 @@
-This document outlines Beartooth's organization.  For install instructions see doc/install.readme
+Beartooth
+=========
+
+Web-based computer-assisted personal interviewing (CAPI) management software which
+coordinates the collection of questionnaires from participants in person or on site.
+Designed for large epidemiology studies, Beartooth provides an interface for the
+management of multiple data-collection sites.
+
+See doc/install.readme for install instructions.
 
 api/
-  This is where the programming interface belongs.  This includes all packages, classes, functions,
-  settings, etc.
+  This is where the programming interface belongs.
+  This includes all packages, classes, functions, settings, etc.
 
 aux/
   Any auxiliary files which are needed by the software go here.
 
 tpl/
-  This is where display templates belong.  This includes twig templates, xslt, etc.
+  This is where display templates belong.
+  This includes twig templates, javascript, etc.
 
 web/
-  This is the public web directory that a web server usually links to.
+  This is the public web directory that a web server links to.
 
 doc/
-  All documentation for Beartooth is found here including the phpdoc generated API documentation
-  and design documents.
+  All documentation for Beartooth is found here including the apigen generated API
+  documentation and design documents.
 
 sql/
-  This is where all sql needed to install the application belongs.  This includes database schemas,
-  default data, etc.
+  This is where all sql needed to install the application belongs.
+  This includes database schemas, default data and script to upgrade from older 
+  versions.
+
