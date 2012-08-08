@@ -41,6 +41,10 @@ class interview_edit extends \cenozo\ui\push\base_edit
 
     $columns = $this->get_argument( 'columns', array() );
 
+    /*
+     * Forcing an interview to be complete is currently disabled in the UI, so commenting out
+     * this code for now
+
     if( array_key_exists( 'completed', $columns ) && 1 == $columns['completed'] )
     {
       $interview_type = $this->get_record()->get_qnaire()->type;
@@ -56,6 +60,12 @@ class interview_edit extends \cenozo\ui\push\base_edit
         $db_appointment->save();
       }
     }
+
+    * Replacing with an exception to make sure setting the completed column isn't allowed
+    */
+    if( array_key_exists( 'completed', $columns ) )
+      throw lib::create( 'exception\notice',
+        'Manually setting the completed state of an interview has been disabled.', __METHOD__ );
   }
 }
 ?>

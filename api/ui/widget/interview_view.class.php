@@ -45,7 +45,7 @@ class interview_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'uid', 'constant', 'UID' );
     $this->add_item( 'participant', 'constant', 'Participant' );
     $this->add_item( 'qnaire', 'constant', 'Questionnaire' );
-    $this->add_item( 'completed', 'boolean', 'Completed' );
+    $this->add_item( 'completed', 'constant', 'Completed' );
 
     // create the assignment sub-list widget      
     $this->assignment_list = lib::create( 'ui\widget\assignment_list', $this->arguments );
@@ -70,7 +70,7 @@ class interview_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'uid', $db_participant->uid );
     $this->set_item( 'participant', $participant );
     $this->set_item( 'qnaire', $this->get_record()->get_qnaire()->name );
-    $this->set_item( 'completed', $this->get_record()->completed, true );
+    $this->set_item( 'completed', $this->get_record()->completed ? 'Yes' : 'No' );
 
     // process the child widgets
     try

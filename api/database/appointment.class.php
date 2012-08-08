@@ -38,22 +38,25 @@ class appointment extends \cenozo\database\record
   public function save()
   {
     // make sure there is a maximum of 1 future home appointment and 1 future site appointment
-    $now_datetime_obj = util::get_datetime_object();
-    $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'participant_id', '=', $this->participant_id );
-    $modifier->where( 'datetime', '>', $now_datetime_obj->format( 'Y-m-d H:i:s' ) );
-    $modifier->where( 'address_id', $this->address_id ? '!=' : '=', NULL );
-    if( !is_null( $this->id ) ) $modifier->where( 'id', '!=', $this->id );
-    $appointment_list = static::select( $modifier );
-    if( 0 < count( $appointment_list ) )
+    if( !$this->completed )
     {
-      $db_appointment = current( $appointment_list );
-      throw lib::create( 'exception\notice',
-        sprintf( 'Unable to add the appointment since the participant already has an upcomming '.
-                 '%s appointment scheduled for %s.',
-                 is_null( $this->address_id ) ? 'site' : 'home',
-                 util::get_formatted_datetime( $db_appointment->datetime ) ),
-        __METHOD__ );
+      $now_datetime_obj = util::get_datetime_object();
+      $modifier = lib::create( 'database\modifier' );
+      $modifier->where( 'participant_id', '=', $this->participant_id );
+      $modifier->where( 'datetime', '>', $now_datetime_obj->format( 'Y-m-d H:i:s' ) );
+      $modifier->where( 'address_id', $this->address_id ? '!=' : '=', NULL );
+      if( !is_null( $this->id ) ) $modifier->where( 'id', '!=', $this->id );
+      $appointment_list = static::select( $modifier );
+      if( 0 < count( $appointment_list ) )
+      {
+        $db_appointment = current( $appointment_list );
+        throw lib::create( 'exception\notice',
+          sprintf( 'Unable to add the appointment since the participant already has an upcomming '.
+                   '%s appointment scheduled for %s.',
+                   is_null( $this->address_id ) ? 'site' : 'home',
+                   util::get_formatted_datetime( $db_appointment->datetime ) ),
+          __METHOD__ );
+      }
     }
 
     parent::save();
