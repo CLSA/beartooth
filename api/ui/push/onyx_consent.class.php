@@ -68,19 +68,23 @@ class onyx_consent extends \cenozo\ui\push
         else if( 'RETRACT' == $consent_data->ConclusiveStatus ) $event = 'retract';
         else $event = 'withdraw';
 
-        // try timeEnd, if null then try timeStart
+        // try timeEnd, if null then try timeStart, if null then use today's date
         $var_name = 'timeEnd';
-        if( !array_key_exists( $var_name, $object_vars ) ||
-            0 == strlen( $consent_data->$var_name ) )
+        if( array_key_exists( 'timeEnd', $object_vars ) &&
+            0 < strlen( $consent_data->timeEnd ) )
         {
-          $var_name = 'timeStart';
-          if( !array_key_exists( $var_name, $object_vars ) ||
-              0 == strlen( $consent_data->$var_name ) )
-            throw lib::create( 'exception\argument',
-              $var_name, NULL, __METHOD__ );
-        
+          $date_obj = util::get_datetime_object( $consent_data->timeEnd );
         }
-        $date = util::get_datetime_object( $consent_data->$var_name )->format( 'Y-m-d' );
+        else if( array_key_exists( 'timeStart', $object_vars ) &&
+                 0 < strlen( $consent_data->timeStart ) )
+        {
+          $date_obj = util::get_datetime_object( $consent_data->timeStart );
+        }
+        else
+        {
+          $date_obj = util::get_datetime_object();
+        }
+        $date = $date_obj->format( 'Y-m-d' );
 
         // update the draw blood consent if it is provided
         if( array_key_exists( 'PCF_CSTSAMP_COM', $object_vars ) )
