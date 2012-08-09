@@ -3,7 +3,6 @@
  * base_appointment_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * base class for appointment view/add classes
- * 
- * @package beartooth\ui
  */
 abstract class base_appointment_view extends \cenozo\ui\widget\base_view
 {

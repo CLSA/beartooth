@@ -1,4 +1,19 @@
 ====================================================================================================
+1.0.3
+====================================================================================================
+
+* Calendar date persistence
+  - Calendars don't reset to today's date after changing event
+
+* Assignments are now chosen from a list of participants
+  - When the home/site assignment buttons are clicked the user is presented with a list of all
+    available participants
+  - Each participant has a "play" button (to the far right) which, when clicked, starts an
+    assignment with that participant
+
+* Various bug fixes
+
+====================================================================================================
 1.0.2
 ====================================================================================================
 

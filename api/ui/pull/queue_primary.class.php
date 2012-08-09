@@ -3,7 +3,6 @@
  * queue_primary.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * pull: queue primary
- * 
- * @package beartooth\ui
  */
 class queue_primary extends \cenozo\ui\pull\base_primary
 {

@@ -3,7 +3,6 @@
  * surveys.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\database
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * surveys: record
- *
- * @package beartooth\database
  */
 class surveys extends record
 {

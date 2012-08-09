@@ -3,7 +3,6 @@
  * demographics_report.class.php
  * 
  * @author Dean Inglis <inglisd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Participant status report data.
  * 
  * @abstract
- * @package beartooth\ui
  */
 class demographics_report extends \cenozo\ui\pull\base_report
 {

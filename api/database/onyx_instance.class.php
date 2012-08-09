@@ -3,7 +3,6 @@
  * onyx_instance.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\database
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * onyx_instance: record
- *
- * @package beartooth\database
  */
 class onyx_instance extends \cenozo\database\record
 {

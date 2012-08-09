@@ -3,7 +3,6 @@
  * qnaire_primary.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * pull: qnaire primary
- * 
- * @package beartooth\ui
  */
 class qnaire_primary extends \cenozo\ui\pull\base_primary
 {

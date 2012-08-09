@@ -3,7 +3,6 @@
  * address_add.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget address add
- * 
- * @package beartooth\ui
  */
 class address_add extends \cenozo\ui\widget\base_view
 {

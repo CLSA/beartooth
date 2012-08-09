@@ -3,7 +3,6 @@
  * participant.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\database
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * participant: record
- *
- * @package beartooth\database
  */
 class participant extends \cenozo\database\has_note
 {
@@ -64,8 +61,34 @@ class participant extends \cenozo\database\has_note
     $modifier->where( 'end_datetime', '!=', NULL );
     $modifier->order_desc( 'start_datetime' );
     $modifier->limit( 1 );
-    $database_class_name = lib::get_class_name( 'database\assignment' );
-    $assignment_list = $database_class_name::select( $modifier );
+    $assignment_class_name = lib::get_class_name( 'database\assignment' );
+    $assignment_list = $assignment_class_name::select( $modifier );
+
+    return 0 == count( $assignment_list ) ? NULL : current( $assignment_list );
+  }
+
+  /**
+   * Get the participant's current assignment (or null if none is found)
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return assignment
+   * @access public
+   */
+  public function get_current_assignment()
+  {
+    // check the primary key value
+    if( is_null( $this->id ) )
+    {
+      log::warning( 'Tried to query participant with no id.' );
+      return NULL;
+    }
+    
+    $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'interview.participant_id', '=', $this->id );
+    $modifier->where( 'end_datetime', '=', NULL );
+    $modifier->order_desc( 'start_datetime' );
+    $modifier->limit( 1 );
+    $assignment_class_name = lib::get_class_name( 'database\assignment' );
+    $assignment_list = $assignment_class_name::select( $modifier );
 
     return 0 == count( $assignment_list ) ? NULL : current( $assignment_list );
   }

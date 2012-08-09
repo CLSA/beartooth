@@ -3,7 +3,6 @@
  * queue_restriction_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget queue_restriction list
- * 
- * @package beartooth\ui
  */
 class queue_restriction_list extends site_restricted_list
 {

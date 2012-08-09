@@ -3,7 +3,6 @@
  * base_new.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Extends Cenozo's base class for all record "new" push operations.
- * 
- * @package beartooth\ui
  */
 abstract class base_new extends \cenozo\ui\push\base_new
 {

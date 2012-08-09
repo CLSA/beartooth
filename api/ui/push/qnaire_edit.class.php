@@ -3,7 +3,6 @@
  * qnaire_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: qnaire edit
  *
  * Edit a qnaire.
- * @package beartooth\ui
  */
 class qnaire_edit extends \cenozo\ui\push\base_edit
 {

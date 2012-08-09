@@ -3,7 +3,6 @@
  * address.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\database
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * address: record
- *
- * @package beartooth\database
  */
 class address extends \cenozo\database\has_rank
 {

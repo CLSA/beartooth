@@ -3,7 +3,6 @@
  * home_appointment_calendar.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget home appointment calendar
- * 
- * @package beartooth\ui
  */
 class home_appointment_calendar extends \cenozo\ui\widget\base_calendar
 {

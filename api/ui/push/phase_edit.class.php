@@ -3,7 +3,6 @@
  * phase_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: phase edit
  *
  * Edit a phase.
- * @package beartooth\ui
  */
 class phase_edit extends \cenozo\ui\push\base_edit
 {

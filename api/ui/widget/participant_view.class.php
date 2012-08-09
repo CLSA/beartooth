@@ -3,7 +3,6 @@
  * participant_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget participant view
- * 
- * @package beartooth\ui
  */
 class participant_view extends \cenozo\ui\widget\base_view
 {
@@ -102,36 +99,6 @@ class participant_view extends \cenozo\ui\widget\base_view
     $site_class_name = lib::get_class_name( 'database\site' );
 
     $db_participant = $this->get_record();
-
-    /*
-      DISABLING THIS FUNCTIONALITY UNLESS IT IS RE-REQUESTED
-
-    // add the assign now button, if appropriate
-    $session = lib::create( 'business\session' );
-    $allow_assign =
-      // if the user is not an interviewer
-      'interviewer' != $session->get_role()->name &&
-      // the participant is ready for a site qnaire
-      'site' == $db_participant->current_qnaire_type &&
-      // the participant isn't already in an assignment
-      is_null( $session->get_current_assignment() ) &&
-      // the participant does not have a permanent status
-      is_null( $db_participant->status );
-
-    if( $allow_assign )
-    { // make sure the participant is eligible
-      $queue_class_name = lib::get_class_name( 'database\queue' );
-      $db_queue = $queue_class_name::get_unique_record( 'name', 'eligible' );
-      $queue_mod = lib::create( 'database\modifier' );
-      $queue_mod->where( 'participant.id', '=', $db_participant->id );
-      $allow_assign = $allow_assign && 1 == $db_queue->get_participant_count( $queue_mod );
-      $this->add_action( 'assign', 'Assign Now', NULL,
-        'Start an assignment with this participant in order to make a site appointment' );
-    }
-    */
-
-    $allow_assign = false;
-    $this->set_variable( 'allow_assign', $allow_assign );
 
     // create enum arrays
     $sites = array();

@@ -3,7 +3,6 @@
  * main.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Class that manages variables in main user interface template.
- * 
- * @package beartooth\ui
  */
 class main extends \cenozo\ui\main
 {

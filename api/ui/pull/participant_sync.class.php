@@ -3,7 +3,6 @@
  * participant_sync.class.php
  * 
  * @author Dean Inglis <inglisd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Base class for all list pull operations.
  * 
  * @abstract
- * @package beartooth\ui
  */
 class participant_sync extends \cenozo\ui\pull
 {

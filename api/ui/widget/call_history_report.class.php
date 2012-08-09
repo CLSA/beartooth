@@ -3,7 +3,6 @@
  * call_history.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget call history report
- * 
- * @package beartooth\ui
  */
 class call_history_report extends base_report
 {

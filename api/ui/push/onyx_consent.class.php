@@ -3,7 +3,6 @@
  * onyx_consent.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: onyx consent
  * 
  * Allows Onyx to update consent and interview details
- * @package beartooth\ui
  */
 class onyx_consent extends \cenozo\ui\push
 {

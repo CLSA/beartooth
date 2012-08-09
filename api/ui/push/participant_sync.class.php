@@ -3,7 +3,6 @@
  * participant_sync.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: participant sync
  *
  * Syncs participant information between Beartooth and Mastodon
- * @package beartooth\ui
  */
 class participant_sync extends \cenozo\ui\push
 {
