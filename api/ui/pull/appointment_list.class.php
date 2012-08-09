@@ -150,55 +150,59 @@ class appointment_list extends \cenozo\ui\pull\base_list
 
       $event_list[] = $event;
 
-      // now make sure that there is an incomplete interview of the same type as the appointment
-      $interview_mod = lib::create( 'database\modifier' );
-      $interview_mod->where( 'qnaire.type', '=', $interview_type );
-      $interview_mod->where( 'completed', '=', false );
-      $interview_list = $db_participant->get_interview_list( $interview_mod );
-      if( 0 == count( $interview_list ) )
-      { // there is no incomplete interview for this type, so create it now
-        // get the next qnaire of the next interview by seeing which was last completed
-        $last_interview_mod = lib::create( 'database\modifier' );
-        $last_interview_mod->where( 'participant_id', '=', $db_participant->id );
-        $last_interview_mod->where( 'completed', '=', true );
-        $last_interview_mod->order_desc( 'qnaire.rank' );
-        $last_interview_mod->limit( 1 );
-        $last_interview_list = $interview_class_name::select( $last_interview_mod );
-        $rank = 1;
-        if( 0 < count( $last_interview_list ) ) 
-        {   
-          $db_last_interview = current( $last_interview_list );
-          $rank = $db_last_interview->get_qnaire()->rank + 1;
-        }   
-        $db_qnaire = $qnaire_class_name::get_unique_record( 'rank', $rank );
+      if( !$db_appointment->completed )
+      {
+        // now make sure that there is an incomplete interview of the same type as the appointment
+        $interview_mod = lib::create( 'database\modifier' );
+        $interview_mod->where( 'qnaire.type', '=', $interview_type );
+        $interview_mod->where( 'completed', '=', false );
+        $interview_list = $db_participant->get_interview_list( $interview_mod );
+        if( 0 == count( $interview_list ) )
+        { // there is no incomplete interview for this type, so create it now
+          // get the next qnaire of the next interview by seeing which was last completed
+          $last_interview_mod = lib::create( 'database\modifier' );
+          $last_interview_mod->where( 'participant_id', '=', $db_participant->id );
+          $last_interview_mod->where( 'completed', '=', true );
+          $last_interview_mod->order_desc( 'qnaire.rank' );
+          $last_interview_mod->limit( 1 );
+          $last_interview_list = $interview_class_name::select( $last_interview_mod );
+          $rank = 1;
+          if( 0 < count( $last_interview_list ) ) 
+          {   
+            $db_last_interview = current( $last_interview_list );
+            $rank = $db_last_interview->get_qnaire()->rank + 1;
+          }   
+          $db_qnaire = $qnaire_class_name::get_unique_record( 'rank', $rank );
 
-        // check if the qnaire exists at all
-        if( is_null( $db_qnaire ) )
-        {
-          // now make sure that the qnaire is of the same type as the appointment
-          throw lib::create( 'exception\runtime',
-            sprintf( 'Tried to provide %s appointment but participant has '.
-                     'completed all interviews.',
-                     $interview_type ),
-            __METHOD__ );
-        }
-        else
-        {
-          // now make sure that the qnaire is of the same type as the appointment
-          if( $db_qnaire->type != $interview_type )
+          // check if the qnaire exists at all
+          if( is_null( $db_qnaire ) )
+          {
             throw lib::create( 'exception\runtime',
-              sprintf( 'Tried to provide %s appointment but participant\'s next '.
-                       'interview type is %s and rank %d.',
+              sprintf( 'Tried to provide %s appointment for participant %s but participant has '.
+                       'completed all interviews.',
                        $interview_type,
-                       $db_qnaire->type,
-                       $db_qnaire->rank ),
+                       $db_participant->uid ),
               __METHOD__ );
+          }
+          else
+          {
+            // now make sure that the qnaire is of the same type as the appointment
+            if( $db_qnaire->type != $interview_type )
+              throw lib::create( 'exception\runtime',
+                sprintf( 'Tried to provide %s appointment for participant %s but participant\'s '.
+                         'next interview type is %s and rank %d.',
+                         $interview_type,
+                         $db_participant->uid,
+                         $db_qnaire->type,
+                         $db_qnaire->rank ),
+                __METHOD__ );
 
-          $db_interview = lib::create( 'database\interview' );
-          $db_interview->qnaire_id = $db_qnaire->id;
-          $db_interview->participant_id = $db_participant->id;
-          $db_interview->completed = false;
-          $db_interview->save();
+            $db_interview = lib::create( 'database\interview' );
+            $db_interview->qnaire_id = $db_qnaire->id;
+            $db_interview->participant_id = $db_participant->id;
+            $db_interview->completed = false;
+            $db_interview->save();
+          }
         }
       }
     }
