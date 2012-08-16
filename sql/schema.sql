@@ -734,11 +734,6 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `participant_first_address` (`participant_id` INT, `address_id` INT);
 
 -- -----------------------------------------------------
--- Placeholder table for view `participant_last_assignment`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `participant_last_assignment` (`participant_id` INT, `assignment_id` INT);
-
--- -----------------------------------------------------
 -- Placeholder table for view `assignment_last_phone_call`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `assignment_last_phone_call` (`assignment_id` INT, `phone_call_id` INT);
@@ -754,11 +749,6 @@ CREATE TABLE IF NOT EXISTS `participant_last_consent` (`participant_id` INT, `co
 CREATE TABLE IF NOT EXISTS `participant_primary_address` (`participant_id` INT, `address_id` INT);
 
 -- -----------------------------------------------------
--- Placeholder table for view `participant_last_contacted_phone_call`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `participant_last_contacted_phone_call` (`participant_id` INT, `phone_call_id` INT);
-
--- -----------------------------------------------------
 -- Placeholder table for view `participant_site`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `participant_site` (`participant_id` INT, `site_id` INT);
@@ -772,6 +762,16 @@ CREATE TABLE IF NOT EXISTS `participant_last_written_consent` (`participant_id` 
 -- Placeholder table for view `participant_phone_call_status_count`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `participant_phone_call_status_count` (`participant_id` INT, `status` INT, `total` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `participant_last_appointment`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `participant_last_appointment` (`participant_id` INT, `appointment_id` INT, `completed` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `interview_last_assignment`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `interview_last_assignment` (`interview_id` INT, `assignment_id` INT);
 
 -- -----------------------------------------------------
 -- View `participant_first_address`
@@ -801,22 +801,6 @@ WHERE t1.rank = (
         WHEN 12 THEN t2.december
         ELSE 0 END = 1
   GROUP BY t2.participant_id );
-
--- -----------------------------------------------------
--- View `participant_last_assignment`
--- -----------------------------------------------------
-DROP VIEW IF EXISTS `participant_last_assignment` ;
-DROP TABLE IF EXISTS `participant_last_assignment`;
-CREATE  OR REPLACE VIEW `participant_last_assignment` AS
-SELECT interview_1.participant_id, assignment_1.id as assignment_id
-FROM assignment AS assignment_1, interview AS interview_1
-WHERE interview_1.id = assignment_1.interview_id
-AND assignment_1.start_datetime = (
-  SELECT MAX( assignment_2.start_datetime )
-  FROM assignment AS assignment_2, interview AS interview_2
-  WHERE interview_2.id = assignment_2.interview_id
-  AND interview_1.participant_id = interview_2.participant_id
-  GROUP BY interview_2.participant_id );
 
 -- -----------------------------------------------------
 -- View `assignment_last_phone_call`
@@ -865,25 +849,6 @@ WHERE t1.rank = (
   GROUP BY t2.participant_id );
 
 -- -----------------------------------------------------
--- View `participant_last_contacted_phone_call`
--- -----------------------------------------------------
-DROP VIEW IF EXISTS `participant_last_contacted_phone_call` ;
-DROP TABLE IF EXISTS `participant_last_contacted_phone_call`;
-CREATE  OR REPLACE VIEW `participant_last_contacted_phone_call` AS
-SELECT interview_1.participant_id, phone_call_1.id as phone_call_id
-FROM phone_call AS phone_call_1, assignment AS assignment_1, interview AS interview_1
-WHERE phone_call_1.assignment_id = assignment_1.id
-AND interview_1.id = assignment_1.interview_id
-AND phone_call_1.start_datetime = (
-  SELECT MAX( phone_call_2.start_datetime )
-  FROM phone_call AS phone_call_2, assignment AS assignment_2, interview AS interview_2
-  WHERE phone_call_2.status = "contact"
-  AND phone_call_2.assignment_id = assignment_2.id
-  AND assignment_2.interview_id = interview_2.id
-  AND interview_1.participant_id = interview_2.participant_id
-  GROUP BY interview_2.participant_id );
-
--- -----------------------------------------------------
 -- View `participant_site`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `participant_site` ;
@@ -925,6 +890,42 @@ JOIN interview ON participant.id = interview.participant_id
 JOIN assignment ON interview.id = assignment.interview_id
 JOIN phone_call ON assignment.id = phone_call.assignment_id
 GROUP BY participant.id, phone_call.status;
+
+-- -----------------------------------------------------
+-- View `participant_last_appointment`
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `participant_last_appointment` ;
+DROP TABLE IF EXISTS `participant_last_appointment`;
+CREATE  OR REPLACE VIEW `participant_last_appointment` AS
+SELECT participant.id AS participant_id, t1.id AS appointment_id, t1.completed
+FROM participant
+LEFT JOIN appointment t1
+ON participant.id = t1.participant_id
+AND t1.datetime = (
+  SELECT MAX( t2.datetime ) FROM appointment t2
+  WHERE t1.participant_id = t2.participant_id
+  GROUP BY t2.participant_id )
+GROUP BY participant.id;
+
+-- -----------------------------------------------------
+-- View `interview_last_assignment`
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `interview_last_assignment` ;
+DROP TABLE IF EXISTS `interview_last_assignment`;
+CREATE  OR REPLACE VIEW `interview_last_assignment` AS
+SELECT interview_1.id AS interview_id,
+       assignment_1.id AS assignment_id
+FROM assignment assignment_1
+JOIN interview interview_1
+WHERE interview_1.id = assignment_1.interview_id
+AND assignment_1.start_datetime = (
+  SELECT MAX( assignment_2.start_datetime )
+  FROM assignment assignment_2
+  JOIN interview interview_2
+  WHERE interview_2.id = assignment_2.interview_id
+  AND interview_1.id = interview_2.id
+  GROUP BY interview_2.id
+);
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
