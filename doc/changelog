@@ -1,15 +1,9 @@
 ====================================================================================================
-1.0.4
+1.0.3
 ====================================================================================================
 
 * Adding quotas (full list/view/add/delete functionality)
   - Quotas are application linked, so changes made in Sabretooth will be changed in Mastodon as well
-
-* Various bug fixes
-
-====================================================================================================
-1.0.3
-====================================================================================================
 
 * Calendar date persistence
   - Calendars don't reset to today's date after changing event
