@@ -45,6 +45,7 @@ class site_assignment_select extends \cenozo\ui\widget
     $this->participant_list->set_viewable( false );
     $this->participant_list->set_addable( false );
     $this->participant_list->set_removable( false );
+    $this->participant_list->set_disable_sorting( true );
     $this->participant_list->set_heading( 'Available participants' );
   }
 
