@@ -155,7 +155,6 @@ class participant extends \cenozo\database\has_note
       $db_jurisdiction =
         $jurisdiction_class_name::get_unique_record( 'postcode', $db_address->postcode );
       if( !is_null( $db_jurisdiction ) ) $db_site = $db_jurisdiction->get_site();
-        $db_site = $db_jurisdiction->get_site();
     }
     return $db_site;
   }
