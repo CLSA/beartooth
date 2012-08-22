@@ -242,7 +242,7 @@ class participant extends \cenozo\database\has_note
         'LEFT JOIN interview AS current_interview '.
         'ON current_interview.participant_id = participant.id '.
         'LEFT JOIN interview_last_assignment '.
-        'ON interview.id = interview_last_assignment.interview_id  '.
+        'ON current_interview.id = interview_last_assignment.interview_id  '.
         'LEFT JOIN assignment '.
         'ON interview_last_assignment.assignment_id = assignment.id '.
         'LEFT JOIN qnaire AS current_qnaire '.
