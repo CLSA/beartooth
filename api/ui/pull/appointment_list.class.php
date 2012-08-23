@@ -63,6 +63,8 @@ class appointment_list extends \cenozo\ui\pull\base_list
 
     $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
     $appointment_class_name = lib::get_class_name( 'database\appointment' );
+    $interview_class_name = lib::get_class_name( 'database\interview' );
+    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
 
     // create a list of appointments between the start and end time
     $db_user = lib::create( 'business\session' )->get_user();
@@ -73,7 +75,9 @@ class appointment_list extends \cenozo\ui\pull\base_list
     $modifier->where( 'datetime', '<', $this->end_datetime->format( 'Y-m-d H:i:s' ) );
 
     // determine whether this is a site instance of onyx or an interviewer's laptop
-    if( is_null( $db_onyx->interviewer_user_id ) )
+    $interview_type = is_null( $db_onyx->interviewer_user_id ) ? 'site' : 'home';
+
+    if( 'site' == $interview_type )
     { // restrict by site
       $modifier->where( 'participant_site.site_id', '=', $db_onyx->get_site()->id );
       $modifier->where( 'appointment.address_id', '=', NULL );
@@ -143,10 +147,66 @@ class appointment_list extends \cenozo\ui\pull\base_list
         $event['nextOfKin.postalCode'] = $db_participant->next_of_kin_postal_code;
 
       // include consent to draw blood if this is a site appointment (value is a string: YES or NO)
-      if( is_null( $db_onyx->interviewer_user_id ) && $db_participant->consent_to_draw_blood )
+      if( 'site' == $interview_type && $db_participant->consent_to_draw_blood )
         $event['consent_to_draw_blood'] = (bool) $db_participant->consent_to_draw_blood;
 
       $event_list[] = $event;
+
+      if( !$db_appointment->completed )
+      {
+        // now make sure that there is an incomplete interview of the same type as the appointment
+        $interview_mod = lib::create( 'database\modifier' );
+        $interview_mod->where( 'qnaire.type', '=', $interview_type );
+        $interview_mod->where( 'completed', '=', false );
+        $interview_list = $db_participant->get_interview_list( $interview_mod );
+        if( 0 == count( $interview_list ) )
+        { // there is no incomplete interview for this type, so create it now
+          // get the next qnaire of the next interview by seeing which was last completed
+          $last_interview_mod = lib::create( 'database\modifier' );
+          $last_interview_mod->where( 'participant_id', '=', $db_participant->id );
+          $last_interview_mod->where( 'completed', '=', true );
+          $last_interview_mod->order_desc( 'qnaire.rank' );
+          $last_interview_mod->limit( 1 );
+          $last_interview_list = $interview_class_name::select( $last_interview_mod );
+          $rank = 1;
+          if( 0 < count( $last_interview_list ) ) 
+          {   
+            $db_last_interview = current( $last_interview_list );
+            $rank = $db_last_interview->get_qnaire()->rank + 1;
+          }   
+          $db_qnaire = $qnaire_class_name::get_unique_record( 'rank', $rank );
+
+          // check if the qnaire exists at all
+          if( is_null( $db_qnaire ) )
+          {
+            throw lib::create( 'exception\runtime',
+              sprintf( 'Tried to provide %s appointment for participant %s but participant has '.
+                       'completed all interviews.',
+                       $interview_type,
+                       $db_participant->uid ),
+              __METHOD__ );
+          }
+          else
+          {
+            // now make sure that the qnaire is of the same type as the appointment
+            if( $db_qnaire->type != $interview_type )
+              throw lib::create( 'exception\runtime',
+                sprintf( 'Tried to provide %s appointment for participant %s but participant\'s '.
+                         'next interview type is %s and rank %d.',
+                         $interview_type,
+                         $db_participant->uid,
+                         $db_qnaire->type,
+                         $db_qnaire->rank ),
+                __METHOD__ );
+
+            $db_interview = lib::create( 'database\interview' );
+            $db_interview->qnaire_id = $db_qnaire->id;
+            $db_interview->participant_id = $db_participant->id;
+            $db_interview->completed = false;
+            $db_interview->save();
+          }
+        }
+      }
     }
 
     $this->data = $event_list;
