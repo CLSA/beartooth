@@ -3,7 +3,6 @@
  * user_delete_shift.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: user delete_shift
- * 
- * @package beartooth\ui
  */
 class user_delete_shift extends \cenozo\ui\push\base_delete_record
 {

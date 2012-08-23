@@ -3,7 +3,6 @@
  * survey_primary.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * pull: survey primary
- * 
- * @package beartooth\ui
  */
 class survey_primary extends \cenozo\ui\pull\base_primary
 {

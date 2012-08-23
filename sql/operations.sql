@@ -41,9 +41,9 @@ VALUES( "widget", "assignment", "view", true, "View assignment details." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "assignment", "list", true, "Lists assignments." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "home_assignment", "begin", true, "Requests from the queue a new assignment to make a home appointment." );
+VALUES( "widget", "home_assignment", "select", true, "Provides a list of participants ready for a home appointment to begin an assignment with." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "site_assignment", "begin", true, "Requests from the queue a new assignment to make a site appointment." );
+VALUES( "widget", "site_assignment", "select", true, "Provides a list of participants ready for a site appointment to begin an assignment with." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "assignment", "begin", true, "Begins a new assignment with a particular participant." );
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -264,6 +264,22 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "queue_restriction", "list", true, "List queue restrictions in the system." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "queue_restriction", "primary", true, "Retrieves base queue restriction information." );
+
+-- quota
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "quota", "delete", true, "Removes a quota from the system." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "quota", "edit", true, "Edits a quota's details." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "quota", "new", true, "Add a new quota to the system." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "quota", "add", true, "View a form for creating a new quota." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "quota", "view", true, "View a quota's details." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "quota", "list", true, "List quotas in the system." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "quota", "primary", true, "Retrieves base quota information." );
 
 -- reports
 -- INSERT INTO operation( type, subject, name, restricted, description )

@@ -7,25 +7,6 @@
  #}
 {% extends "base_view.twig" %}
 
-{% block javascript %}
-
-  {{ parent() }}
-  {% if allow_assign %}
-    <script type="text/javascript">
-      $( function() {
-        // assign button
-        $( function () {
-          $( "#{{ widget.full }}__assign" ).click( function() {
-            if( ajax_push( "assignment", "begin", { "participant_id": {{ id }} } ) )
-              window.location.reload();
-          } );
-        } );
-      } );
-    </script>
-  {% endif %}
-
-{% endblock javascript %}
-
 {% block record %}
 
   {{ parent() }}

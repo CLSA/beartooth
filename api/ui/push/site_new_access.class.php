@@ -3,7 +3,6 @@
  * site_new_access.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: site new_access
- * 
- * @package beartooth\ui
  */
 class site_new_access extends \cenozo\ui\push\site_new_access
 {

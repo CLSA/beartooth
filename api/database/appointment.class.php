@@ -3,7 +3,6 @@
  * appointment.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\database
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * appointment: record
- *
- * @package beartooth\database
  */
 class appointment extends \cenozo\database\record
 {

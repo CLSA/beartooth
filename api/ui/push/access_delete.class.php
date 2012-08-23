@@ -3,7 +3,6 @@
  * access_delete.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: access delete
- * 
- * @package beartooth\ui
  */
 class access_delete extends \cenozo\ui\push\access_delete
 {

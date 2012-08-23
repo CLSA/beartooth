@@ -3,7 +3,6 @@
  * productivity_report.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Productivity report data.
  * 
  * @abstract
- * @package beartooth\ui
  */
 class productivity_report extends \cenozo\ui\pull\base_report
 {

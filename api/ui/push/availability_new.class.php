@@ -3,7 +3,6 @@
  * availability_new.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: availability new
  *
  * Create a new availability.
- * @package beartooth\ui
  */
 class availability_new extends base_new
 {

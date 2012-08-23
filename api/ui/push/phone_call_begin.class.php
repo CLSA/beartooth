@@ -3,7 +3,6 @@
  * phone_call_begin.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: phone_call begin
  *
  * Assigns a participant to a phone call.
- * @package beartooth\ui
  */
 class phone_call_begin extends \cenozo\ui\push
 {

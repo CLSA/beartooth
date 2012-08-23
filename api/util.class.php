@@ -3,7 +3,6 @@
  * util.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth
  * @filesource
  */
 
@@ -13,7 +12,6 @@ namespace beartooth;
  * util: utility class of static methods
  *
  * Extends cenozo's util class with additional functionality.
- * @package beartooth
  */
 class util extends \cenozo\util
 {

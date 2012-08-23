@@ -3,7 +3,6 @@
  * queue_restriction_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: queue_restriction edit
  *
  * Edit a queue_restriction.
- * @package beartooth\ui
  */
 class queue_restriction_edit extends \cenozo\ui\push\base_edit
 {

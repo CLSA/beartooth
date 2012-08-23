@@ -3,7 +3,6 @@
  * age_group.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\database
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * age_group: record
- *
- * @package beartooth\database
  */
 class age_group extends \cenozo\database\record {}
 

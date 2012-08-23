@@ -1,0 +1,14 @@
+{##
+ # home_assignment_select.twig
+ # 
+ # Choose a home assignment from a list of available participants.
+ # @author Patrick Emond <emondpd@mcmaster.ca>
+ #}
+{% extends "widget.twig" %}
+
+{% block widget %}
+
+  {% from 'macros.twig' import include_list %}
+  {{ include_list( 'participant', participant_list|default(false), true ) }}
+  
+{% endblock widget %}

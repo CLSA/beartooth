@@ -3,7 +3,6 @@
  * site_appointment_feed.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * pull: site appointment feed
- * 
- * @package beartooth\ui
  */
 class site_appointment_feed extends \cenozo\ui\pull\base_feed
 {

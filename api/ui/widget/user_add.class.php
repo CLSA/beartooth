@@ -3,7 +3,6 @@
  * user_add.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget user add
- * 
- * @package beartooth\ui
  */
 class user_add extends \cenozo\ui\widget\user_add
 {

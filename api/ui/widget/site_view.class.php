@@ -3,7 +3,6 @@
  * site_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget site view
- * 
- * @package beartooth\ui
  */
 class site_view extends \cenozo\ui\widget\site_view
 {

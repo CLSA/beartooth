@@ -3,7 +3,6 @@
  * assignment_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget assignment list
- * 
- * @package beartooth\ui
  */
 class assignment_list extends site_restricted_list
 {

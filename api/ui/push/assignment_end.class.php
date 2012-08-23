@@ -3,7 +3,6 @@
  * assignment_end.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: assignment end
  *
  * Ends the user's current assignment.
- * @package beartooth\ui
  */
 class assignment_end extends \cenozo\ui\push
 {

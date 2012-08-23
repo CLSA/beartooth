@@ -3,7 +3,6 @@
  * availability_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget availability view
- * 
- * @package beartooth\ui
  */
 class availability_view extends \cenozo\ui\widget\base_view
 {

@@ -3,7 +3,6 @@
  * onyx_proxy.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: onyx proxy
  * 
  * Allows Onyx to update proxy and interview details
- * @package beartooth\ui
  */
 class onyx_proxy extends \cenozo\ui\push
 {
