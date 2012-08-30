@@ -771,7 +771,7 @@ CREATE TABLE IF NOT EXISTS `assignment_last_phone_call` (`assignment_id` INT, `p
 -- -----------------------------------------------------
 -- Placeholder table for view `participant_last_consent`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `participant_last_consent` (`participant_id` INT, `consent_id` INT);
+CREATE TABLE IF NOT EXISTS `participant_last_consent` (`participant_id` INT, `consent_id` INT, `event` INT);
 
 -- -----------------------------------------------------
 -- Placeholder table for view `participant_primary_address`
@@ -855,13 +855,15 @@ AND phone_call_1.start_datetime = (
 DROP VIEW IF EXISTS `participant_last_consent` ;
 DROP TABLE IF EXISTS `participant_last_consent`;
 CREATE  OR REPLACE VIEW `participant_last_consent` AS
-SELECT participant_id, id AS consent_id
-FROM consent AS t1
-WHERE t1.date = (
+SELECT participant.id AS participant_id, t1.id AS consent_id, t1.event AS event
+FROM participant
+LEFT JOIN consent AS t1
+ON participant.id = t1.participant_id
+AND t1.date = (
   SELECT MAX( t2.date )
   FROM consent AS t2
-  WHERE t1.participant_id = t2.participant_id
-  GROUP BY t2.participant_id );
+  WHERE t1.participant_id = t2.participant_id )
+GROUP BY participant.id;
 
 -- -----------------------------------------------------
 -- View `participant_primary_address`
@@ -933,8 +935,7 @@ LEFT JOIN appointment t1
 ON participant.id = t1.participant_id
 AND t1.datetime = (
   SELECT MAX( t2.datetime ) FROM appointment t2
-  WHERE t1.participant_id = t2.participant_id
-  GROUP BY t2.participant_id )
+  WHERE t1.participant_id = t2.participant_id )
 GROUP BY participant.id;
 
 -- -----------------------------------------------------
