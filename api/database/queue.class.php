@@ -184,6 +184,11 @@ class queue extends \cenozo\database\record
         $this->get_sql( 'COUNT( DISTINCT participant.id )' ),
         $modifier->get_sql( true ) ) );
     
+    if( 'old participant' == $this->name )
+      log::debug( sprintf( '%s %s',
+        $this->get_sql( 'COUNT( DISTINCT participant.id )' ),
+        $modifier->get_sql( true ) ) );
+
     // if the value is 0 then update all child counts with 0 to save processing time
     if( 0 == self::$participant_count_cache[$this->name][$qnaire_id][$site_id] )
       static::set_child_count_cache_to_zero( $this, $qnaire_id, $site_id );
@@ -569,12 +574,14 @@ class queue extends \cenozo\database\record
     else if( 'inactive' == $queue )
     {
       $parts = self::get_query_parts( 'all' );
+      $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
       $parts['where'][] = 'participant.active = false';
       return $parts;
     }
     else if( 'refused consent' == $queue )
     {
       $parts = self::get_query_parts( 'all' );
+      $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
       $parts['where'][] = 'participant.active = true';
       $parts['where'][] =
         'consent.event IN( "verbal deny", "written deny", "retract", "withdraw" )';
@@ -583,6 +590,7 @@ class queue extends \cenozo\database\record
     else if( 'sourcing required' == $queue )
     {
       $parts = self::get_query_parts( 'all' );
+      $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
       $parts['where'][] = 'participant.active = true';
       $parts['where'][] =
         '('.
@@ -596,6 +604,14 @@ class queue extends \cenozo\database\record
     else if( in_array( $queue, $participant_status_list ) )
     {
       $parts = self::get_query_parts( 'all' );
+      $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
+      $parts['where'][] = 'participant.active = true';
+      $parts['where'][] =
+        '('.
+        '  consent.event IS NULL'.
+        '  OR consent.event NOT IN( "verbal deny", "written deny", "retract", "withdraw" )'.
+        ')';
+      $parts['where'][] = $phone_count.' > 0';
       $parts['where'] = array_merge( $parts['where'], $status_where_list );
       $parts['where'][] = 'participant.status = "'.$queue.'"'; // queue name is same as status name
       return $parts;
