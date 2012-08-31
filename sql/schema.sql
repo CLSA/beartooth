@@ -102,6 +102,7 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `status` ENUM('deceased','deaf','mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','noncompliant','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
   `site_id` INT UNSIGNED NULL DEFAULT NULL ,
+  `email` VARCHAR(255) NULL ,
   `defer_until` DATE NULL DEFAULT NULL ,
   `consent_to_draw_blood` TINYINT(1) NOT NULL DEFAULT false ,
   `consent_to_draw_blood_continue` TINYINT(1) NULL DEFAULT NULL ,
