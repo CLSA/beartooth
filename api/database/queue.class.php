@@ -184,11 +184,6 @@ class queue extends \cenozo\database\record
         $this->get_sql( 'COUNT( DISTINCT participant.id )' ),
         $modifier->get_sql( true ) ) );
     
-    if( 'old participant' == $this->name )
-      log::debug( sprintf( '%s %s',
-        $this->get_sql( 'COUNT( DISTINCT participant.id )' ),
-        $modifier->get_sql( true ) ) );
-
     // if the value is 0 then update all child counts with 0 to save processing time
     if( 0 == self::$participant_count_cache[$this->name][$qnaire_id][$site_id] )
       static::set_child_count_cache_to_zero( $this, $qnaire_id, $site_id );
