@@ -102,6 +102,7 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `status` ENUM('deceased','deaf','mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','noncompliant','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
   `site_id` INT UNSIGNED NULL DEFAULT NULL ,
+  `email` VARCHAR(255) NULL ,
   `defer_until` DATE NULL DEFAULT NULL ,
   `consent_to_draw_blood` TINYINT(1) NOT NULL DEFAULT false ,
   `consent_to_draw_blood_continue` TINYINT(1) NULL DEFAULT NULL ,
@@ -771,7 +772,7 @@ CREATE TABLE IF NOT EXISTS `assignment_last_phone_call` (`assignment_id` INT, `p
 -- -----------------------------------------------------
 -- Placeholder table for view `participant_last_consent`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `participant_last_consent` (`participant_id` INT, `consent_id` INT);
+CREATE TABLE IF NOT EXISTS `participant_last_consent` (`participant_id` INT, `consent_id` INT, `event` INT);
 
 -- -----------------------------------------------------
 -- Placeholder table for view `participant_primary_address`
@@ -839,8 +840,9 @@ DROP VIEW IF EXISTS `assignment_last_phone_call` ;
 DROP TABLE IF EXISTS `assignment_last_phone_call`;
 CREATE  OR REPLACE VIEW `assignment_last_phone_call` AS
 SELECT assignment_1.id as assignment_id, phone_call_1.id as phone_call_id
-FROM phone_call AS phone_call_1, assignment AS assignment_1
-WHERE assignment_1.id = phone_call_1.assignment_id
+FROM assignment AS assignment_1
+LEFT JOIN phone_call AS phone_call_1
+ON assignment_1.id = phone_call_1.assignment_id
 AND phone_call_1.start_datetime = (
   SELECT MAX( phone_call_2.start_datetime )
   FROM phone_call AS phone_call_2, assignment AS assignment_2
@@ -855,13 +857,15 @@ AND phone_call_1.start_datetime = (
 DROP VIEW IF EXISTS `participant_last_consent` ;
 DROP TABLE IF EXISTS `participant_last_consent`;
 CREATE  OR REPLACE VIEW `participant_last_consent` AS
-SELECT participant_id, id AS consent_id
-FROM consent AS t1
-WHERE t1.date = (
+SELECT participant.id AS participant_id, t1.id AS consent_id, t1.event AS event
+FROM participant
+LEFT JOIN consent AS t1
+ON participant.id = t1.participant_id
+AND t1.date = (
   SELECT MAX( t2.date )
   FROM consent AS t2
-  WHERE t1.participant_id = t2.participant_id
-  GROUP BY t2.participant_id );
+  WHERE t1.participant_id = t2.participant_id )
+GROUP BY participant.id;
 
 -- -----------------------------------------------------
 -- View `participant_primary_address`
@@ -933,8 +937,7 @@ LEFT JOIN appointment t1
 ON participant.id = t1.participant_id
 AND t1.datetime = (
   SELECT MAX( t2.datetime ) FROM appointment t2
-  WHERE t1.participant_id = t2.participant_id
-  GROUP BY t2.participant_id )
+  WHERE t1.participant_id = t2.participant_id )
 GROUP BY participant.id;
 
 -- -----------------------------------------------------

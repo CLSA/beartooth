@@ -66,13 +66,11 @@ class queue extends \cenozo\database\record
       'appointment',
       'deferred',
       'restricted',
+      'outside calling time',
       'no appointment',
       'assigned',
       'new participant',
-      'new participant outside calling time',
-      'new participant within calling time',
       'new participant available',
-      'new participant always available',
       'new participant not available',
       'old participant' ) );
      
@@ -102,7 +100,15 @@ class queue extends \cenozo\database\record
                  $where_sql );
     }
     
-    // now add the sql for each call back status
+    // now add the sql for each call back status, grouping machine message, machine no message,
+    // not reached, disconnected and wrong number into a single "not reached" category
+    $phone_call_status_list = $phone_call_class_name::get_enum_values( 'status' );
+    $remove_list = array(
+      'machine message',
+      'machine no message',
+      'disconnected',
+      'wrong number' );
+    $phone_call_status_list = array_diff( $phone_call_status_list, $remove_list );
     foreach( $phone_call_class_name::get_enum_values( 'status' ) as $phone_call_status )
     {
       // ignore statuses which result in deactivating phone numbers
@@ -111,11 +117,7 @@ class queue extends \cenozo\database\record
         $queue_list = array(
           'phone call status',
           'phone call status waiting',
-          'phone call status ready',
-          'phone call status outside calling time',
-          'phone call status within calling time',
           'phone call status available',
-          'phone call status always available',
           'phone call status not available' );
 
         foreach( $queue_list as $queue )
@@ -182,6 +184,11 @@ class queue extends \cenozo\database\record
         $this->get_sql( 'COUNT( DISTINCT participant.id )' ),
         $modifier->get_sql( true ) ) );
     
+    if( 'old participant' == $this->name )
+      log::debug( sprintf( '%s %s',
+        $this->get_sql( 'COUNT( DISTINCT participant.id )' ),
+        $modifier->get_sql( true ) ) );
+
     // if the value is 0 then update all child counts with 0 to save processing time
     if( 0 == self::$participant_count_cache[$this->name][$qnaire_id][$site_id] )
       static::set_child_count_cache_to_zero( $this, $qnaire_id, $site_id );
@@ -455,7 +462,7 @@ class queue extends \cenozo\database\record
       'FROM availability '.
       'WHERE availability.participant_id = participant.id )';
 
-    // checks to make sure a participant is within calling time hours
+    // checks to make sure a participant is hours
     if( $check_time )
     {
       $localtime = localtime( time(), true );
@@ -495,7 +502,7 @@ class queue extends \cenozo\database\record
           'ON participant.id = participant_first_address.participant_id ',
           'LEFT JOIN address AS first_address '.
           'ON participant_first_address.address_id = first_address.id',
-          'LEFT JOIN participant_last_consent '.
+          'JOIN participant_last_consent '.
           'ON participant.id = participant_last_consent.participant_id ',
           'LEFT JOIN consent '.
           'ON consent.id = participant_last_consent.consent_id',
@@ -567,12 +574,14 @@ class queue extends \cenozo\database\record
     else if( 'inactive' == $queue )
     {
       $parts = self::get_query_parts( 'all' );
+      $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
       $parts['where'][] = 'participant.active = false';
       return $parts;
     }
     else if( 'refused consent' == $queue )
     {
       $parts = self::get_query_parts( 'all' );
+      $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
       $parts['where'][] = 'participant.active = true';
       $parts['where'][] =
         'consent.event IN( "verbal deny", "written deny", "retract", "withdraw" )';
@@ -581,6 +590,7 @@ class queue extends \cenozo\database\record
     else if( 'sourcing required' == $queue )
     {
       $parts = self::get_query_parts( 'all' );
+      $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
       $parts['where'][] = 'participant.active = true';
       $parts['where'][] =
         '('.
@@ -594,6 +604,14 @@ class queue extends \cenozo\database\record
     else if( in_array( $queue, $participant_status_list ) )
     {
       $parts = self::get_query_parts( 'all' );
+      $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
+      $parts['where'][] = 'participant.active = true';
+      $parts['where'][] =
+        '('.
+        '  consent.event IS NULL'.
+        '  OR consent.event NOT IN( "verbal deny", "written deny", "retract", "withdraw" )'.
+        ')';
+      $parts['where'][] = $phone_count.' > 0';
       $parts['where'] = array_merge( $parts['where'], $status_where_list );
       $parts['where'][] = 'participant.status = "'.$queue.'"'; // queue name is same as status name
       return $parts;
@@ -678,6 +696,28 @@ class queue extends \cenozo\database\record
         $viewing_date );
       return $parts;
     }
+    else if( 'outside calling time' == $queue )
+    {
+      $parts = self::get_query_parts( 'qnaire ready' );
+      // participants without a future appointment
+      $parts['join'][] = $appointment_join;
+      $parts['where'][] = 'appointment.id IS NULL';
+      // only include participants who are restricted 
+      $parts['join'][] = $restriction_join;
+      $parts['where'][] = 'NOT '.$check_restriction_sql;
+      // only include participants who are not deferred
+      $parts['where'][] = sprintf(
+        '('.
+        '  participant.defer_until IS NULL OR '.
+        '  participant.defer_until <= DATE( %s )'.
+        ')',
+        $viewing_date );
+      // participant's whose local time falls outside the calling time
+      $parts['where'][] = $check_time
+                        ? 'NOT '.$calling_time_sql
+                        : 'NOT true'; // purposefully a negative tautology
+      return $parts;
+    }
     else if( 'no appointment' == $queue )
     {
       $parts = self::get_query_parts( 'qnaire ready' );
@@ -717,41 +757,21 @@ class queue extends \cenozo\database\record
         ')';
       return $parts;
     }
-    else if( 'new participant outside calling time' == $queue )
-    {
-      $parts = self::get_query_parts( 'new participant' );
-      $parts['where'][] = $check_time
-                        ? 'NOT '.$calling_time_sql
-                        : 'NOT true'; // purposefully a negative tautology
-      return $parts;
-    }
-    else if( 'new participant within calling time' == $queue )
-    {
-      $parts = self::get_query_parts( 'new participant' );
-      $parts['where'][] = $check_time
-                        ? $calling_time_sql
-                        : 'true'; // purposefully a tautology
-      return $parts;
-    }
     else if( 'new participant available' == $queue )
     {
-      $parts = self::get_query_parts( 'new participant within calling time' );
+      $parts = self::get_query_parts( 'new participant' );
       // the participant has availability and is currently available
       $parts['where'][] = $check_availability_sql.' = true';
       return $parts;
     }
-    else if( 'new participant always available' == $queue )
-    {
-      $parts = self::get_query_parts( 'new participant within calling time' );
-      // the participant hasn't specified any availability
-      $parts['where'][] = $check_availability_sql.' IS NULL';
-      return $parts;
-    }
     else if( 'new participant not available' == $queue )
     {
-      $parts = self::get_query_parts( 'new participant within calling time' );
+      $parts = self::get_query_parts( 'new participant' );
       // the participant has availability and is currently not available
-      $parts['where'][] = $check_availability_sql.' = false';
+      // or doesn't specify availability
+      $parts['where'][] = sprintf( '( %s = false OR %s IS NULL )',
+                                   $check_availability_sql,
+                                   $check_availability_sql );
       return $parts;
     }
     else if( 'old participant' == $queue )
@@ -778,8 +798,10 @@ class queue extends \cenozo\database\record
       if( 'phone call status' == $queue )
       {
         $parts = self::get_query_parts( 'old participant' );
-        $parts['where'][] =
-          sprintf( 'phone_call.status = "%s"', $phone_call_status );
+        $parts['where'][] = 'not reached' == $phone_call_status
+                          ? 'phone_call.status IN ( "machine message","machine no message",'.
+                            '"disconnected","wrong number","not reached" )'
+                          : sprintf( 'phone_call.status = "%s"', $phone_call_status );
         return $parts;
       }
       else if( 'phone call status waiting' == $queue )
@@ -794,7 +816,7 @@ class queue extends \cenozo\database\record
           str_replace( ' ', '_', strtoupper( $phone_call_status ) ) );
         return $parts;
       }
-      else if( 'phone call status ready' == $queue )
+      else if( 'phone call status available' == $queue )
       {
         $parts = self::get_query_parts(
           'phone call status', $phone_call_status );
@@ -804,46 +826,25 @@ class queue extends \cenozo\database\record
                         'DATE( phone_call.end_datetime + INTERVAL <CALLBACK_%s> MINUTE )',
           $viewing_date,
           str_replace( ' ', '_', strtoupper( $phone_call_status ) ) );
-        return $parts;
-      }
-      else if( 'phone call status outside calling time' == $queue )
-      {
-        $parts = self::get_query_parts( 'phone call status ready', $phone_call_status );
-        $parts['where'][] = $check_time
-                          ? 'NOT '.$calling_time_sql
-                          : 'NOT true'; // purposefully a negative tautology
-        return $parts;
-      }
-      else if( 'phone call status within calling time' == $queue )
-      {
-        $parts = self::get_query_parts( 'phone call status ready', $phone_call_status );
-        $parts['where'][] = $check_time
-                          ? $calling_time_sql
-                          : 'true'; // purposefully a tautology
-        return $parts;
-      }
-      else if( 'phone call status available' == $queue )
-      {
-        $parts = self::get_query_parts(
-          'phone call status within calling time', $phone_call_status );
         // the participant has availability and is currently available
         $parts['where'][] = $check_availability_sql.' = true';
-        return $parts;
-      }
-      else if( 'phone call status always available' == $queue )
-      {
-        $parts = self::get_query_parts(
-          'phone call status within calling time', $phone_call_status );
-        // the participant hasn't specified availability
-        $parts['where'][] = $check_availability_sql.' IS NULL';
         return $parts;
       }
       else if( 'phone call status not available' == $queue )
       {
         $parts = self::get_query_parts(
-          'phone call status within calling time', $phone_call_status );
+          'phone call status', $phone_call_status );
+        $parts['where'][] = sprintf(
+          $check_time ? '%s >= phone_call.end_datetime + INTERVAL <CALLBACK_%s> MINUTE' :
+                        'DATE( %s ) >= '.
+                        'DATE( phone_call.end_datetime + INTERVAL <CALLBACK_%s> MINUTE )',
+          $viewing_date,
+          str_replace( ' ', '_', strtoupper( $phone_call_status ) ) );
         // the participant has availability and is currently not available
-        $parts['where'][] = $check_availability_sql.' = false';
+        // or doesn't specify availability
+        $parts['where'][] = sprintf( '( %s = false OR %s IS NULL )',
+                                     $check_availability_sql,
+                                     $check_availability_sql );
         return $parts;
       }
       else // invalid queue name

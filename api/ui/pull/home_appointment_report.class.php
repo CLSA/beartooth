@@ -30,14 +30,12 @@ class home_appointment_report extends \cenozo\ui\pull\base_report
   }
 
   /**
-   * Sets up the operation with any pre-execution instructions that may be necessary.
-   * 
+   * Builds the report.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @access protected
    */
-  protected function setup()
+  protected function build()
   {
-    parent::setup();
     $db_user = lib::create( 'business\session' )->get_user();
     $this->set_heading( sprintf(
       'Appointment list for %s %s',

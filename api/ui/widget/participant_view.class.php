@@ -48,10 +48,13 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'status', 'enum', 'Condition' );
     $this->add_item( 'default_site', 'constant', 'Default Site' );
     $this->add_item( 'site_id', 'enum', 'Prefered Site' );
-    $this->add_item( 'consent_to_draw_blood', 'boolean', 'Consent to Draw Blood' );
+    $this->add_item( 'email', 'string', 'Email' );
+    $this->add_item( 'gender', 'enum', 'Gender' );
+    $this->add_item( 'date_of_birth', 'date', 'Date of Birth' );
     $this->add_item( 'prior_contact_date', 'constant', 'Prior Contact Date' );
     $this->add_item( 'current_qnaire_name', 'constant', 'Current Questionnaire' );
     $this->add_item( 'start_qnaire_date', 'constant', 'Delay Questionnaire Until' );
+    $this->add_item( 'consent_to_draw_blood', 'boolean', 'Consent to Draw Blood' );
     $this->add_item( 'defer_until', 'date', 'Defer Contact Until' );
     
     // create the address sub-list widget
@@ -101,6 +104,10 @@ class participant_view extends \cenozo\ui\widget\base_view
     $db_participant = $this->get_record();
 
     // create enum arrays
+    $languages = $participant_class_name::get_enum_values( 'language' );
+    $languages = array_combine( $languages, $languages );
+    $statuses = $participant_class_name::get_enum_values( 'status' );
+    $statuses = array_combine( $statuses, $statuses );
     $sites = array();
     $site_mod = lib::create( 'database\modifier' );
     $site_mod->order( 'name' );
@@ -108,10 +115,8 @@ class participant_view extends \cenozo\ui\widget\base_view
       $sites[$db_site->id] = $db_site->name;
     $db_site = $db_participant->get_site();
     $site_id = is_null( $db_site ) ? '' : $db_site->id;
-    $languages = $participant_class_name::get_enum_values( 'language' );
-    $languages = array_combine( $languages, $languages );
-    $statuses = $participant_class_name::get_enum_values( 'status' );
-    $statuses = array_combine( $statuses, $statuses );
+    $genders = $participant_class_name::get_enum_values( 'gender' );
+    $genders = array_combine( $genders, $genders );
     
     $start_qnaire_date = $db_participant->start_qnaire_date;
     if( is_null( $db_participant->current_qnaire_id ) )
@@ -140,10 +145,13 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'status', $db_participant->status, false, $statuses );
     $this->set_item( 'default_site', $default_site );
     $this->set_item( 'site_id', $site_id, false, $sites );
-    $this->set_item( 'consent_to_draw_blood', $db_participant->consent_to_draw_blood );
+    $this->set_item( 'email', $db_participant->email );
+    $this->set_item( 'gender', $db_participant->gender, true, $genders );
+    $this->set_item( 'date_of_birth', $db_participant->date_of_birth );
     $this->set_item( 'prior_contact_date', $db_participant->prior_contact_date );
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );
+    $this->set_item( 'consent_to_draw_blood', $db_participant->consent_to_draw_blood );
     $this->set_item( 'defer_until', $db_participant->defer_until, false );
 
     try
