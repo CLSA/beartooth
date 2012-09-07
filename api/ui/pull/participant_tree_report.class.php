@@ -67,7 +67,7 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
         // they are modified in the process of getting the participant count
         $participant_mod = lib::create( 'database\modifier' );
         if( 0 < $restrict_source_id )
-          $participant_mod->where( 'participant.source_id', '=', $restrict_source_id );
+          $participant_mod->where( 'participant_source_id', '=', $restrict_source_id );
 
         // restrict by language
         if( 'any' != $language )
@@ -76,11 +76,11 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
           if( 'en' == $language )
           {
             $participant_mod->where_bracket( true );
-            $participant_mod->where( 'participant.language', '=', $language );
-            $participant_mod->or_where( 'participant.language', '=', NULL );
+            $participant_mod->where( 'participant_language', '=', $language );
+            $participant_mod->or_where( 'participant_language', '=', NULL );
             $participant_mod->where_bracket( false );
           }
-          else $participant_mod->where( 'participant.language', '=', $language );
+          else $participant_mod->where( 'participant_language', '=', $language );
         }
 
         $db_queue->set_site( $db_site );
@@ -96,7 +96,7 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
         // they are modified in the process of getting the participant count
         $participant_mod = lib::create( 'database\modifier' );
         if( 0 < $restrict_source_id )
-          $participant_mod->where( 'participant.source_id', '=', $restrict_source_id );
+          $participant_mod->where( 'participant_source_id', '=', $restrict_source_id );
 
         // restrict by language
         if( 'any' != $language )
@@ -105,11 +105,11 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
           if( 'en' == $language )
           {
             $participant_mod->where_bracket( true );
-            $participant_mod->where( 'participant.language', '=', $language );
-            $participant_mod->or_where( 'participant.language', '=', NULL );
+            $participant_mod->where( 'participant_language', '=', $language );
+            $participant_mod->or_where( 'participant_language', '=', NULL );
             $participant_mod->where_bracket( false );
           }
-          else $participant_mod->where( 'participant.language', '=', $language );
+          else $participant_mod->where( 'participant_language', '=', $language );
         }
 
         $db_queue->set_site( NULL );
