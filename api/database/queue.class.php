@@ -249,6 +249,91 @@ class queue extends \cenozo\database\record
   }
 
   /**
+   * Returns the number of all participants in a ranked queue.
+   * Note: this method runs a monster of an sql query so use sparingly
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param modifier $modifier Modifications to the queue.  Note, only the limit and order parts
+   *                 of the modifier will be used.
+   * @return array( participant )
+   * @access public
+   */
+  public static function get_ranked_participant_count(
+    $db_qnaire = NULL, $db_site = NULL, $modifier = NULL )
+  {
+    return static::get_ranked_participant_list( $db_qnaire, $db_site, $modifier, true );
+  }
+
+  /**
+   * Returns a list of all participants in a ranked queue.
+   * Note: this method runs a monster of an sql query so use sparingly
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param modifier $modifier Modifications to the queues (limit and order will be applied to the
+   *                 union of all ranked queues)
+   * @return array( participant )
+   * @access public
+   */
+  public static function get_ranked_participant_list(
+    $db_qnaire = NULL, $db_site = NULL, $modifier = NULL, $count = false )
+  {
+    if( false == static::$ranked_participant_for_queue_created )
+    {
+      // make sure the temporary table exists
+      static::create_participant_for_queue();
+
+      // build a temporary table with all participants from all ranked queues
+      $queue_mod = lib::create( 'database\modifier' );
+      $queue_mod->where( 'rank', '!=', NULL );
+      $queue_mod->order( 'rank' );
+      $first = true;
+      foreach( static::select( $queue_mod ) as $db_queue )
+      {
+        $sql = $first
+             ? 'CREATE TEMPORARY TABLE ranked_participant_for_queue '
+             : 'REPLACE INTO ranked_participant_for_queue ';
+        $db_queue->set_site( $db_site );
+        $db_queue->set_qnaire( $db_qnaire );
+        $sql .= $db_queue->get_sql( 'participant_for_queue.*' );
+        static::db()->execute( $sql );
+
+        if( $first )
+        {
+          // make the participant id a primary key
+          static::db()->execute(
+            'ALTER TABLE ranked_participant_for_queue ADD PRIMARY KEY id ( id )' );
+          $first = false;
+        }
+      }
+
+      static::$ranked_participant_for_queue_created = true;
+    }
+
+
+    // restrict to the site
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    if( !is_null( $db_site ) ) $modifier->where(
+      'IFNULL( participant_site_id, jurisdiction_site_id )', '=', $db_site->id );
+
+    if( $count )
+    {
+      return (integer) static::db()->get_one(
+        sprintf( 'SELECT COUNT(*) FROM ranked_participant_for_queue %s',
+                 $modifier->get_sql() ) );
+    }
+    else
+    {
+      // now add on the order and limit
+      $participant_ids = static::db()->get_col(
+        sprintf( 'SELECT id FROM ranked_participant_for_queue %s',
+                 $modifier->get_sql() ) );
+      $participants = array();
+      foreach( $participant_ids as $id ) $participants[] = lib::create( 'database\participant', $id );
+      return $participants;
+    }
+  }
+  
+  /**
    * The qnaire to restrict the queue to.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param qnaire $db_qnaire
@@ -855,75 +940,6 @@ class queue extends \cenozo\database\record
   }
 
   /**
-   * Returns the number of all participants in a ranked queue.
-   * Note: this method runs a monster of an sql query so use sparingly
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param modifier $modifier Modifications to the queue.  Note, only the limit and order parts
-   *                 of the modifier will be used.
-   * @return array( participant )
-   * @access public
-   */
-  public static function get_ranked_participant_count(
-    $db_qnaire = NULL, $db_site = NULL, $modifier = NULL )
-  {
-    return static::get_ranked_participant_list( $db_qnaire, $db_site, $modifier, true );
-  }
-
-  /**
-   * Returns a list of all participants in a ranked queue.
-   * Note: this method runs a monster of an sql query so use sparingly
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param modifier $modifier Modifications to the queues (limit and order will be applied to the
-   *                 union of all ranked queues)
-   * @return array( participant )
-   * @access public
-   */
-  public static function get_ranked_participant_list(
-    $db_qnaire = NULL, $db_site = NULL, $modifier = NULL, $count = false )
-  {
-    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-
-    // restrict to the site
-    if( !is_null( $db_site ) ) $modifier->where(
-      'IFNULL( participant_site_id, jurisdiction_site_id )', '=', $db_site->id );
-
-    // build the sql by union-ing the sql for each queue
-    $queue_mod = lib::create( 'database\modifier' );
-    $queue_mod->where( 'rank', '!=', NULL );
-    $queue_mod->order( 'rank' );
-    $first = true;
-    $sql = '';
-    foreach( static::select( $queue_mod ) as $db_queue )
-    {
-      if( !$first ) $sql .= ' UNION ';
-      $db_queue->set_site( $db_site );
-      $db_queue->set_qnaire( $db_qnaire );
-      $sql .= sprintf( '( %s %s %s )',
-                      $db_queue->get_sql( 'DISTINCT participant_for_queue.id' ),
-                      $modifier->get_where( true ),
-                      $modifier->get_group() );
-      $first = false;
-    }
-
-    if( $count )
-    {
-      return (integer) static::db()->get_one(
-        sprintf( 'SELECT COUNT(*) FROM ( %s ) AS temp', $sql ) );
-    }
-    else
-    {
-      // now add on the order and limit
-      $sql .= sprintf( ' %s %s', $modifier->get_order(), $modifier->get_limit() );
-      $participant_ids = static::db()->get_col( $sql );
-      $participants = array();
-      foreach( $participant_ids as $id ) $participants[] = lib::create( 'database\participant', $id );
-      return $participants;
-    }
-  }
-  
-  /**
    * Creates the participant_for_queue temporary table needed by all queues.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
@@ -941,14 +957,22 @@ class queue extends \cenozo\database\record
 
   /**
    * Whether the participant_for_queue temporary table has been created.
-   * @var boolean $participant_for_queue_created
+   * @var boolean
    * @static
    */
   protected static $participant_for_queue_created = false;
 
   /**
+  /**
+   * Whether the ranked_participant temporary table has been created.
+   * @var boolean
+   * @static
+   */
+  protected static $ranked_participant_for_queue_created = false;
+
+  /**
    * The qnaire to restrict the queue to.
-   * @var qnaire $db_qnaire
+   * @var qnaire
    */
   protected $db_qnaire = NULL;
 
