@@ -11,6 +11,8 @@
   - "always available" has been merged into the "not available" queue
   - performance has been internally improved
 
+* Participant details can now be sorted in home/site assignment select
+
 * Adding email address to participant view
   - This property is synched with the email address in Mastodon
 
