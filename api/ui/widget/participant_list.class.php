@@ -61,9 +61,12 @@ class participant_list extends site_restricted_list
       // When the list is parented by an assignment select widget the internal query
       // comes from the queue class, so every participant is linked to their first
       // address using table alias "first_address"
-      $this->add_column( 'first_address.address1', 'string', 'Address', true );
-      $this->add_column( 'first_address.city', 'string', 'City', true );
-      $this->add_column( 'first_address.postcode', 'string', 'Postcode', true );
+      $this->add_column(
+        'ranked_participant_for_queue.first_address_address1', 'string', 'Address', true );
+      $this->add_column(
+        'ranked_participant_for_queue.first_address_city', 'string', 'City', true );
+      $this->add_column(
+        'ranked_participant_for_queue.first_address_postcode', 'string', 'Postcode', true );
     }
 
     $this->extended_site_selection = true;
@@ -96,9 +99,9 @@ class participant_list extends site_restricted_list
         array( 'uid' => $record->uid ? $record->uid : '(none)',
                'first_name' => $record->first_name,
                'last_name' => $record->last_name,
-               'first_address.address1' => $db_address->address1,
-               'first_address.city' => $db_address->city,
-               'first_address.postcode' => $db_address->postcode,
+               'ranked_participant_for_queue.first_address_address1' => $db_address->address1,
+               'ranked_participant_for_queue.first_address_city' => $db_address->city,
+               'ranked_participant_for_queue.first_address_postcode' => $db_address->postcode,
                // note count isn't a column, it's used for the note button
                'note_count' => $record->get_note_count() ) );
     }
