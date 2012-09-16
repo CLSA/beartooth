@@ -3,7 +3,6 @@
  * call_history.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * Consent form report data.
  * 
  * @abstract
- * @package beartooth\ui
  */
 class call_history_report extends \cenozo\ui\pull\base_report
 {

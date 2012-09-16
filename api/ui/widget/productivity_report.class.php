@@ -3,7 +3,6 @@
  * productivity_report.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget productivity report
- * 
- * @package beartooth\ui
  */
 class productivity_report extends base_report
 {

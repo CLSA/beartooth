@@ -3,7 +3,6 @@
  * participant_delete_phone.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * push: participant delete_phone
- * 
- * @package beartooth\ui
  */
 class participant_delete_phone extends \cenozo\ui\push\base_delete_record
 {

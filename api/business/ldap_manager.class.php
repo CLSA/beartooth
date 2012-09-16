@@ -3,7 +3,6 @@
  * ldap_manager.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\business
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Manages LDAP entries
- * 
- * @package beartooth\business
  */
 class ldap_manager extends \cenozo\business\ldap_manager
 {

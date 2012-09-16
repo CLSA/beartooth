@@ -3,7 +3,6 @@
  * home_appointment_report.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget home_appointment report
- * 
- * @package beartooth\ui
  */
 class home_appointment_report extends base_report
 {

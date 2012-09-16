@@ -3,7 +3,6 @@
  * appointment_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: appointment edit
  *
  * Edit a appointment.
- * @package beartooth\ui
  */
 class appointment_edit extends \cenozo\ui\push\base_edit
 {

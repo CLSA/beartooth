@@ -3,7 +3,6 @@
  * user_list.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget user list
- * 
- * @package beartooth\ui
  */
 class user_list extends \cenozo\ui\widget\user_list
 {

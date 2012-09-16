@@ -3,7 +3,6 @@
  * tokens.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\database
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * Access to limesurvey's tokens_SID tables.
- * 
- * @package beartooth\database
  */
 class tokens extends sid_record
 {

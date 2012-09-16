@@ -3,7 +3,6 @@
  * voip_begin_monitor.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -15,7 +14,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * Changes the current user's theme.
  * Arguments must include 'theme'.
- * @package beartooth\ui
  */
 class voip_begin_monitor extends \cenozo\ui\push
 {

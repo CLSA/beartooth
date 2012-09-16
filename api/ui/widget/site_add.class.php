@@ -3,7 +3,6 @@
  * site_add.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget site add
- * 
- * @package beartooth\ui
  */
 class site_add extends \cenozo\ui\widget\site_add
 {

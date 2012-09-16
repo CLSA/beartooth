@@ -3,7 +3,6 @@
  * phase.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\database
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * phase: record
- *
- * @package beartooth\database
  */
 class phase extends \cenozo\database\has_rank
 {

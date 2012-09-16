@@ -3,7 +3,6 @@
  * consent_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: consent edit
  *
  * Edit a consent.
- * @package beartooth\ui
  */
 class consent_edit extends base_edit
 {

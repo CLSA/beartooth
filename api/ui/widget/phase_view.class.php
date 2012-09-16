@@ -3,7 +3,6 @@
  * phase_view.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget phase view
- * 
- * @package beartooth\ui
  */
 class phase_view extends \cenozo\ui\widget\base_view
 {

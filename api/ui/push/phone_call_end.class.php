@@ -3,7 +3,6 @@
  * phone_call_end.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: phone_call end
  *
  * Assigns a participant to an phone_call.
- * @package beartooth\ui
  */
 class phone_call_end extends \cenozo\ui\push
 {

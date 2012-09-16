@@ -3,7 +3,6 @@
  * phone_primary.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * pull: phone primary
- * 
- * @package beartooth\ui
  */
 class phone_primary extends \cenozo\ui\pull\base_primary
 {

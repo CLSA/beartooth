@@ -3,7 +3,6 @@
  * onyx_instance_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -14,7 +13,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * push: onyx_instance edit
  *
  * Edit a onyx_instance.
- * @package beartooth\ui
  */
 class onyx_instance_edit extends \cenozo\ui\push\base_edit
 {

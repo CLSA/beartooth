@@ -3,7 +3,6 @@
  * participant_sync.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget participant sync
- * 
- * @package beartooth\ui
  */
 class participant_sync extends \cenozo\ui\widget
 {

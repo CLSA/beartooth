@@ -3,7 +3,6 @@
  * call_attempts.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @package beartooth\ui
  * @filesource
  */
 
@@ -12,8 +11,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
  * widget call attempts report
- * 
- * @package beartooth\ui
  */
 class call_attempts_report extends base_report
 {
