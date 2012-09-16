@@ -102,6 +102,7 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `status` ENUM('deceased','deaf','mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','noncompliant','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
   `site_id` INT UNSIGNED NULL DEFAULT NULL ,
+  `email` VARCHAR(255) NULL ,
   `defer_until` DATE NULL DEFAULT NULL ,
   `consent_to_draw_blood` TINYINT(1) NOT NULL DEFAULT false ,
   `consent_to_draw_blood_continue` TINYINT(1) NULL DEFAULT NULL ,
@@ -839,8 +840,9 @@ DROP VIEW IF EXISTS `assignment_last_phone_call` ;
 DROP TABLE IF EXISTS `assignment_last_phone_call`;
 CREATE  OR REPLACE VIEW `assignment_last_phone_call` AS
 SELECT assignment_1.id as assignment_id, phone_call_1.id as phone_call_id
-FROM phone_call AS phone_call_1, assignment AS assignment_1
-WHERE assignment_1.id = phone_call_1.assignment_id
+FROM assignment AS assignment_1
+LEFT JOIN phone_call AS phone_call_1
+ON assignment_1.id = phone_call_1.assignment_id
 AND phone_call_1.start_datetime = (
   SELECT MAX( phone_call_2.start_datetime )
   FROM phone_call AS phone_call_2, assignment AS assignment_2

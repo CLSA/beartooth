@@ -45,7 +45,6 @@ class site_assignment_select extends \cenozo\ui\widget
     $this->participant_list->set_viewable( false );
     $this->participant_list->set_addable( false );
     $this->participant_list->set_removable( false );
-    $this->participant_list->set_disable_sorting( true );
     $this->participant_list->set_heading( 'Available participants' );
   }
 
@@ -80,6 +79,13 @@ class site_assignment_select extends \cenozo\ui\widget
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
 
+    // replace participant. with participant_ in the where and order columns of the modifier
+    // (see queue record's participant_for_queue for details)
+    if( !is_null( $modifier ) ) 
+      foreach( $modifier->get_where_columns() as $column )
+        $modifier->change_where_column(
+          $column, preg_replace( '/^participant\./', 'participant_', $column ) );
+
     $db_site = lib::create( 'business\session' )->get_site();
     $qnaire_mod = lib::create( 'database\modifier' );
     $qnaire_mod->where( 'type', '=', 'site' );
@@ -107,6 +113,18 @@ class site_assignment_select extends \cenozo\ui\widget
   {
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
+
+    // replace participant. with participant_ in the where and order columns of the modifier
+    // (see queue record's participant_for_queue for details)
+    if( !is_null( $modifier ) ) 
+    {   
+      foreach( $modifier->get_where_columns() as $column )
+        $modifier->change_where_column(
+          $column, preg_replace( '/^participant\./', 'participant_', $column ) );
+      foreach( $modifier->get_order_columns() as $column )
+        $modifier->change_order_column(
+          $column, preg_replace( '/^participant\./', 'participant_', $column ) );
+    }
 
     $db_site = lib::create( 'business\session' )->get_site();
     $qnaire_mod = lib::create( 'database\modifier' );

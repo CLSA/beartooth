@@ -109,8 +109,8 @@ class onyx_proxy extends \cenozo\ui\push
         if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
         {
           $parts = explode( ' ', trim( $proxy_data->$var_name ), 2 );
-          $entry['proxy_street_number'] = $parts[0];
-          $entry['proxy_street_name'] = $parts[1];
+          $entry['proxy_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
+          $entry['proxy_street_name'] = array_key_exists( 0, $parts ) ? $parts[1] : NULL;
         }
 
         $var_name = 'ICF_PXADD2_COM';
@@ -180,8 +180,8 @@ class onyx_proxy extends \cenozo\ui\push
         if( array_key_exists( $var_name, $object_vars ) && 0 < strlen( $proxy_data->$var_name ) )
         {
           $parts = explode( ' ', trim( $proxy_data->$var_name ), 2 );
-          $entry['informant_street_number'] = $parts[0];
-          $entry['informant_street_name'] = $parts[1];
+          $entry['informant_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
+          $entry['informant_street_name'] = array_key_exists( 1, $parts ) ? $parts[1] : NULL;
         }
 
         $var_name = 'ICF_INFADD2_COM';
