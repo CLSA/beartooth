@@ -301,7 +301,7 @@ class queue extends \cenozo\database\record
         {
           // make the participant id a primary key
           static::db()->execute(
-            'ALTER TABLE ranked_participant_for_queue ADD PRIMARY KEY id ( id )' );
+            'ALTER IGNORE TABLE ranked_participant_for_queue ADD PRIMARY KEY id ( id )' );
           $first = false;
         }
       }

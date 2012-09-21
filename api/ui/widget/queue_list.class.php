@@ -139,11 +139,11 @@ class queue_list extends \cenozo\ui\widget\base_list
         if( 'en' == $restrict_language )
         {
           $modifier->where_bracket( true );
-          $modifier->where( 'participant.language', '=', $restrict_language );
-          $modifier->or_where( 'participant.language', '=', NULL );
+          $modifier->where( 'participant_language', '=', $restrict_language );
+          $modifier->or_where( 'participant_language', '=', NULL );
           $modifier->where_bracket( false );
         }
-        else $modifier->where( 'participant.language', '=', $restrict_language );
+        else $modifier->where( 'participant_language', '=', $restrict_language );
       }
 
       $this->add_row( $record->id,
