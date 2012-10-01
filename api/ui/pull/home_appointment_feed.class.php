@@ -44,6 +44,7 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
+    $modifier->where( 'appointment.address_id', '!=', NULL );
     $modifier->where(
       'participant_site.site_id', '=', lib::create( 'business\session' )->get_site()->id );
 
