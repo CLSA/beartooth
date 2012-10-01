@@ -95,6 +95,8 @@ class onyx_participants extends \cenozo\ui\push
         if( array_key_exists( $method, $object_vars ) )
         {
           $value = $participant_data->$method;
+          if( is_string( $value ) ) $value = 'true' === $value ? 1 : 0;
+          else $value = $value ? 1 : 0;
           if( $value != $db_participant->consent_to_draw_blood )
           {
             $db_participant->consent_to_draw_blood = $value;
