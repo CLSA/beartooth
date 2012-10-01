@@ -40,25 +40,20 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
     $setting_manager = lib::create( 'business\setting_manager' );
     $db_role = lib::create( 'business\session' )->get_role();
 
-    // if we are a coordinator than show all appointments belonging to this site's interviewers
-    $user_id_list = array();
-    if( 'coordinator' == $db_role->name )
-    {
-      $db_site = lib::create( 'business\session' )->get_site();
-      foreach( $db_site->get_user_list() as $db_user ) $user_id_list[] = $db_user->id;
-    }
-    else
-    {
-      $db_user = lib::create( 'business\session' )->get_user();
-      $user_id_list[] = $db_user->id;
-    }
-
     // create a list of home appointments between the feed's start and end time
     $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'appointment.user_id', 'IN', $user_id_list );
-    $modifier->where( 'appointment.address_id', '!=', NULL );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
+    $modifier->where(
+      'participant_site.site_id', '=', lib::create( 'business\session' )->get_site()->id );
+
+    if( 'coordinator' != $db_role->name )
+    { // for interviews only show their personal appointments
+      $modifier->where(
+        'participant_site.site_id', '=', lib::create( 'business\session' )->get_site()->id );
+      $modifier->where(
+        'appointment.user_id', '=', lib::create( 'business\session' )->get_user()->id );
+    }
 
     $event_list = array();
     $class_name = lib::get_class_name( 'database\appointment' );
