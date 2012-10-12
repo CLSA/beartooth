@@ -39,6 +39,8 @@ CREATE  TABLE IF NOT EXISTS `site` (
   `city` VARCHAR(100) NULL ,
   `region_id` INT UNSIGNED NULL DEFAULT NULL ,
   `postcode` VARCHAR(10) NULL ,
+  `voip_host` VARCHAR(45) NULL ,
+  `voip_xor_key` VARCHAR(45) NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `uq_name` (`name` ASC) ,
   INDEX `fk_region_id` (`region_id` ASC) ,
