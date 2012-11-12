@@ -47,7 +47,8 @@ class site_view extends \cenozo\ui\widget\site_view
     $this->add_item( 'region_id', 'enum', 'Region' );
     $this->add_item( 'postcode', 'string', 'Postcode',
       'Postal codes must be in "A1A 1A1" format, zip codes in "01234" format.' );
-    $this->add_item( 'users', 'constant', 'Number of users' );
+    $this->add_item( 'voip_host', 'string', 'VoIP Host' );
+    $this->add_item( 'voip_xor_key', 'string', 'VoIP XOR Key' );
   }
 
   /**
@@ -74,7 +75,8 @@ class site_view extends \cenozo\ui\widget\site_view
     $this->set_item( 'city', $this->get_record()->city );
     $this->set_item( 'region_id', $this->get_record()->region_id, false, $regions );
     $this->set_item( 'postcode', $this->get_record()->postcode, true );
-    $this->set_item( 'users', $this->get_record()->get_user_count() );
+    $this->set_item( 'voip_host', $this->get_record()->voip_host );
+    $this->set_item( 'voip_xor_key', $this->get_record()->voip_xor_key );
   }
 }
 ?>
