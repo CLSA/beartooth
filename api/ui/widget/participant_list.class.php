@@ -86,22 +86,25 @@ class participant_list extends site_restricted_list
     {
       $db_source = $record->get_source();
       $db_address = $record->get_first_address();
-      $source_name = is_null( $db_source ) ? '(none)' : $db_source->name;
       $this->add_row( $record->id,
         is_null( $this->assignment_type ) ?
         array( 'uid' => $record->uid ? $record->uid : '(none)',
                'first_name' => $record->first_name,
                'last_name' => $record->last_name,
-               'source.name' => $source_name,
+               'source.name' =>
+                 is_null( $db_source ) ? '(none)' : $db_source->name,
                'primary_site' => $record->get_primary_site()->name,
                // note count isn't a column, it's used for the note button
                'note_count' => $record->get_note_count() ) :
         array( 'uid' => $record->uid ? $record->uid : '(none)',
                'first_name' => $record->first_name,
                'last_name' => $record->last_name,
-               'ranked_participant_for_queue.first_address_address1' => $db_address->address1,
-               'ranked_participant_for_queue.first_address_city' => $db_address->city,
-               'ranked_participant_for_queue.first_address_postcode' => $db_address->postcode,
+               'ranked_participant_for_queue.first_address_address1' =>
+                 is_null( $db_address ) ? '(none)' : $db_address->address1,
+               'ranked_participant_for_queue.first_address_city' =>
+                 is_null( $db_address ) ? '(none)' : $db_address->city,
+               'ranked_participant_for_queue.first_address_postcode' =>
+                 is_null( $db_address ) ? '(none)' : $db_address->postcode,
                // note count isn't a column, it's used for the note button
                'note_count' => $record->get_note_count() ) );
     }
