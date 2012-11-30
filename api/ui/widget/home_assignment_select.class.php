@@ -38,6 +38,12 @@ class home_assignment_select extends \cenozo\ui\widget
   {
     parent::prepare();
     $this->set_heading( 'Select a home assignment:' );
+
+    $db_user = lib::create( 'business\session' )->get_user();
+    $language = '';
+    if( 'any' == $db_user->language ) $language = 'Any Language';
+    else if( 'fr' == $db_user->language ) $language = 'French Only';
+    else $language = 'English Only';
     
     // create the participant sub-list widget
     $this->participant_list = lib::create( 'ui\widget\participant_list', $this->arguments );
@@ -45,7 +51,7 @@ class home_assignment_select extends \cenozo\ui\widget
     $this->participant_list->set_viewable( false );
     $this->participant_list->set_addable( false );
     $this->participant_list->set_removable( false );
-    $this->participant_list->set_heading( 'Available participants' );
+    $this->participant_list->set_heading( sprintf( 'Available participants (%s)', $language ) );
   }
 
   /**
@@ -79,6 +85,10 @@ class home_assignment_select extends \cenozo\ui\widget
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
 
+    $session = lib::create( 'business\session' );
+    $db_site = $session->get_site();
+    $db_user = $session->get_user();
+
     // replace participant. with participant_ in the where and order columns of the modifier
     // (see queue record's participant_for_queue for details)
     if( !is_null( $modifier ) ) 
@@ -86,7 +96,20 @@ class home_assignment_select extends \cenozo\ui\widget
         $modifier->change_where_column(
           $column, preg_replace( '/^participant\./', 'participant_', $column ) );
 
-    $db_site = lib::create( 'business\session' )->get_site();
+    $language = $db_user->language;
+    if( 'any' != $language )
+    {
+      // english is default, so if the language is english allow null values
+      if( 'en' == $language )
+      {
+        $modifier->where_bracket( true );
+        $modifier->where( 'participant_language', '=', $language );
+        $modifier->or_where( 'participant_language', '=', NULL );
+        $modifier->where_bracket( false );
+      }
+      else $modifier->where( 'participant_language', '=', $language );
+    }
+
     $qnaire_mod = lib::create( 'database\modifier' );
     $qnaire_mod->where( 'type', '=', 'home' );
     $qnaire_mod->order( 'rank' );
@@ -114,6 +137,10 @@ class home_assignment_select extends \cenozo\ui\widget
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
 
+    $session = lib::create( 'business\session' );
+    $db_site = $session->get_site();
+    $db_user = $session->get_user();
+
     // replace participant. with participant_ in the where and order columns of the modifier
     // (see queue record's participant_for_queue for details)
     if( !is_null( $modifier ) ) 
@@ -126,7 +153,20 @@ class home_assignment_select extends \cenozo\ui\widget
           $column, preg_replace( '/^participant\./', 'participant_', $column ) );
     }
 
-    $db_site = lib::create( 'business\session' )->get_site();
+    $language = $db_user->language;
+    if( 'any' != $language )
+    {
+      // english is default, so if the language is english allow null values
+      if( 'en' == $language )
+      {
+        $modifier->where_bracket( true );
+        $modifier->where( 'participant_language', '=', $language );
+        $modifier->or_where( 'participant_language', '=', NULL );
+        $modifier->where_bracket( false );
+      }
+      else $modifier->where( 'participant_language', '=', $language );
+    }
+
     $qnaire_mod = lib::create( 'database\modifier' );
     $qnaire_mod->where( 'type', '=', 'home' );
     $qnaire_mod->order( 'rank' );

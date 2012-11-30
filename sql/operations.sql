@@ -303,6 +303,10 @@ VALUES( "pull", "quota", "primary", true, "Retrieves base quota information." );
 -- INSERT INTO operation( type, subject, name, restricted, description )
 -- VALUES( "pull", "demographics", "report", true, "Download a new demographics report." );
 INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "progress", "report", true, "Set up a progress report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "progress", "report", true, "Download a progress report." );
+INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "participant_tree", "report", true, "Set up a participant tree report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "participant_tree", "report", true, "Download a participant tree report." );

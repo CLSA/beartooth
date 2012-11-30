@@ -96,8 +96,23 @@ class self_menu extends \cenozo\ui\widget\self_menu
                             'type' => 'widget',
                             'subject' => 'site_assignment',
                             'name' => 'select' );
-
+    
     $this->set_variable( 'utilities', $utilities );
+
+    // if this is an interviewer then change the participant heading
+    if( 'interviewer' == lib::create( 'business\session' )->get_role()->name )
+    {
+      $lists = $this->get_variable( 'lists' );
+      foreach( $lists as $index => $list )
+      {
+        if( 0 == strcasecmp( 'participants', $list['heading'] ) )
+        {
+          $lists[$index]['heading'] = 'My Participants';
+          break;
+        }
+      }
+      $this->set_variable( 'lists', $lists );
+    }
   }
 }
 ?>
