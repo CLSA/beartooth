@@ -158,10 +158,31 @@ class session extends \cenozo\business\session
    */
   public function slot_current( $slot )
   {
+    $widget = parent::slot_current( $slot );
     return 'main' == $slot &&
-           $this->get_current_assignment()
+           $this->get_current_assignment() &&
+           'participant_secondary' != $widget['name']
          ? array( 'name' => 'self_assignment', 'args' => NULL )
-         : parent::slot_current( $slot );
+         : $widget;
+  }
+
+  /**
+   * Resets the slot stacks to their initial state.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param string $slot The name of the slot.
+   * @return string The name of the widget or NULL if the stack is empty.
+   * @access public
+   */
+  public function slot_reset( $slot )
+  {
+    // kill the secondary contact cookies in case they exist
+    setcookie( 'secondary_id', NULL, time() - 3600, COOKIE_PATH );
+    setcookie( 'secondary_participant_id', NULL, time() - 3600, COOKIE_PATH );
+    setcookie( 'secondary_participant_first_name', NULL, time() - 3600, COOKIE_PATH );
+    setcookie( 'secondary_participant_last_name', NULL, time() - 3600, COOKIE_PATH );
+
+    parent::slot_reset( $slot );
   }
 
   /**

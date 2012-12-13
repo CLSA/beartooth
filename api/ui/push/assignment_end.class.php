@@ -54,7 +54,8 @@ class assignment_end extends \cenozo\ui\push
   {
     parent::execute();
 
-    $db_assignment = lib::create( 'business\session' )->get_current_assignment();
+    $session = lib::create( 'business\session' );
+    $db_assignment = $session->get_current_assignment();
     if( !is_null( $db_assignment ) )
     {
       // if no call was made then delete the assignment
@@ -72,6 +73,10 @@ class assignment_end extends \cenozo\ui\push
         $db_assignment->save();
       }
     }
+
+    // reset the main slot to prevent the user from returning to the assignment using
+    // the navigation buttons
+    $session->slot_reset( 'main' );
   }
 }
 ?>

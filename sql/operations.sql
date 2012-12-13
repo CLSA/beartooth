@@ -180,6 +180,8 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "participant", "sync", true, "Returns a summary of changes to be made given a list of UIDs to sync." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "participant", "sync", true, "Updates participants with their information in Mastodon." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "participant", "secondary", true, "Lists a participant's alternates for sourcing purposes." );
 
 -- phase
 INSERT INTO operation( type, subject, name, restricted, description )
