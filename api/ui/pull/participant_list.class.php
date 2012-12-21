@@ -122,20 +122,6 @@ class participant_list extends \cenozo\ui\pull\base_list
         $this->modifier->where(
           'interview.id', '=', 'interview_last_assignment.interview_id', false );
         $this->modifier->where( 'interview_last_assignment.assignment_id', '!=', NULL );
-
-        // or either there is an upcomming appointment (not completed) or the interview is complete
-        $this->modifier->where_bracket( true, true );
-
-        $this->modifier->where_bracket( true );
-        $this->modifier->where( 'participant_last_appointment.appointment_id', '!=', NULL );
-        $this->modifier->where( 'participant_last_appointment.completed', '=', false );
-        $this->modifier->where_bracket( false );
-     
-        $this->modifier->where_bracket( true, true );
-        $this->modifier->where( 'interview.completed', '=', true );
-        $this->modifier->where_bracket( false );
-     
-        $this->modifier->where_bracket( false );
       }
       else if( 'appointment' == $state )
       {   
