@@ -81,6 +81,17 @@ class participant_list extends \cenozo\ui\pull\base_list
     // an array of all negative consent types
     $neg_consent_list = array( 'written deny', 'retract', 'withdraw' );
 
+    // see if we are restricting by site
+    $site_key = $this->get_argument( 'site', NULL );
+    if( !is_null( $site_key ) )
+    {
+      $site_class_name = lib::get_class_name( 'database\site' );
+      $db_site = lib::create( 'database\site',
+        $site_class_name::get_primary_from_unique_key( $site_key ) );
+      if( is_null( $this->modifier ) ) $this->modifier = lib::create( 'database\modifier' );
+      $this->modifier->where( 'participant_site.site_id', '=', $db_site->id );
+    }
+
     // see if we are restricting by region
     $region_key = $this->get_argument( 'region', NULL );
     if( !is_null( $region_key ) )
@@ -98,23 +109,37 @@ class participant_list extends \cenozo\ui\pull\base_list
       if( is_null( $this->modifier ) ) $this->modifier = lib::create( 'database\modifier' );
       $this->modifier->where( 'interview.qnaire_id', '=', $this->db_qnaire->id );
 
+      // the participant is eligible
+      $this->modifier->where( 'participant.status', '=', NULL );
+      $this->modifier->where_bracket( true );
+      $this->modifier->where( 'participant_last_consent.event', '=', NULL );
+      $this->modifier->or_where( 'participant_last_consent.event', 'NOT IN', $neg_consent_list );
+      $this->modifier->where_bracket( false );
+
       if( 'contacted' == $state )
       {
         // check to see if the participant has ever been assigned
         $this->modifier->where(
           'interview.id', '=', 'interview_last_assignment.interview_id', false );
         $this->modifier->where( 'interview_last_assignment.assignment_id', '!=', NULL );
+
+        // or either there is an upcomming appointment (not completed) or the interview is complete
+        $this->modifier->where_bracket( true, true );
+
+        $this->modifier->where_bracket( true );
+        $this->modifier->where( 'participant_last_appointment.appointment_id', '!=', NULL );
+        $this->modifier->where( 'participant_last_appointment.completed', '=', false );
+        $this->modifier->where_bracket( false );
+     
+        $this->modifier->where_bracket( true, true );
+        $this->modifier->where( 'interview.completed', '=', true );
+        $this->modifier->where_bracket( false );
+     
+        $this->modifier->where_bracket( false );
       }
       else if( 'appointment' == $state )
       {   
-        // the participant is eligible
-        $this->modifier->where( 'participant.status', '=', NULL );
-        $this->modifier->where_bracket( true );
-        $this->modifier->where( 'participant_last_consent.event', '=', NULL );
-        $this->modifier->or_where( 'participant_last_consent.event', 'NOT IN', $neg_consent_list );
-        $this->modifier->where_bracket( false );
-
-        // and either there is an upcomming appointment (not completed) or the interview is complete
+        // either there is an upcomming appointment (not completed) or the interview is complete
         $this->modifier->where_bracket( true );
 
         $this->modifier->where_bracket( true );
@@ -130,14 +155,7 @@ class participant_list extends \cenozo\ui\pull\base_list
       }   
       else if( 'completed' == $state )
       {
-        // the participant is eligible
-        $this->modifier->where( 'participant.status', '=', NULL );
-        $this->modifier->where_bracket( true );
-        $this->modifier->where( 'participant_last_consent.event', '=', NULL );
-        $this->modifier->or_where( 'participant_last_consent.event', 'NOT IN', $neg_consent_list );
-        $this->modifier->where_bracket( false );
-
-        // and the interview is complete
+        // the interview is complete
         $this->modifier->where( 'interview.completed', '=', true );
       }
       else if( 'consented' == $state )

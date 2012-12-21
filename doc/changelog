@@ -16,6 +16,10 @@
   - There is now a "sourcing required" participant status
   - Participants who have no active phone numbers are included in the "sourcing required" queue
 
+* Quotas can now be defined by site as well as region
+  - Participants who have never been assigned but have an appointment are included in the
+    "contact attempted" category
+
 ====================================================================================================
 1.0.4
 ====================================================================================================
