@@ -79,9 +79,10 @@ class call_attempts_report extends \cenozo\ui\pull\base_report
         $phone_call_mod->order_desc( 'start_datetime' );
         $phone_call_mod->limit( 1 );
         $db_phone_call = current( $db_last_assignment->get_phone_call_list( $phone_call_mod ) );
+        $db_site = $db_participant->get_primary_site();
 
         $contents[] = array(
-          $db_participant->get_primary_site()->name,
+          $db_site ? $db_site->name : '(none)',
           $db_participant->uid,
           $db_last_assignment->get_user()->first_name.' '.
             $db_last_assignment->get_user()->last_name,
