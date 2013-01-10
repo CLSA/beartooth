@@ -1,4 +1,26 @@
 ====================================================================================================
+1.0.5
+====================================================================================================
+
+* Removing defunct auditing system
+
+* Secondary contact script added to system
+  - During an assignment users will now see a "Secondary Contacts" button when the participant has
+    had 10+ failed call attempts or if they have no active phone number
+  - The number of failed call attempts (default 10) is a setting which can be set individually by
+    each site.
+  - Clicking the secondary contact button will provide a list of alternates who can be called using
+    the secondary contact script
+  - Users will see a secondary button in the participant view page for participants with 10+ failed
+    call attemtps or if they have no active phone number
+  - There is now a "sourcing required" participant status
+  - Participants who have no active phone numbers are included in the "sourcing required" queue
+
+* Quotas can now be defined by site as well as region
+  - Participants who have never been assigned but have an appointment are included in the
+    "contact attempted" category
+
+====================================================================================================
 1.0.4
 ====================================================================================================
 

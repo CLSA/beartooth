@@ -86,6 +86,7 @@ class participant_list extends site_restricted_list
     {
       $db_source = $record->get_source();
       $db_address = $record->get_first_address();
+      $db_site = $record->get_primary_site();
       $this->add_row( $record->id,
         is_null( $this->assignment_type ) ?
         array( 'uid' => $record->uid ? $record->uid : '(none)',
@@ -93,7 +94,7 @@ class participant_list extends site_restricted_list
                'last_name' => $record->last_name,
                'source.name' =>
                  is_null( $db_source ) ? '(none)' : $db_source->name,
-               'primary_site' => $record->get_primary_site()->name,
+               'primary_site' => $db_site ? $db_site->name : '(none)',
                // note count isn't a column, it's used for the note button
                'note_count' => $record->get_note_count() ) :
         array( 'uid' => $record->uid ? $record->uid : '(none)',

@@ -26,7 +26,8 @@ class self_shortcuts extends \cenozo\ui\widget\self_shortcuts
 
     $setting_manager = lib::create( 'business\setting_manager' );
     $voip_manager = lib::create( 'business\voip_manager' );
-    $db_site = lib::create( 'business\session' )->get_site();
+    $session = lib::create( 'business\session' );
+    $db_site = $session->get_site();
     
     $voip_enabled = $setting_manager->get_setting( 'voip', 'enabled' );
     
@@ -51,6 +52,7 @@ class self_shortcuts extends \cenozo\ui\widget\self_shortcuts
     $this->set_variable( 'dialpad', !is_null( $voip_manager->get_call() ) );
     $this->set_variable( 'calculator', true );
     $this->set_variable( 'timezone_calculator', true );
+    $this->set_variable( 'navigation', is_null( $session->get_current_assignment() ) );
   }
 }
 ?>

@@ -24,14 +24,19 @@ class tokens extends sid_record
    */
   public function update_attributes( $db_participant )
   {
+    if( NULL == $this->token )
+    {
+      log::warning( 'Tried to update attributes of token without token string.' );
+      return;
+    }
+
     $session = lib::create( 'business\session' );
     $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
     $db_user = $session->get_user();
     $db_site = $session->get_site();
 
     // determine the first part of the token
-    $db_interview = $session->get_current_assignment()->get_interview();
-    $token_part = substr( static::determine_token_string( $db_interview ), 0, -1 );
+    $token_part = substr( $this->token, 0, -1 );
     
     // try getting the attributes from mastodon or beartooth
     $participant_info = new \stdClass();
@@ -231,8 +236,13 @@ class tokens extends sid_record
           {
             $this->$key = $alt_number <= count( $alternate_info->data )
                         ? $alternate_info->data[$alt_number - 1]->$aspect
-                        : "";
+                        : '';
           }
+        }
+        else if( preg_match( '/secondary (first_name|last_name)/', $value ) )
+        {
+          $aspect = str_replace( ' ', '_', $value );
+          if( array_key_exists( $aspect, $_COOKIE ) ) $this->$key = $_COOKIE[$aspect];
         }
         else if( 'previously completed' == $value )
         {
