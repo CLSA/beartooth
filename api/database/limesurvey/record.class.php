@@ -1,6 +1,6 @@
 <?php
 /**
- * limesurvey.class.php
+ * record.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @filesource

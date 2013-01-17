@@ -98,23 +98,13 @@ class self_assignment extends \cenozo\ui\widget
     $current_calls = $db_assignment->get_phone_call_count( $modifier );
     $on_call = !is_null( $session->get_current_phone_call() );
 
-    if( 0 == count( $db_phone_list ) && 0 == $current_calls )
-    {
-      log::crit( sprintf(
-        'User %s has been assigned participant %d who has no callable phone numbers',
-        $db_user->name,
-        $db_participant->id ) );
-    }
-    else
-    {
-      $phone_list = array();
-      foreach( $db_phone_list as $db_phone )
-        $phone_list[$db_phone->id] =
-          sprintf( '%d. %s (%s)', $db_phone->rank, $db_phone->type, $db_phone->number );
-      $this->set_variable( 'phone_list', $phone_list );
-      $phone_call_class_name = lib::get_class_name( 'database\phone_call' );
-      $this->set_variable( 'status_list', $phone_call_class_name::get_enum_values( 'status' ) );
-    }
+    $phone_list = array();
+    foreach( $db_phone_list as $db_phone )
+      $phone_list[$db_phone->id] =
+        sprintf( '%d. %s (%s)', $db_phone->rank, $db_phone->type, $db_phone->number );
+    $this->set_variable( 'phone_list', $phone_list );
+    $phone_call_class_name = lib::get_class_name( 'database\phone_call' );
+    $this->set_variable( 'status_list', $phone_call_class_name::get_enum_values( 'status' ) );
 
     if( 0 == $current_calls && !$on_call && $db_interview->completed )
     {
