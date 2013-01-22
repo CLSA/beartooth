@@ -24,72 +24,25 @@ class tokens extends sid_record
    */
   public function update_attributes( $db_participant )
   {
-    $session = lib::create( 'business\session' );
+    if( NULL == $this->token )
+    {
+      log::warning( 'Tried to update attributes of token without token string.' );
+      return;
+    }
+
     $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
+    $session = lib::create( 'business\session' );
     $db_user = $session->get_user();
     $db_site = $session->get_site();
 
     // determine the first part of the token
-    $db_interview = $session->get_current_assignment()->get_interview();
-    $token_part = substr( static::determine_token_string( $db_interview ), 0, -1 );
+    $token_part = substr( $this->token, 0, -1 );
     
-    // try getting the attributes from mastodon or beartooth
-    $participant_info = new \stdClass();
-    if( $mastodon_manager->is_enabled() )
-    {
-      $participant_info = $mastodon_manager->pull(
-        'participant', 'primary', array( 'uid' => $db_participant->uid ) );
-      $consent_info = $mastodon_manager->pull(
-        'participant', 'list_consent', array( 'uid' => $db_participant->uid ) );
-      $alternate_info = $mastodon_manager->pull(
-        'participant', 'list_alternate', array( 'uid' => $db_participant->uid ) );
-      
-      // written consent received
-      $written_consent = false;
-      foreach( $consent_info->data as $consent )
-      {
-        if( 'written' == substr( $consent->event, 0, 7 ) )
-        {
-          $written_consent = true;
-          break;
-        }
-      }
-    }
-    else
-    {
-      $db_address = $db_participant->get_primary_address();
-      if( is_null( $db_address ) )
-      {
-        $participant_info->data->street = "";
-        $participant_info->data->city = "";
-        $participant_info->data->region = "";
-        $participant_info->data->postcode = "";
-      }
-      else
-      {
-        $participant_info->data->street = $db_address->address1;
-        if( !is_null( $db_address->address2 ) )
-          $participant_info->data->street .= ' '.$db_address->address2;
-        $participant_info->data->city = $db_address->city;
-        $participant_info->data->region = $db_address->get_region()->name;
-        $participant_info->data->postcode = $db_address->postcode;
-      }
+    // fill in the email
+    $this->email = $db_participant->email;
 
-      // written consent received
-      $consent_mod = lib::create( 'database\modifier' );
-      $consent_mod->where( 'event', 'like', 'written %' );
-      $written_consent = 0 < $db_participant->get_consent_count( $consent_mod );
-
-      // beartooth doesn't track the following information
-      $participant_info->data->date_of_birth = "";
-      $participant_info->data->email = "";
-      $participant_info->data->hin_access = "";
-      $participant_info->data->prior_contact_date = "";
-      $alternate_info->data = array();
-    }
-    
     // determine the attributes from the survey with the same ID
-    $db_surveys = lib::create( 'database\limesurvey\surveys', static::$table_sid );
+    $db_surveys = lib::create( 'database\limesurvey\surveys', static::get_sid() );
 
     foreach( explode( "\n", $db_surveys->attributedescriptions ) as $attribute )
     {
@@ -100,36 +53,65 @@ class tokens extends sid_record
         $matches = array(); // for pregs below
         
         // now get the info based on the attribute name
-        if( 'address street' == $value )
+        if( false !== strpos( $value, 'address' ) )
         {
-          $this->$key = $participant_info->data->street;
-        }
-        else if( 'address city' == $value )
-        {
-          $this->$key = $participant_info->data->city;
-        }
-        else if( 'address province' == $value )
-        {
-          $this->$key = $participant_info->data->region;
-        }
-        else if( 'address postal code' == $value )
-        {
-          $this->$key = $participant_info->data->postcode;
+          $db_address = $db_participant->get_primary_address();
+
+          if( 'address street' == $value )
+          {
+            if( $db_address )
+            {
+              $this->$key = $db_address->address1;
+              if( !is_null( $db_address->address2 ) ) $this->$key .= ' '.$db_address->address2;
+            }
+            else
+            {
+              $this->$key = '';
+            }
+          }
+          else if( 'address city' == $value )
+          {
+            $this->$key = $db_address ? $db_address->city : '';
+          }
+          else if( 'address province' == $value )
+          {
+            $this->$key = $db_address ? $db_address->get_region()->name : '';
+          }
+          else if( 'address postal code' == $value )
+          {
+            $this->$key = $db_address ? $db_address->postcode : '';
+          }
         }
         else if( 'age' == $value )
         {
-          $this->$key = strlen( $participant_info->data->date_of_birth )
+          $this->$key = strlen( $db_participant->date_of_birth )
                       ? util::get_interval(
-                          util::get_datetime_object( $participant_info->data->date_of_birth ) )->y
+                          util::get_datetime_object( $db_participant->date_of_birth ) )->y
                       : "";
         }
         else if( 'written consent received' == $value )
         {
-          $this->$key = $written_consent ? "1" : "0";
+          $consent_mod = lib::create( 'database\modifier' );
+          $consent_mod->where( 'event', 'like', 'written %' );
+          $this->$key = 0 < $db_participant->get_consent_count( $consent_mod ) ? '1' : '0';
         }
-        else if( 'consented to provide HIN' == $value )
+        else if( false !== strpos( $value, 'HIN' ) )
         {
-          $this->$key = true == $participant_info->data->hin_access ? "1" : "0";
+          // get HIN info from mastodon (fake it if mastodon is not enabled)
+          $participant_info = array( 'hin_access' => '', 'hin_missing' => 1 );
+          if( $mastodon_manager->is_enabled() )
+            $participant_info =
+              $mastodon_manager->pull(
+                'participant', 'primary', array( 'uid' => $db_participant->uid ) );
+          
+          if( 'consented to provide HIN' == $value )
+          {
+            $this->$key = $participant_info->data->hin_access;
+          }
+          else if( 'HIN recorded' == $value )
+          {
+            $this->$key = $participant_info->data->hin_missing ? 0 : 1;
+          }
         }
         else if( 'INCL_2e' == $value )
         {
@@ -185,14 +167,6 @@ class tokens extends sid_record
           $db_source = $db_participant->get_source();
           $this->$key = is_null( $db_source ) ? '(none)' : $db_source->name;
         }
-        else if( 'previous CCHS contact date' == $value )
-        {
-          $this->$key = $participant_info->data->prior_contact_date;
-        }
-        else if( 'number of alternate contacts' == $value )
-        {
-          $this->$key = count( $alternate_info->data );
-        }
         else if( 'dcs phone_number' == $value )
         {
           $this->$key = $db_site->phone_number;
@@ -214,24 +188,41 @@ class tokens extends sid_record
         {
           $this->$key = $db_site->postcode;
         }
-        else if(
-          preg_match( '/alternate([0-9]+) (first_name|last_name|phone)/', $value, $matches ) )
+        else if( false !== strpos( $value, 'alternate' ) )
         {
-          $alt_number = intval( $matches[1] );
-          $aspect = $matches[2];
+          // get alternate info from mastodon (fake it if mastodon is not enabled)
+          $alternate_info = array();
+          if( $mastodon_manager->is_enabled() )
+            $alternate_info =
+              $mastodon_manager->pull(
+                'participant', 'list_alternate', array( 'uid' => $db_participant->uid ) );
 
-          if( 'phone' == $aspect )
+          if( 'number of alternate contacts' == $value )
           {
-            $phone_list = $alternate_info->data[$alt_number - 1]->phone_list;
-            $this->$key = $alt_number <= count( $alternate_info->data )
-                        ? ( is_array( $phone_list ) ? $phone_list[0]->number : '' )
-                        : '';
+            $this->$key = count( $alternate_info->data );
           }
-          else
+          else if(
+            preg_match( '/alternate([0-9]+) (first_name|last_name|phone)/', $value, $matches ) )
           {
-            $this->$key = $alt_number <= count( $alternate_info->data )
-                        ? $alternate_info->data[$alt_number - 1]->$aspect
-                        : "";
+            $alt_number = intval( $matches[1] );
+            $aspect = $matches[2];
+
+            if( count( $alternate_info->data ) < $alt_number )
+            {
+              $this->$key = '';
+            }
+            else
+            {
+              if( 'phone' == $aspect )
+              {
+                $phone_list = $alternate_info->data[$alt_number - 1]->phone_list;
+                $this->$key = is_array( $phone_list ) ? $phone_list[0]->number : '';
+              }
+              else
+              {
+                $this->$key = $alternate_info->data[$alt_number - 1]->$aspect;
+              }
+            }
           }
         }
         else if( 'previously completed' == $value )

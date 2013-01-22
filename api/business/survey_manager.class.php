@@ -35,26 +35,48 @@ class survey_manager extends \cenozo\singleton
   {
     $session = lib::create( 'business\session' );
 
-    // must have an assignment
-    $db_assignment = $session->get_current_assignment();
-    if( is_null( $db_assignment ) ) return false;
-    
-    // the assignment must have an open call
-    $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'end_datetime', '=', NULL );
-    $call_list = $db_assignment->get_phone_call_list( $modifier );
-    if( 0 == count( $call_list ) ) return false;
+    if( array_key_exists( 'secondary_id', $_COOKIE ) )
+    {
+      // get the participant being sourced
+      $db_participant = lib::create( 'database\participant', $_COOKIE['secondary_participant_id'] );
+      if( is_null( $db_participant ) ) return false;
 
-    // determine the current sid and token
-    $sid = $this->get_current_sid();
-    $token = $this->get_current_token();
-    if( false === $sid || false == $token ) return false;
-    
-    // determine which language to use
-    $lang = $db_assignment->get_interview()->get_participant()->language;
-    if( !$lang ) $lang = 'en';
-    
-    return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s', $sid, $lang, $token );
+      // determine the current sid and token
+      $sid = $this->get_current_sid();
+      $token = $this->get_current_token();
+      if( false === $sid || false == $token ) return false;
+
+      // determine which language to use
+      $lang = $db_participant->language;
+      if( !$lang ) $lang = 'en';
+
+      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s', $sid, $lang, $token );
+    }
+    else
+    {
+      // must have an assignment
+      $db_assignment = $session->get_current_assignment();
+      if( is_null( $db_assignment ) ) return false;
+      
+      // the assignment must have an open call
+      $modifier = lib::create( 'database\modifier' );
+      $modifier->where( 'end_datetime', '=', NULL );
+      $call_list = $db_assignment->get_phone_call_list( $modifier );
+      if( 0 == count( $call_list ) ) return false;
+
+      // determine the current sid and token
+      $sid = $this->get_current_sid();
+      $token = $this->get_current_token();
+      if( false === $sid || false == $token ) return false;
+      
+      // determine which language to use
+      $lang = $db_assignment->get_interview()->get_participant()->language;
+      if( !$lang ) $lang = 'en';
+      
+      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s', $sid, $lang, $token );
+    }
+
+    return false; // will never happen
   }
 
   /**
@@ -95,110 +117,150 @@ class survey_manager extends \cenozo\singleton
    */
   protected function determine_current_sid_and_token()
   {
-    $session = lib::create( 'business\session' );
-    $db_assignment = $session->get_current_assignment();
-    if( is_null( $db_assignment ) )
-    {
-      log::warning( 'Tried to determine survey information without an active assignment.' );
-      return false;
-    }
-    
-    $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
-
     $this->current_sid = false;
     $this->current_token = false;
 
-    // records which we will need
-    $db_interview = $db_assignment->get_interview();
-    $db_participant = $db_interview->get_participant();
-    $db_consent = $db_participant->get_last_consent();
-    
-    if( $db_consent && 'withdraw' == $db_consent->event )
-    { // the participant has withdrawn, check to see if the withdraw script is complete
-      $db_qnaire = $db_interview->get_qnaire();
-      
-      // let the tokens record class know which SID we are dealing with
-      $tokens_class_name::set_sid( $db_qnaire->withdraw_sid );
+    $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
+    $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
+    $session = lib::create( 'business\session' );
 
-      $token = $tokens_class_name::determine_token_string( $db_interview );
+    if( array_key_exists( 'secondary_id', $_COOKIE ) )
+    {
+      // get the participant being sourced
+      $db_participant = lib::create( 'database\participant', $_COOKIE['secondary_participant_id'] );
+      if( is_null( $db_participant ) )
+      {
+        log::warning( 'Tried to determine survey information for an invalid participant.' );
+        return false;
+      }
+
+      $setting_manager = lib::create( 'business\setting_manager' );
+      $sid = $setting_manager->get_setting( 'general', 'secondary_survey' );
+      $token = $_COOKIE['secondary_id'];
+
+      $tokens_class_name::set_sid( $sid );
+      $survey_class_name::set_sid( $sid );
+
+      // reset the script and token
       $tokens_mod = lib::create( 'database\modifier' );
       $tokens_mod->where( 'token', '=', $token );
-      $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
+      foreach( $tokens_class_name::select( $tokens_mod ) as $db_tokens ) $db_tokens->delete();
+      $scripts_mod = lib::create( 'database\modifier' );
+      $scripts_mod->where( 'token', '=', $token );
+      foreach( $survey_class_name::select( $scripts_mod ) as $db_survey ) $db_survey->delete();
 
-      if( false === $db_tokens )
-      { // token not found, create it
-        $db_tokens = lib::create( 'database\limesurvey\tokens' );
-        $db_tokens->token = $token;
-        $db_tokens->firstname = $db_participant->first_name;
-        $db_tokens->lastname = $db_participant->last_name;
-        $db_tokens->update_attributes( $db_participant );
-        $db_tokens->save();
+      $db_tokens = lib::create( 'database\limesurvey\tokens' );
+      $db_tokens->token = $token;
+      $db_tokens->firstname = $db_participant->first_name;
+      $db_tokens->lastname = $db_participant->last_name;
+      $db_tokens->update_attributes( $db_participant );
+      $db_tokens->save();
 
-        $this->current_sid = $db_qnaire->withdraw_sid;
-        $this->current_token = $token;
-      }
-      else if( 'N' == $db_tokens->completed )
-      {
-        $this->current_sid = $db_qnaire->withdraw_sid;
-        $this->current_token = $token;
-      }
-      // else do not set the current_sid or current_token members!
+      // the secondary survey can be brought back up after it is complete, so always set these
+      $this->current_sid = $sid;
+      $this->current_token = $token;
     }
     else
-    { // the participant has not withdrawn, check each phase of the interview
-      $phase_mod = lib::create( 'database\modifier' );
-      $phase_mod->order( 'rank' );
-      
-      $phase_list = $db_interview->get_qnaire()->get_phase_list( $phase_mod );
-      if( 0 == count( $phase_list ) )
+    {
+      $db_assignment = $session->get_current_assignment();
+      if( is_null( $db_assignment ) )
       {
-        log::emerg( 'Questionnaire with no phases has been assigned.' );
+        log::warning( 'Tried to determine survey information without an active assignment.' );
+        return false;
+      }
+      
+      // records which we will need
+      $db_interview = $db_assignment->get_interview();
+      $db_participant = $db_interview->get_participant();
+      $db_consent = $db_participant->get_last_consent();
+      
+      if( $db_consent && 'withdraw' == $db_consent->event )
+      { // the participant has withdrawn, check to see if the withdraw script is complete
+        $db_qnaire = $db_interview->get_qnaire();
+        
+        // let the tokens record class know which SID we are dealing with
+        $tokens_class_name::set_sid( $db_qnaire->withdraw_sid );
+
+        $token = $tokens_class_name::determine_token_string( $db_interview );
+        $tokens_mod = lib::create( 'database\modifier' );
+        $tokens_mod->where( 'token', '=', $token );
+        $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
+
+        if( false === $db_tokens )
+        { // token not found, create it
+          $db_tokens = lib::create( 'database\limesurvey\tokens' );
+          $db_tokens->token = $token;
+          $db_tokens->firstname = $db_participant->first_name;
+          $db_tokens->lastname = $db_participant->last_name;
+          $db_tokens->update_attributes( $db_participant );
+          $db_tokens->save();
+
+          $this->current_sid = $db_qnaire->withdraw_sid;
+          $this->current_token = $token;
+        }
+        else if( 'N' == $db_tokens->completed )
+        {
+          $this->current_sid = $db_qnaire->withdraw_sid;
+          $this->current_token = $token;
+        }
+        // else do not set the current_sid or current_token members!
       }
       else
-      {
-        foreach( $phase_list as $db_phase )
+      { // the participant has not withdrawn, check each phase of the interview
+        $phase_mod = lib::create( 'database\modifier' );
+        $phase_mod->order( 'rank' );
+        
+        $phase_list = $db_interview->get_qnaire()->get_phase_list( $phase_mod );
+        if( 0 == count( $phase_list ) )
         {
-          // let the tokens record class know which SID we are dealing with
-          $tokens_class_name::set_sid( $db_phase->sid );
-  
-          $token = $tokens_class_name::determine_token_string(
-                     $db_interview,
-                     $db_phase->repeated ? $db_assignment : NULL );
-          $tokens_mod = lib::create( 'database\modifier' );
-          $tokens_mod->where( 'token', '=', $token );
-          $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
-  
-          if( false === $db_tokens )
-          { // token not found, create it
-            $db_tokens = lib::create( 'database\limesurvey\tokens' );
-            $db_tokens->token = $token;
-            $db_tokens->firstname = $db_participant->first_name;
-            $db_tokens->lastname = $db_participant->last_name;
-            $db_tokens->update_attributes( $db_participant );
-
-            // TODO: this is temporary code to fix the TOKEN != "NO" problem in limesurvey
-            //       for survey 63834
-            if( 63834 == $db_phase->sid && is_null( $db_tokens->attribute_9 ) )
-              $db_tokens->attribute_9 = "UNKNOWN";
-
-            $db_tokens->save();
-  
-            $this->current_sid = $db_phase->sid;
-            $this->current_token = $token;
-            break;
-          }
-          else if( 'N' == $db_tokens->completed )
-          { // we have found the current phase
-            $this->current_sid = $db_phase->sid;
-            $this->current_token = $token;
-            break;
-          }
-          // else do not set the current_sid or current_token
+          log::emerg( 'Questionnaire with no phases has been assigned.' );
         }
-      }
+        else
+        {
+          foreach( $phase_list as $db_phase )
+          {
+            // let the tokens record class know which SID we are dealing with
+            $tokens_class_name::set_sid( $db_phase->sid );
+    
+            $token = $tokens_class_name::determine_token_string(
+                       $db_interview,
+                       $db_phase->repeated ? $db_assignment : NULL );
+            $tokens_mod = lib::create( 'database\modifier' );
+            $tokens_mod->where( 'token', '=', $token );
+            $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
+    
+            if( false === $db_tokens )
+            { // token not found, create it
+              $db_tokens = lib::create( 'database\limesurvey\tokens' );
+              $db_tokens->token = $token;
+              $db_tokens->firstname = $db_participant->first_name;
+              $db_tokens->lastname = $db_participant->last_name;
+              $db_tokens->update_attributes( $db_participant );
 
-      // The interview is not completed here since the interview must be completed by Onyx
-      // and Onyx must report back when it is done.
+              // TODO: this is temporary code to fix the TOKEN != "NO" problem in limesurvey
+              //       for survey 63834
+              if( 63834 == $db_phase->sid && is_null( $db_tokens->attribute_9 ) )
+                $db_tokens->attribute_9 = "UNKNOWN";
+
+              $db_tokens->save();
+    
+              $this->current_sid = $db_phase->sid;
+              $this->current_token = $token;
+              break;
+            }
+            else if( 'N' == $db_tokens->completed )
+            { // we have found the current phase
+              $this->current_sid = $db_phase->sid;
+              $this->current_token = $token;
+              break;
+            }
+            // else do not set the current_sid or current_token
+          }
+        }
+
+        // The interview is not completed here since the interview must be completed by Onyx
+        // and Onyx must report back when it is done.
+      }
     }
   }
   

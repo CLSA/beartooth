@@ -98,23 +98,13 @@ class self_assignment extends \cenozo\ui\widget
     $current_calls = $db_assignment->get_phone_call_count( $modifier );
     $on_call = !is_null( $session->get_current_phone_call() );
 
-    if( 0 == count( $db_phone_list ) && 0 == $current_calls )
-    {
-      log::crit( sprintf(
-        'User %s has been assigned participant %d who has no callable phone numbers',
-        $db_user->name,
-        $db_participant->id ) );
-    }
-    else
-    {
-      $phone_list = array();
-      foreach( $db_phone_list as $db_phone )
-        $phone_list[$db_phone->id] =
-          sprintf( '%d. %s (%s)', $db_phone->rank, $db_phone->type, $db_phone->number );
-      $this->set_variable( 'phone_list', $phone_list );
-      $class_name = lib::get_class_name( 'database\phone_call' );
-      $this->set_variable( 'status_list', $class_name::get_enum_values( 'status' ) );
-    }
+    $phone_list = array();
+    foreach( $db_phone_list as $db_phone )
+      $phone_list[$db_phone->id] =
+        sprintf( '%d. %s (%s)', $db_phone->rank, $db_phone->type, $db_phone->number );
+    $this->set_variable( 'phone_list', $phone_list );
+    $phone_call_class_name = lib::get_class_name( 'database\phone_call' );
+    $this->set_variable( 'status_list', $phone_call_class_name::get_enum_values( 'status' ) );
 
     if( 0 == $current_calls && !$on_call && $db_interview->completed )
     {
@@ -151,6 +141,29 @@ class self_assignment extends \cenozo\ui\widget
     $this->set_variable( 'interview_completed', $db_interview->completed );
     $this->set_variable( 'allow_call', $session->get_allow_call() );
     $this->set_variable( 'on_call', $on_call );
+
+    $allow_secondary = false;
+    $phone_mod = lib::create( 'database\modifier' );
+    $phone_mod->where( 'active', '=', true );
+    if( 0 == $db_participant->get_phone_count( $phone_mod ) )
+    {
+      $allow_secondary = true;
+    }
+    else
+    {
+      $max_failed_calls =
+        lib::create( 'business\setting_manager' )->get_setting( 'calling', 'max failed calls' );
+      if( $max_failed_calls <= $db_interview->get_failed_call_count() )
+      {
+        $operation_class_name = lib::get_class_name( 'database\operation' );
+        $db_operation =
+          $operation_class_name::get_operation( 'widget', 'participant', 'secondary' );
+        if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+          $allow_secondary = true;
+      }
+    }
+
+    $this->set_variable( 'allow_secondary', $allow_secondary );
   }
 }
 ?>

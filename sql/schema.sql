@@ -101,7 +101,7 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `gender` ENUM('male','female') NOT NULL ,
   `date_of_birth` DATE NULL ,
   `age_group_id` INT UNSIGNED NULL ,
-  `status` ENUM('deceased','deaf','mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','noncompliant','other') NULL DEFAULT NULL ,
+  `status` ENUM('deceased','deaf','mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','noncompliant','sourcing required','unreachable','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
   `site_id` INT UNSIGNED NULL DEFAULT NULL ,
   `email` VARCHAR(255) NULL ,
@@ -741,13 +741,15 @@ CREATE  TABLE IF NOT EXISTS `quota` (
   `update_timestamp` TIMESTAMP NOT NULL ,
   `create_timestamp` TIMESTAMP NOT NULL ,
   `region_id` INT UNSIGNED NOT NULL ,
+  `site_id` INT UNSIGNED NOT NULL ,
   `gender` ENUM('male','female') NOT NULL ,
   `age_group_id` INT UNSIGNED NOT NULL ,
   `population` INT NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_region_id` (`region_id` ASC) ,
   INDEX `fk_age_group_id` (`age_group_id` ASC) ,
-  UNIQUE INDEX `uq_region_id_gender_age_group_id` (`region_id` ASC, `gender` ASC, `age_group_id` ASC) ,
+  UNIQUE INDEX `uq_region_id_site_id_gender_age_group_id` (`region_id` ASC, `site_id` ASC, `gender` ASC, `age_group_id` ASC) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
   CONSTRAINT `fk_quota_region`
     FOREIGN KEY (`region_id` )
     REFERENCES `region` (`id` )
@@ -756,6 +758,11 @@ CREATE  TABLE IF NOT EXISTS `quota` (
   CONSTRAINT `fk_quota_age_group_id`
     FOREIGN KEY (`age_group_id` )
     REFERENCES `age_group` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_quota_site_id`
+    FOREIGN KEY (`site_id` )
+    REFERENCES `site` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
