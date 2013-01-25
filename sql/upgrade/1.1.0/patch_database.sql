@@ -4,5 +4,6 @@ SET AUTOCOMMIT=0;
 
 SOURCE quota.sql
 SOURCE queue.sql
+SOURCE activity.sql
 
 COMMIT;
