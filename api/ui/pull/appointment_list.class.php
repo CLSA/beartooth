@@ -224,4 +224,3 @@ class appointment_list extends \cenozo\ui\pull\base_list
    */
   protected $end_datetime = NULL;
 }
-?>

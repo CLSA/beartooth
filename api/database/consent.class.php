@@ -13,4 +13,3 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * consent: record
  */
 class consent extends \cenozo\database\record {}
-?>

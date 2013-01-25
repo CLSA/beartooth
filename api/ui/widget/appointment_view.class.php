@@ -130,4 +130,3 @@ class appointment_view extends base_appointment_view
    */
   protected $select_address = false;
 }
-?>

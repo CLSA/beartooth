@@ -100,4 +100,3 @@ class appointment_list extends site_restricted_list
     }
   }
 }
-?>

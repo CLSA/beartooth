@@ -49,4 +49,3 @@ class user_view extends \cenozo\ui\widget\user_view
     $this->set_item( 'language', $this->get_record()->language, true, $languages );
   }
 }
-?>

@@ -64,4 +64,3 @@ class user_add extends \cenozo\ui\widget\user_add
     $this->set_item( 'language', 'en', true, $languages );
   }
 }
-?>

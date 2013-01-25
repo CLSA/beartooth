@@ -112,4 +112,3 @@ class onyx_consent extends \cenozo\ui\push
     }
   }
 }
-?>

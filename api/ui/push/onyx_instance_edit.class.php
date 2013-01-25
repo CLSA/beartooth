@@ -99,4 +99,3 @@ class onyx_instance_edit extends \cenozo\ui\push\base_edit
    */
   protected $active = NULL;
 }
-?>

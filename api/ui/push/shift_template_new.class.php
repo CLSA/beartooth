@@ -27,4 +27,3 @@ class shift_template_new extends \cenozo\ui\push\base_new
     parent::__construct( 'shift_template', $args );
   }
 }
-?>

@@ -71,4 +71,3 @@ class site_appointment_feed extends \cenozo\ui\pull\base_feed
     $this->data = $event_list;
   }
 }
-?>

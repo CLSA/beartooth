@@ -268,4 +268,3 @@ class onyx_participants extends \cenozo\ui\push
     }
   }
 }
-?>

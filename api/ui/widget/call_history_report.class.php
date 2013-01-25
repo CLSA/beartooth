@@ -47,4 +47,3 @@ class call_history_report extends base_report
       'of each call.' );
   }
 }
-?>

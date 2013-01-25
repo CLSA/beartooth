@@ -69,4 +69,3 @@ class site_add extends \cenozo\ui\widget\site_add
     $this->set_item( 'postcode', '' );
   }
 }
-?>

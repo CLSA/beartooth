@@ -95,4 +95,3 @@ class participant_add extends \cenozo\ui\widget\base_view
     $this->add_item( 'defer_until', '' );
   }
 }
-?>

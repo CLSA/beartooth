@@ -126,4 +126,3 @@ class appointment_add extends base_appointment_view
    */
   protected $select_address = false;
 }
-?>

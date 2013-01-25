@@ -268,4 +268,3 @@ class onyx_proxy extends \cenozo\ui\push
     }
   }
 }
-?>

@@ -166,4 +166,3 @@ class self_assignment extends \cenozo\ui\widget
     $this->set_variable( 'allow_secondary', $allow_secondary );
   }
 }
-?>

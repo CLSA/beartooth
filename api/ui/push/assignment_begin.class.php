@@ -156,4 +156,3 @@ class assignment_begin extends \cenozo\ui\push
    */
   protected $db_participant = NULL;
 }
-?>

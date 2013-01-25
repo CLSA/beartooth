@@ -79,4 +79,3 @@ class assignment_end extends \cenozo\ui\push
     $session->slot_reset( 'main' );
   }
 }
-?>

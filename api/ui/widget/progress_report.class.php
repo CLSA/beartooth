@@ -44,4 +44,3 @@ class progress_report extends base_report
       'This report lists the progress of all participants through each stage of the study.' );
   }
 }
-?>

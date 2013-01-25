@@ -66,4 +66,3 @@ class interview_edit extends \cenozo\ui\push\base_edit
         'Manually setting the completed state of an interview has been disabled.', __METHOD__ );
   }
 }
-?>

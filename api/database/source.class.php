@@ -13,4 +13,3 @@ use cenozo\lib, cenozo\log, beartooth\util;
  * source: record
  */
 class source extends \cenozo\database\record {}
-?>

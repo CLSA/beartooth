@@ -91,4 +91,3 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
       'interviewer_user_id', key( $interviewers ), true, $interviewers, true );
   }
 }
-?>

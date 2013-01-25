@@ -94,4 +94,3 @@ class shift_template_add extends \cenozo\ui\widget\base_view
    */
   public $end_time = '';
 }
-?>

@@ -310,4 +310,3 @@ class participant_view extends \cenozo\ui\widget\base_view
    */
   protected $interview_list = NULL;
 }
-?>

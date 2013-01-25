@@ -296,4 +296,3 @@ class productivity_report extends \cenozo\ui\pull\base_report
     }
   }
 }
-?>

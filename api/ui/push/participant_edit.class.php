@@ -61,4 +61,3 @@ class participant_edit extends base_edit
       $this->set_machine_request_enabled( false );
   }
 }
-?>

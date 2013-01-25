@@ -67,4 +67,3 @@ class participant_withdraw extends \cenozo\ui\push\base_record
     }
   }
 }
-?>

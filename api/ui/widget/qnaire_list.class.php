@@ -76,4 +76,3 @@ class qnaire_list extends \cenozo\ui\widget\base_list
     }
   }
 }
-?>

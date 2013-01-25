@@ -130,4 +130,3 @@ class shift_template_feed extends \cenozo\ui\pull\base_feed
     $this->data = $event_list;
   }
 }
-?>

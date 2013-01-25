@@ -48,4 +48,3 @@ class demographics_report extends base_report
       'questionnaire, province and consent status.' );
   }
 }
-?>

@@ -110,4 +110,3 @@ class call_attempts_report extends \cenozo\ui\pull\base_report
     $this->add_table( NULL, $header, $contents, NULL );
   }
 }
-?>

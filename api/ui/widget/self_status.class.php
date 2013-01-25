@@ -29,4 +29,3 @@ class self_status extends \cenozo\ui\widget\self_status
     $this->set_variable( 'on_call', $voip_manager->get_call() );
   }
 }
-?>
