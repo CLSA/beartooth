@@ -43,6 +43,7 @@ class quota_list extends \cenozo\ui\widget\base_list
     $this->add_column( 'gender', 'string', 'Gender', true );
     $this->add_column( 'age_group.lower', 'string', 'Age Group', true );
     $this->add_column( 'population', 'number', 'Population', true );
+    $this->add_column( 'disabled', 'boolean', 'Disabled', true );
   }
   
   /**
@@ -66,7 +67,8 @@ class quota_list extends \cenozo\ui\widget\base_list
                'region.name' => $record->get_region()->name,
                'gender' => $record->gender,
                'age_group.lower' => $age_group,
-               'population' => $record->population ) );
+               'population' => $record->population,
+               'disabled' => $record->disabled ) );
     }
   }
 }

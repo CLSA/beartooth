@@ -58,5 +58,20 @@ class quota_new extends \cenozo\ui\push\base_new
       throw lib::create( 'exception\notice',
         'The quota\'s population cannot be left blank.', __METHOD__ );
   }
+
+  /**
+   * Override the parent method to add the service name to the site key.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param array $args An argument list, usually those passed to the push operation.
+   * @return array
+   * @access protected
+   */
+  protected function convert_to_noid( $args )
+  {
+    $args = parent::convert_to_noid( $args );
+    $args['noid']['columns']['site']['service_id'] = array( 'name' => 
+      lib::create( 'business\setting_manager' )->get_setting( 'general', 'application_name' ) );
+    return $args;
+  }
 }
 ?>

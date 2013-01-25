@@ -88,20 +88,9 @@ class site_new extends \cenozo\ui\push\site_new
    */
   protected function convert_to_noid( $args )
   {
-    // remove additional columns which are not required
-    unset( $args['columns']['institution'] );
-    unset( $args['columns']['phone_number'] );
-    unset( $args['columns']['address1'] );
-    unset( $args['columns']['address2'] );
-    unset( $args['columns']['city'] );
-    unset( $args['columns']['postcode'] );
-
     $args = parent::convert_to_noid( $args );
-
-    // add in the site's cohort
-    $args['columns']['cohort'] =
-      lib::create( 'business\setting_manager' )->get_setting( 'general', 'cohort' );
-
+    $args['noid']['columns']['service'] = array( 'name' =>
+      lib::create( 'business\setting_manager' )->get_setting( 'general', 'application_name' ) );
     return $args;
   }
 }

@@ -67,6 +67,7 @@ class queue extends \cenozo\database\record
       'restricted',
       'outside calling time',
       'no appointment',
+      'quota disabled',
       'assigned',
       'new participant',
       'new participant available',
@@ -441,6 +442,13 @@ class queue extends \cenozo\database\record
       '  ) '.
       ')';
 
+    // join to the quota table based on region, gender and age group
+    $quota_join =
+      'LEFT JOIN quota '.
+      'ON quota.region_id = primary_region_id '.
+      'AND quota.gender = participant_gender '.
+      'AND quota.age_group_id = participant_age_group_id';
+
     // join to the queue_restriction table based on site, city, region or postcode
     $restriction_join = 
       'LEFT JOIN queue_restriction '.
@@ -763,10 +771,20 @@ class queue extends \cenozo\database\record
         $viewing_date );
       return $parts;
     }
+    else if( 'quota disabled' == $queue )
+    {
+      // who belong to a quota which is disabled
+      $parts['join'][] = $quota_join;
+      $parts['where'][] = 'quota.disabled = true';
+      return $parts;
+    }
     else if( 'assigned' == $queue )
     {
       // include participants who are currently assigned
       $parts['where'][] = '( last_assignment_id IS NOT NULL AND last_assignment_end_datetime IS NULL )';
+      // who belong to a quota which is not disabled or doesn't exist
+      $parts['join'][] = $quota_join;
+      $parts['where'][] = '( quota.disabled IS NULL OR quota.disabled = false )';
       return $parts;
     }
     else if( 'new participant' == $queue )
@@ -780,6 +798,9 @@ class queue extends \cenozo\database\record
         '  '.$start_qnaire_date.' IS NOT NULL OR'.
         '  last_assignment_id IS NULL'.
         ')';
+      // who belong to a quota which is not disabled or doesn't exist
+      $parts['join'][] = $quota_join;
+      $parts['where'][] = '( quota.disabled IS NULL OR quota.disabled = false )';
       return $parts;
     }
     else if( 'new participant available' == $queue )
@@ -808,6 +829,9 @@ class queue extends \cenozo\database\record
         'phone_call.id = assignment_last_phone_call.phone_call_id';
       // if there is no start_qnaire_date then the current qnaire has been started
       $parts['where'][] = $start_qnaire_date.' IS NULL';
+      // who belong to a quota which is not disabled or doesn't exist
+      $parts['join'][] = $quota_join;
+      $parts['where'][] = '( quota.disabled IS NULL OR quota.disabled = false )';
       return $parts;
     }
     else
@@ -1054,6 +1078,10 @@ primary_address.october AS primary_address_october,
 primary_address.november AS primary_address_november,
 primary_address.december AS primary_address_december,
 primary_address.note AS primary_address_note,
+primary_region.id AS primary_region_id,
+primary_region.name AS primary_region_name,
+primary_region.abbreviation AS primary_region_abbreviation,
+primary_region.country AS primary_region_country,
 jurisdiction.id AS jurisdiction_id,
 jurisdiction.postcode AS jurisdiction_postcode,
 jurisdiction.site_id AS jurisdiction_site_id,
@@ -1144,6 +1172,8 @@ LEFT JOIN participant_primary_address
 ON participant.id = participant_primary_address.participant_id
 LEFT JOIN address AS primary_address
 ON participant_primary_address.address_id = primary_address.id
+LEFT JOIN region AS primary_region
+ON primary_address.region_id = primary_region.id
 LEFT JOIN jurisdiction
 ON jurisdiction.postcode = primary_address.postcode
 LEFT JOIN participant_first_address

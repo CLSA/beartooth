@@ -42,8 +42,9 @@ class user_edit extends \cenozo\ui\push\user_edit
 
     $columns = $this->get_argument( 'columns', array() );
 
-    // don't send information 
-    if( array_key_exists( 'language', $columns ) ) 
+    // don't bother sending a machine request if we are only changing columns which do not exist
+    // in external applications
+    if( 1 == count( $columns ) && array_key_exists( 'language', $columns ) ) 
       $this->set_machine_request_enabled( false );
   }
 }
