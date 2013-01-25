@@ -1,4 +1,16 @@
 ====================================================================================================
+1.2.0
+====================================================================================================
+
+* Adding new cohort and service tables
+  - Cohorts are now dynamic and can grow beyond the old tracking/comprehensive pair
+  - Services are also now dynamic and linked to a particular cohort.
+
+* Queue restriction by quota
+  - Quotas include a "disabled" column which, when set to true, removes those participants from the
+    calling queues
+
+====================================================================================================
 1.0.5
 ====================================================================================================
 
