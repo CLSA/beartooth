@@ -211,11 +211,9 @@ CREATE  TABLE IF NOT EXISTS `interview` (
   `participant_id` INT UNSIGNED NOT NULL ,
   `require_supervisor` TINYINT(1) NOT NULL DEFAULT false ,
   `completed` TINYINT(1) NOT NULL DEFAULT false ,
-  `duplicate_qnaire_id` INT UNSIGNED NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
   INDEX `fk_qnaire_id` (`qnaire_id` ASC) ,
-  INDEX `fk_duplicate_qnaire_id` (`qnaire_id` ASC) ,
   INDEX `dk_completed` (`completed` ASC) ,
   UNIQUE INDEX `uq_participant_id_qnaire_id` (`participant_id` ASC, `qnaire_id` ASC) ,
   CONSTRAINT `fk_interview_participant`
@@ -224,11 +222,6 @@ CREATE  TABLE IF NOT EXISTS `interview` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_interview_qnaire_id`
-    FOREIGN KEY (`qnaire_id` )
-    REFERENCES `qnaire` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_interiew_duplicate_qnaire_id`
     FOREIGN KEY (`qnaire_id` )
     REFERENCES `qnaire` (`id` )
     ON DELETE NO ACTION
