@@ -64,7 +64,7 @@ class onyx_participants extends \cenozo\ui\push
             sprintf( 'Participant UID "%s" does not exist.', $uid ), __METHOD__ );
 
         $participant_changed = false;
-        $mastodon_columns = array();
+        $columns = array();
 
         // process fields which we want to update
         $method = 'Admin.Participant.firstName';
@@ -74,7 +74,7 @@ class onyx_participants extends \cenozo\ui\push
           if( 0 != strcasecmp( $value, $db_participant->first_name ) )
           {
             $db_participant->first_name = $value;
-            $mastodon_columns['first_name'] = $value;
+            $columns['first_name'] = $value;
             $participant_changed = true;
           }
         }
@@ -86,7 +86,7 @@ class onyx_participants extends \cenozo\ui\push
           if( 0 != strcasecmp( $value, $db_participant->last_name ) )
           {
             $db_participant->last_name = $value;
-            $mastodon_columns['last_name'] = $value;
+            $columns['last_name'] = $value;
             $participant_changed = true;
           }
         }
@@ -106,13 +106,13 @@ class onyx_participants extends \cenozo\ui\push
 
         $method = 'Admin.Participant.gender';
         if( array_key_exists( $method, $object_vars ) )
-          $mastodon_columns['gender'] =
+          $columns['gender'] =
             0 == strcasecmp( 'f', substr( $participant_data->$method, 0, 1 ) )
             ? 'female' : 'male';
 
         $method = 'Admin.Participant.birthDate';
         if( array_key_exists( $method, $object_vars ) )
-          $mastodon_columns['date_of_birth'] =
+          $columns['date_of_birth'] =
             util::get_datetime_object(
               $participant_data->$method )->format( 'Y-m-d' );
 
@@ -256,13 +256,13 @@ class onyx_participants extends \cenozo\ui\push
           $db_interview->save();
         }
 
-        if( 0 < count( $mastodon_columns ) )
+        if( 0 < count( $columns ) )
         {
-          $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
           $args = array();
-          $args['columns'] = $mastodon_columns;
-          $args['noid']['participant']['uid'] = $db_participant->uid;
-          $mastodon_manager->push( 'participant', 'edit', $args );
+          $args['columns'] = $columns;
+          $args['id'] = $db_participant->id;
+          $operation = lib::create( 'ui\push\participant_edit', $args );
+          $operation->process();
         }
       }
     }
