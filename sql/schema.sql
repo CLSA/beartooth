@@ -2,6 +2,9 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='';
 
+DROP SCHEMA IF EXISTS `beartooth` ;
+CREATE SCHEMA IF NOT EXISTS `beartooth` ;
+USE `beartooth` ;
 
 -- -----------------------------------------------------
 -- Table `beartooth`.`setting`
@@ -272,7 +275,7 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`assignment` (
   `user_id` INT UNSIGNED NOT NULL ,
   `site_id` INT UNSIGNED NOT NULL COMMENT 'The site from which the user was assigned.' ,
   `interview_id` INT UNSIGNED NOT NULL ,
-  `queue_id` INT UNSIGNED NULL DEFAULT NULL ,
+  `queue_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'The queue that the assignment came from.' ,
   `start_datetime` DATETIME NOT NULL ,
   `end_datetime` DATETIME NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
@@ -439,42 +442,6 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `beartooth`.`onyx_instance`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `beartooth`.`onyx_instance` ;
-
-CREATE  TABLE IF NOT EXISTS `beartooth`.`onyx_instance` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `update_timestamp` TIMESTAMP NOT NULL ,
-  `create_timestamp` TIMESTAMP NOT NULL ,
-  `site_id` INT UNSIGNED NOT NULL ,
-  `user_id` INT UNSIGNED NOT NULL ,
-  `interviewer_user_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'The interviewer\'s instance of onyx, or site\'s if null.' ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `uq_site_id_interviewer_id` (`site_id` ASC, `interviewer_user_id` ASC) ,
-  INDEX `fk_site_id` (`site_id` ASC) ,
-  INDEX `fk_user_id` (`user_id` ASC) ,
-  INDEX `fk_interview_user_id` (`interviewer_user_id` ASC) ,
-  UNIQUE INDEX `uq_user_id` (`user_id` ASC) ,
-  CONSTRAINT `fk_onyx_instance_site_id`
-    FOREIGN KEY (`site_id` )
-    REFERENCES `cenozo`.`site` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_onyx_instance_user_id`
-    FOREIGN KEY (`user_id` )
-    REFERENCES `cenozo`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_onyx_instance_interview_user_id`
-    FOREIGN KEY (`interviewer_user_id` )
-    REFERENCES `cenozo`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `beartooth`.`callback`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `beartooth`.`callback` ;
@@ -485,7 +452,7 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`callback` (
   `create_timestamp` TIMESTAMP NOT NULL ,
   `participant_id` INT UNSIGNED NOT NULL ,
   `phone_id` INT UNSIGNED NULL DEFAULT NULL ,
-  `assignment_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'This callback\'s assignment.' ,
+  `assignment_id` INT UNSIGNED NULL DEFAULT NULL ,
   `datetime` DATETIME NOT NULL ,
   `reached` TINYINT(1) NULL DEFAULT NULL COMMENT 'If the callback was met, whether the participant was reached.' ,
   PRIMARY KEY (`id`) ,
@@ -507,6 +474,41 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`callback` (
   CONSTRAINT `fk_callback_phone_id`
     FOREIGN KEY (`phone_id` )
     REFERENCES `cenozo`.`phone` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `beartooth`.`onyx_instance`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `beartooth`.`onyx_instance` ;
+
+CREATE  TABLE IF NOT EXISTS `beartooth`.`onyx_instance` (
+  `id` INT NOT NULL ,
+  `update_timestamp` VARCHAR(45) NOT NULL ,
+  `create_timestamp` VARCHAR(45) NOT NULL ,
+  `site_id` INT UNSIGNED NOT NULL ,
+  `user_id` INT UNSIGNED NOT NULL ,
+  `interviewer_user_id` INT UNSIGNED NULL DEFAULT NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
+  INDEX `fk_user_id` (`user_id` ASC) ,
+  INDEX `fk_interviewer_user_id` (`interviewer_user_id` ASC) ,
+  UNIQUE INDEX `uq_user_id` (`user_id` ASC) ,
+  CONSTRAINT `fk_onyx_instance_site_id`
+    FOREIGN KEY (`site_id` )
+    REFERENCES `cenozo`.`site` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_onyx_instance_user_id`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `cenozo`.`user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_onyx_instance_interviewer_user_id`
+    FOREIGN KEY (`interviewer_user_id` )
+    REFERENCES `cenozo`.`user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -562,7 +564,7 @@ SELECT interview.id interview_id, phone_call.status status, COUNT( phone_call.id
 FROM interview
 JOIN assignment ON interview.id = assignment.interview_id
 JOIN phone_call ON assignment.id = phone_call.assignment_id
-GROUP BY participant.id, phone_call.status;
+GROUP BY interview.id, phone_call.status;
 
 -- -----------------------------------------------------
 -- View `beartooth`.`participant_last_appointment`
