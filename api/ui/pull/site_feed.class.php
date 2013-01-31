@@ -37,7 +37,6 @@ class site_feed extends \cenozo\ui\pull\base_feed
   {
     parent::execute();
 
-    $shift_template_class_name = lib::get_class_name( 'database\shift_template' );
     $appointment_class_name = lib::get_class_name( 'database\appointment' );
     $db_site = lib::create( 'business\session' )->get_site();
 
@@ -61,38 +60,6 @@ class site_feed extends \cenozo\ui\pull\base_feed
       $current_datetime_obj->add( new \DateInterval( 'P1D' ) );
     }
     
-    // fill in the slot differentials for shift templates each day
-    $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'site_id', '=', $db_site->id );
-    $modifier->where( 'start_date', '<=', $this->end_datetime );
-    foreach( $shift_template_class_name::select( $modifier ) as $db_shift_template )
-    {
-      foreach( $days as $date => $day )
-      {
-        $diffs = &$days[$date]['diffs'];
-          
-        if( $db_shift_template->match_date( $date ) )
-        {
-          $days[$date]['template'] = true;
-
-          $start_time_as_int =
-            intval( preg_replace( '/[^0-9]/', '',
-              substr( $db_shift_template->start_time, 0, -3 ) ) );
-          if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[ $start_time_as_int ] = 0;
-          $diffs[ $start_time_as_int ]++;
-
-          $end_time_as_int =
-            intval( preg_replace( '/[^0-9]/', '',
-              substr( $db_shift_template->end_time, 0, -3 ) ) );
-          if( !array_key_exists( $end_time_as_int, $diffs ) ) $diffs[ $end_time_as_int ] = 0;
-          $diffs[ $end_time_as_int ]--;
-        }
-
-        // unset diffs since it is a reference
-        unset( $diffs );
-      }
-    }
-
     // fill in the appointments which have not been complete
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'participant_site.site_id', '=', $db_site->id );

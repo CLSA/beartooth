@@ -68,10 +68,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "availability", "primary", true, "Retrieves base availability information." );
 
 -- calendar
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "shift_template", "calendar", true, "Shows shift templates in a calendar format." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "pull", "shift_template", "feed", true, "Retrieves a list of shift templates for a given time-span." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "home_appointment", "calendar", true, "A calendar listing home appointments." );
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -284,26 +280,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "quota", "primary", true, "Retrieves base quota information." );
 
 -- reports
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "productivity", "report", true, "Set up a productivity report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "pull", "productivity", "report", true, "Download a productivity report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "call_attempts", "report", true, "Set up a call attempts report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "pull", "call_attempts", "report", true, "Download a call attempts report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "call_history", "report", true, "Set up a call history report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "pull", "call_history", "report", true, "Download a call history report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "sourcing_required", "report", true, "Set up a new sourcing required report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "pull", "sourcing_required", "report", true, "Download a new sourcing required report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "demographics", "report", true, "Set up a new demographics report." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "pull", "demographics", "report", true, "Download a new demographics report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "progress", "report", true, "Set up a progress report." );
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -322,20 +298,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "self", "dialing_pad", false, "A telephone dialing pad widget." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "self", "assignment", false, "Displays the assignment manager." );
-
--- shift_template
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "push", "shift_template", "delete", true, "Removes a shift template from the system." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "push", "shift_template", "edit", true, "Edits a shift template's details." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "push", "shift_template", "new", true, "Add a new shift template to the system." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "shift_template", "add", true, "View a form for creating a new shift template." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "widget", "shift_template", "view", true, "View a shift template's details." );
--- INSERT INTO operation( type, subject, name, restricted, description )
--- VALUES( "pull", "shift_template", "primary", true, "Retrieves base shift template information." );
 
 -- survey
 INSERT INTO operation( type, subject, name, restricted, description )

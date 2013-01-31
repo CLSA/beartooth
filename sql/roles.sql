@@ -459,14 +459,6 @@ INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "pull" AND subject = "site_appointment" AND name = "feed" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "widget" AND subject = "shift_template" AND name = "calendar" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "pull" AND subject = "shift_template" AND name = "feed" );
 
 -- user/site/role
 INSERT INTO role_has_operation
@@ -625,28 +617,6 @@ INSERT INTO role_has_operation
 SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
     operation_id = ( SELECT id FROM operation WHERE
       type = "push" AND subject = "voip" AND name = "dtmf" );
-
--- shift templates
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "push" AND subject = "shift_template" AND name = "delete" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "push" AND subject = "shift_template" AND name = "edit" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "push" AND subject = "shift_template" AND name = "new" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "widget" AND subject = "shift_template" AND name = "add" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "widget" AND subject = "shift_template" AND name = "view" );
 
 -- participant
 INSERT INTO role_has_operation
