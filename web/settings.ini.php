@@ -37,14 +37,6 @@ $SETTINGS['url']['JQUERY'] = '/jquery';
 $SETTINGS['url']['JQUERY_PLUGINS'] = $SETTINGS['url']['JQUERY'].'/plugins';
 $SETTINGS['url']['JQUERY_JSTREE_JS'] = $SETTINGS['url']['JQUERY_PLUGINS'].'/jsTree.js';
 
-// database settings
-$SETTINGS['db']['driver'] = 'mysql';
-$SETTINGS['db']['server'] = 'localhost';
-$SETTINGS['db']['username'] = 'beartooth';
-$SETTINGS['db']['password'] = '';
-$SETTINGS['db']['database'] = 'beartooth';
-$SETTINGS['db']['prefix'] = '';
-
 // voip settings
 $SETTINGS['voip']['enabled'] = false;
 $SETTINGS['voip']['url'] = 'http://localhost:8088/mxml';
