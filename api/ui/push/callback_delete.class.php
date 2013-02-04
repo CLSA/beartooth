@@ -1,6 +1,6 @@
 <?php
 /**
- * participant_delete_availability.class.php
+ * callback_delete.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @filesource
@@ -10,9 +10,9 @@ namespace beartooth\ui\push;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * push: participant delete_availability
+ * push: callback delete
  */
-class participant_delete_availability extends \cenozo\ui\push\base_delete_record
+class callback_delete extends \cenozo\ui\push\base_delete
 {
   /**
    * Constructor.
@@ -22,6 +22,6 @@ class participant_delete_availability extends \cenozo\ui\push\base_delete_record
    */
   public function __construct( $args )
   {
-    parent::__construct( 'participant', 'availability', $args );
+    parent::__construct( 'callback', $args );
   }
 }

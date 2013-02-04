@@ -1,6 +1,6 @@
 <?php
 /**
- * participant_delete_phone.class.php
+ * participant_delete_callback.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @filesource
@@ -10,9 +10,9 @@ namespace beartooth\ui\push;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * push: participant delete_phone
+ * push: participant delete_callback
  */
-class participant_delete_phone extends \cenozo\ui\push\base_delete_record
+class participant_delete_callback extends \cenozo\ui\push\base_delete_record
 {
   /**
    * Constructor.
@@ -22,6 +22,6 @@ class participant_delete_phone extends \cenozo\ui\push\base_delete_record
    */
   public function __construct( $args )
   {
-    parent::__construct( 'participant', 'phone', $args );
+    parent::__construct( 'participant', 'callback', $args );
   }
 }

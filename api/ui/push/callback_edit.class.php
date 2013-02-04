@@ -1,6 +1,6 @@
 <?php
 /**
- * participant_delete_address.class.php
+ * callback_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @filesource
@@ -10,9 +10,11 @@ namespace beartooth\ui\push;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * push: participant delete_address
+ * push: callback edit
+ *
+ * Edit a callback.
  */
-class participant_delete_address extends \cenozo\ui\push\base_delete_record
+class callback_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.
@@ -22,6 +24,6 @@ class participant_delete_address extends \cenozo\ui\push\base_delete_record
    */
   public function __construct( $args )
   {
-    parent::__construct( 'participant', 'address', $args );
+    parent::__construct( 'callback', $args );
   }
 }

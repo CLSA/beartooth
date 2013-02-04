@@ -1,6 +1,6 @@
 <?php
 /**
- * quota_new.class.php
+ * callback_new.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @filesource
@@ -10,11 +10,11 @@ namespace beartooth\ui\push;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * push: quota new
+ * push: callback new
  *
- * Create a new quota.
+ * Create a new callback.
  */
-class quota_new extends \cenozo\ui\push\base_new
+class callback_new extends \cenozo\ui\push\base_new
 {
   /**
    * Constructor.
@@ -24,7 +24,7 @@ class quota_new extends \cenozo\ui\push\base_new
    */
   public function __construct( $args )
   {
-    parent::__construct( 'quota', $args );
+    parent::__construct( 'callback', $args );
   }
 
   /**
@@ -38,10 +38,10 @@ class quota_new extends \cenozo\ui\push\base_new
   {
     parent::validate();
 
-    // make sure the population column isn't blank
     $columns = $this->get_argument( 'columns' );
-    if( !array_key_exists( 'population', $columns ) || 0 == strlen( $columns['population'] ) )
-      throw lib::create( 'exception\notice',
-        'The quota\'s population cannot be left blank.', __METHOD__ );
+
+    // make sure the datetime column isn't blank
+    if( !array_key_exists( 'datetime', $columns ) || 0 == strlen( $columns['datetime'] ) )
+      throw lib::create( 'exception\notice', 'The date/time cannot be left blank.', __METHOD__ );
   }
 }

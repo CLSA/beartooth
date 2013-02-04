@@ -14,7 +14,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * Edit a quota.
  */
-class quota_edit extends base_edit
+class quota_edit extends \cenozo\ui\push\base_edit
 {
   /**
    * Constructor.
