@@ -12,7 +12,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
 /**
  * widget participant list
  */
-class participant_list extends site_restricted_list
+class participant_list extends \cenozo\ui\widget\site_restricted_list
 {
   /**
    * Constructor
@@ -53,6 +53,7 @@ class participant_list extends site_restricted_list
     $this->add_column( 'last_name', 'string', 'Last', true );
     if( is_null( $this->assignment_type ) )
     {
+      $this->add_column( 'active', 'boolean', 'Active', true );
       $this->add_column( 'source.name', 'string', 'Source', true );
       $this->add_column( 'primary_site', 'string', 'Site', false );
     }
@@ -92,6 +93,7 @@ class participant_list extends site_restricted_list
         array( 'uid' => $record->uid ? $record->uid : '(none)',
                'first_name' => $record->first_name,
                'last_name' => $record->last_name,
+               'active' => $record->active,
                'source.name' =>
                  is_null( $db_source ) ? '(none)' : $db_source->name,
                'primary_site' => $db_site ? $db_site->name : '(none)',

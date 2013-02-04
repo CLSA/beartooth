@@ -39,15 +39,13 @@ class self_menu extends \cenozo\ui\widget\self_menu
     parent::prepare();
 
     $this->exclude_list( array(
-      'address',
       'appointment',
-      'availability',
-      'consent',
+      'callback',
       'interviewer',
       'phase',
-      'phone',
       'phone_call' ) );
 
+    // remove the assignment list from interviewers
     if( 'interviewer' == lib::create( 'business\session' )->get_role()->name )
       $this->exclude_list( 'assignment' );
   }
