@@ -73,7 +73,7 @@ class appointment_add extends base_appointment_view
     $role_class_name = lib::get_class_name( 'database\role' );
     $user_class_name = lib::get_class_name( 'database\user' );
 
-    $db_site = $db_participant->get_primary_site();
+    $db_site = $db_participant->get_effective_site();
     $db_role = $role_class_name::get_unique_record( 'name', 'interviewer' );
     $user_mod = lib::create( 'database\modifier' );
     $user_mod->where( 'site_id', '=', $db_site->id );

@@ -87,7 +87,7 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     {
       $db_source = $record->get_source();
       $db_address = $record->get_first_address();
-      $db_site = $record->get_primary_site();
+      $db_site = $record->get_effective_site();
       $this->add_row( $record->id,
         is_null( $this->assignment_type ) ?
         array( 'uid' => $record->uid ? $record->uid : '(none)',

@@ -25,6 +25,14 @@ class site extends \cenozo\database\site
   {
     return $this->name;
   }
+
+  public static function select( $modifier = NULL, $count = false )
+  {
+    // make sure to only include sites belonging to this application
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'service_id', '=', lib::create( 'business\session' )->get_service()->id );
+    return parent::select( $modifier, $count );
+  }
 }
 
 site::add_extending_table( 'voip' );
