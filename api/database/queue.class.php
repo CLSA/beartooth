@@ -416,13 +416,7 @@ class queue extends \cenozo\database\record
       '  IF '.
       '  ( '.
       '    current_interview_id IS NULL, '.
-      '    IF '.
-      '    ( '.
-      '      participant_prior_contact_date IS NULL, '.
-      '      NULL, '.
-      '      participant_prior_contact_date + INTERVAL '.
-      '      ( SELECT delay FROM qnaire WHERE rank = 1) WEEK '.
-      '    ), '.
+      '    NULL, '.
       '    IF '.
       '    ( '.
       '      current_interview_completed, '.
@@ -430,12 +424,7 @@ class queue extends \cenozo\database\record
       '      ( '.
       '        next_qnaire_id IS NULL, '.
       '        NULL, '.
-      '        IF '.
-      '        ( '.
-      '          next_prev_assignment_end_datetime IS NULL, '.
-      '          participant_prior_contact_date, '.
-      '          next_prev_assignment_end_datetime '.
-      '        ) + INTERVAL next_qnaire_delay WEEK '.
+      '        next_prev_assignment_end_datetime + INTERVAL next_qnaire_delay WEEK '.
       '      ), '.
       '      NULL '.
       '    ) '.
@@ -1045,7 +1034,6 @@ participant.defer_until AS participant_defer_until,
 participant.consent_to_draw_blood AS participant_consent_to_draw_blood,
 participant.consent_to_draw_blood_continue AS participant_consent_to_draw_blood_continue,
 participant.physical_tests_continue AS participant_physical_tests_continue,
-participant.prior_contact_date AS participant_prior_contact_date,
 participant.next_of_kin_first_name AS participant_next_of_kin_first_name,
 participant.next_of_kin_last_name AS participant_next_of_kin_last_name,
 participant.next_of_kin_gender AS participant_next_of_kin_gender,
