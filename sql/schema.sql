@@ -559,7 +559,7 @@ CREATE TABLE IF NOT EXISTS `beartooth`.`interview_last_assignment` (`interview_i
 DROP VIEW IF EXISTS `beartooth`.`assignment_last_phone_call` ;
 DROP TABLE IF EXISTS `beartooth`.`assignment_last_phone_call`;
 USE `beartooth`;
-CREATE  OR REPLACE VIEW `beartooth`.`assignment_last_phone_call` AS
+CREATE OR REPLACE VIEW `beartooth`.`assignment_last_phone_call` AS
 SELECT assignment_1.id as assignment_id, phone_call_1.id as phone_call_id
 FROM assignment AS assignment_1
 LEFT JOIN phone_call AS phone_call_1
@@ -578,7 +578,7 @@ AND phone_call_1.start_datetime = (
 DROP VIEW IF EXISTS `beartooth`.`interview_phone_call_status_count` ;
 DROP TABLE IF EXISTS `beartooth`.`interview_phone_call_status_count`;
 USE `beartooth`;
-CREATE  OR REPLACE VIEW `beartooth`.`interview_phone_call_status_count` AS
+CREATE OR REPLACE VIEW `beartooth`.`interview_phone_call_status_count` AS
 SELECT interview.id interview_id, phone_call.status status, COUNT( phone_call.id ) total
 FROM interview
 JOIN assignment ON interview.id = assignment.interview_id
@@ -591,7 +591,7 @@ GROUP BY interview.id, phone_call.status;
 DROP VIEW IF EXISTS `beartooth`.`participant_last_appointment` ;
 DROP TABLE IF EXISTS `beartooth`.`participant_last_appointment`;
 USE `beartooth`;
-CREATE  OR REPLACE VIEW `beartooth`.`participant_last_appointment` AS
+CREATE OR REPLACE VIEW `beartooth`.`participant_last_appointment` AS
 SELECT participant.id AS participant_id, t1.id AS appointment_id, t1.completed
 FROM cenozo.participant
 LEFT JOIN appointment t1
@@ -607,7 +607,7 @@ GROUP BY participant.id;
 DROP VIEW IF EXISTS `beartooth`.`interview_last_assignment` ;
 DROP TABLE IF EXISTS `beartooth`.`interview_last_assignment`;
 USE `beartooth`;
-CREATE  OR REPLACE VIEW `beartooth`.`interview_last_assignment` AS
+CREATE OR REPLACE VIEW `beartooth`.`interview_last_assignment` AS
 SELECT interview_1.id AS interview_id,
        assignment_1.id AS assignment_id
 FROM assignment assignment_1
