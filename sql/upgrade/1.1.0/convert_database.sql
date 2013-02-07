@@ -385,8 +385,8 @@ CREATE PROCEDURE convert_database()
       SET @sql = CONCAT(
         "CREATE TABLE IF NOT EXISTS onyx_instance ( ",
           "id INT NOT NULL , ",
-          "update_timestamp VARCHAR(45) NOT NULL , ",
-          "create_timestamp VARCHAR(45) NOT NULL , ",
+          "update_timestamp TIMESTAMP NOT NULL , ",
+          "create_timestamp TIMESTAMP NOT NULL , ",
           "site_id INT UNSIGNED NOT NULL , ",
           "user_id INT UNSIGNED NOT NULL , ",
           "interviewer_user_id INT UNSIGNED NULL DEFAULT NULL , ",
