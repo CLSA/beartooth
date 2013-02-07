@@ -347,7 +347,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `beartooth`.`assignment_note` ;
 
 CREATE  TABLE IF NOT EXISTS `beartooth`.`assignment_note` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `update_timestamp` TIMESTAMP NOT NULL ,
   `create_timestamp` TIMESTAMP NOT NULL ,
   `user_id` INT UNSIGNED NOT NULL ,
@@ -485,7 +485,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `beartooth`.`onyx_instance` ;
 
 CREATE  TABLE IF NOT EXISTS `beartooth`.`onyx_instance` (
-  `id` INT NOT NULL ,
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `update_timestamp` TIMESTAMP NOT NULL ,
   `create_timestamp` TIMESTAMP NOT NULL ,
   `site_id` INT UNSIGNED NOT NULL ,
