@@ -81,8 +81,8 @@ class queue_restriction_list extends \cenozo\ui\widget\site_restricted_list
     if( !is_null( $this->db_restrict_site ) )
     {
       if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'site_id', '=', $this->db_restrict_site->id );
-      $modifier->or_where( 'site_id', '=', NULL );
+      $modifier->where( 'queue_restriction.site_id', '=', $this->db_restrict_site->id );
+      $modifier->or_where( 'queue_restriction.site_id', '=', NULL );
     }
     
     // skip the parent method
@@ -104,8 +104,8 @@ class queue_restriction_list extends \cenozo\ui\widget\site_restricted_list
     if( !is_null( $this->db_restrict_site ) )
     {
       if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'site_id', '=', $this->db_restrict_site->id );
-      $modifier->or_where( 'site_id', '=', NULL );
+      $modifier->where( 'queue_restriction.site_id', '=', $this->db_restrict_site->id );
+      $modifier->or_where( 'queue_restriction.site_id', '=', NULL );
     }
     
     // skip the parent method

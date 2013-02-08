@@ -85,8 +85,8 @@ class appointment_view extends base_appointment_view
       $db_site = $this->get_record()->get_participant()->get_effective_site();
       $db_role = $role_class_name::get_unique_record( 'name', 'interviewer' );
       $user_mod = lib::create( 'database\modifier' );
-      $user_mod->where( 'site_id', '=', $db_site->id );
-      $user_mod->where( 'role_id', '=', $db_role->id );
+      $user_mod->where( 'access.site_id', '=', $db_site->id );
+      $user_mod->where( 'access.role_id', '=', $db_role->id );
       $interviewers = array();
       foreach( $user_class_name::select( $user_mod ) as $db_user )
         $interviewers[$db_user->id] = $db_user->name;

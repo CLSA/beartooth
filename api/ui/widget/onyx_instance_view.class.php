@@ -61,17 +61,18 @@ class onyx_instance_view extends \cenozo\ui\widget\base_view
   {
     parent::setup();
 
+    $user_class_name = lib::get_class_name( 'database\user' );
+    $role_class_name = lib::get_class_name( 'database\role' );
+
     $session = lib::create( 'business\session' );
 
-    $class_name = lib::get_class_name( 'database\role' );
-    $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
+    $db_role = $role_class_name::get_unique_record( 'name', 'interviewer' );
 
     $user_mod = lib::create( 'database\modifier' );
-    $user_mod->where( 'site_id', '=', $this->get_record()->site_id );
-    $user_mod->where( 'role_id', '=', $db_role->id );
+    $user_mod->where( 'access.site_id', '=', $this->get_record()->site_id );
+    $user_mod->where( 'access.role_id', '=', $db_role->id );
     $interviewers = array( 'NULL' => 'site' );
-    $class_name = lib::get_class_name( 'database\user' );
-    foreach( $class_name::select( $user_mod ) as $db_user )
+    foreach( $user_class_name::select( $user_mod ) as $db_user )
       $interviewers[$db_user->id] = $db_user->name;
 
     // set the view's items
