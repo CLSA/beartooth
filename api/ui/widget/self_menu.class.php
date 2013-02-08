@@ -43,7 +43,8 @@ class self_menu extends \cenozo\ui\widget\self_menu
       'callback',
       'interviewer',
       'phase',
-      'phone_call' ) );
+      'phone_call',
+      'service' ) );
 
     // remove the assignment list from interviewers
     if( 'interviewer' == lib::create( 'business\session' )->get_role()->name )
