@@ -61,14 +61,14 @@ class queue extends \cenozo\database\record
       'eligible',
       'qnaire',
       'qnaire waiting',
-      'qnaire ready',
       'appointment',
-      'deferred',
-      'restricted',
-      'outside calling time',
-      'no appointment',
-      'quota disabled',
       'assigned',
+      'restricted',
+      'quota disabled',
+      'callback',
+      'upcoming callback',
+      'assignable callback',
+      'outside calling time',
       'new participant',
       'new participant available',
       'new participant not available',
@@ -385,6 +385,12 @@ class queue extends \cenozo\database\record
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $participant_status_list = $participant_class_name::get_enum_values( 'status' );
 
+    // an array containing all of the qnaire queue's direct children queues
+    $qnaire_children = array(
+      'qnaire waiting', 'appointment', 'assigned', 'restricted', 'quota disabled', 'callback',
+      'outside calling time', 'new participant', 'old participant' );
+
+
     // define a few sql-derived variables
     $phone_count =
       '( '.
@@ -594,13 +600,11 @@ class queue extends \cenozo\database\record
         'from' => array( 'participant_for_queue' ),
         'join' => array(),
         'where' => array() );
-      return $parts;
     }
     else if( 'finished' == $queue )
     {
       // no current_qnaire_id means no qnaires left to complete
       $parts['where'][] = $current_qnaire_id.' IS NULL';
-      return $parts;
     }
     else if( 'ineligible' == $queue )
     {
@@ -614,13 +618,11 @@ class queue extends \cenozo\database\record
           'OR '.$phone_count.' = 0 '.
           'OR last_consent_event IN( "verbal deny", "written deny", "retract", "withdraw" ) '.
         ')';
-      return $parts;
     }
     else if( 'inactive' == $queue )
     {
       $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
       $parts['where'][] = 'participant_active = false';
-      return $parts;
     }
     else if( 'refused consent' == $queue )
     {
@@ -628,7 +630,6 @@ class queue extends \cenozo\database\record
       $parts['where'][] = 'participant_active = true';
       $parts['where'][] =
         'last_consent_event IN( "verbal deny", "written deny", "retract", "withdraw" )';
-      return $parts;
     }
     else if( in_array( $queue, $participant_status_list ) )
     {
@@ -652,8 +653,6 @@ class queue extends \cenozo\database\record
       {
         $parts['where'][] = 'participant_status = "'.$queue.'"';
       }
-
-      return $parts;
     }
     else if( 'eligible' == $queue )
     {
@@ -668,143 +667,159 @@ class queue extends \cenozo\database\record
           'last_consent_event IS NULL OR '.
           'last_consent_event NOT IN( "verbal deny", "written deny", "retract", "withdraw" ) '.
         ')';
-      return $parts;
     }
     else if( 'qnaire' == $queue )
     {
       $parts['where'][] = $current_qnaire_id.' <QNAIRE_TEST>';
-      return $parts;
     }
-    else if( 'qnaire waiting' == $queue )
+    // we must process all of the qnaire queue's direct children as a whole
+    else if( in_array( $queue, $qnaire_children ) )
     {
-      // the current qnaire cannot start before start_qnaire_date
-      $parts['where'][] = $start_qnaire_date.' IS NOT NULL';
-      $parts['where'][] = sprintf( 'DATE( '.$start_qnaire_date.' ) > DATE( %s )',
-                                   $viewing_date );
-      return $parts;
+      if( 'qnaire waiting' == $queue )
+      {
+        // the current qnaire cannot start before start_qnaire_date
+        $parts['where'][] = $start_qnaire_date.' IS NOT NULL';
+        $parts['where'][] = sprintf( 'DATE( '.$start_qnaire_date.' ) > DATE( %s )',
+                                     $viewing_date );
+      }
+      else
+      {
+        // the current qnaire cannot start before start_qnaire_date
+        $parts['where'][] = sprintf(
+          '( '.
+            $start_qnaire_date.' IS NULL OR '.
+            'DATE( '.$start_qnaire_date.' ) <= DATE( %s ) '.
+          ')',
+          $viewing_date );
+
+        $parts['join'][] = $appointment_join;
+        if( 'appointment' == $queue )
+        {
+          // participants with a future appointment
+          $parts['where'][] = 'appointment.id IS NOT NULL';
+        }
+        else
+        {
+          // participants without a future appointment
+          $parts['where'][] = 'appointment.id IS NULL';
+
+          if( 'assigned' == $queue )
+          {
+            // participants who are currently assigned
+            $parts['where'][] =
+              '( last_assignment_id IS NOT NULL AND last_assignment_end_datetime IS NULL )';
+          }
+          else
+          {
+            // participants who are NOT currently assigned
+            $parts['where'][] =
+              '( last_assignment_id IS NULL OR last_assignment_end_datetime IS NOT NULL )';
+
+            $parts['join'][] = $restriction_join;
+            if( 'restricted' == $queue )
+            {
+              // participants who are restricted
+              $parts['where'][] = 'NOT '.$check_restriction_sql;
+            }
+            else
+            {
+              // participants who are not restricted
+              $parts['where'][] = $check_restriction_sql;
+
+              $parts['join'][] = $quota_join;
+              if( 'quota disabled' == $queue )
+              {
+                // who belong to a quota which is disabled
+                $parts['where'][] = 'quota.disabled = true';
+              }
+              else
+              {
+                // who belong to a quota which is not disabled or doesn't exist
+                $parts['where'][] = '( quota.disabled IS NULL OR quota.disabled = false )';
+
+                if( 'callback' == $queue )
+                {
+                  // link to callback table and make sure the callback hasn't been assigned
+                  // (by design, there can only ever one unassigned callback per participant)
+                  $parts['from'][] = 'callback';
+                  $parts['where'][] = 'callback.participant_id = participant_for_queue.id';
+                  $parts['where'][] = 'callback.assignment_id IS NULL';
+                }
+                else
+                {
+                  // Make sure there is no unassigned callback.  By design there can only be one of
+                  // per participant, so if the callback is null then the participant has no pending
+                  // callbacks.
+                  $parts['join'][] =
+                    'LEFT JOIN callback '.
+                    'ON callback.participant_id = participant_for_queue.id '.
+                    'AND callback.assignment_id IS NULL';
+                  $parts['where'][] = 'callback.id IS NULL';
+
+                  if( 'outside calling time' == $queue )
+                  {
+                    // outside of the calling time
+                    $parts['where'][] = $check_time
+                                      ? 'NOT '.$calling_time_sql
+                                      : 'NOT true'; // purposefully a negative tautology
+                  }
+                  else
+                  {
+                    // within the calling time
+                    $parts['where'][] = $check_time
+                                      ? $calling_time_sql
+                                      : 'true'; // purposefully a tautology
+
+                    if( 'new participant' == $queue )
+                    {
+                      // If there is a start_qnaire_date then the current qnaire has never been
+                      // started, the exception is for participants who have no appointment
+                      $parts['where'][] =
+                        '( '.
+                          $start_qnaire_date.' IS NOT NULL OR '.
+                          'last_assignment_id IS NULL '.
+                        ')';
+                    }
+                    else // old participant
+                    {
+                      // add the last phone call's information (only old participants will be
+                      // included since the join to assignment_last_phone_call necessitates it)
+                      $parts['from'][] = 'phone_call';
+                      $parts['from'][] = 'assignment_last_phone_call';
+                      $parts['where'][] =
+                        'assignment_last_phone_call.assignment_id = last_assignment_id';
+                      $parts['where'][] =
+                        'phone_call.id = assignment_last_phone_call.phone_call_id';
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
-    else if( 'qnaire ready' == $queue )
+    else if( 'upcoming callback' == $queue )
     {
-      // the current qnaire cannot start before start_qnaire_date
+      // callback time (in UTC) is in the future
       $parts['where'][] = sprintf(
-        '( '.
-          $start_qnaire_date.' IS NULL OR '.
-          'DATE( '.$start_qnaire_date.' ) <= DATE( %s ) '.
-        ')',
+        $check_time ? '%s < callback.datetime - INTERVAL <CALLBACK_PRE_WINDOW> MINUTE'
+                    : 'DATE( %s ) < DATE( callback.datetime )',
         $viewing_date );
-      return $parts;
     }
-    else if( 'appointment' == $queue )
+    else if( 'assignable callback' == $queue )
     {
-      // participants with a future appointment
-      $parts['join'][] = $appointment_join;
-      $parts['where'][] = 'appointment.id IS NOT NULL';
-      return $parts;
-    }
-    else if( 'deferred' == $queue )
-    {
-      // participants without a future appointment
-      $parts['join'][] = $appointment_join;
-      $parts['where'][] = 'appointment.id IS NULL';
-      // only include participants who are deferred
-      $parts['where'][] = 'participant_defer_until IS NOT NULL';
-      $parts['where'][] = sprintf( 'participant_defer_until > DATE( %s )', $viewing_date );
-      return $parts;
-    }
-    else if( 'restricted' == $queue )
-    {
-      // participants without a future appointment
-      $parts['join'][] = $appointment_join;
-      $parts['where'][] = 'appointment.id IS NULL';
-      // only include participants who are restricted
-      $parts['join'][] = $restriction_join;
-      $parts['where'][] = 'NOT '.$check_restriction_sql;
-      // only include participants who are not deferred
+      // callback time (in UTC) is in the calling window
       $parts['where'][] = sprintf(
-        '( '.
-          'participant_defer_until IS NULL OR '.
-          'participant_defer_until <= DATE( %s ) '.
-        ')',
+        $check_time ? '%s >= callback.datetime - INTERVAL <CALLBACK_PRE_WINDOW> MINUTE'
+                    : 'DATE( %s ) = DATE( callback.datetime )',
+        $viewing_date,
         $viewing_date );
-      return $parts;
-    }
-    else if( 'outside calling time' == $queue )
-    {
-      // participants without a future appointment
-      $parts['join'][] = $appointment_join;
-      $parts['where'][] = 'appointment.id IS NULL';
-      // only include participants who are restricted
-      $parts['join'][] = $restriction_join;
-      $parts['where'][] = 'NOT '.$check_restriction_sql;
-      // only include participants who are not deferred
-      $parts['where'][] = sprintf(
-        '( '.
-          'participant_defer_until IS NULL OR '.
-          'participant_defer_until <= DATE( %s ) '.
-        ')',
-        $viewing_date );
-      // participant's whose local time falls outside the calling time
-      $parts['where'][] = $check_time
-                        ? 'NOT '.$calling_time_sql
-                        : 'NOT true'; // purposefully a negative tautology
-      return $parts;
-    }
-    else if( 'no appointment' == $queue )
-    {
-      // participants without a future appointment
-      $parts['join'][] = $appointment_join;
-      $parts['where'][] = 'appointment.id IS NULL';
-      // only include participants who are not restricted
-      $parts['join'][] = $restriction_join;
-      $parts['where'][] = $check_restriction_sql;
-      // only include participants who are not deferred
-      $parts['where'][] = sprintf(
-        '( '.
-          'participant_defer_until IS NULL OR '.
-          'participant_defer_until <= DATE( %s ) '.
-        ')',
-        $viewing_date );
-      return $parts;
-    }
-    else if( 'quota disabled' == $queue )
-    {
-      // who belong to a quota which is disabled
-      $parts['join'][] = $quota_join;
-      $parts['where'][] = 'quota.disabled = true';
-      return $parts;
-    }
-    else if( 'assigned' == $queue )
-    {
-      // include participants who are currently assigned
-      $parts['where'][] =
-        '( last_assignment_id IS NOT NULL AND last_assignment_end_datetime IS NULL )';
-      // who belong to a quota which is not disabled or doesn't exist
-      $parts['join'][] = $quota_join;
-      $parts['where'][] = '( quota.disabled IS NULL OR quota.disabled = false )';
-      return $parts;
-    }
-    else if( 'new participant' == $queue )
-    {
-      // include participants who are NOT currently assigned
-      $parts['where'][] =
-        '( last_assignment_id IS NULL OR last_assignment_end_datetime IS NOT NULL )';
-      // If there is a start_qnaire_date then the current qnaire has never been started,
-      // the exception is for participants who have no appointment
-      $parts['where'][] =
-        '( '.
-          $start_qnaire_date.' IS NOT NULL OR '.
-          'last_assignment_id IS NULL '.
-        ')';
-      // who belong to a quota which is not disabled or doesn't exist
-      $parts['join'][] = $quota_join;
-      $parts['where'][] = '( quota.disabled IS NULL OR quota.disabled = false )';
-      return $parts;
     }
     else if( 'new participant available' == $queue )
     {
       // the participant has availability and is currently available
       $parts['where'][] = $check_availability_sql.' = true';
-      return $parts;
     }
     else if( 'new participant not available' == $queue )
     {
@@ -813,23 +828,6 @@ class queue extends \cenozo\database\record
       $parts['where'][] = sprintf( '( %s = false OR %s IS NULL )',
                                    $check_availability_sql,
                                    $check_availability_sql );
-      return $parts;
-    }
-    else if( 'old participant' == $queue )
-    {
-      // add the last phone call's information
-      $parts['from'][] = 'phone_call';
-      $parts['from'][] = 'assignment_last_phone_call';
-      $parts['where'][] =
-        'assignment_last_phone_call.assignment_id = last_assignment_id';
-      $parts['where'][] =
-        'phone_call.id = assignment_last_phone_call.phone_call_id';
-      // if there is no start_qnaire_date then the current qnaire has been started
-      $parts['where'][] = $start_qnaire_date.' IS NULL';
-      // who belong to a quota which is not disabled or doesn't exist
-      $parts['join'][] = $quota_join;
-      $parts['where'][] = '( quota.disabled IS NULL OR quota.disabled = false )';
-      return $parts;
     }
     else
     {
@@ -844,7 +842,6 @@ class queue extends \cenozo\database\record
                           ? 'phone_call.status IN ( "machine message","machine no message",'.
                             '"disconnected","wrong number","not reached" )'
                           : sprintf( 'phone_call.status = "%s"', $phone_call_status );
-        return $parts;
       }
       else if( 'phone call status waiting' == $queue )
       {
@@ -854,7 +851,6 @@ class queue extends \cenozo\database\record
                         'DATE( phone_call.end_datetime + INTERVAL <CALLBACK_%s> MINUTE )',
           $viewing_date,
           str_replace( ' ', '_', strtoupper( $phone_call_status ) ) );
-        return $parts;
       }
       else if( 'phone call status available' == $queue )
       {
@@ -866,7 +862,6 @@ class queue extends \cenozo\database\record
           str_replace( ' ', '_', strtoupper( $phone_call_status ) ) );
         // the participant has availability and is currently available
         $parts['where'][] = $check_availability_sql.' = true';
-        return $parts;
       }
       else if( 'phone call status not available' == $queue )
       {
@@ -881,13 +876,14 @@ class queue extends \cenozo\database\record
         $parts['where'][] = sprintf( '( %s = false OR %s IS NULL )',
                                      $check_availability_sql,
                                      $check_availability_sql );
-        return $parts;
       }
       else // invalid queue name
       {
         throw lib::create( 'exception\argument', 'queue', $queue, __METHOD__ );
       }
     }
+
+    return $parts;
   }
 
   /**
