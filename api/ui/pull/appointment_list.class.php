@@ -55,8 +55,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
    */
   protected function execute()
   {
-    parent::execute();
-
+    // replace the parent class to get a specific record list
     $event_list = array();
 
     $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
