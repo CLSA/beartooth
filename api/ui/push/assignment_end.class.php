@@ -73,9 +73,5 @@ class assignment_end extends \cenozo\ui\push
         $db_assignment->save();
       }
     }
-
-    // reset the main slot to prevent the user from returning to the assignment using
-    // the navigation buttons
-    $session->slot_reset( 'main' );
   }
 }
