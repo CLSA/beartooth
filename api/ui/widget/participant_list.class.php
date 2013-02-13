@@ -111,16 +111,6 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
                // note count isn't a column, it's used for the note button
                'note_count' => $record->get_note_count() ) );
     }
-
-    // include the sync action if the widget isn't parented
-    if( is_null( $this->parent ) )
-    {
-      $operation_class_name = lib::get_class_name( 'database\operation' );
-      $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'sync' );
-      if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
-        $this->add_action( 'sync', 'Participant Sync', $db_operation,
-          'Synchronize participants with Mastodon' );
-    }
   }
 
   /**

@@ -2,9 +2,10 @@
 
 SET AUTOCOMMIT=0;
 
-SOURCE quota.sql
 SOURCE queue.sql
 SOURCE activity.sql
+SOURCE role_has_operation.sql
+SOURCE operation.sql
 
 -- this must be last
 SOURCE convert_database.sql
