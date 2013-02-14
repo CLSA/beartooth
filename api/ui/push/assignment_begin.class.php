@@ -139,7 +139,7 @@ class assignment_begin extends \cenozo\ui\push
     $callback_mod->where( 'assignment_id', '=', NULL );
     $callback_mod->order( 'datetime' );
     $callback_mod->limit( 1 );
-    $db_callback = current( $db_participant->get_callback_list( $callback_mod ) );
+    $db_callback = current( $this->db_participant->get_callback_list( $callback_mod ) );
     if( $db_callback )
     {
       $db_callback->assignment_id = $db_assignment->id;

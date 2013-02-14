@@ -2,6 +2,7 @@
 
 SET AUTOCOMMIT=0;
 
+SOURCE setting.sql
 SOURCE queue.sql
 SOURCE activity.sql
 SOURCE operation.sql

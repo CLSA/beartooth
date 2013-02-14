@@ -64,8 +64,8 @@ class assignment_end extends \cenozo\ui\push
         // un-associate any callbacks associated with this assignment
         foreach( $db_assignment->get_callback_list() as $db_callback )
         {
-          $db_assignment->assignment_id = NULL;
-          $db_assignment->save();
+          $db_callback->assignment_id = NULL;
+          $db_callback->save();
         }
 
         foreach( $db_assignment->get_assignment_note_list() as $db_assignment_note )
@@ -76,7 +76,7 @@ class assignment_end extends \cenozo\ui\push
       {
         // if there is a callback associated with this assignment, set the status
         $callback_list = $db_assignment->get_callback_list();
-        if( 0 < count( $callback_list )
+        if( 0 < count( $callback_list ) )
         {
           // there should always only be one callback per assignment
           if( 1 < count( $callback_list ) )

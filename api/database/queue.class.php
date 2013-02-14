@@ -288,6 +288,9 @@ class queue extends \cenozo\database\record
       // make sure the temporary table exists
       static::create_participant_for_queue();
 
+      // make sure the queue list cache exists
+      static::create_queue_list_cache();
+
       // build a temporary table with all participants from all ranked queues
       $queue_mod = lib::create( 'database\modifier' );
       $queue_mod->where( 'rank', '!=', NULL );
@@ -314,7 +317,6 @@ class queue extends \cenozo\database\record
 
       static::$ranked_participant_for_queue_created = true;
     }
-
 
     // restrict to the site
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
@@ -910,6 +912,8 @@ class queue extends \cenozo\database\record
 
     // fill in the settings
     $setting_manager = lib::create( 'business\setting_manager' );
+    $setting = $setting_manager->get_setting( 'callback', 'call pre-window', $this->db_site );
+    $sql = str_replace( '<CALLBACK_PRE_WINDOW>', $setting, $sql );
     $setting = $setting_manager->get_setting( 'calling', 'start time', $this->db_site );
     $sql = str_replace( '<CALLING_START_TIME>', $setting, $sql );
     $setting = $setting_manager->get_setting( 'calling', 'end time', $this->db_site );

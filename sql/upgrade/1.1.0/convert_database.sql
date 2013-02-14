@@ -711,6 +711,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE region;
       DROP TABLE source;
       DROP TABLE system_message;
+      DROP TABLE jurisdiction;
       DROP TABLE user;
       DROP TABLE role;
       DROP TABLE site;
