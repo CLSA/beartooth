@@ -190,16 +190,11 @@ class tokens extends sid_record
         }
         else if( false !== strpos( $value, 'alternate' ) )
         {
-          // get alternate info from mastodon (fake it if mastodon is not enabled)
-          $alternate_info = array();
-          if( $mastodon_manager->is_enabled() )
-            $alternate_info =
-              $mastodon_manager->pull(
-                'participant', 'list_alternate', array( 'uid' => $db_participant->uid ) );
+          $alternate_list = $db_participant->get_alternate_list();
 
           if( 'number of alternate contacts' == $value )
           {
-            $this->$key = count( $alternate_info->data );
+            $this->$key = count( $alterante_list );
           }
           else if(
             preg_match( '/alternate([0-9]+) (first_name|last_name|phone)/', $value, $matches ) )
@@ -207,7 +202,7 @@ class tokens extends sid_record
             $alt_number = intval( $matches[1] );
             $aspect = $matches[2];
 
-            if( count( $alternate_info->data ) < $alt_number )
+            if( count( $alterante_list ) < $alt_number )
             {
               $this->$key = '';
             }
@@ -215,12 +210,12 @@ class tokens extends sid_record
             {
               if( 'phone' == $aspect )
               {
-                $phone_list = $alternate_info->data[$alt_number - 1]->phone_list;
+                $phone_list = $alterante_list[$alt_number - 1]->get_phone_list();
                 $this->$key = is_array( $phone_list ) ? $phone_list[0]->number : '';
               }
               else
               {
-                $this->$key = $alternate_info->data[$alt_number - 1]->$aspect;
+                $this->$key = $alterante_list[$alt_number - 1]->$aspect;
               }
             }
           }
