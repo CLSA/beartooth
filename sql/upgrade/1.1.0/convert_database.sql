@@ -472,6 +472,17 @@ CREATE PROCEDURE convert_database()
       EXECUTE statement;
       DEALLOCATE PREPARE statement;
 
+      -- convert participant.defer_until into a callback -------------------------------------------
+      SET @sql = CONCAT(
+        "INSERT INTO callback ( create_timestamp, participant_id, datetime ) ",
+        "SELECT NULL, cparticipant.id, CONCAT( participant.defer_until, ' 14:00:00' ) ",
+        "FROM participant ",
+        "JOIN ", @cenozo, ".participant cparticipant ON cparticipant.uid = participant.uid ",
+        "WHERE participant.defer_until >= DATE( NOW() )" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
       -- setting_value -----------------------------------------------------------------------------
       ALTER TABLE setting_value RENAME setting_value_old;
       ALTER TABLE setting_value_old

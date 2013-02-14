@@ -35,7 +35,27 @@ VALUES( "push", "assignment", "end", true, "Ends the current assignment." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "assignment", "primary", true, "Retrieves base assignment information." );
 
+-- callback
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "callback", "delete", true, "Removes a participant's callback from the system." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "callback", "edit", true, "Edits the details of a participant's callback." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "callback", "new", true, "Creates new callback entry for a participant." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "callback", "add", true, "View a form for creating new callbacks for a participant." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "callback", "view", true, "View the details of a participant's particular callback." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "callback", "list", true, "Lists a participant's callbacks." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "callback", "primary", true, "Retrieves base callback information." );
+
 -- calendar
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "callback", "calendar", true, "Shows callbacks in a calendar format." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "callback", "feed", true, "Retrieves a list of callbacks for a given time-span." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "home_appointment", "calendar", true, "A calendar listing home appointments." );
 INSERT INTO operation( type, subject, name, restricted, description )
