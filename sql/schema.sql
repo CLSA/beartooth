@@ -534,6 +534,35 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `beartooth`.`next_of_kin`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `beartooth`.`next_of_kin` ;
+
+CREATE  TABLE IF NOT EXISTS `beartooth`.`next_of_kin` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` VARCHAR(45) NULL ,
+  `create_timestamp` VARCHAR(45) NULL ,
+  `participant_id` INT UNSIGNED NOT NULL ,
+  `first_name` VARCHAR(45) NULL ,
+  `last_name` VARCHAR(45) NULL ,
+  `gender` VARCHAR(10) NULL ,
+  `phone` VARCHAR(100) NULL ,
+  `street` VARCHAR(255) NULL ,
+  `city` VARCHAR(100) NULL ,
+  `province` VARCHAR(45) NULL ,
+  `postal_code` VARCHAR(45) NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `fk_participant_id` (`participant_id` ASC) ,
+  UNIQUE INDEX `uq_participant_id` (`participant_id` ASC) ,
+  CONSTRAINT `fk_next_of_kin_participant_id`
+    FOREIGN KEY (`participant_id` )
+    REFERENCES `cenozo`.`participant` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Placeholder table for view `beartooth`.`assignment_last_phone_call`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `beartooth`.`assignment_last_phone_call` (`assignment_id` INT, `phone_call_id` INT);

@@ -676,6 +676,50 @@ CREATE PROCEDURE convert_database()
       EXECUTE statement;
       DEALLOCATE PREPARE statement;
 
+      -- next_of_kin -------------------------------------------------------------------------------
+      SET @sql = CONCAT(
+        "CREATE TABLE IF NOT EXISTS beartooth.next_of_kin ( ",
+          "id INT UNSIGNED NOT NULL AUTO_INCREMENT , ",
+          "update_timestamp VARCHAR( 45 ) NULL , ",
+          "create_timestamp VARCHAR( 45 ) NULL , ",
+          "participant_id INT UNSIGNED NOT NULL , ",
+          "first_name VARCHAR( 45 ) NULL , ",
+          "last_name VARCHAR( 45 ) NULL , ",
+          "gender VARCHAR( 10 ) NULL , ",
+          "phone VARCHAR( 100 ) NULL , ",
+          "street VARCHAR( 255 ) NULL , ",
+          "city VARCHAR( 100 ) NULL , ",
+          "province VARCHAR( 45 ) NULL , ",
+          "postal_code VARCHAR( 45 ) NULL , ",
+          "PRIMARY KEY ( id ) , ",
+          "INDEX fk_participant_id ( participant_id ASC ) , ",
+          "UNIQUE INDEX uq_participant_id ( participant_id ASC ) , ",
+          "CONSTRAINT fk_next_of_kin_participant_id ",
+            "FOREIGN KEY ( participant_id ) ",
+            "REFERENCES ", @cenozo, ".participant ( id ) ",
+            "ON DELETE NO ACTION ",
+            "ON UPDATE NO ACTION ) ",
+        "ENGINE = InnoDB" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
+      -- copy data from participant table to next_of_kin -------------------------------------------
+      SET @sql = CONCAT(
+        "INSERT INTO next_of_kin ( create_timestamp, participant_id, first_name, last_name, ",
+                                  "gender, phone, street, city, province, postal_code ) ",
+        "SELECT NULL, cparticipant.id, participant.next_of_kin_first_name, ",
+               "participant.next_of_kin_last_name, participant.next_of_kin_gender, ",
+               "participant.next_of_kin_phone, participant.next_of_kin_street, ",
+               "participant.next_of_kin_city, participant.next_of_kin_province, ".
+               "participant.next_of_kin_postal_code ",
+        "FROM participant ",
+        "JOIN ", @cenozo, ".participant cparticipant ON cparticipant.uid = participant.uid ",
+        "WHERE participant.next_of_kin_first_name IS NOT NULL" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
       -- participant_last_appointment --------------------------------------------------------------
       DROP VIEW participant_last_appointment;
       SET @sql = CONCAT(

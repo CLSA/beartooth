@@ -94,6 +94,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $db_participant = $db_appointment->get_participant();
+      $db_next_of_kin = $db_participant->get_next_of_kin();
 
       $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
       $participant_obj = new \stdClass();
@@ -126,22 +127,25 @@ class appointment_list extends \cenozo\ui\pull\base_list
         'province'  => is_null( $db_address ) ? 'NA' : $db_address->get_region()->name,
         'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode );
 
-      if( !is_null( $db_participant->next_of_kin_first_name ) )
-        $event['nextOfKin.firstName'] = $db_participant->next_of_kin_first_name;
-      if( !is_null( $db_participant->next_of_kin_last_name ) )
-        $event['nextOfKin.lastName'] = $db_participant->next_of_kin_last_name;
-      if( !is_null( $db_participant->next_of_kin_gender ) )
-        $event['nextOfKin.gender'] = $db_participant->next_of_kin_gender;
-      if( !is_null( $db_participant->next_of_kin_phone ) )
-        $event['nextOfKin.phone'] = $db_participant->next_of_kin_phone;
-      if( !is_null( $db_participant->next_of_kin_street ) )
-        $event['nextOfKin.street'] = $db_participant->next_of_kin_street;
-      if( !is_null( $db_participant->next_of_kin_city ) )
-        $event['nextOfKin.city'] = $db_participant->next_of_kin_city;
-      if( !is_null( $db_participant->next_of_kin_province ) )
-        $event['nextOfKin.province'] = $db_participant->next_of_kin_province;
-      if( !is_null( $db_participant->next_of_kin_postal_code ) )
-        $event['nextOfKin.postalCode'] = $db_participant->next_of_kin_postal_code;
+      if( !is_null( $db_next_of_kin ) )
+      {
+        if( !is_null( $db_next_of_kin->first_name ) )
+          $event['nextOfKin.firstName'] = $db_next_of_kin->first_name;
+        if( !is_null( $db_next_of_kin->last_name ) )
+          $event['nextOfKin.lastName'] = $db_next_of_kin->last_name;
+        if( !is_null( $db_next_of_kin->gender ) )
+          $event['nextOfKin.gender'] = $db_next_of_kin->gender;
+        if( !is_null( $db_next_of_kin->phone ) )
+          $event['nextOfKin.phone'] = $db_next_of_kin->phone;
+        if( !is_null( $db_next_of_kin->street ) )
+          $event['nextOfKin.street'] = $db_next_of_kin->street;
+        if( !is_null( $db_next_of_kin->city ) )
+          $event['nextOfKin.city'] = $db_next_of_kin->city;
+        if( !is_null( $db_next_of_kin->province ) )
+          $event['nextOfKin.province'] = $db_next_of_kin->province;
+        if( !is_null( $db_next_of_kin->postal_code ) )
+          $event['nextOfKin.postalCode'] = $db_next_of_kin->postal_code;
+      }
 
       // include consent to draw blood if this is a site appointment (value is a string: YES or NO)
       if( 'site' == $interview_type && $db_participant->consent_to_draw_blood )

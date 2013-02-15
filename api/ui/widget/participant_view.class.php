@@ -27,6 +27,14 @@ class participant_view extends \cenozo\ui\widget\participant_view
     
     $this->add_item( 'current_qnaire_name', 'constant', 'Current Questionnaire' );
     $this->add_item( 'start_qnaire_date', 'constant', 'Delay Questionnaire Until' );
+    $this->add_item( 'next_of_kin_first_name', 'string', 'Next of Kin First Name' );
+    $this->add_item( 'next_of_kin_last_name', 'string', 'Next of Kin Last Name' );
+    $this->add_item( 'next_of_kin_gender', 'string', 'Next of Kin Gender' );
+    $this->add_item( 'next_of_kin_phone', 'string', 'Next of Kin Phone' );
+    $this->add_item( 'next_of_kin_street', 'string', 'Next of Kin Street' );
+    $this->add_item( 'next_of_kin_city', 'string', 'Next of Kin City' );
+    $this->add_item( 'next_of_kin_province', 'string', 'Next of Kin Province' );
+    $this->add_item( 'next_of_kin_postal_code', 'string', 'Next of Kin Postal Code' );
 
     // create the appointment sub-list widget
     $this->appointment_list = lib::create( 'ui\widget\appointment_list', $this->arguments );
@@ -55,7 +63,9 @@ class participant_view extends \cenozo\ui\widget\participant_view
     parent::setup();
     
     $operation_class_name = lib::get_class_name( 'database\operation' );
+
     $record = $this->get_record();
+    $db_next_of_kin = $record->get_next_of_kin();
 
     $start_qnaire_date = $record->start_qnaire_date;
     if( is_null( $record->current_qnaire_id ) )
@@ -73,6 +83,22 @@ class participant_view extends \cenozo\ui\widget\participant_view
     // set the view's items
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );
+    $this->set_item(
+      'next_of_kin_first_name', is_null( $db_next_of_kin ) ? '' : $db_next_of_kin->first_name );
+    $this->set_item(
+      'next_of_kin_last_name', is_null( $db_next_of_kin ) ? '' : $db_next_of_kin->last_name );
+    $this->set_item(
+      'next_of_kin_gender', is_null( $db_next_of_kin ) ? '' : $db_next_of_kin->gender );
+    $this->set_item(
+      'next_of_kin_phone', is_null( $db_next_of_kin ) ? '' : $db_next_of_kin->phone );
+    $this->set_item(
+      'next_of_kin_street', is_null( $db_next_of_kin ) ? '' : $db_next_of_kin->street );
+    $this->set_item(
+      'next_of_kin_city', is_null( $db_next_of_kin ) ? '' : $db_next_of_kin->city );
+    $this->set_item(
+      'next_of_kin_province', is_null( $db_next_of_kin ) ? '' : $db_next_of_kin->province );
+    $this->set_item(
+      'next_of_kin_postal_code', is_null( $db_next_of_kin ) ? '' : $db_next_of_kin->postal_code );
 
     try
     {
