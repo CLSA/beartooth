@@ -563,6 +563,30 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `beartooth`.`data_collection`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `beartooth`.`data_collection` ;
+
+CREATE  TABLE IF NOT EXISTS `beartooth`.`data_collection` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NULL ,
+  `create_timestamp` TIMESTAMP NULL ,
+  `participant_id` INT UNSIGNED NOT NULL ,
+  `draw_blood` TINYINT(1) NULL DEFAULT NULL ,
+  `draw_blood_continue` TINYINT(1) NULL DEFAULT NULL ,
+  `physical_tests_continue` TINYINT(1) NULL DEFAULT NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `fk_participant_id` (`participant_id` ASC) ,
+  UNIQUE INDEX `uq_participant_id` (`participant_id` ASC) ,
+  CONSTRAINT `fk_data_collection_participant_id`
+    FOREIGN KEY (`participant_id` )
+    REFERENCES `cenozo`.`participant` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Placeholder table for view `beartooth`.`assignment_last_phone_call`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `beartooth`.`assignment_last_phone_call` (`assignment_id` INT, `phone_call_id` INT);

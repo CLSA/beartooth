@@ -678,7 +678,7 @@ CREATE PROCEDURE convert_database()
 
       -- next_of_kin -------------------------------------------------------------------------------
       SET @sql = CONCAT(
-        "CREATE TABLE IF NOT EXISTS beartooth.next_of_kin ( ",
+        "CREATE TABLE IF NOT EXISTS next_of_kin ( ",
           "id INT UNSIGNED NOT NULL AUTO_INCREMENT , ",
           "update_timestamp VARCHAR( 45 ) NULL , ",
           "create_timestamp VARCHAR( 45 ) NULL , ",
@@ -716,6 +716,45 @@ CREATE PROCEDURE convert_database()
         "FROM participant ",
         "JOIN ", @cenozo, ".participant cparticipant ON cparticipant.uid = participant.uid ",
         "WHERE participant.next_of_kin_first_name IS NOT NULL" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
+      -- data_collection ---------------------------------------------------------------------------
+      SET @sql = CONCAT(
+        "CREATE  TABLE IF NOT EXISTS data_collection ( ",
+          "id INT UNSIGNED NOT NULL AUTO_INCREMENT , ",
+          "update_timestamp TIMESTAMP NULL , ",
+          "create_timestamp TIMESTAMP NULL , ",
+          "participant_id INT UNSIGNED NOT NULL , ",
+          "draw_blood TINYINT( 1 ) NULL DEFAULT NULL , ",
+          "draw_blood_continue TINYINT( 1 ) NULL DEFAULT NULL , ",
+          "physical_tests_continue TINYINT( 1 ) NULL DEFAULT NULL , ",
+          "PRIMARY KEY ( id ) , ",
+          "INDEX fk_participant_id ( participant_id ASC) , ",
+          "UNIQUE INDEX uq_participant_id ( participant_id ASC) , ",
+          "CONSTRAINT fk_data_collection_participant_id ",
+            "FOREIGN KEY ( participant_id ) ",
+            "REFERENCES ", @cenozo, ".participant ( id ) ",
+            "ON DELETE NO ACTION ",
+            "ON UPDATE NO ACTION ) ",
+        "ENGINE = InnoDB" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
+      -- copy data from participant table to data_collection ---------------------------------------
+      SET @sql = CONCAT(
+        "INSERT INTO data_collection ( create_timestamp, participant_id, draw_blood, ",
+                                      "draw_blood_continue, physical_tests_continue ) ",
+        "SELECT NULL, cparticipant.id, "
+               "IF( participant.consent_to_draw_blood IS NULL, NULL, participant.consent_to_draw_blood = 1 ), ",
+               "participant.consent_to_draw_blood_continue, participant.physical_tests_continue ",
+        "FROM participant ",
+        "JOIN ", @cenozo, ".participant cparticipant ON cparticipant.uid = participant.uid ",
+        "WHERE participant.consent_to_draw_blood IS NOT NULL ",
+        "OR participant.consent_to_draw_blood_continue IS NOT NULL ",
+        "OR participant.physical_tests_continue IS NOT NULL" );
       PREPARE statement FROM @sql;
       EXECUTE statement;
       DEALLOCATE PREPARE statement;

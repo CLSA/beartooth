@@ -177,6 +177,20 @@ class participant extends \cenozo\database\participant
   }
 
   /**
+   * A convenience function to get this participant's next of kin.
+   * This method is necessary since there is a 1 to N relationship between participant and
+   * data_collection, however, the data_collection.participant_id column is unique.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return database\data_collection
+   * @access public
+   */
+  public function get_data_collection()
+  {
+    $data_collection_class_name = lib::get_class_name( 'database\data_collection' );
+    return $data_collection_class_name::get_unique_record( 'participant_id', $this->id );
+  }
+
+  /**
    * The participant's current questionnaire id (from a custom query)
    * @var int
    * @access private

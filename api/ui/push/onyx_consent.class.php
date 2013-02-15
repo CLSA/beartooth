@@ -87,9 +87,15 @@ class onyx_consent extends \cenozo\ui\push
         // update the draw blood consent if it is provided
         if( array_key_exists( 'PCF_CSTSAMP_COM', $object_vars ) )
         {
-          $db_participant->consent_to_draw_blood =
-            1 == preg_match( '/y|yes|true|1/i', $consent_data->PCF_CSTSAMP_COM ) ? 'YES' : 'NO';
-          $db_participant->save();
+          $db_data_collection = $db_participant->get_data_collection();
+          if( is_null( $db_data_collection ) )
+          {
+            $db_data_collection = lib::create( 'database\data_collection' );
+            $db_data_collection->participant_id = $db_participant->id;
+          }
+          $db_data_collection->draw_blood =
+            1 == preg_match( '/y|yes|true|1/i', $consent_data->PCF_CSTSAMP_COM );
+          $db_data_collection->save();
         }
 
         // see if this form already exists

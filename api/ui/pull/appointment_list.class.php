@@ -147,9 +147,13 @@ class appointment_list extends \cenozo\ui\pull\base_list
           $event['nextOfKin.postalCode'] = $db_next_of_kin->postal_code;
       }
 
-      // include consent to draw blood if this is a site appointment (value is a string: YES or NO)
-      if( 'site' == $interview_type && $db_participant->consent_to_draw_blood )
-        $event['consent_to_draw_blood'] = (bool) $db_participant->consent_to_draw_blood;
+      // include consent to draw blood if this is a site appointment
+      if( 'site' == $interview_type )
+      {
+        $db_data_collection = $db_participant->get_data_collection();
+        if( !is_null( $db_data_collection ) )
+          $event['consent_to_draw_blood'] = $db_participant->consent_to_draw_blood;
+      }
 
       $event_list[] = $event;
 

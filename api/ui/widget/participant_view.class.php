@@ -27,6 +27,9 @@ class participant_view extends \cenozo\ui\widget\participant_view
     
     $this->add_item( 'current_qnaire_name', 'constant', 'Current Questionnaire' );
     $this->add_item( 'start_qnaire_date', 'constant', 'Delay Questionnaire Until' );
+    $this->add_item( 'data_collection_draw_blood', 'boolean', 'Consent To Draw Blood' );
+    $this->add_item( 'data_collection_draw_blood_continue', 'boolean', 'Draw Blood (Continue)' );
+    $this->add_item( 'data_collection_physical_tests_continue', 'boolean', 'Physical Tests (Continue)' );
     $this->add_item( 'next_of_kin_first_name', 'string', 'Next of Kin First Name' );
     $this->add_item( 'next_of_kin_last_name', 'string', 'Next of Kin Last Name' );
     $this->add_item( 'next_of_kin_gender', 'string', 'Next of Kin Gender' );
@@ -66,6 +69,7 @@ class participant_view extends \cenozo\ui\widget\participant_view
 
     $record = $this->get_record();
     $db_next_of_kin = $record->get_next_of_kin();
+    $db_data_collection = $record->get_data_collection();
 
     $start_qnaire_date = $record->start_qnaire_date;
     if( is_null( $record->current_qnaire_id ) )
@@ -83,6 +87,15 @@ class participant_view extends \cenozo\ui\widget\participant_view
     // set the view's items
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );
+    $this->set_item(
+      'data_collection_draw_blood',
+      is_null( $db_data_collection ) ? NULL : $db_data_collection->draw_blood );
+    $this->set_item(
+      'data_collection_draw_blood_continue',
+      is_null( $db_data_collection ) ? NULL : $db_data_collection->draw_blood_continue );
+    $this->set_item(
+      'data_collection_physical_tests_continue',
+      is_null( $db_data_collection ) ? NULL : $db_data_collection->physical_tests_continue );
     $this->set_item(
       'next_of_kin_first_name', is_null( $db_next_of_kin ) ? '' : $db_next_of_kin->first_name );
     $this->set_item(

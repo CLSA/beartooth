@@ -70,8 +70,16 @@ class onyx_participants extends \cenozo\ui\push
           $db_next_of_kin->participant_id = $db_participant->id;
         }
 
+        $db_data_collection = $db_participant->get_data_collection();
+        if( is_null( $db_data_collection ) )
+        {
+          $db_data_collection = lib::create( 'database\data_collection' );
+          $db_data_collection->participant_id = $db_participant->id;
+        }
+
         $participant_changed = false;
         $next_of_kin_changed = false;
+        $data_collection_changed = false;
 
         // process fields which we want to update
         $method = 'Admin.Interview.status';
@@ -114,12 +122,13 @@ class onyx_participants extends \cenozo\ui\push
         if( array_key_exists( $method, $object_vars ) )
         {
           $value = $participant_data->$method;
-          if( is_string( $value ) ) $value = 'true' === $value ? 1 : 0;
+          if( is_string( $value ) ) $value = preg_match( '/y|yes|true|1/i', $value ) ? 1 : 0;
           else $value = $value ? 1 : 0;
-          if( $value != $db_participant->consent_to_draw_blood )
+          if( is_null( $db_data_collection->draw_blood ) ||
+              $value != $db_data_collection->draw_blood )
           {
-            $db_participant->consent_to_draw_blood = $value;
-            $participant_changed = true;
+            $db_data_collection->draw_blood = $value;
+            $data_collection_changed = true;
           }
         }
 
@@ -238,6 +247,7 @@ class onyx_participants extends \cenozo\ui\push
         // now update the database
         if( $participant_changed ) $db_participant->save();
         if( $next_of_kin_changed ) $db_next_of_kin->save();
+        if( $data_collection_changed ) $db_data_collection->save();
 
         // complete all appointments in the past
         $appointment_mod = lib::create( 'database\modifier' );
