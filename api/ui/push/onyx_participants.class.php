@@ -63,6 +63,13 @@ class onyx_participants extends \cenozo\ui\push
           throw lib::create( 'exception\runtime',
             sprintf( 'Participant UID "%s" does not exist.', $uid ), __METHOD__ );
 
+        $db_next_of_kin = $db_participant->get_next_of_kin();
+        if( is_null( $db_next_of_kin ) )
+        {
+          $db_next_of_kin = lib::create( 'database\next_of_kin' );
+          $db_next_of_kin->participant_id = $db_participant->id;
+        }
+
         $participant_changed = false;
         $next_of_kin_changed = false;
 
