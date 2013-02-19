@@ -575,6 +575,7 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`data_collection` (
   `draw_blood` TINYINT(1) NULL DEFAULT NULL ,
   `draw_blood_continue` TINYINT(1) NULL DEFAULT NULL ,
   `physical_tests_continue` TINYINT(1) NULL DEFAULT NULL ,
+  `informant_continue` TINYINT(1) NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_participant_id` (`participant_id` ASC) ,
   UNIQUE INDEX `uq_participant_id` (`participant_id` ASC) ,
