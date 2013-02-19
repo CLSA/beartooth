@@ -62,9 +62,7 @@ class onyx_consent extends \cenozo\ui\push
         if( !array_key_exists( 'ConclusiveStatus', $object_vars ) )
           throw lib::create( 'exception\argument',
             'ConclusiveStatus', NULL, __METHOD__ );
-        if( 'CONSENT' == $consent_data->ConclusiveStatus ) $event = 'written accept';
-        else if( 'RETRACT' == $consent_data->ConclusiveStatus ) $event = 'retract';
-        else $event = 'withdraw';
+        $accept = 'CONSENT' == $consent_data->ConclusiveStatus;
 
         // try timeEnd, if null then try timeStart, if null then use today's date
         $var_name = 'timeEnd';
@@ -100,13 +98,15 @@ class onyx_consent extends \cenozo\ui\push
 
         // see if this form already exists
         $consent_mod = lib::create( 'database\modifier' );
-        $consent_mod->where( 'event', '=', $event );
+        $consent_mod->where( 'accept', '=', $accept );
+        $consent_mod->where( 'written', '=', true );
         $consent_mod->where( 'date', '=', $date );
         if( 0 == $db_participant->get_consent_count( $consent_mod ) )
         {
           $columns = array( 'participant_id' => $db_participant->id,
                             'date' => $date,
-                            'event' => $event,
+                            'accept' => $accept,
+                            'written' => true,
                             'note' => 'Provided by Onyx.' );
           $args = array( 'columns' => $columns );
           if( array_key_exists( 'pdfForm', $object_vars ) )

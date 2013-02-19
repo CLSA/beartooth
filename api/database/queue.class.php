@@ -621,7 +621,7 @@ class queue extends \cenozo\database\record
           'participant_active = false '.
           'OR participant_status IS NOT NULL '.
           'OR '.$phone_count.' = 0 '.
-          'OR last_consent_event IN( "verbal deny", "written deny", "retract", "withdraw" ) '.
+          'OR last_consent_accept = 0 '.
         ')';
     }
     else if( 'inactive' == $queue )
@@ -633,8 +633,7 @@ class queue extends \cenozo\database\record
     {
       $parts['where'][] = $current_qnaire_id.' IS NOT NULL';
       $parts['where'][] = 'participant_active = true';
-      $parts['where'][] =
-        'last_consent_event IN( "verbal deny", "written deny", "retract", "withdraw" )';
+      $parts['where'][] = 'last_consent_accept = 0';
     }
     else if( in_array( $queue, $participant_status_list ) )
     {
@@ -642,8 +641,8 @@ class queue extends \cenozo\database\record
       $parts['where'][] = 'participant_active = true';
       $parts['where'][] =
         '( '.
-          'last_consent_event IS NULL '.
-          'OR last_consent_event NOT IN( "verbal deny", "written deny", "retract", "withdraw" ) '.
+          'last_consent_accept IS NULL '.
+          'OR last_consent_accept = 1 '.
         ')';
 
       if( 'sourcing required' == $queue )
@@ -669,8 +668,8 @@ class queue extends \cenozo\database\record
       $parts['where'][] = $phone_count.' > 0';
       $parts['where'][] =
         '( '.
-          'last_consent_event IS NULL OR '.
-          'last_consent_event NOT IN( "verbal deny", "written deny", "retract", "withdraw" ) '.
+          'last_consent_accept IS NULL OR '.
+          'last_consent_accept = 1 '.
         ')';
     }
     else if( 'qnaire' == $queue )
@@ -1166,7 +1165,8 @@ first_address.december AS first_address_december,
 first_address.note AS first_address_note,
 last_consent.id AS last_consent_id,
 last_consent.participant_id AS last_consent_participant_id,
-last_consent.event AS last_consent_event,
+last_consent.accept AS last_consent_accept,
+last_consent.written AS last_consent_written,
 last_consent.date AS last_consent_date,
 last_consent.note AS last_consent_note,
 current_interview.id AS current_interview_id,

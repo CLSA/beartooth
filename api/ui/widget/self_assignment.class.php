@@ -74,9 +74,8 @@ class self_assignment extends \cenozo\ui\widget
     if( 'en' == $db_participant->language ) $language = 'english';
     else if( 'fr' == $db_participant->language ) $language = 'french';
 
-    $consent = 'none';
-    $db_consent = $db_participant->get_last_consent();
-    if( !is_null( $db_consent ) ) $consent = $db_consent->event;
+    $db_last_consent = $db_participant->get_last_consent();
+    $consent = is_null( $db_last_consent ) ? 'none' : $db_last_consent->to_string();
     
     $previous_call_list = array();
     $db_last_assignment = $db_participant->get_last_finished_assignment();
