@@ -1,3 +1,4 @@
+-- callback
 INSERT IGNORE INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "callback", "delete", true, "Removes a participant's callback from the system." );
 INSERT IGNORE INTO operation( type, subject, name, restricted, description )
@@ -20,3 +21,9 @@ INSERT IGNORE INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "callback", "calendar", true, "Shows callbacks in a calendar format." );
 INSERT IGNORE INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "callback", "feed", true, "Retrieves a list of callbacks for a given time-span." );
+
+-- participant report
+INSERT IGNORE INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "participant", "report", true, "Set up a participant report." );
+INSERT IGNORE INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "participant", "report", true, "Download a participant report." );
