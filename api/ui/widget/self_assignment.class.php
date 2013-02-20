@@ -57,13 +57,14 @@ class self_assignment extends \cenozo\ui\widget
     $db_site = $session->get_site();
 
     // see if this user has an open assignment
-    $db_assignment = $session->get_current_assignment();
+    $db_current_assignment = $session->get_current_assignment();
+    $db_current_phone_call = $session->get_current_phone_call();
     
-    if( is_null( $db_assignment ) )
+    if( is_null( $db_current_assignment ) )
       throw lib::create( 'exception\notice', 'No active assignment.', __METHOD__ );
 
     // fill out the participant's details
-    $db_interview = $db_assignment->get_interview();
+    $db_interview = $db_current_assignment->get_interview();
     $db_participant = $db_interview->get_participant();
     
     $language = 'none';
@@ -95,8 +96,8 @@ class self_assignment extends \cenozo\ui\widget
     
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'end_datetime', '!=', NULL );
-    $current_calls = $db_assignment->get_phone_call_count( $modifier );
-    $on_call = !is_null( $session->get_current_phone_call() );
+    $current_calls = $db_current_assignment->get_phone_call_count( $modifier );
+    $on_call = !is_null( $db_current_phone_call );
 
     $phone_list = array();
     foreach( $db_phone_list as $db_phone )
@@ -115,7 +116,7 @@ class self_assignment extends \cenozo\ui\widget
                  $db_participant->id ) );
     }
 
-    $this->set_variable( 'assignment_id', $db_assignment->id );
+    $this->set_variable( 'assignment_id', $db_current_assignment->id );
     $this->set_variable( 'participant_id', $db_participant->id );
     $this->set_variable( 'interview_id', $db_interview->id );
     $this->set_variable( 'participant_note_count', $db_participant->get_note_count() );
@@ -141,6 +142,12 @@ class self_assignment extends \cenozo\ui\widget
     $this->set_variable( 'interview_completed', $db_interview->completed );
     $this->set_variable( 'allow_call', $session->get_allow_call() );
     $this->set_variable( 'on_call', $on_call );
+    if( !is_null( $db_current_phone_call ) )
+    {
+      $note = $db_current_phone_call->get_phone()->note;
+      $this->set_variable( 'phone_note', is_null( $note ) ? false : $note );
+    }
+    else $this->set_variable( 'phone_note', false );
 
     $allow_secondary = false;
     $phone_mod = lib::create( 'database\modifier' );
