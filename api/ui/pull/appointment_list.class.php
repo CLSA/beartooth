@@ -95,32 +95,18 @@ class appointment_list extends \cenozo\ui\pull\base_list
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $db_participant = $db_appointment->get_participant();
       $db_next_of_kin = $db_participant->get_next_of_kin();
-
-      $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
-      $participant_obj = new \stdClass();
-      if( $mastodon_manager->is_enabled() )
-      {
-        $participant_obj = $mastodon_manager->pull( 'participant', 'primary',
-                             array( 'uid' => $db_participant->uid ) );
-      }
-      else
-      {
-        throw lib::create( 'exception\runtime', 
-          'Onyx requires populated dob and gender data from Mastodon', __METHOD__ );
-      }
-
       $db_address = $db_participant->get_primary_address();
 
       $event = array(
         'uid'        => $db_participant->uid,
         'first_name' => $db_participant->first_name,
         'last_name'  => $db_participant->last_name,
-        'dob'        => is_null( $participant_obj->data->date_of_birth )
+        'dob'        => $db_participant->date_of_birth )
                       ? ''
                       : util::get_datetime_object( 
-                          $participant_obj->data->date_of_birth )->format( 
+                          $db_participant->date_of_birth )->format( 
                             'Y-m-d' ),
-        'gender'    => $participant_obj->data->gender,
+        'gender'    => $db_participant->gender,
         'datetime'  => $start_datetime_obj->format( \DateTime::ISO8601 ),
         'street'    => is_null( $db_address ) ? 'NA' : $db_address->address1,
         'city'      => is_null( $db_address ) ? 'NA' : $db_address->city,
