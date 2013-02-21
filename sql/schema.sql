@@ -588,6 +588,23 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `beartooth`.`quota_state`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `beartooth`.`quota_state` ;
+
+CREATE  TABLE IF NOT EXISTS `beartooth`.`quota_state` (
+  `quota_id` INT UNSIGNED NOT NULL ,
+  `disabled` TINYINT(1) NOT NULL DEFAULT 0 ,
+  PRIMARY KEY (`quota_id`) ,
+  CONSTRAINT `fk_quota_state_quota_id`
+    FOREIGN KEY (`quota_id` )
+    REFERENCES `cenozo`.`quota` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Placeholder table for view `beartooth`.`assignment_last_phone_call`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `beartooth`.`assignment_last_phone_call` (`assignment_id` INT, `phone_call_id` INT);

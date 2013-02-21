@@ -375,6 +375,32 @@ CREATE PROCEDURE convert_database()
 
       DROP TABLE queue_restriction_old;
 
+      -- quota_state -------------------------------------------------------------------------------
+      SET @sql = CONCAT(
+        "CREATE TABLE IF NOT EXISTS quota_state ( ",
+          "quota_id INT UNSIGNED NOT NULL , ",
+          "disabled TINYINT( 1 ) NOT NULL DEFAULT 0 , ",
+          "PRIMARY KEY ( quota_id) , ",
+          "CONSTRAINT fk_quota_state_quota_id ",
+            "FOREIGN KEY ( quota_id ) ",
+            "REFERENCES ", @cenozo, ".quota ( id ) ",
+            "ON DELETE NO ACTION ",
+            "ON UPDATE NO ACTION ) ",
+        "ENGINE = InnoDB" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
+      SET @sql = CONCAT(
+        "INSERT INTO quota_state ( quota_id, disabled ) ",
+        "SELECT cquota.id, 0 ",
+        "FROM ", @cenozo, ".quota cquota ",
+        "JOIN ", @cenozo, ".site csite ON cquota.site_id = csite.id ",
+        "AND csite.service_id = ( SELECT id FROM ", @cenozo, ".service WHERE name = 'Beartooth' )" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
       -- onyx_instance -----------------------------------------------------------------------------
       ALTER TABLE onyx_instance RENAME onyx_instance_old;
       ALTER TABLE onyx_instance_old
