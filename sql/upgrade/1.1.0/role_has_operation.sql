@@ -9,6 +9,7 @@ CREATE PROCEDURE update_role_has_operation()
       WHERE table_schema = ( SELECT DATABASE() )
       AND table_name = "user" );
     IF @test = 1 THEN
+      -- callback
       INSERT IGNORE INTO role_has_operation
       SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
           operation_id = ( SELECT id FROM operation WHERE
@@ -115,6 +116,55 @@ CREATE PROCEDURE update_role_has_operation()
       SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
           operation_id = ( SELECT id FROM operation WHERE
             type = "push" AND subject = "participant" AND name = "delete_callback" );
+
+      -- event
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "push" AND subject = "event" AND name = "delete" );
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "push" AND subject = "event" AND name = "edit" );
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "push" AND subject = "event" AND name = "new" );
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "widget" AND subject = "event" AND name = "add" );
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "widget" AND subject = "event" AND name = "view" );
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "widget" AND subject = "event" AND name = "list" );
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "pull" AND subject = "event" AND name = "primary" );
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "widget" AND subject = "participant" AND name = "add_event" );
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "push" AND subject = "participant" AND name = "delete_event" );
+
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "widget" AND subject = "event" AND name = "list" );
+
+      INSERT IGNORE INTO role_has_operation
+      SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
+          operation_id = ( SELECT id FROM operation WHERE
+            type = "widget" AND subject = "event" AND name = "list" );
+
     END IF;
   END //
 DELIMITER ;

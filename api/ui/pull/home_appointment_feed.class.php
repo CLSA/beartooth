@@ -56,7 +56,7 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
         'appointment.user_id', '=', lib::create( 'business\session' )->get_user()->id );
     }
 
-    $event_list = array();
+    $this->data = array();
     $class_name = lib::get_class_name( 'database\appointment' );
     foreach( $class_name::select( $modifier ) as $db_appointment )
     {
@@ -72,14 +72,12 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
                         $db_appointment->get_user()->name,
                         $db_appointment->get_participant()->uid )
              : $db_appointment->get_participant()->uid;
-      $event_list[] = array(
+      $this->data[] = array(
         'id'      => $db_appointment->id,
         'title'   => $title,
         'allDay'  => false,
         'start'   => $start_datetime_obj->format( \DateTime::ISO8601 ),
         'end'     => $end_datetime_obj->format( \DateTime::ISO8601 ) );
     }
-
-    $this->data = $event_list;
   }
 }
