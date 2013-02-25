@@ -56,7 +56,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
   protected function execute()
   {
     // replace the parent class to get a specific record list
-    $event_list = array();
+    $this->data = array();
 
     $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
     $appointment_class_name = lib::get_class_name( 'database\appointment' );
@@ -97,15 +97,14 @@ class appointment_list extends \cenozo\ui\pull\base_list
       $db_next_of_kin = $db_participant->get_next_of_kin();
       $db_address = $db_participant->get_primary_address();
 
-      $event = array(
+      $dob = $db_participant->date_of_birth
+           ? util::get_datetime_object( $db_participant->date_of_birth )->format( 'Y-m-d' )
+           : '';
+      $data = array(
         'uid'        => $db_participant->uid,
         'first_name' => $db_participant->first_name,
         'last_name'  => $db_participant->last_name,
-        'dob'        => $db_participant->date_of_birth )
-                      ? ''
-                      : util::get_datetime_object( 
-                          $db_participant->date_of_birth )->format( 
-                            'Y-m-d' ),
+        'dob'        => $dob,
         'gender'    => $db_participant->gender,
         'datetime'  => $start_datetime_obj->format( \DateTime::ISO8601 ),
         'street'    => is_null( $db_address ) ? 'NA' : $db_address->address1,
@@ -116,21 +115,21 @@ class appointment_list extends \cenozo\ui\pull\base_list
       if( !is_null( $db_next_of_kin ) )
       {
         if( !is_null( $db_next_of_kin->first_name ) )
-          $event['nextOfKin.firstName'] = $db_next_of_kin->first_name;
+          $data['nextOfKin.firstName'] = $db_next_of_kin->first_name;
         if( !is_null( $db_next_of_kin->last_name ) )
-          $event['nextOfKin.lastName'] = $db_next_of_kin->last_name;
+          $data['nextOfKin.lastName'] = $db_next_of_kin->last_name;
         if( !is_null( $db_next_of_kin->gender ) )
-          $event['nextOfKin.gender'] = $db_next_of_kin->gender;
+          $data['nextOfKin.gender'] = $db_next_of_kin->gender;
         if( !is_null( $db_next_of_kin->phone ) )
-          $event['nextOfKin.phone'] = $db_next_of_kin->phone;
+          $data['nextOfKin.phone'] = $db_next_of_kin->phone;
         if( !is_null( $db_next_of_kin->street ) )
-          $event['nextOfKin.street'] = $db_next_of_kin->street;
+          $data['nextOfKin.street'] = $db_next_of_kin->street;
         if( !is_null( $db_next_of_kin->city ) )
-          $event['nextOfKin.city'] = $db_next_of_kin->city;
+          $data['nextOfKin.city'] = $db_next_of_kin->city;
         if( !is_null( $db_next_of_kin->province ) )
-          $event['nextOfKin.province'] = $db_next_of_kin->province;
+          $data['nextOfKin.province'] = $db_next_of_kin->province;
         if( !is_null( $db_next_of_kin->postal_code ) )
-          $event['nextOfKin.postalCode'] = $db_next_of_kin->postal_code;
+          $data['nextOfKin.postalCode'] = $db_next_of_kin->postal_code;
       }
 
       // include consent to draw blood if this is a site appointment
@@ -138,10 +137,10 @@ class appointment_list extends \cenozo\ui\pull\base_list
       {
         $db_data_collection = $db_participant->get_data_collection();
         if( !is_null( $db_data_collection ) )
-          $event['consent_to_draw_blood'] = $db_participant->consent_to_draw_blood;
+          $data['consent_to_draw_blood'] = $db_participant->consent_to_draw_blood;
       }
 
-      $event_list[] = $event;
+      $this->data[] = $data;
 
       if( !$db_appointment->completed )
       {
@@ -199,8 +198,6 @@ class appointment_list extends \cenozo\ui\pull\base_list
         }
       }
     }
-
-    $this->data = $event_list;
   }
 
   /**
