@@ -878,7 +878,7 @@ CREATE PROCEDURE convert_database()
         "SELECT crole.id, operation.id ",
         "FROM operation, ", @cenozo, ".role crole ",
         "JOIN ", @cenozo, ".service_has_role cservice_has_role ON crole.id = cservice_has_role.role_id ",
-        "AND cservice_has_role.service_id = ( SELECT id FROM ", @cenozo, ".service WHERE name = 'Sabretooth' )",
+        "AND cservice_has_role.service_id = ( SELECT id FROM ", @cenozo, ".service WHERE name = 'Beartooth' )",
         "WHERE operation.subject = 'alternate'" );
       PREPARE statement FROM @sql;
       EXECUTE statement;
@@ -921,7 +921,7 @@ CREATE PROCEDURE convert_database()
         "SELECT crole.id, operation.id ",
         "FROM operation, ", @cenozo, ".role crole ",
         "JOIN ", @cenozo, ".service_has_role cservice_has_role ON crole.id = cservice_has_role.role_id ",
-        "AND cservice_has_role.service_id = ( SELECT id FROM ", @cenozo, ".service WHERE name = 'Sabretooth' )",
+        "AND cservice_has_role.service_id = ( SELECT id FROM ", @cenozo, ".service WHERE name = 'Beartooth' )",
         "WHERE operation.subject = 'participant' ",
         "AND operation.name LIKE '%_alternate'" );
       PREPARE statement FROM @sql;
