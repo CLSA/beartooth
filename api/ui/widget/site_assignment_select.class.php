@@ -188,4 +188,3 @@ class site_assignment_select extends \cenozo\ui\widget
    */
   protected $participant_list = NULL;
 }
-?>

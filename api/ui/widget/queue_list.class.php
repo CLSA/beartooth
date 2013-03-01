@@ -189,4 +189,3 @@ class queue_list extends \cenozo\ui\widget\base_list
     return parent::determine_record_list( $modifier );
   }
 }
-?>

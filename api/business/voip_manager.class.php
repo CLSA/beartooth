@@ -280,4 +280,3 @@ class voip_manager extends \cenozo\singleton
    */
   private $prefix = '';
 }
-?>

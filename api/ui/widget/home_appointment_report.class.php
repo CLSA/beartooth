@@ -44,4 +44,3 @@ class home_appointment_report extends base_report
       'address and phone number(s).' );
   }
 }
-?>

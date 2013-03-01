@@ -69,4 +69,3 @@ class participant_tree_report extends base_report
     $this->set_parameter( 'language', 'any', true, $languages );
   }
 }
-?>

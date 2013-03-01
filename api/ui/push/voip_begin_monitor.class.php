@@ -42,4 +42,3 @@ class voip_begin_monitor extends \cenozo\ui\push
       lib::create( 'business\session' )->get_current_assignment()->get_current_token() );
   }
 }
-?>

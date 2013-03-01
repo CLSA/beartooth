@@ -61,7 +61,9 @@ class phone_call_begin extends \cenozo\ui\push
       if( !is_null( $db_assignment ) )
       {
         $db_phone = lib::create( 'database\phone', $this->get_argument( 'phone_id' ) );
-        if( $db_phone->participant_id != $db_assignment->get_interview()->participant_id )
+        $db_participant = $db_phone->get_person()->get_participant();
+        if( is_null( $db_participant ) ||
+            $db_participant->id != $db_assignment->get_interview()->participant_id )
           throw lib::create( 'exception\runtime',
             'User tried to make call to a different participant than who is currently assigned.',
             __METHOD__ );
@@ -110,4 +112,3 @@ class phone_call_begin extends \cenozo\ui\push
     }
   }
 }
-?>

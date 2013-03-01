@@ -107,9 +107,9 @@ class productivity_report extends \cenozo\ui\pull\base_report
       {
         // make sure the interviewer has min/max time for this date range
         $activity_mod = lib::create( 'database\modifier' );
-        $activity_mod->where( 'user_id', '=', $db_user->id );
-        $activity_mod->where( 'site_id', '=', $db_site->id );
-        $activity_mod->where( 'role_id', '=', $db_role->id );
+        $activity_mod->where( 'activity.user_id', '=', $db_user->id );
+        $activity_mod->where( 'activity.site_id', '=', $db_site->id );
+        $activity_mod->where( 'activity.role_id', '=', $db_role->id );
         $activity_mod->where( 'operation.subject', '!=', 'self' );
 
         $assignment_mod = lib::create( 'database\modifier' );
@@ -207,9 +207,9 @@ class productivity_report extends \cenozo\ui\pull\base_report
         if( $single_date )
         {
           $day_activity_mod = lib::create( 'database\modifier' );
-          $day_activity_mod->where( 'user_id', '=', $db_user->id );
-          $day_activity_mod->where( 'site_id', '=', $db_site->id );
-          $day_activity_mod->where( 'role_id', '=', $db_role->id );
+          $day_activity_mod->where( 'activity.user_id', '=', $db_user->id );
+          $day_activity_mod->where( 'activity.site_id', '=', $db_site->id );
+          $day_activity_mod->where( 'activity.role_id', '=', $db_role->id );
           $day_activity_mod->where( 'operation.subject', '!=', 'self' );
           $day_activity_mod->where( 'datetime', '>=',
             $min_activity_datetime_obj->format( 'Y-m-d' ).' 0:00:00' );
@@ -296,4 +296,3 @@ class productivity_report extends \cenozo\ui\pull\base_report
     }
   }
 }
-?>

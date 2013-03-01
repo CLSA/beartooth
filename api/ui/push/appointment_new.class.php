@@ -74,4 +74,3 @@ class appointment_new extends \cenozo\ui\push\base_new
       unset( $this->arguments['columns']['user_id'] );
   }
 }
-?>

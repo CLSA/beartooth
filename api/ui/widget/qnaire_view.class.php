@@ -113,4 +113,3 @@ class qnaire_view extends \cenozo\ui\widget\base_view
    */
   protected $phase_list = NULL;
 }
-?>

@@ -26,4 +26,3 @@ class onyx_instance_primary extends \cenozo\ui\pull\base_primary
     parent::__construct( 'onyx_instance', $args );
   }
 }
-?>

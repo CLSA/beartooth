@@ -79,4 +79,3 @@ class onyx_instance_delete extends \cenozo\ui\push\base_delete
     $operation->process();
   }
 }
-?>
