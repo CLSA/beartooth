@@ -24,6 +24,7 @@ CREATE PROCEDURE convert_database()
                             'cenozo' );
 
       -- qnaire ------------------------------------------------------------------------------------
+      SELECT "Processing qnaire" AS "";
       ALTER TABLE qnaire DROP FOREIGN KEY fk_qnaire_prev_qnaire;
       ALTER TABLE qnaire
       ADD CONSTRAINT fk_qnaire_prev_qnaire_id
@@ -31,6 +32,7 @@ CREATE PROCEDURE convert_database()
       ON DELETE NO ACTION ON UPDATE NO ACTION;
 
       -- phase -------------------------------------------------------------------------------------
+      SELECT "Processing phase" AS "";
       ALTER TABLE phase DROP FOREIGN KEY fk_phase_qnaire;
       ALTER TABLE phase
       ADD CONSTRAINT fk_phase_qnaire_id
@@ -38,6 +40,7 @@ CREATE PROCEDURE convert_database()
       ON DELETE NO ACTION ON UPDATE NO ACTION;
 
       -- interview ---------------------------------------------------------------------------------
+      SELECT "Processing interview" AS "";
       ALTER TABLE interview RENAME interview_old;
       ALTER TABLE interview_old
       DROP FOREIGN KEY fk_interiew_duplicate_qnaire_id,
@@ -89,6 +92,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE interview_old;
 
       -- assignment --------------------------------------------------------------------------------
+      SELECT "Processing assignment" AS "";
       ALTER TABLE assignment RENAME assignment_old;
       ALTER TABLE assignment_old
       DROP FOREIGN KEY fk_assignment_interview_id,
@@ -157,6 +161,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE assignment_old;
 
       -- phone_call --------------------------------------------------------------------------------
+      SELECT "Processing phone_call" AS "";
       ALTER TABLE phone_call RENAME phone_call_old;
       ALTER TABLE phone_call_old
       DROP FOREIGN KEY fk_phone_call_assignment,
@@ -213,6 +218,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE phone_call_old;
 
       -- assignment_note ---------------------------------------------------------------------------
+      SELECT "Processing assignment_note" AS "";
       ALTER TABLE assignment_note RENAME assignment_note_old;
       ALTER TABLE assignment_note_old
       DROP FOREIGN KEY fk_assignment_note_assignment,
@@ -262,6 +268,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE assignment_note_old;
 
       -- appointment -------------------------------------------------------------------------------
+      SELECT "Processing appointment" AS "";
       ALTER TABLE appointment RENAME appointment_old;
       ALTER TABLE appointment_old
       DROP FOREIGN KEY fk_appointment_address_id,
@@ -324,6 +331,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE appointment_old;
 
       -- queue_restriction --------------------------------------------------------------------------------
+      SELECT "Processing queue_restriction" AS "";
       ALTER TABLE queue_restriction RENAME queue_restriction_old;
       ALTER TABLE queue_restriction_old
       DROP FOREIGN KEY fk_queue_restriction_region,
@@ -376,6 +384,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE queue_restriction_old;
 
       -- quota_state -------------------------------------------------------------------------------
+      SELECT "Processing quota_state" AS "";
       SET @sql = CONCAT(
         "CREATE TABLE IF NOT EXISTS quota_state ( ",
           "quota_id INT UNSIGNED NOT NULL , ",
@@ -402,6 +411,7 @@ CREATE PROCEDURE convert_database()
       DEALLOCATE PREPARE statement;
 
       -- onyx_instance -----------------------------------------------------------------------------
+      SELECT "Processing onyx_instance" AS "";
       ALTER TABLE onyx_instance RENAME onyx_instance_old;
       ALTER TABLE onyx_instance_old
       DROP FOREIGN KEY fk_onyx_instance_interview_user_id,
@@ -461,6 +471,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE onyx_instance_old;
 
       -- callback ----------------------------------------------------------------------------------
+      SELECT "Processing callback" AS "";
       SET @sql = CONCAT(
         "CREATE TABLE IF NOT EXISTS callback ( ",
           "id INT UNSIGNED NOT NULL AUTO_INCREMENT, ",
@@ -499,6 +510,7 @@ CREATE PROCEDURE convert_database()
       DEALLOCATE PREPARE statement;
 
       -- convert participant.defer_until into a callback -------------------------------------------
+      SELECT "Converting participant.defer_until into a callback" AS "";
       SET @sql = CONCAT(
         "INSERT INTO callback ( create_timestamp, participant_id, datetime ) ",
         "SELECT NULL, cparticipant.id, CONCAT( participant.defer_until, ' 14:00:00' ) ",
@@ -510,6 +522,7 @@ CREATE PROCEDURE convert_database()
       DEALLOCATE PREPARE statement;
 
       -- setting_value -----------------------------------------------------------------------------
+      SELECT "Processing setting_value" AS "";
       ALTER TABLE setting_value RENAME setting_value_old;
       ALTER TABLE setting_value_old
       DROP FOREIGN KEY fk_setting_value_setting_id,
@@ -557,9 +570,11 @@ CREATE PROCEDURE convert_database()
       DROP TABLE setting_value_old;
       
       -- operation ---------------------------------------------------------------------------------
+      SELECT "Processing operation" AS "";
       ALTER TABLE operation MODIFY COLUMN type ENUM( 'push','pull','widget' ) NOT NULL;
       
       -- activity ----------------------------------------------------------------------------------
+      SELECT "Processing activity" AS "";
       ALTER TABLE activity RENAME activity_old;
       ALTER TABLE activity_old
       DROP FOREIGN KEY fk_activity_operation_id,
@@ -633,6 +648,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE activity_old;
       
       -- role_has_operation ------------------------------------------------------------------------
+      SELECT "Processing role_has_operation" AS "";
       ALTER TABLE role_has_operation RENAME role_has_operation_old;
       ALTER TABLE role_has_operation_old
       DROP FOREIGN KEY fk_role_has_operation_operation_id,
@@ -675,6 +691,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE role_has_operation_old;
 
       -- site_voip ---------------------------------------------------------------------------------
+      SELECT "Processing site_voip" AS "";
       SET @sql = CONCAT(
         "CREATE TABLE IF NOT EXISTS site_voip ( ",
           "site_id INT UNSIGNED NOT NULL , ",
@@ -703,6 +720,7 @@ CREATE PROCEDURE convert_database()
       DEALLOCATE PREPARE statement;
 
       -- next_of_kin -------------------------------------------------------------------------------
+      SELECT "Processing next_of_kin" AS "";
       SET @sql = CONCAT(
         "CREATE TABLE IF NOT EXISTS next_of_kin ( ",
           "id INT UNSIGNED NOT NULL AUTO_INCREMENT , ",
@@ -731,13 +749,14 @@ CREATE PROCEDURE convert_database()
       DEALLOCATE PREPARE statement;
 
       -- copy data from participant table to next_of_kin -------------------------------------------
+      SELECT "Copying data from participant table to next_of_kin" AS "";
       SET @sql = CONCAT(
         "INSERT INTO next_of_kin ( create_timestamp, participant_id, first_name, last_name, ",
                                   "gender, phone, street, city, province, postal_code ) ",
         "SELECT NULL, cparticipant.id, participant.next_of_kin_first_name, ",
                "participant.next_of_kin_last_name, participant.next_of_kin_gender, ",
                "participant.next_of_kin_phone, participant.next_of_kin_street, ",
-               "participant.next_of_kin_city, participant.next_of_kin_province, ".
+               "participant.next_of_kin_city, participant.next_of_kin_province, ",
                "participant.next_of_kin_postal_code ",
         "FROM participant ",
         "JOIN ", @cenozo, ".participant cparticipant ON cparticipant.uid = participant.uid ",
@@ -747,6 +766,7 @@ CREATE PROCEDURE convert_database()
       DEALLOCATE PREPARE statement;
 
       -- data_collection ---------------------------------------------------------------------------
+      SELECT "Processing data_collection" AS "";
       SET @sql = CONCAT(
         "CREATE  TABLE IF NOT EXISTS data_collection ( ",
           "id INT UNSIGNED NOT NULL AUTO_INCREMENT , ",
@@ -770,6 +790,7 @@ CREATE PROCEDURE convert_database()
       DEALLOCATE PREPARE statement;
 
       -- copy data from participant table to data_collection ---------------------------------------
+      SELECT "Copying data from participant table to data_collection" AS "";
       SET @sql = CONCAT(
         "INSERT INTO data_collection ( create_timestamp, participant_id, draw_blood, ",
                                       "draw_blood_continue, physical_tests_continue ) ",
@@ -786,6 +807,7 @@ CREATE PROCEDURE convert_database()
       DEALLOCATE PREPARE statement;
 
       -- participant_last_appointment --------------------------------------------------------------
+      SELECT "Processing participant_last_appointment" AS "";
       DROP VIEW participant_last_appointment;
       SET @sql = CONCAT(
         "CREATE VIEW participant_last_appointment AS ",
@@ -802,6 +824,7 @@ CREATE PROCEDURE convert_database()
       DEALLOCATE PREPARE statement;
 
       -- drop tables which have been moved to the @cenozo database
+      SELECT "Dropping old tables" AS "";
       DROP TABLE access;
       DROP TABLE phone;
       DROP VIEW participant_first_address;
@@ -826,6 +849,7 @@ CREATE PROCEDURE convert_database()
       DROP TABLE site;
 
       -- add the new operations --------------------------------------------------------------------
+      SELECT "Adding new operations" AS "";
       INSERT INTO operation( type, subject, name, restricted, description )
       VALUES( "push", "alternate", "delete", true, "Removes an alternate contact person from the system." );
       INSERT INTO operation( type, subject, name, restricted, description )
