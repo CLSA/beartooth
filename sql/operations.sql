@@ -316,6 +316,10 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "home_appointment", "report", true, "Set up a home appointment report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "home_appointment", "report", true, "Download a home appointment report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "mailout_required", "report", true, "Set up a mailout required report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "mailout_required", "report", true, "Download a mailout required report." );
 
 -- self
 INSERT INTO operation( type, subject, name, restricted, description )
