@@ -41,7 +41,7 @@ class onyx_instance_list extends site_restricted_list
     $this->add_column( 'user.name', 'string', 'Name', false );
     $this->add_column( 'site.name', 'string', 'Site', true );
     $this->add_column( 'instance', 'string', 'Instance', false );
-    $this->add_column( 'active', 'boolean', 'Active', true );
+    $this->add_column( 'active', 'boolean', 'Active', false );
     $this->add_column( 'last_activity', 'fuzzy', 'Last activity', false );
   }
   
