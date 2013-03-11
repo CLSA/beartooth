@@ -16,8 +16,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "appointment", "view", true, "View the details of a participant's particular appointment." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "appointment", "list", true, "Lists a participant's appointments." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "appointment", "primary", true, "Retrieves base appointment information." );
 
 -- assignment
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -32,8 +30,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "assignment", "begin", true, "Begins a new assignment with a particular participant." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "assignment", "end", true, "Ends the current assignment." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "assignment", "primary", true, "Retrieves base assignment information." );
 
 -- callback
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -48,8 +44,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "callback", "view", true, "View the details of a participant's particular callback." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "callback", "list", true, "Lists a participant's callbacks." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "callback", "primary", true, "Retrieves base callback information." );
 
 -- calendar
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -96,8 +90,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "onyx_instance", "view", true, "View a onyx instance's details." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "onyx_instance", "list", true, "List onyx instances in the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "onyx_instance", "primary", true, "Retrieves base onyx instance information." );
 
 -- participant
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -130,8 +122,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "phase", "view", true, "View the details of a questionnaire's phases." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "phase", "list", true, "Lists a questionnaire's phases." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "phase", "primary", true, "Retrieves base phase information." );
 
 -- phone call
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -140,8 +130,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "phone_call", "begin", true, "Starts a new phone call." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "phone_call", "end", true, "Ends the current phone call." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "phone_call", "primary", true, "Retrieves base phone call information." );
 
 -- qnaire
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -160,16 +148,12 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "qnaire", "add_phase", true, "View surveys to add as a new phase to a questionnaire." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "qnaire", "delete_phase", true, "Remove phases from a questionnaire." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "qnaire", "primary", true, "Retrieves base qnaire information." );
 
 -- queue
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "queue", "list", true, "List queues in the system." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "queue", "view", true, "View a queue's details and list of participants." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "queue", "primary", true, "Retrieves base queue information." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "queue_restriction", "delete", true, "Removes a queue restriction from the system." );
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -182,8 +166,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "queue_restriction", "view", true, "View a queue restriction's details." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "queue_restriction", "list", true, "List queue restrictions in the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "queue_restriction", "primary", true, "Retrieves base queue restriction information." );
 
 -- reports
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -212,8 +194,6 @@ VALUES( "widget", "self", "assignment", false, "Displays the assignment manager.
 -- survey
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "survey", "list", true, "List surveys in the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "survey", "primary", true, "Retrieves base survey information." );
 
 -- voip
 INSERT INTO operation( type, subject, name, restricted, description )
