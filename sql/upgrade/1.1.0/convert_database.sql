@@ -319,10 +319,10 @@ CREATE PROCEDURE convert_database()
         "FROM appointment_old old ",
         "JOIN participant ON old.participant_id = participant.id ",
         "JOIN ", @cenozo, ".participant cparticipant ON participant.uid = cparticipant.uid ",
-        "JOIN user ON old.user_id = user.id ",
-        "JOIN ", @cenozo, ".user cuser ON user.id = cuser.id ",
-        "JOIN address ON old.address_id = address.id ",
-        "JOIN ", @cenozo, ".address caddress ON address.rank = caddress.rank ",
+        "LEFT JOIN user ON old.user_id = user.id ",
+        "LEFT JOIN ", @cenozo, ".user cuser ON user.id = cuser.id ",
+        "LEFT JOIN address ON old.address_id = address.id ",
+        "LEFT JOIN ", @cenozo, ".address caddress ON address.rank = caddress.rank ",
         "AND cparticipant.person_id = caddress.person_id" );
       PREPARE statement FROM @sql;
       EXECUTE statement;
@@ -372,10 +372,10 @@ CREATE PROCEDURE convert_database()
         "SELECT old.id, old.update_timestamp, old.create_timestamp, ",
                "csite.id, old.city, cregion.id, old.postcode ",
         "FROM queue_restriction_old old ",
-        "JOIN region ON old.region_id = region.id ",
-        "JOIN ", @cenozo, ".region cregion ON region.name = cregion.name ",
-        "JOIN site ON old.site_id = site.id ",
-        "JOIN ", @cenozo, ".site csite ON site.name = csite.name ",
+        "LEFT JOIN region ON old.region_id = region.id ",
+        "LEFT JOIN ", @cenozo, ".region cregion ON region.name = cregion.name ",
+        "LEFT JOIN site ON old.site_id = site.id ",
+        "LEFT JOIN ", @cenozo, ".site csite ON site.name = csite.name ",
         "AND csite.service_id = ( SELECT id FROM ", @cenozo, ".service WHERE title = 'Beartooth' )" );
       PREPARE statement FROM @sql;
       EXECUTE statement;
@@ -462,8 +462,8 @@ CREATE PROCEDURE convert_database()
         "AND csite.service_id = ( SELECT id FROM ", @cenozo, ".service WHERE title = 'Beartooth' ) ",
         "JOIN user ON old.user_id = user.id ",
         "JOIN ", @cenozo, ".user cuser ON user.name = cuser.name ",
-        "JOIN user interviewer_user ON old.interviewer_user_id = interviewer_user.id ",
-        "JOIN ", @cenozo, ".user cinterviewer_user ON interviewer_user.name = cinterviewer_user.name" );
+        "LEFT JOIN user interviewer_user ON old.interviewer_user_id = interviewer_user.id ",
+        "LEFT JOIN ", @cenozo, ".user cinterviewer_user ON interviewer_user.name = cinterviewer_user.name" );
       PREPARE statement FROM @sql;
       EXECUTE statement;
       DEALLOCATE PREPARE statement;
