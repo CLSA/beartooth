@@ -102,6 +102,8 @@ CREATE PROCEDURE patch_operation()
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
       VALUES( "push", "participant", "delete_event", true, "Remove a participant's event entry." );
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
+      VALUES( "widget", "participant", "hin", true, "View a participant's HIN details." );
+      INSERT IGNORE INTO operation( type, subject, name, restricted, description )
       VALUES( "push", "participant", "multinote", true, "Adds a note to a group of participants." );
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
       VALUES( "widget", "participant", "multinote", true, "A form to add a note to multiple participants at once." );

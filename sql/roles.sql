@@ -276,7 +276,7 @@ AND role.name IN( "administrator", "coordinator", "interviewer" );
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "push" AND subject = "consent" AND operation.name = "new"
-AND role.name IN( "administrator", "coordinator", "interviewer,onyx" );
+AND role.name IN( "administrator", "coordinator", "interviewer", "onyx" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
@@ -529,7 +529,7 @@ AND role.name IN( "administrator", "coordinator", "interviewer" );
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "push" AND subject = "participant" AND operation.name = "edit"
-AND role.name IN( "administrator", "coordinator", "interviewer,onyx" );
+AND role.name IN( "administrator", "coordinator", "interviewer", "onyx" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
