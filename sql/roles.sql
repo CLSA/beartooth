@@ -361,16 +361,16 @@ SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "widget" AND subject = "interview" AND operation.name = "view"
 AND role.name IN( "administrator", "coordinator" );
 
--- mailout
+-- mailout_required
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "pull" AND subject = "mailout" AND operation.name = "report"
+WHERE type = "pull" AND subject = "mailout_required" AND operation.name = "report"
 AND role.name IN ( "administrator" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "widget" AND subject = "mailout" AND operation.name = "report"
+WHERE type = "widget" AND subject = "mailout_required" AND operation.name = "report"
 AND role.name IN ( "administrator" );
 
 -- note
