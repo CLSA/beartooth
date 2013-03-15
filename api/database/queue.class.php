@@ -295,7 +295,12 @@ class queue extends \cenozo\database\record
              : 'REPLACE INTO ranked_participant_for_queue ';
         $db_queue->set_site( $db_site );
         $db_queue->set_qnaire( $db_qnaire );
-        $sql .= $db_queue->get_sql( 'participant_for_queue.*' );
+        $sql .= $db_queue->get_sql(
+          'participant_for_queue.*, '.
+          'participant_for_queue_primary_region.jurisdiction_site_id, '.
+          'participant_for_queue_first_address.first_address_city, '.
+          'participant_for_queue_first_address.first_address_region_id, '.
+          'participant_for_queue_first_address.first_address_postcode' );
         static::db()->execute( $sql );
 
         if( $first )
@@ -391,7 +396,6 @@ class queue extends \cenozo\database\record
     $qnaire_children = array(
       'qnaire waiting', 'appointment', 'assigned', 'restricted', 'quota disabled', 'callback',
       'outside calling time', 'new participant', 'old participant' );
-
 
     // sql resolving to the participant's effective site
     $participant_site_id =
