@@ -12,7 +12,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
 /**
  * widget participant list
  */
-class participant_list extends site_restricted_list
+class participant_list extends \cenozo\ui\widget\site_restricted_list
 {
   /**
    * Constructor
@@ -38,6 +38,8 @@ class participant_list extends site_restricted_list
   {
     parent::prepare();
 
+    $session = lib::create( 'business\session' );
+
     // determine if the parent is an assignment select widget
     if( !is_null( $this->parent ) )
     {
@@ -53,8 +55,11 @@ class participant_list extends site_restricted_list
     $this->add_column( 'last_name', 'string', 'Last', true );
     if( is_null( $this->assignment_type ) )
     {
+      $this->add_column( 'active', 'boolean', 'Active', true );
       $this->add_column( 'source.name', 'string', 'Source', true );
-      $this->add_column( 'primary_site', 'string', 'Site', false );
+      if( 1 != $session->get_service()->get_cohort_count() )
+        $this->add_column( 'cohort.name', 'string', 'Cohort', true );
+      $this->add_column( 'site', 'string', 'Site', false );
     }
     else
     {
@@ -82,43 +87,44 @@ class participant_list extends site_restricted_list
   {
     parent::setup();
 
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $session = lib::create( 'business\session' );
+
     foreach( $this->get_record_list() as $record )
     {
       $db_source = $record->get_source();
       $db_address = $record->get_first_address();
-      $db_site = $record->get_primary_site();
-      $this->add_row( $record->id,
-        is_null( $this->assignment_type ) ?
-        array( 'uid' => $record->uid ? $record->uid : '(none)',
-               'first_name' => $record->first_name,
-               'last_name' => $record->last_name,
-               'source.name' =>
-                 is_null( $db_source ) ? '(none)' : $db_source->name,
-               'primary_site' => $db_site ? $db_site->name : '(none)',
-               // note count isn't a column, it's used for the note button
-               'note_count' => $record->get_note_count() ) :
-        array( 'uid' => $record->uid ? $record->uid : '(none)',
-               'first_name' => $record->first_name,
-               'last_name' => $record->last_name,
-               'ranked_participant_for_queue.first_address_address1' =>
-                 is_null( $db_address ) ? '(none)' : $db_address->address1,
-               'ranked_participant_for_queue.first_address_city' =>
-                 is_null( $db_address ) ? '(none)' : $db_address->city,
-               'ranked_participant_for_queue.first_address_postcode' =>
-                 is_null( $db_address ) ? '(none)' : $db_address->postcode,
-               // note count isn't a column, it's used for the note button
-               'note_count' => $record->get_note_count() ) );
+      $db_site = $record->get_effective_site();
+      $columns = array(
+        'uid' => $record->uid ? $record->uid : '(none)',
+        'first_name' => $record->first_name,
+        'last_name' => $record->last_name,
+        // note count isn't a column, it's used for the note button
+        'note_count' => $record->get_note_count() );
+
+      if( is_null( $this->assignment_type ) )
+      {
+        $columns['active'] = $record->active;
+        $columns['source.name'] = is_null( $db_source ) ? '(none)' : $db_source->name;
+        if( 1 != $session->get_service()->get_cohort_count() )
+          $columns['cohort.name'] = $record->get_cohort()->name;
+        $columns['site'] = $db_site ? $db_site->name : '(none)';
+      }
+      else
+      {
+        $columns['ranked_participant_for_queue.first_address_address1'] =
+                 is_null( $db_address ) ? '(none)' : $db_address->address1;
+        $columns['ranked_participant_for_queue.first_address_city'] =
+                 is_null( $db_address ) ? '(none)' : $db_address->city;
+        $columns['ranked_participant_for_queue.first_address_postcode'] =
+                 is_null( $db_address ) ? '(none)' : $db_address->postcode;
+      }
+
+      $this->add_row( $record->id, $columns );
     }
 
-    // include the sync action if the widget isn't parented
-    if( is_null( $this->parent ) )
-    {
-      $operation_class_name = lib::get_class_name( 'database\operation' );
-      $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'sync' );
-      if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
-        $this->add_action( 'sync', 'Participant Sync', $db_operation,
-          'Synchronize participants with Mastodon' );
-    }
+    $this->set_variable( 'conditions', $participant_class_name::get_enum_values( 'status' ) );
+    $this->set_variable( 'restrict_condition', $this->get_argument( 'restrict_condition', '' ) );
   }
 
   /**
@@ -131,8 +137,15 @@ class participant_list extends site_restricted_list
    */
   public function determine_record_count( $modifier = NULL )
   {
-    $session = lib::create( 'business\session' );
     $participant_class_name = lib::get_class_name( 'database\participant' );
+    $session = lib::create( 'business\session' );
+    $restrict_condition = $this->get_argument( 'restrict_condition', '' );
+
+    if( $restrict_condition )
+    {
+      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+      $modifier->where( 'status', '=', $restrict_condition );
+    }
 
     if( 'interviewer' == $session->get_role()->name )
     { // restrict interview lists to those they have unfinished appointments with
@@ -154,8 +167,15 @@ class participant_list extends site_restricted_list
    */
   public function determine_record_list( $modifier = NULL )
   {
-    $session = lib::create( 'business\session' );
     $participant_class_name = lib::get_class_name( 'database\participant' );
+    $session = lib::create( 'business\session' );
+    $restrict_condition = $this->get_argument( 'restrict_condition', '' );
+
+    if( $restrict_condition )
+    {
+      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+      $modifier->where( 'status', '=', $restrict_condition );
+    }
 
     if( 'interviewer' == $session->get_role()->name )
     { // restrict interview lists to those they have unfinished appointments with
@@ -174,4 +194,3 @@ class participant_list extends site_restricted_list
    */
   protected $assignment_type = NULL;
 }
-?>

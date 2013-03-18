@@ -26,4 +26,3 @@ class onyx_instance extends \cenozo\database\record
       lib::create( 'database\user', $this->interviewer_user_id ) : NULL;
   }
 }
-?>

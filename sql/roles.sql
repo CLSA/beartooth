@@ -1,1241 +1,1038 @@
 -- -----------------------------------------------------
--- Roles
+-- Operations
 -- -----------------------------------------------------
 SET AUTOCOMMIT=0;
 
--- administrator (specific to this role)
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id
-FROM role, operation
-WHERE role.name = "administrator"
-AND operation.subject = "administrator";
-
--- onyx instance
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "onyx_instance" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "onyx_instance" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "onyx_instance" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "onyx_instance" AND name = "primary" );
-
--- interview, assignment and calling
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "interview" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "interview" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "assignment" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "assignment" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone_call" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone_call" AND name = "begin" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone_call" AND name = "end" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "voip" AND name = "dtmf" );
-
--- participant
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "sync" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "participant" AND name = "sync" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "sync" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "participant" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "secondary" );
-
--- appointment
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "appointment" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "appointment" AND name = "list" );
-
--- availability
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "availability" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "availability" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "availability" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "availability" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "availability" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "availability" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_availability" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_availability" );
-
--- consent
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "consent" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "consent" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "consent" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "consent" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "consent" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "consent" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_consent" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_consent" );
-
--- contact information (address and phone)
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "address" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "address" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "address" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "address" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "address" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "address" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_address" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_address" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_phone" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_phone" );
-
--- qnaire/phase
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "qnaire" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "qnaire" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "qnaire" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "qnaire" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "qnaire" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "qnaire" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "qnaire" AND name = "add_phase" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "qnaire" AND name = "delete_phase" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phase" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phase" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phase" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phase" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phase" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phase" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "survey" AND name = "list" );
-
--- queue
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "queue" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "queue" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "tree" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "participant" AND name = "tree" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "queue_restriction" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "queue_restriction" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "queue_restriction" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "queue_restriction" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "queue_restriction" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "queue_restriction" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "queue_restriction" AND name = "primary" );
-
--- quota
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "quota" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "quota" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "quota" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "quota" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "quota" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "quota" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "quota" AND name = "primary" );
-
--- system messages
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "system_message" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "system_message" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "system_message" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "system_message" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "system_message" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "system_message" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "administrator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "system_message" AND name = "primary" );
-
--- ALL reports except for the home appointment report
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id
-FROM role, operation
-WHERE role.name = "administrator"
-AND operation.subject != "home_appointment"
-AND operation.name = "report";
-
-
--- -----------------------------------------------------
--- -----------------------------------------------------
-INSERT INTO role( name, tier ) VALUES( "coordinator", 2 );
-
--- coordinator (specific to this role)
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id
-FROM role, operation
-WHERE role.name = "coordinator"
-AND operation.subject = "coordinator";
-
--- setting
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "setting" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "setting" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "setting" AND name = "list" );
-
--- calendars
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "home_appointment" AND name = "calendar" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "home_appointment" AND name = "feed" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "site_appointment" AND name = "calendar" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "site_appointment" AND name = "feed" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "widget" AND subject = "shift_template" AND name = "calendar" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "pull" AND subject = "shift_template" AND name = "feed" );
-
--- user/site/role
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "user" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "user" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "user" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "user" AND name = "reset_password" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "user" AND name = "set_password" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "user" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "user" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "user" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "user" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "role" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "role" AND name = "list" );
-
--- onyx instance
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "onyx_instance" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "onyx_instance" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "onyx_instance" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "onyx_instance" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "onyx_instance" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "onyx_instance" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "onyx_instance" AND name = "primary" );
-
--- operation
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "activity" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "operation" AND name = "list" );
+-- make sure all roles exist
+INSERT IGNORE INTO cenozo.role( name, tier ) VALUES
+( "administrator", 3 ),
+( "coordinator", 2 ),
+( "interviewer", 1 ),
+( "onyx", 1 );
 
 -- access
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "access" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "access" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "user" AND name = "add_access" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "user" AND name = "new_access" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "user" AND name = "delete_access" );
 
--- interview, assignment and calling
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "interview" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "interview" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "interview" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "assignment" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "assignment" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "assignment" AND name = "begin" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "assignment" AND name = "end" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "site_assignment" AND name = "begin" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone_call" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone_call" AND name = "begin" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone_call" AND name = "end" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "voip" AND name = "dtmf" );
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "access" AND operation.name = "delete"
+AND role.name IN( "administrator", "coordinator" );
 
--- shift templates
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "push" AND subject = "shift_template" AND name = "delete" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "push" AND subject = "shift_template" AND name = "edit" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "push" AND subject = "shift_template" AND name = "new" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "widget" AND subject = "shift_template" AND name = "add" );
--- INSERT INTO role_has_operation
--- SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
---     operation_id = ( SELECT id FROM operation WHERE
---       type = "widget" AND subject = "shift_template" AND name = "view" );
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "access" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
 
--- participant
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "participant" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "secondary" );
+-- activity
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "activity" AND operation.name = "chart"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "activity" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+-- address
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "address" AND operation.name = "add"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "address" AND operation.name = "delete"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "address" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "address" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "address" AND operation.name = "new"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "address" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+-- alternate
+
+INSERT IGNORE INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "alternate" AND operation.name = "add"
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
+
+INSERT IGNORE INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "alternate" AND operation.name = "add_address"
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
+
+INSERT IGNORE INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "alternate" AND operation.name = "add_phone"
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
+
+INSERT IGNORE INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "alternate" AND operation.name = "delete"
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
+
+INSERT IGNORE INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "alternate" AND operation.name = "delete_address"
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
+
+INSERT IGNORE INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "alternate" AND operation.name = "delete_phone"
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
+
+INSERT IGNORE INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "alternate" AND operation.name = "edit"
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
+
+INSERT IGNORE INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "alternate" AND operation.name = "list"
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
+
+INSERT IGNORE INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "alternate" AND operation.name = "new"
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
+
+INSERT IGNORE INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "alternate" AND operation.name = "view"
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
 
 -- appointment
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "appointment" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "appointment" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "appointment" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_appointment" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_appointment" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "appointment" AND operation.name = "add"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "appointment" AND operation.name = "delete"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "appointment" AND operation.name = "edit"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "appointment" AND operation.name = "list"
+AND role.name IN ( "onyx" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "appointment" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "appointment" AND operation.name = "new"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "appointment" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+-- assignment
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "assignment" AND operation.name = "begin"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "assignment" AND operation.name = "end"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "assignment" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "assignment" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
 
 -- availability
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "availability" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "availability" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "availability" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "availability" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "availability" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "availability" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_availability" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_availability" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "availability" AND operation.name = "add"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "availability" AND operation.name = "delete"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "availability" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "availability" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "availability" AND operation.name = "new"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "availability" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+-- callback
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "callback" AND operation.name = "add"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "callback" AND operation.name = "calendar"
+AND role.name IN ( "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "callback" AND operation.name = "delete"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "callback" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "callback" AND operation.name = "feed"
+AND role.name IN ( "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "callback" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "callback" AND operation.name = "new"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "callback" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
 
 -- consent
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "consent" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "consent" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "consent" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "consent" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "consent" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "consent" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_consent" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_consent" );
 
--- contact information (address and phone)
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "address" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "address" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "address" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "address" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "address" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "address" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_address" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_address" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_phone" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_phone" );
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "consent" AND operation.name = "add"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "consent" AND operation.name = "delete"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "consent" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "consent" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "consent" AND operation.name = "new"
+AND role.name IN( "administrator", "coordinator", "interviewer", "onyx" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "consent" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+-- event
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "event" AND operation.name = "add"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "event" AND operation.name = "delete"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "event" AND operation.name = "edit"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "event" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "event" AND operation.name = "new"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "event" AND operation.name = "view"
+AND role.name IN ( "administrator" );
+
+-- home_appointment
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "home_appointment" AND operation.name = "calendar"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "home_appointment" AND operation.name = "feed"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "home_appointment" AND operation.name = "report"
+AND role.name IN ( "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "home_appointment" AND operation.name = "report"
+AND role.name IN ( "interviewer" );
+
+-- home_assignment
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "home_assignment" AND operation.name = "select"
+AND role.name IN ( "interviewer" );
+
+-- interview
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "interview" AND operation.name = "edit"
+AND role.name IN ( "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "interview" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "interview" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator" );
+
+-- mailout_required
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "mailout_required" AND operation.name = "report"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "mailout_required" AND operation.name = "report"
+AND role.name IN ( "administrator" );
+
+-- note
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "note" AND operation.name = "delete"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "note" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator" );
+
+-- onyx
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "onyx" AND operation.name = "consent"
+AND role.name IN ( "onyx" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "onyx" AND operation.name = "participants"
+AND role.name IN ( "onyx" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "onyx" AND operation.name = "proxy"
+AND role.name IN ( "onyx" );
+
+-- onyx_instance
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "onyx_instance" AND operation.name = "add"
+AND role.name IN ( "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "onyx_instance" AND operation.name = "delete"
+AND role.name IN ( "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "onyx_instance" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "onyx_instance" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "onyx_instance" AND operation.name = "new"
+AND role.name IN ( "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "onyx_instance" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator" );
+
+-- participant
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "add"
+AND role.name IN ( "NULL" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "add_address"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "add_alternate"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "add_appointment"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "add_availability"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "add_callback"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "add_consent"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "add_event"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "add_phone"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "delete"
+AND role.name IN ( "NULL" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "delete_address"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "delete_alternate"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "delete_appointment"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "delete_availability"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "delete_callback"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "delete_consent"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "delete_event"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "delete_phone"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator", "interviewer", "onyx" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "participant" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "multinote"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "multinote"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "new"
+AND role.name IN ( "NULL" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "participant" AND operation.name = "report"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "report"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "secondary"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "site_reassign"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "site_reassign"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "participant" AND operation.name = "tree"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "tree"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "participant" AND operation.name = "withdraw"
+AND role.name IN ( "interviewer" );
+
+-- participant_tree
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "participant_tree" AND operation.name = "report"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant_tree" AND operation.name = "report"
+AND role.name IN( "administrator", "coordinator" );
+
+-- phase
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "phase" AND operation.name = "add"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "phase" AND operation.name = "delete"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "phase" AND operation.name = "edit"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "phase" AND operation.name = "list"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "phase" AND operation.name = "new"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "phase" AND operation.name = "view"
+AND role.name IN ( "administrator" );
+
+-- phone
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "phone" AND operation.name = "add"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "phone" AND operation.name = "delete"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "phone" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "phone" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "phone" AND operation.name = "new"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "phone" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+-- phone_call
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "phone_call" AND operation.name = "begin"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "phone_call" AND operation.name = "end"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "phone_call" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+-- progress
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "progress" AND operation.name = "report"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "progress" AND operation.name = "report"
+AND role.name IN( "administrator", "coordinator" );
+
+-- qnaire
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "qnaire" AND operation.name = "add"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "qnaire" AND operation.name = "add_phase"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "qnaire" AND operation.name = "delete"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "qnaire" AND operation.name = "delete_phase"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "qnaire" AND operation.name = "edit"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "qnaire" AND operation.name = "list"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "qnaire" AND operation.name = "new"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "qnaire" AND operation.name = "view"
+AND role.name IN ( "administrator" );
 
 -- queue
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "queue" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "queue" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "tree" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "participant" AND name = "tree" );
 
--- notes
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "note" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "note" AND name = "edit" );
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "queue" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "queue" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator" );
+
+-- queue_restriction
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "queue_restriction" AND operation.name = "add"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "queue_restriction" AND operation.name = "delete"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "queue_restriction" AND operation.name = "edit"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "queue_restriction" AND operation.name = "list"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "queue_restriction" AND operation.name = "new"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "queue_restriction" AND operation.name = "view"
+AND role.name IN ( "administrator" );
 
 -- quota
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "quota" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "quota" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "quota" AND name = "primary" );
 
--- ALL reports except for the home appointment report
 INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id
-FROM role, operation
-WHERE role.name = "coordinator"
-AND operation.subject != "home_appointment"
-AND operation.name = "report";
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "quota" AND operation.name = "add"
+AND role.name IN ( "administrator" );
 
--- system messages
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "system_message" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "system_message" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "system_message" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "system_message" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "system_message" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "system_message" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "coordinator" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "system_message" AND name = "primary" );
-
-
--- -----------------------------------------------------
--- -----------------------------------------------------
-INSERT INTO role( name ) VALUES( "interviewer" );
-
--- interviewer (specific to this role)
 INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id
-FROM role, operation
-WHERE role.name = "interviewer"
-AND operation.subject = "interviewer"
-AND operation.name != "list";
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "quota" AND operation.name = "chart"
+AND role.name IN ( "administrator" );
 
--- calendars
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "home_appointment" AND name = "calendar" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "home_appointment" AND name = "feed" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "site_appointment" AND name = "calendar" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "site_appointment" AND name = "feed" );
-
--- interview, assignment and calling
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "assignment" AND name = "begin" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "assignment" AND name = "end" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "assignment" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "assignment" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "home_assignment" AND name = "begin" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "site_assignment" AND name = "begin" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone_call" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone_call" AND name = "begin" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone_call" AND name = "end" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "voip" AND name = "dtmf" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "voip" AND name = "play" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "voip" AND name = "begin_monitor" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "voip" AND name = "end_monitor" );
-
--- participant
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "participant" AND name = "primary" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "withdraw" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "secondary" );
-
--- appointment
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "appointment" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "appointment" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "appointment" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "appointment" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_appointment" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_appointment" );
-
--- availability
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "availability" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "availability" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "availability" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "availability" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "availability" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "availability" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_availability" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_availability" );
-
--- consent
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "consent" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "consent" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "consent" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "consent" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "consent" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_consent" );
-
--- contact information (address and phone)
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "address" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "address" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "address" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "address" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "address" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "address" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_address" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_address" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone" AND name = "delete" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone" AND name = "edit" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "phone" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone" AND name = "add" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone" AND name = "view" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "phone" AND name = "list" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "participant" AND name = "add_phone" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "participant" AND name = "delete_phone" );
-
--- report
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "widget" AND subject = "home_appointment" AND name = "report" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "interviewer" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "home_appointment" AND name = "report" );
-
-
--- -----------------------------------------------------
--- -----------------------------------------------------
-INSERT INTO role( name ) VALUES( "onyx" );
-
--- onyx (specific to this role)
 INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id
-FROM role, operation
-WHERE role.name = "onyx"
-AND operation.subject = "onyx";
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "quota" AND operation.name = "delete"
+AND role.name IN ( "administrator" );
 
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "onyx" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "consent" AND name = "new" );
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "onyx" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "pull" AND subject = "appointment" AND name = "list" );
-
-
--- -----------------------------------------------------
--- -----------------------------------------------------
-INSERT INTO role( name ) VALUES( "typist" );
-
--- typist (specific to this role)
 INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id
-FROM role, operation
-WHERE role.name = "typist"
-AND operation.subject = "typist";
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "quota" AND operation.name = "edit"
+AND role.name IN ( "administrator" );
 
--- consent
-INSERT INTO role_has_operation
-SET role_id = ( SELECT id FROM role WHERE name = "typist" ),
-    operation_id = ( SELECT id FROM operation WHERE
-      type = "push" AND subject = "consent" AND name = "new" );
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "quota" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "quota" AND operation.name = "new"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "quota" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator" );
+
+-- role
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "role" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+-- setting
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "setting" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "setting" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "setting" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator" );
+
+-- site
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "site" AND operation.name = "add"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "site" AND operation.name = "add_access"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "site" AND operation.name = "delete_access"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "site" AND operation.name = "edit"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "site" AND operation.name = "list"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "site" AND operation.name = "new"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "site" AND operation.name = "new_access"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "site" AND operation.name = "view"
+AND role.name IN ( "administrator" );
+
+-- site_appointment
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "site_appointment" AND operation.name = "calendar"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "site_appointment" AND operation.name = "feed"
+AND role.name IN( "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "site_assignment" AND operation.name = "select"
+AND role.name IN( "coordinator", "interviewer" );
+
+-- survey
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "survey" AND operation.name = "list"
+AND role.name IN ( "administrator" );
+
+-- system_message
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "system_message" AND operation.name = "add"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "system_message" AND operation.name = "delete"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "system_message" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "system_message" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "system_message" AND operation.name = "new"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "system_message" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator" );
+
+-- user
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "user" AND operation.name = "add"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "user" AND operation.name = "add_access"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "user" AND operation.name = "delete"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "user" AND operation.name = "delete_access"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "user" AND operation.name = "edit"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "user" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "user" AND operation.name = "list"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "user" AND operation.name = "new"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "user" AND operation.name = "new_access"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "user" AND operation.name = "reset_password"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "user" AND operation.name = "set_password"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "user" AND operation.name = "view"
+AND role.name IN( "administrator", "coordinator" );
+
+-- voip
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "voip" AND operation.name = "begin_monitor"
+AND role.name IN ( "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "voip" AND operation.name = "dtmf"
+AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "voip" AND operation.name = "end_monitor"
+AND role.name IN ( "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "voip" AND operation.name = "play"
+AND role.name IN ( "interviewer" );
 
 COMMIT;

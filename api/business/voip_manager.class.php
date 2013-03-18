@@ -144,7 +144,7 @@ class voip_manager extends \cenozo\singleton
     else
     {
       $db_phone = $phone;
-      if( 'sabretooth\\database\\phone' != get_class( $db_phone ) )
+      if( 'beartooth\\database\\phone' != get_class( $db_phone ) )
         throw lib::create( 'exception\argument', 'db_phone', $db_phone, __METHOD__ );
 
       $number = $db_phone->number;
@@ -169,6 +169,38 @@ class voip_manager extends \cenozo\singleton
     $priority = 1;
     if( !$this->manager->originate( $channel, $context, $extension, $priority ) )
       throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
+
+    // rebuild the call list and return (what should be) the peer's only call
+    $this->rebuild_call_list();
+    return $this->get_call();
+  }
+
+  /**
+   * Opens a listen-only connection to an existing call
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param voip_call $voip_call The call to spy on
+   * @access public
+   */
+  public function spy( $voip_call )
+  {
+    $peer = lib::create( 'business\session' )->get_user()->name;
+    $channel = 'SIP/'.$peer;
+    // play sound in local channel
+    if( !$this->manager->originate(
+      $channel,             // channel
+      'default',            // context
+      'chanspy',            // extension
+      1,                    // priority
+      false,                // application
+      false,                // data
+      30000,                // timeout
+      false,                // callerID
+      'ActionID=Spy,'.      // variables
+      'ToChannel='.$voip_call->get_channel() ) )
+    {
+      throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
+    }
 
     // rebuild the call list and return (what should be) the peer's only call
     $this->rebuild_call_list();
@@ -280,4 +312,3 @@ class voip_manager extends \cenozo\singleton
    */
   private $prefix = '';
 }
-?>

@@ -75,8 +75,8 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
     $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
     
     $user_mod = lib::create( 'database\modifier' );
-    $user_mod->where( 'site_id', '=', $db_site->id );
-    $user_mod->where( 'role_id', '=', $db_role->id );
+    $user_mod->where( 'access.site_id', '=', $db_site->id );
+    $user_mod->where( 'access.role_id', '=', $db_role->id );
     $interviewers = array( 'NULL' => 'site' );
     $class_name = lib::get_class_name( 'database\user' );
     foreach( $class_name::select( $user_mod ) as $db_user )
@@ -91,4 +91,3 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
       'interviewer_user_id', key( $interviewers ), true, $interviewers, true );
   }
 }
-?>

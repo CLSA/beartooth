@@ -47,7 +47,7 @@ class site_appointment_feed extends \cenozo\ui\pull\base_feed
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
 
-    $event_list = array();
+    $this->data = array();
     $class_name = lib::get_class_name( 'database\appointment' );
     foreach( $class_name::select( $modifier ) as $db_appointment )
     {
@@ -58,7 +58,7 @@ class site_appointment_feed extends \cenozo\ui\pull\base_feed
         $setting_manager->get_setting( 'appointment', 'site duration' ) ) );
 
       $db_participant = $db_appointment->get_participant();
-      $event_list[] = array(
+      $this->data[] = array(
         'id'      => $db_appointment->id,
         'title'   => is_null( $db_participant->uid ) || 0 == strlen( $db_participant->uid ) ?
                       $db_participant->first_name.' '.$db_participant->last_name :
@@ -67,8 +67,5 @@ class site_appointment_feed extends \cenozo\ui\pull\base_feed
         'start'   => $start_datetime_obj->format( \DateTime::ISO8601 ),
         'end'     => $end_datetime_obj->format( \DateTime::ISO8601 ) );
     }
-
-    $this->data = $event_list;
   }
 }
-?>

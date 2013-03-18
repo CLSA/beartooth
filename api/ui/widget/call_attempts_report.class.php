@@ -47,4 +47,3 @@ class call_attempts_report extends base_report
       'have been called.' );
   }
 }
-?>

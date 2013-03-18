@@ -33,4 +33,3 @@ class util extends \cenozo\util
     return parent::pluralize( $word );
   }
 }
-?>

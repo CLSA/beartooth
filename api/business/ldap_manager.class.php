@@ -159,4 +159,3 @@ class ldap_manager extends \cenozo\business\ldap_manager
     return $max_id + 1;
   }
 }
-?>

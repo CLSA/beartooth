@@ -108,4 +108,3 @@ class participant_tree extends \cenozo\ui\pull
    */
   public function get_data_type() { return "json"; }
 }
-?>
