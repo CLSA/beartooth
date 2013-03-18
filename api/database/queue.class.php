@@ -404,7 +404,8 @@ class queue extends \cenozo\database\record
     // join to the participant's primary region
     $primary_region_join =
       'LEFT JOIN participant_for_queue_primary_region '.
-      'ON participant_for_queue_primary_region.person_id = participant_person_id';
+      'ON participant_for_queue_primary_region.person_id = participant_person_id '.
+      'AND jurisdiction_service_id = service_has_participant_service_id';
 
     // join to the queue_restriction table based on site, city, region or postcode
     $restriction_join =
@@ -646,18 +647,10 @@ class queue extends \cenozo\database\record
           'OR last_consent_accept = 1 '.
         ')';
 
-      if( 'sourcing required' == $queue )
-      {
-        $parts['where'][] =
-          '( '.
-            '( participant_status IS NULL AND phone_count = 0 ) OR '.
-            'participant_status = "'.$queue.'" '.
-          ')';
-      }
-      else
-      {
-        $parts['where'][] = 'participant_status = "'.$queue.'"';
-      }
+      // add participants with no phone numbers to the sourcing required list
+      $parts['where'][] = 'sourcing required' == $queue
+                        ? '( phone_count = 0 OR participant_status = "'.$queue.'" )'
+                        : $parts['where'][] = 'participant_status = "'.$queue.'"';
     }
     else if( 'eligible' == $queue )
     {
@@ -1003,7 +996,8 @@ class queue extends \cenozo\database\record
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_primary_region '.
       'SELECT person_primary_address.person_id, '.
              'region.id AS primary_region_id, '.
-             'jurisdiction.site_id jurisdiction_site_id '.
+             'jurisdiction.site_id jurisdiction_site_id, '.
+             'jurisdiction.service_id jurisdiction_service_id '.
       'FROM person_primary_address '.
       'LEFT JOIN address '.
       'ON person_primary_address.address_id = address.id '.
@@ -1015,7 +1009,8 @@ class queue extends \cenozo\database\record
       'ALTER TABLE participant_for_queue_primary_region '.
       'ADD INDEX dk_person_id ( person_id ), '.
       'ADD INDEX dk_primary_region_id ( primary_region_id ), '.
-      'ADD INDEX dk_jurisdiction_site_id ( jurisdiction_site_id )' );
+      'ADD INDEX dk_jurisdiction_site_id ( jurisdiction_site_id ), '.
+      'ADD INDEX dk_jurisdiction_service_id ( jurisdiction_service_id )' );
 
     static::db()->execute(
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_first_address '.
