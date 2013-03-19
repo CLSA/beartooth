@@ -59,6 +59,8 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
   {
     parent::setup();
 
+    $site_class_name = lib::get_class_name( 'database\site' );
+
     $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
     
@@ -66,8 +68,7 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
     if( $is_top_tier )
     {
       $sites = array();
-      $class_name = lib::get_class_name( 'database\site' );
-      foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
+      foreach( $site_class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
     }
     
     $db_site = $session->get_site();
