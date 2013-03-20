@@ -958,12 +958,14 @@ class queue extends \cenozo\database\record
   protected static function create_participant_for_queue()
   {
     $database_class_name = lib::get_class_name( 'database\database' );
+    $service_id = lib::create( 'business\session' )->get_service()->id;
 
     if( static::$participant_for_queue_created ) return;
+
+    static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue' );
     $sql = sprintf( 'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue '.
                     static::$participant_for_queue_sql,
-                    $database_class_name::format_string(
-                      lib::create( 'business\session' )->get_service()->id ) );
+                    $database_class_name::format_string( $service_id ) );
     static::db()->execute( $sql );
     static::db()->execute(
       'ALTER TABLE participant_for_queue '.
@@ -981,18 +983,24 @@ class queue extends \cenozo\database\record
       'ADD INDEX fk_last_consent_accept ( last_consent_accept ), '.
       'ADD INDEX fk_last_assignment_id ( last_assignment_id )' );
 
-    static::db()->execute(
+    static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue_phone_count' );
+    static::db()->execute( sprintf(
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_phone_count '.
-      'SELECT person_id, COUNT(*) phone_count '.
-      'FROM phone '.
-      'WHERE active AND number IS NOT NULL '.
-      'GROUP BY person_id' );
+      'SELECT participant.person_id, COUNT(*) phone_count '.
+      'FROM participant '.
+      'JOIN service_has_participant ON participant.id = service_has_participant.participant_id '.
+      'AND service_has_participant.service_id = %s '.
+      'LEFT JOIN phone ON participant.person_id = phone.person_id '.
+      'AND phone.active AND phone.number IS NOT NULL '.
+      'GROUP BY participant.person_id',
+      $database_class_name::format_string( $service_id ) ) );
     static::db()->execute(
       'ALTER TABLE participant_for_queue_phone_count '.
       'ADD INDEX dk_person_id ( person_id ), '.
       'ADD INDEX dk_phone_count ( phone_count )' );
 
-    static::db()->execute(
+    static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue_primary_region' );
+    static::db()->execute( sprintf(
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_primary_region '.
       'SELECT person_primary_address.person_id, '.
              'region.id AS primary_region_id, '.
@@ -1004,7 +1012,9 @@ class queue extends \cenozo\database\record
       'LEFT JOIN region '.
       'ON address.region_id = region.id '.
       'LEFT JOIN jurisdiction '.
-      'ON jurisdiction.postcode = address.postcode' );
+      'ON jurisdiction.service_id = %s '.
+      'AND jurisdiction.postcode = address.postcode',
+      $database_class_name::format_string( $service_id ) ) );
     static::db()->execute(
       'ALTER TABLE participant_for_queue_primary_region '.
       'ADD INDEX dk_person_id ( person_id ), '.
@@ -1012,6 +1022,7 @@ class queue extends \cenozo\database\record
       'ADD INDEX dk_jurisdiction_site_id ( jurisdiction_site_id ), '.
       'ADD INDEX dk_jurisdiction_service_id ( jurisdiction_service_id )' );
 
+    static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue_first_address' );
     static::db()->execute(
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_first_address '.
       'SELECT person_first_address.person_id, '.
