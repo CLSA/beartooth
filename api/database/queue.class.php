@@ -448,6 +448,7 @@ class queue extends \cenozo\database\record
         ') '.
       ')';
 
+    // when to start the qnaire (NULL means right away)
     $start_qnaire_date =
       '( '.
         'IF '.
