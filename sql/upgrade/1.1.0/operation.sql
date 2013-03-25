@@ -146,6 +146,10 @@ CREATE PROCEDURE patch_operation()
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
       VALUES( "widget", "service", "view", true, "View a service's details." );
 
+      -- system message
+      INSERT IGNORE INTO operation( type, subject, name, restricted, description )
+      VALUES( "widget", "system_message", "show", false, "Displays appropriate system messages to the user." );
+
     END IF;
   END //
 DELIMITER ;
