@@ -132,7 +132,7 @@ class self_assignment extends \cenozo\ui\widget
     
     // get the callback associated with this assignment, if any
     $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'assignment_id', '=', $db_assignment->id );
+    $modifier->where( 'assignment_id', '=', $db_current_assignment->id );
     $callback_list = $callback_class_name::select( $modifier );
     $db_callback = 0 == count( $callback_list ) ? NULL : $callback_list[0];
 
