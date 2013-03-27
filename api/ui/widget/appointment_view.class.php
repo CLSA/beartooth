@@ -81,6 +81,7 @@ class appointment_view extends base_appointment_view
     {
       $role_class_name = lib::get_class_name( 'database\role' );
       $user_class_name = lib::get_class_name( 'database\user' );
+      $db_current_user = $this->get_record()->get_user();
 
       $db_site = $this->get_record()->get_participant()->get_effective_site();
       $db_role = $role_class_name::get_unique_record( 'name', 'interviewer' );
@@ -90,6 +91,10 @@ class appointment_view extends base_appointment_view
       $interviewers = array();
       foreach( $user_class_name::select( $user_mod ) as $db_user )
         $interviewers[$db_user->id] = $db_user->name;
+
+      // if the current user no longer has interview access then add them to the end of the list
+      if( !array_key_exists( $db_current_user->id, $interviewers ) )
+        $interviewers[$db_current_user->id] = $db_current_user->name;
 
       foreach( $db_participant->get_address_list( $modifier ) as $db_address )
         $address_list[$db_address->id] = sprintf(
