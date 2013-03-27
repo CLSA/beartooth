@@ -123,8 +123,11 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
       $this->add_row( $record->id, $columns );
     }
 
-    $this->set_variable( 'conditions', $participant_class_name::get_enum_values( 'status' ) );
-    $this->set_variable( 'restrict_condition', $this->get_argument( 'restrict_condition', '' ) );
+    if( $this->allow_restrict_condition )
+    {
+      $this->set_variable( 'conditions', $participant_class_name::get_enum_values( 'status' ) );
+      $this->set_variable( 'restrict_condition', $this->get_argument( 'restrict_condition', '' ) );
+    }
   }
 
   /**
@@ -139,12 +142,15 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
   {
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $session = lib::create( 'business\session' );
-    $restrict_condition = $this->get_argument( 'restrict_condition', '' );
 
-    if( $restrict_condition )
+    if( $this->allow_restrict_condition )
     {
-      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'status', '=', $restrict_condition );
+      $restrict_condition = $this->get_argument( 'restrict_condition', '' );
+      if( $restrict_condition )
+      {
+        if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+        $modifier->where( 'status', '=', $restrict_condition );
+      }
     }
 
     if( 'interviewer' == $session->get_role()->name )
@@ -169,12 +175,15 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
   {
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $session = lib::create( 'business\session' );
-    $restrict_condition = $this->get_argument( 'restrict_condition', '' );
 
-    if( $restrict_condition )
+    if( $this->allow_restrict_condition )
     {
-      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'status', '=', $restrict_condition );
+      $restrict_condition = $this->get_argument( 'restrict_condition', '' );
+      if( $restrict_condition )
+      {
+        if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+        $modifier->where( 'status', '=', $restrict_condition );
+      }
     }
 
     if( 'interviewer' == $session->get_role()->name )
@@ -186,6 +195,35 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
 
     return parent::determine_record_list( $modifier );
   }
+
+  /**
+   * Get whether to include a drop down to restrict the list by condition
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return boolean
+   * @access public
+   */
+  public function get_allow_restrict_condition()
+  {
+    return $this->allow_restrict_condition;
+  }
+
+  /**
+   * Set whether to include a drop down to restrict the list by condition
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param boolean $enable
+   * @access public
+   */
+  public function set_allow_restrict_condition( $enable )
+  {
+    $this->allow_restrict_condition = $enable;
+  }
+
+  /**
+   * Whether to include a drop down to restrict the list by condition
+   * @var boolean
+   * @access protected
+   */
+  protected $allow_restrict_condition = true;
 
   /**
    * The type of assignment select, or null if the list is not being used to select an assignment
