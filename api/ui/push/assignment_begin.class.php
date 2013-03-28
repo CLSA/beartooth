@@ -85,8 +85,6 @@ class assignment_begin extends \cenozo\ui\push
     $interview_class_name = lib::get_class_name( 'database\interview' );
     $session = lib::create( 'business\session' );
 
-    $queue_id = $this->get_argument( 'queue_id', NULL );
-
     // get this participant's interview or create a new one if none exists yet
     $interview_mod = lib::create( 'database\modifier' );
     $interview_mod->where( 'participant_id', '=', $this->db_participant->id );
@@ -131,7 +129,6 @@ class assignment_begin extends \cenozo\ui\push
     $db_assignment->user_id = $session->get_user()->id;
     $db_assignment->site_id = $session->get_site()->id;
     $db_assignment->interview_id = $db_interview->id;
-    $db_assignment->queue_id = $this->get_argument( 'queue_id', NULL );
     $db_assignment->save();
 
     // if the participant has an unassigned callback then set the callback's assignment

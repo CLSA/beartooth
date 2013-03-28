@@ -275,7 +275,6 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`assignment` (
   `user_id` INT UNSIGNED NOT NULL ,
   `site_id` INT UNSIGNED NOT NULL COMMENT 'The site from which the user was assigned.' ,
   `interview_id` INT UNSIGNED NOT NULL ,
-  `queue_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'The queue that the assignment came from.' ,
   `start_datetime` DATETIME NOT NULL ,
   `end_datetime` DATETIME NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
@@ -284,7 +283,6 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`assignment` (
   INDEX `dk_end_datetime` (`end_datetime` ASC) ,
   INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `fk_user_id` (`user_id` ASC) ,
-  INDEX `fk_queue_id` (`queue_id` ASC) ,
   CONSTRAINT `fk_assignment_interview_id`
     FOREIGN KEY (`interview_id` )
     REFERENCES `beartooth`.`interview` (`id` )
@@ -298,11 +296,6 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`assignment` (
   CONSTRAINT `fk_assignment_user_id`
     FOREIGN KEY (`user_id` )
     REFERENCES `cenozo`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_assignment_queue_id`
-    FOREIGN KEY (`queue_id` )
-    REFERENCES `beartooth`.`queue` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
