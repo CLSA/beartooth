@@ -45,7 +45,7 @@
 
 {% block prelist %}
   
-  {% if not assignment_type|default( false ) %}
+  {% if not assignment_type|default( false ) and conditions is defined %}
     {% set restrict_condition = restrict_condition|default("") %}
     <label for="{{ widget.full }}__restrict_condition">Restrict to condition:</label>
     <select id="{{ widget.full }}__restrict_condition" class="ui-state-default"
