@@ -413,7 +413,7 @@ CREATE PROCEDURE convert_database()
 
       SET @sql = CONCAT(
         "CREATE TABLE IF NOT EXISTS onyx_instance ( ",
-          "id INT NOT NULL , ",
+          "id INT UNSIGNED NOT NULL AUTO_INCREMENT, ",
           "update_timestamp TIMESTAMP NOT NULL , ",
           "create_timestamp TIMESTAMP NOT NULL , ",
           "site_id INT UNSIGNED NOT NULL , ",
