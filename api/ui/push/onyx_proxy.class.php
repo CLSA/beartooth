@@ -256,10 +256,6 @@ class onyx_proxy extends \cenozo\ui\push
           array_key_exists( $var_name, $object_vars ) &&
           1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
-        // update the participant and data_collection
-        $db_participant->save();
-        $db_data_collection->save();
-
         // now pass on the data to Mastodon
         $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
         $args = array(
@@ -272,6 +268,12 @@ class onyx_proxy extends \cenozo\ui\push
         if( array_key_exists( 'pdfForm', $object_vars ) )
           $args['form'] = $proxy_data->pdfForm;
         $mastodon_manager->push( 'proxy_form', 'new', $args );
+
+        // update the participant and data_collection
+        // NOTE: these calls need to happen AFTER the mastodon push operation above, otherwise
+        // a database lock will prevent the operation from completing
+        $db_participant->save();
+        $db_data_collection->save();
       }
     }
   }
