@@ -43,7 +43,7 @@ class participant_withdraw extends \cenozo\ui\push\base_record
       $consent_mod->order_desc( 'date' );
       $consent_mod->limit( 1 );
       $db_consent = current( $this->get_record()->get_consent_list( $consent_mod ) );
-      if( $db_consent && 'withdraw' == $db_consent->event )
+      if( $db_consent && 0 == $db_consent->accept )
       {
         // apply the change using an operation (so that Mastodon is also updated)
         $operation = lib::create( 'ui\push\consent_delete', array( 'id' => $db_consent->id ) );
@@ -56,15 +56,13 @@ class participant_withdraw extends \cenozo\ui\push\base_record
     else
     { // add a new withdraw consent to the participant
       // apply the change using an operation (so that Mastodon is also updated)
-      $args = array(
-        'columns' => array(
-          'participant_id' => $this->get_record()->id,
-          'event' => 'withdraw',
-          'date' => util::get_datetime_object()->format( 'Y-m-d' ),
-          'note' => 'Automatically added by the "withdraw" button.' ) );
-      $operation = lib::create( 'ui\push\consent_new', $args );
-      $operation->process();
+      $db_consent = lib::create( 'database\consent' );
+      $db_consent->participant_id = $this->get_record()->id;
+      $db_consent->accept = false;
+      $db_consent->written = false;
+      $db_consent->date = util::get_datetime_object()->format( 'Y-m-d' );
+      $db_consent->note = 'Automatically added by the "withdraw" button.';
+      $db_consent->save();
     }
   }
 }
-?>

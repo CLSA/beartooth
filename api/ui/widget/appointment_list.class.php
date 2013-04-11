@@ -12,7 +12,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
 /**
  * widget appointment list
  */
-class appointment_list extends site_restricted_list
+class appointment_list extends \cenozo\ui\widget\site_restricted_list
 {
   /**
    * Constructor
@@ -100,4 +100,3 @@ class appointment_list extends site_restricted_list
     }
   }
 }
-?>

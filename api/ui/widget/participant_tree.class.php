@@ -165,4 +165,3 @@ class participant_tree extends \cenozo\ui\widget
     $this->set_variable( 'tree', $tree );
   }
 }
-?>

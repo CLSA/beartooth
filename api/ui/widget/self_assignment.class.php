@@ -51,6 +51,10 @@ class self_assignment extends \cenozo\ui\widget
   {
     parent::setup();
     
+    $callback_class_name = lib::get_class_name( 'database\callback' );
+    $phone_call_class_name = lib::get_class_name( 'database\phone_call' );
+    $operation_class_name = lib::get_class_name( 'database\operation' );
+
     $session = lib::create( 'business\session' );
     $db_user = $session->get_user();
     $db_role = $session->get_role();
@@ -71,9 +75,8 @@ class self_assignment extends \cenozo\ui\widget
     if( 'en' == $db_participant->language ) $language = 'english';
     else if( 'fr' == $db_participant->language ) $language = 'french';
 
-    $consent = 'none';
-    $db_consent = $db_participant->get_last_consent();
-    if( !is_null( $db_consent ) ) $consent = $db_consent->event;
+    $db_last_consent = $db_participant->get_last_consent();
+    $consent = is_null( $db_last_consent ) ? 'none' : $db_last_consent->to_string();
     
     $previous_call_list = array();
     $db_last_assignment = $db_participant->get_last_finished_assignment();
@@ -104,7 +107,6 @@ class self_assignment extends \cenozo\ui\widget
       $phone_list[$db_phone->id] =
         sprintf( '%d. %s (%s)', $db_phone->rank, $db_phone->type, $db_phone->number );
     $this->set_variable( 'phone_list', $phone_list );
-    $phone_call_class_name = lib::get_class_name( 'database\phone_call' );
     $this->set_variable( 'status_list', $phone_call_class_name::get_enum_values( 'status' ) );
 
     if( 0 == $current_calls && !$on_call && $db_interview->completed )
@@ -124,9 +126,43 @@ class self_assignment extends \cenozo\ui\widget
       sprintf( $db_participant->first_name.' '.$db_participant->last_name ) );
     $this->set_variable( 'participant_uid', $db_participant->uid );
     $this->set_variable( 'participant_language', $language );
-    $this->set_variable( 'participant_consent', $consent );
-    $this->set_variable( 'withdrawing', 'withdraw' == $consent );
-    $this->set_variable( 'allow_withdraw', !is_null( $db_interview->get_qnaire()->withdraw_sid ) );
+    $this->set_variable(
+      'participant_consent', is_null( $db_last_consent ) ? 'none' : $db_last_consent->to_string() );
+    $this->set_variable(
+      'withdrawing', !is_null( $db_last_consent ) && false == $db_last_consent->accept );
+    $this->set_variable(
+      'allow_withdraw', !is_null( $db_interview->get_qnaire()->withdraw_sid ) );
+    
+    // get the callback associated with this assignment, if any
+    $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'assignment_id', '=', $db_current_assignment->id );
+    $callback_list = $callback_class_name::select( $modifier );
+    $db_callback = 0 == count( $callback_list ) ? NULL : $callback_list[0];
+
+    if( !is_null( $db_callback ) )
+    {
+      $this->set_variable( 'callback',
+        util::get_formatted_time( $db_callback->datetime, false ) );
+
+      if( !is_null( $db_callback->phone_id ) )
+      {
+        $db_phone = lib::create( 'database\phone', $db_callback->phone_id );
+        $this->set_variable( 'phone_id', $db_callback->phone_id );
+        $this->set_variable( 'phone_at',
+          sprintf( '%d. %s (%s)', $db_phone->rank, $db_phone->type, $db_phone->number ) );
+      }
+      else
+      {
+        $this->set_variable( 'phone_id', false );
+        $this->set_variable( 'phone_at', false );
+      }
+    }
+    else
+    {
+      $this->set_variable( 'callback', false );
+      $this->set_variable( 'phone_id', false );
+      $this->set_variable( 'phone_at', false );
+    }
     
     if( !is_null( $db_last_assignment ) )
     {
@@ -162,7 +198,6 @@ class self_assignment extends \cenozo\ui\widget
         lib::create( 'business\setting_manager' )->get_setting( 'calling', 'max failed calls' );
       if( $max_failed_calls <= $db_interview->get_failed_call_count() )
       {
-        $operation_class_name = lib::get_class_name( 'database\operation' );
         $db_operation =
           $operation_class_name::get_operation( 'widget', 'participant', 'secondary' );
         if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
@@ -173,4 +208,3 @@ class self_assignment extends \cenozo\ui\widget
     $this->set_variable( 'allow_secondary', $allow_secondary );
   }
 }
-?>

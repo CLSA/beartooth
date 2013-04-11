@@ -12,7 +12,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
 /**
  * widget queue_restriction list
  */
-class queue_restriction_list extends site_restricted_list
+class queue_restriction_list extends \cenozo\ui\widget\site_restricted_list
 {
   /**
    * Constructor
@@ -81,14 +81,13 @@ class queue_restriction_list extends site_restricted_list
     if( !is_null( $this->db_restrict_site ) )
     {
       if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'site_id', '=', $this->db_restrict_site->id );
-      $modifier->or_where( 'site_id', '=', NULL );
+      $modifier->where( 'queue_restriction.site_id', '=', $this->db_restrict_site->id );
+      $modifier->or_where( 'queue_restriction.site_id', '=', NULL );
     }
     
     // skip the parent method
-    // php doesn't allow parent::parent::method() so we have to do the less safe code below
-    $class_name = lib::get_class_name( 'ui\widget\base_list' );
-    return $class_name::determine_record_count( $modifier );
+    $grand_parent = get_parent_class( get_parent_class( get_class() ) );
+    return $grand_parent::determine_record_count( $modifier );
   }
 
   /**
@@ -104,14 +103,12 @@ class queue_restriction_list extends site_restricted_list
     if( !is_null( $this->db_restrict_site ) )
     {
       if( NULL == $modifier ) $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'site_id', '=', $this->db_restrict_site->id );
-      $modifier->or_where( 'site_id', '=', NULL );
+      $modifier->where( 'queue_restriction.site_id', '=', $this->db_restrict_site->id );
+      $modifier->or_where( 'queue_restriction.site_id', '=', NULL );
     }
     
     // skip the parent method
-    // php doesn't allow parent::parent::method() so we have to do the less safe code below
-    $class_name = lib::get_class_name( 'ui\widget\base_list' );
-    return $class_name::determine_record_list( $modifier );
+    $grand_parent = get_parent_class( get_parent_class( get_class() ) );
+    return $grand_parent::determine_record_list( $modifier );
   }
 }
-?>

@@ -14,49 +14,67 @@ use cenozo\lib, cenozo\log, beartooth\util;
  *
  * Edit a participant.
  */
-class participant_edit extends base_edit
+class participant_edit extends \cenozo\ui\push\participant_edit
 {
   /**
-   * Constructor.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param array $args Push arguments
-   * @access public
-   */
-  public function __construct( $args )
-  {
-    parent::__construct( 'participant', $args );
-  }
-
-  /**
-   * Processes arguments, preparing them for the operation.
+   * This method executes the operation's purpose.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @access protected
    */
-  protected function prepare()
+  protected function execute()
   {
-    parent::prepare();
-
-    $this->set_machine_request_enabled( true );
-    $this->set_machine_request_url( MASTODON_URL );
-  }
-
-  /**
-   * Sets up the operation with any pre-execution instructions that may be necessary.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access protected
-   */
-  protected function setup()
-  {
-    parent::setup();
+    parent::execute();
 
     $columns = $this->get_argument( 'columns', array() );
 
-    // don't send information 
-    if( array_key_exists( 'consent_to_draw_blood', $columns ) ||
-        array_key_exists( 'defer_until', $columns ) )
-      $this->set_machine_request_enabled( false );
+    $db_next_of_kin = NULL;
+    $db_data_collection = NULL;
+    $found_next_of_kin = false;
+    $found_data_collection = false;
+    
+    // process next_of_kin and data_collection columns
+    foreach( $columns as $column => $value )
+    {
+      if( false !== strpos( $column, 'next_of_kin_' ) )
+      {
+        // make sure the next of kin entry exists
+        if( is_null( $db_next_of_kin ) )
+        {
+          $db_next_of_kin = $this->get_record()->get_next_of_kin();
+
+          if( is_null( $db_next_of_kin ) )
+          { // the record doesn't exist, so create it
+            $db_next_of_kin = lib::create( 'database\next_of_kin' );
+            $db_next_of_kin->participant_id = $this->get_record()->id;
+          }
+        }
+
+        $next_of_kin_column = substr( $column, strlen( 'next_of_kin_' ) );
+        $db_next_of_kin->$next_of_kin_column = $value;
+        $found_next_of_kin = true;
+      }
+      else if( false !== strpos( $column, 'data_collection_' ) )
+      {
+        // make sure the next of kin entry exists
+        if( is_null( $db_data_collection ) )
+        {
+          $db_data_collection = $this->get_record()->get_data_collection();
+
+          if( is_null( $db_data_collection ) )
+          { // the record doesn't exist, so create it
+            $db_data_collection = lib::create( 'database\data_collection' );
+            $db_data_collection->participant_id = $this->get_record()->id;
+          }
+        }
+
+        $data_collection_column = substr( $column, strlen( 'data_collection_' ) );
+        $db_data_collection->$data_collection_column = $value;
+        $found_data_collection = true;
+      }
+    }
+
+    if( $found_next_of_kin ) $db_next_of_kin->save();
+    if( $found_data_collection ) $db_data_collection->save();
   }
 }
-?>

@@ -73,6 +73,13 @@ class onyx_proxy extends \cenozo\ui\push
             __METHOD__ );
         $entry['uid'] = $db_participant->uid;
 
+        $db_data_collection = $db_participant->get_data_collection();
+        if( is_null( $db_data_collection ) )
+        {
+          $db_data_collection = lib::create( 'database\data_collection' );
+          $db_data_collection->participant_id = $db_participant->id;
+        }
+
         // try timeEnd, if null then try timeStart
         $var_name = 'timeEnd';
         if( !array_key_exists( $var_name, $object_vars ) ||
@@ -235,12 +242,12 @@ class onyx_proxy extends \cenozo\ui\push
           1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
         $var_name = 'ICF_TEST_COM';
-        $db_participant->physical_tests_continue =
+        $db_data_collection->physical_tests_continue =
           array_key_exists( $var_name, $object_vars ) &&
           1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
         $var_name = 'ICF_SAMP_COM';
-        $db_participant->consent_to_draw_blood_continue =
+        $db_data_collection->draw_blood_continue =
           array_key_exists( $var_name, $object_vars ) &&
           1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
 
@@ -248,9 +255,6 @@ class onyx_proxy extends \cenozo\ui\push
         $entry['health_card'] =
           array_key_exists( $var_name, $object_vars ) &&
           1 == preg_match( '/y|yes|true|1/i', $proxy_data->$var_name ) ? 1 : 0;
-
-        // update the participant
-        $db_participant->save();
 
         // now pass on the data to Mastodon
         $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
@@ -264,8 +268,13 @@ class onyx_proxy extends \cenozo\ui\push
         if( array_key_exists( 'pdfForm', $object_vars ) )
           $args['form'] = $proxy_data->pdfForm;
         $mastodon_manager->push( 'proxy_form', 'new', $args );
+
+        // update the participant and data_collection
+        // NOTE: these calls need to happen AFTER the mastodon push operation above, otherwise
+        // a database lock will prevent the operation from completing
+        $db_participant->save();
+        $db_data_collection->save();
       }
     }
   }
 }
-?>

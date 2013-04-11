@@ -24,9 +24,10 @@ class self_status extends \cenozo\ui\widget\self_status
   {
     parent::setup();
 
+    $session = lib::create( 'business\session' );
     $voip_manager = lib::create( 'business\voip_manager' );
     $this->set_variable( 'sip_enabled', $voip_manager->get_sip_enabled() );
     $this->set_variable( 'on_call', $voip_manager->get_call() );
+    $this->set_variable( 'home', is_null( $session->get_current_assignment() ) );
   }
 }
-?>

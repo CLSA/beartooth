@@ -24,11 +24,9 @@ class voip_manager extends \cenozo\singleton
    */
   protected function __construct()
   {
-    $voip_host = lib::create( 'business\session' )->get_site()->voip_host;
-    if( $_SERVER['SERVER_NAME'] == $voip_host ) $voip_host = 'localhost';
     $setting_manager = lib::create( 'business\setting_manager' );
     $this->enabled = true === $setting_manager->get_setting( 'voip', 'enabled' );
-    $this->url = sprintf( $setting_manager->get_setting( 'voip', 'url' ), $voip_host );
+    $this->url = $setting_manager->get_setting( 'voip', 'url' );
     $this->username = $setting_manager->get_setting( 'voip', 'username' );
     $this->password = $setting_manager->get_setting( 'voip', 'password' );
     $this->prefix = $setting_manager->get_setting( 'voip', 'prefix' );
@@ -144,7 +142,7 @@ class voip_manager extends \cenozo\singleton
     else
     {
       $db_phone = $phone;
-      if( 'beartooth\\database\\phone' != get_class( $db_phone ) )
+      if( !is_object( $db_phone ) )
         throw lib::create( 'exception\argument', 'db_phone', $db_phone, __METHOD__ );
 
       $number = $db_phone->number;
@@ -169,6 +167,38 @@ class voip_manager extends \cenozo\singleton
     $priority = 1;
     if( !$this->manager->originate( $channel, $context, $extension, $priority ) )
       throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
+
+    // rebuild the call list and return (what should be) the peer's only call
+    $this->rebuild_call_list();
+    return $this->get_call();
+  }
+
+  /**
+   * Opens a listen-only connection to an existing call
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param voip_call $voip_call The call to spy on
+   * @access public
+   */
+  public function spy( $voip_call )
+  {
+    $peer = lib::create( 'business\session' )->get_user()->name;
+    $channel = 'SIP/'.$peer;
+    // play sound in local channel
+    if( !$this->manager->originate(
+      $channel,             // channel
+      'default',            // context
+      'chanspy',            // extension
+      1,                    // priority
+      false,                // application
+      false,                // data
+      30000,                // timeout
+      false,                // callerID
+      'ActionID=Spy,'.      // variables
+      'ToChannel='.$voip_call->get_channel() ) )
+    {
+      throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
+    }
 
     // rebuild the call list and return (what should be) the peer's only call
     $this->rebuild_call_list();
@@ -280,4 +310,3 @@ class voip_manager extends \cenozo\singleton
    */
   private $prefix = '';
 }
-?>
