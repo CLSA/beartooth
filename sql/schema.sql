@@ -275,7 +275,6 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`assignment` (
   `user_id` INT UNSIGNED NOT NULL ,
   `site_id` INT UNSIGNED NOT NULL COMMENT 'The site from which the user was assigned.' ,
   `interview_id` INT UNSIGNED NOT NULL ,
-  `queue_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'The queue that the assignment came from.' ,
   `start_datetime` DATETIME NOT NULL ,
   `end_datetime` DATETIME NULL DEFAULT NULL ,
   PRIMARY KEY (`id`) ,
@@ -284,7 +283,6 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`assignment` (
   INDEX `dk_end_datetime` (`end_datetime` ASC) ,
   INDEX `fk_site_id` (`site_id` ASC) ,
   INDEX `fk_user_id` (`user_id` ASC) ,
-  INDEX `fk_queue_id` (`queue_id` ASC) ,
   CONSTRAINT `fk_assignment_interview_id`
     FOREIGN KEY (`interview_id` )
     REFERENCES `beartooth`.`interview` (`id` )
@@ -298,11 +296,6 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`assignment` (
   CONSTRAINT `fk_assignment_user_id`
     FOREIGN KEY (`user_id` )
     REFERENCES `cenozo`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_assignment_queue_id`
-    FOREIGN KEY (`queue_id` )
-    REFERENCES `beartooth`.`queue` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -515,25 +508,6 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `beartooth`.`site_voip`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `beartooth`.`site_voip` ;
-
-CREATE  TABLE IF NOT EXISTS `beartooth`.`site_voip` (
-  `site_id` INT UNSIGNED NOT NULL ,
-  `host` VARCHAR(45) NULL DEFAULT NULL ,
-  `xor_key` VARCHAR(45) NULL DEFAULT NULL ,
-  PRIMARY KEY (`site_id`) ,
-  INDEX `fk_site_id` (`site_id` ASC) ,
-  CONSTRAINT `fk_site_voip_site_id`
-    FOREIGN KEY (`site_id` )
-    REFERENCES `cenozo`.`site` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `beartooth`.`next_of_kin`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `beartooth`.`next_of_kin` ;
@@ -599,6 +573,35 @@ CREATE  TABLE IF NOT EXISTS `beartooth`.`quota_state` (
   CONSTRAINT `fk_quota_state_quota_id`
     FOREIGN KEY (`quota_id` )
     REFERENCES `cenozo`.`quota` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `beartooth`.`system_message`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `beartooth`.`system_message` ;
+
+CREATE  TABLE IF NOT EXISTS `beartooth`.`system_message` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `update_timestamp` TIMESTAMP NOT NULL ,
+  `create_timestamp` TIMESTAMP NOT NULL ,
+  `site_id` INT UNSIGNED NULL ,
+  `role_id` INT UNSIGNED NULL ,
+  `title` VARCHAR(255) NOT NULL ,
+  `note` TEXT NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
+  INDEX `fk_role_id` (`role_id` ASC) ,
+  CONSTRAINT `fk_system_message_site_id`
+    FOREIGN KEY (`site_id` )
+    REFERENCES `cenozo`.`site` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_system_message_role_id`
+    FOREIGN KEY (`role_id` )
+    REFERENCES `cenozo`.`role` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

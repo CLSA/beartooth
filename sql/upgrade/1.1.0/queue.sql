@@ -30,7 +30,6 @@ CREATE PROCEDURE patch_queue()
       CALL set_queue_id( 23, 100022 );
       CALL set_queue_id( 28, 100023 );
       CALL set_queue_id( 25, 100024 );
-      CALL set_queue_id( 26, 100029 );
       CALL set_queue_id( 29, 100030 );
       CALL set_queue_id( 30, 100031 );
       CALL set_queue_id( 31, 100032 );
@@ -87,7 +86,7 @@ CREATE PROCEDURE patch_queue()
       description = "Participants who belong to a quota which has been disabled";
 
       INSERT INTO queue SET
-      id = 26,
+      id = 27,
       name = "callback",
       title = "Participants with callbacks",
       rank = NULL,
@@ -100,7 +99,7 @@ CREATE PROCEDURE patch_queue()
       description = "Participants who have an (unassigned) callback.";
 
       INSERT INTO queue SET
-      id = 27,
+      id = 28,
       name = "upcoming callback",
       title = "Callback upcoming",
       rank = NULL,
@@ -113,7 +112,7 @@ CREATE PROCEDURE patch_queue()
       description = "Participants who have an callback in the future.";
 
       INSERT INTO queue SET
-      id = 28,
+      id = 29,
       name = "assignable callback",
       title = "Callback assignable",
       rank = 1,

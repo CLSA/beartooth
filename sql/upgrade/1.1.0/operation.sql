@@ -103,6 +103,8 @@ CREATE PROCEDURE patch_operation()
       VALUES( "push", "participant", "delete_event", true, "Remove a participant's event entry." );
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
       VALUES( "widget", "participant", "hin", true, "View a participant's HIN details." );
+      INSERT INTO operation( type, subject, name, restricted, description )
+      VALUES( "pull", "participant", "multinote", true, "Gets a summary of participants affected by a multinote operation." );
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
       VALUES( "push", "participant", "multinote", true, "Adds a note to a group of participants." );
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
@@ -111,6 +113,8 @@ CREATE PROCEDURE patch_operation()
       VALUES( "pull", "participant", "report", true, "Download a participant report." );
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
       VALUES( "widget", "participant", "report", true, "Set up a participant report." );
+      INSERT INTO operation( type, subject, name, restricted, description )
+      VALUES( "pull", "participant", "site_reassign", true, "Gets a summary of participants affected by a site reassign operation." );
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
       VALUES( "widget", "participant", "site_reassign", true, "A form to mass reassign the preferred site of multiple participants at once." );
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
@@ -145,6 +149,10 @@ CREATE PROCEDURE patch_operation()
       VALUES( "push", "service", "new_role", true, "Add a role to a service." );
       INSERT IGNORE INTO operation( type, subject, name, restricted, description )
       VALUES( "widget", "service", "view", true, "View a service's details." );
+
+      -- system message
+      INSERT IGNORE INTO operation( type, subject, name, restricted, description )
+      VALUES( "widget", "system_message", "show", false, "Displays appropriate system messages to the user." );
 
     END IF;
   END //

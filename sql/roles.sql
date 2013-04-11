@@ -449,7 +449,7 @@ AND role.name IN( "administrator", "coordinator", "interviewer" );
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "widget" AND subject = "participant" AND operation.name = "add_alternate"
-AND role.name IN ( "administrator" );
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
@@ -494,7 +494,7 @@ AND role.name IN( "administrator", "coordinator", "interviewer" );
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "push" AND subject = "participant" AND operation.name = "delete_alternate"
-AND role.name IN ( "administrator" );
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
@@ -543,6 +543,11 @@ AND role.name IN( "administrator", "coordinator", "interviewer" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "participant" AND operation.name = "multinote"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "push" AND subject = "participant" AND operation.name = "multinote"
 AND role.name IN ( "administrator" );
 
@@ -570,6 +575,11 @@ INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "widget" AND subject = "participant" AND operation.name = "secondary"
 AND role.name IN( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "participant" AND operation.name = "site_reassign"
+AND role.name IN ( "administrator" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation

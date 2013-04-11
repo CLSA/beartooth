@@ -52,6 +52,7 @@ class home_assignment_select extends \cenozo\ui\widget
     $this->participant_list->set_addable( false );
     $this->participant_list->set_removable( false );
     $this->participant_list->set_heading( sprintf( 'Available participants (%s)', $language ) );
+    $this->participant_list->set_allow_restrict_condition( false );
   }
 
   /**

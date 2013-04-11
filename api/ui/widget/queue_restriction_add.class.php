@@ -57,19 +57,28 @@ class queue_restriction_add extends \cenozo\ui\widget\base_view
   {
     parent::setup();
 
+    $site_class_name = lib::get_class_name( 'database\site' );
+    $region_class_name = lib::get_class_name( 'database\region' );
+
     $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
     
     // create enum arrays
     if( $is_top_tier )
     {
+      $site_mod = lib::create( 'database\modifier' );
+      $site_mod->order( 'name' );
       $sites = array();
-      $class_name = lib::get_class_name( 'database\site' );
-      foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
+      foreach( $site_class_name::select( $site_mod ) as $db_site )
+        $sites[$db_site->id] = $db_site->name;
     }
+
+    $region_mod = lib::create( 'database\modifier' );
+    $region_mod->order( 'country' );
+    $region_mod->order( 'name' );
     $regions = array();
-    $class_name = lib::get_class_name( 'database\region' );
-    foreach( $class_name::select() as $db_region ) $regions[$db_region->id] = $db_region->name;
+    foreach( $region_class_name::select( $region_mod ) as $db_region )
+      $regions[$db_region->id] = $db_region->name;
 
     // set the view's items
     $this->set_item(

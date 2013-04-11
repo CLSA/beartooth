@@ -108,12 +108,10 @@ CREATE PROCEDURE convert_database()
           "user_id INT UNSIGNED NOT NULL, ",
           "site_id INT UNSIGNED NOT NULL COMMENT 'The site from which the user was assigned.', ",
           "interview_id INT UNSIGNED NOT NULL, ",
-          "queue_id INT UNSIGNED DEFAULT NULL COMMENT 'The queue that the assignment came from.', ",
           "start_datetime DATETIME NOT NULL, ",
           "end_datetime DATETIME NULL DEFAULT NULL, ",
           "PRIMARY KEY ( id ), ",
           "INDEX fk_interview_id ( interview_id ASC ), ",
-          "INDEX fk_queue_id ( queue_id ASC ), ",
           "INDEX dk_start_datetime ( start_datetime ASC ), ",
           "INDEX dk_end_datetime ( end_datetime ASC ), ",
           "INDEX fk_user_id ( user_id ASC ), ",
@@ -121,11 +119,6 @@ CREATE PROCEDURE convert_database()
           "CONSTRAINT fk_assignment_interview_id ",
             "FOREIGN KEY ( interview_id ) ",
             "REFERENCES interview ( id ) ",
-            "ON DELETE NO ACTION ",
-            "ON UPDATE NO ACTION, ",
-          "CONSTRAINT fk_assignment_queue_id ",
-            "FOREIGN KEY ( queue_id ) ",
-            "REFERENCES queue ( id ) ",
             "ON DELETE NO ACTION ",
             "ON UPDATE NO ACTION, ",
           "CONSTRAINT fk_assignment_user_id ",
@@ -145,9 +138,9 @@ CREATE PROCEDURE convert_database()
 
       SET @sql = CONCAT(
         "INSERT INTO assignment ( id, update_timestamp, create_timestamp, user_id, site_id, ",
-                                 "interview_id, queue_id, start_datetime, end_datetime ) ",
+                                 "interview_id, start_datetime, end_datetime ) ",
         "SELECT old.id, old.update_timestamp, old.create_timestamp, cuser.id, csite.id, ",
-               "old.interview_id, old.queue_id, old.start_datetime, old.end_datetime ",
+               "old.interview_id, old.start_datetime, old.end_datetime ",
         "FROM assignment_old old ",
         "JOIN user ON old.user_id = user.id ",
         "JOIN ", @cenozo, ".user cuser ON user.name = cuser.name ",
@@ -420,7 +413,7 @@ CREATE PROCEDURE convert_database()
 
       SET @sql = CONCAT(
         "CREATE TABLE IF NOT EXISTS onyx_instance ( ",
-          "id INT NOT NULL , ",
+          "id INT UNSIGNED NOT NULL AUTO_INCREMENT, ",
           "update_timestamp TIMESTAMP NOT NULL , ",
           "create_timestamp TIMESTAMP NOT NULL , ",
           "site_id INT UNSIGNED NOT NULL , ",
@@ -690,35 +683,6 @@ CREATE PROCEDURE convert_database()
 
       DROP TABLE role_has_operation_old;
 
-      -- site_voip ---------------------------------------------------------------------------------
-      SELECT "Processing site_voip" AS "";
-      SET @sql = CONCAT(
-        "CREATE TABLE IF NOT EXISTS site_voip ( ",
-          "site_id INT UNSIGNED NOT NULL , ",
-          "host VARCHAR( 45 ) NULL DEFAULT NULL , ",
-          "xor_key VARCHAR( 45 ) NULL DEFAULT NULL , ",
-          "PRIMARY KEY ( site_id ) , ",
-          "INDEX fk_site_id ( site_id ASC ) , ",
-          "CONSTRAINT fk_site_voip_site_id ",
-            "FOREIGN KEY ( site_id ) ",
-            "REFERENCES ", @cenozo, ".site ( id ) ",
-            "ON DELETE NO ACTION ",
-            "ON UPDATE NO ACTION ) ",
-        "ENGINE = InnoDB " );
-      PREPARE statement FROM @sql;
-      EXECUTE statement;
-      DEALLOCATE PREPARE statement;
-
-      SET @sql = CONCAT(
-        "INSERT INTO site_voip( site_id, host, xor_key ) ",
-        "SELECT csite.id, site.voip_host, site.voip_xor_key ",
-        "FROM site ",
-        "JOIN ", @cenozo, ".site csite ON site.name = csite.name ",
-        "AND csite.service_id = ( SELECT id FROM ", @cenozo, ".service WHERE title = 'Beartooth' )" );
-      PREPARE statement FROM @sql;
-      EXECUTE statement;
-      DEALLOCATE PREPARE statement;
-
       -- next_of_kin -------------------------------------------------------------------------------
       SELECT "Processing next_of_kin" AS "";
       SET @sql = CONCAT(
@@ -806,6 +770,57 @@ CREATE PROCEDURE convert_database()
       EXECUTE statement;
       DEALLOCATE PREPARE statement;
 
+      -- system_message ------------------------------------------------------------------------
+      SELECT "Processing system_message" AS "";
+      ALTER TABLE system_message RENAME system_message_old;
+      ALTER TABLE system_message_old
+      DROP FOREIGN KEY fk_system_message_role_id,
+      DROP FOREIGN KEY fk_system_message_site_id;
+
+      SET @sql = CONCAT(
+        "CREATE TABLE IF NOT EXISTS system_message ( ",
+          "id INT UNSIGNED NOT NULL AUTO_INCREMENT , ",
+          "update_timestamp TIMESTAMP NOT NULL , ",
+          "create_timestamp TIMESTAMP NOT NULL , ",
+          "site_id INT UNSIGNED NULL , ",
+          "role_id INT UNSIGNED NULL , ",
+          "title VARCHAR(255) NOT NULL , ",
+          "note TEXT NOT NULL , ",
+          "PRIMARY KEY (id) , ",
+          "INDEX fk_site_id (site_id ASC) , ",
+          "INDEX fk_role_id (role_id ASC) , ",
+          "CONSTRAINT fk_system_message_site_id ",
+            "FOREIGN KEY (site_id ) ",
+            "REFERENCES ", @cenozo, ".site (id ) ",
+            "ON DELETE NO ACTION ",
+            "ON UPDATE NO ACTION, ",
+          "CONSTRAINT fk_system_message_role_id ",
+            "FOREIGN KEY (role_id ) ",
+            "REFERENCES ", @cenozo, ".role (id ) ",
+            "ON DELETE NO ACTION ",
+            "ON UPDATE NO ACTION) ",
+        "ENGINE = InnoDB" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
+      SET @sql = CONCAT(
+        "INSERT INTO system_message( id, update_timestamp, create_timestamp, ",
+                                    "site_id, role_id, title, note ) ",
+        "SELECT old.id, old.update_timestamp, old.create_timestamp, ",
+               "csite.id, crole.id, old.title, old.note ",
+        "FROM system_message_old old ",
+        "JOIN site ON old.site_id = site.id ",
+        "JOIN ", @cenozo, ".site csite ON site.name = csite.name ",
+        "AND csite.service_id = ( SELECT id FROM ", @cenozo, ".service WHERE title = 'Beartooth' ) ",
+        "JOIN role ON old.role_id = role.id ",
+        "JOIN ", @cenozo, ".role crole ON role.name = crole.name" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
+      DROP TABLE system_message_old;
+
       -- participant_last_appointment --------------------------------------------------------------
       SELECT "Processing participant_last_appointment" AS "";
       DROP VIEW participant_last_appointment;
@@ -842,7 +857,6 @@ CREATE PROCEDURE convert_database()
       DROP TABLE postcode;
       DROP TABLE region;
       DROP TABLE source;
-      DROP TABLE system_message;
       DROP TABLE jurisdiction;
       DROP TABLE user;
       DROP TABLE role;

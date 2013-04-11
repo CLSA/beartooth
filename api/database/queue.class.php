@@ -66,10 +66,10 @@ class queue extends \cenozo\database\record
       'assigned',
       'restricted',
       'quota disabled',
+      'outside calling time',
       'callback',
       'upcoming callback',
       'assignable callback',
-      'outside calling time',
       'new participant',
       'new participant available',
       'new participant not available',
@@ -394,8 +394,8 @@ class queue extends \cenozo\database\record
 
     // an array containing all of the qnaire queue's direct children queues
     $qnaire_children = array(
-      'qnaire waiting', 'appointment', 'assigned', 'restricted', 'quota disabled', 'callback',
-      'outside calling time', 'new participant', 'old participant' );
+      'qnaire waiting', 'appointment', 'assigned', 'restricted', 'quota disabled',
+      'outside calling time', 'callback', 'new participant', 'old participant' );
 
     // sql resolving to the participant's effective site
     $participant_site_id =
@@ -404,7 +404,8 @@ class queue extends \cenozo\database\record
     // join to the participant's primary region
     $primary_region_join =
       'LEFT JOIN participant_for_queue_primary_region '.
-      'ON participant_for_queue_primary_region.person_id = participant_person_id';
+      'ON participant_for_queue_primary_region.person_id = participant_person_id '.
+      'AND jurisdiction_service_id = service_has_participant_service_id';
 
     // join to the queue_restriction table based on site, city, region or postcode
     $restriction_join =
@@ -447,6 +448,7 @@ class queue extends \cenozo\database\record
         ') '.
       ')';
 
+    // when to start the qnaire (NULL means right away)
     $start_qnaire_date =
       '( '.
         'IF '.
@@ -646,18 +648,10 @@ class queue extends \cenozo\database\record
           'OR last_consent_accept = 1 '.
         ')';
 
-      if( 'sourcing required' == $queue )
-      {
-        $parts['where'][] =
-          '( '.
-            '( participant_status IS NULL AND phone_count = 0 ) OR '.
-            'participant_status = "'.$queue.'" '.
-          ')';
-      }
-      else
-      {
-        $parts['where'][] = 'participant_status = "'.$queue.'"';
-      }
+      // add participants with no phone numbers to the sourcing required list
+      $parts['where'][] = 'sourcing required' == $queue
+                        ? '( phone_count = 0 OR participant_status = "'.$queue.'" )'
+                        : $parts['where'][] = 'participant_status = "'.$queue.'"';
     }
     else if( 'eligible' == $queue )
     {
@@ -746,38 +740,38 @@ class queue extends \cenozo\database\record
                 // who belong to a quota which is not disabled or doesn't exist
                 $parts['where'][] = '( quota_state.disabled IS NULL OR quota_state.disabled = false )';
 
-                if( 'callback' == $queue )
+                if( 'outside calling time' == $queue )
                 {
-                  // link to callback table and make sure the callback hasn't been assigned
-                  // (by design, there can only ever one unassigned callback per participant)
-                  $parts['from'][] = 'callback';
-                  $parts['where'][] = 'callback.participant_id = participant_for_queue.id';
-                  $parts['where'][] = 'callback.assignment_id IS NULL';
+                  // outside of the calling time
+                  $parts['where'][] = $check_time
+                                    ? 'NOT '.$calling_time_sql
+                                    : 'NOT true'; // purposefully a negative tautology
                 }
                 else
                 {
-                  // Make sure there is no unassigned callback.  By design there can only be one of
-                  // per participant, so if the callback is null then the participant has no pending
-                  // callbacks.
-                  $parts['join'][] =
-                    'LEFT JOIN callback '.
-                    'ON callback.participant_id = participant_for_queue.id '.
-                    'AND callback.assignment_id IS NULL';
-                  $parts['where'][] = 'callback.id IS NULL';
+                  // within the calling time
+                  $parts['where'][] = $check_time
+                                    ? $calling_time_sql
+                                    : 'true'; // purposefully a tautology
 
-                  if( 'outside calling time' == $queue )
+                  if( 'callback' == $queue )
                   {
-                    // outside of the calling time
-                    $parts['where'][] = $check_time
-                                      ? 'NOT '.$calling_time_sql
-                                      : 'NOT true'; // purposefully a negative tautology
+                    // link to callback table and make sure the callback hasn't been assigned
+                    // (by design, there can only ever one unassigned callback per participant)
+                    $parts['from'][] = 'callback';
+                    $parts['where'][] = 'callback.participant_id = participant_for_queue.id';
+                    $parts['where'][] = 'callback.assignment_id IS NULL';
                   }
                   else
                   {
-                    // within the calling time
-                    $parts['where'][] = $check_time
-                                      ? $calling_time_sql
-                                      : 'true'; // purposefully a tautology
+                    // Make sure there is no unassigned callback.  By design there can only be one of
+                    // per participant, so if the callback is null then the participant has no pending
+                    // callbacks.
+                    $parts['join'][] =
+                      'LEFT JOIN callback '.
+                      'ON callback.participant_id = participant_for_queue.id '.
+                      'AND callback.assignment_id IS NULL';
+                    $parts['where'][] = 'callback.id IS NULL';
 
                     if( 'new participant' == $queue )
                     {
@@ -965,12 +959,14 @@ class queue extends \cenozo\database\record
   protected static function create_participant_for_queue()
   {
     $database_class_name = lib::get_class_name( 'database\database' );
+    $service_id = lib::create( 'business\session' )->get_service()->id;
 
     if( static::$participant_for_queue_created ) return;
+
+    static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue' );
     $sql = sprintf( 'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue '.
                     static::$participant_for_queue_sql,
-                    $database_class_name::format_string(
-                      lib::create( 'business\session' )->get_service()->id ) );
+                    $database_class_name::format_string( $service_id ) );
     static::db()->execute( $sql );
     static::db()->execute(
       'ALTER TABLE participant_for_queue '.
@@ -988,35 +984,46 @@ class queue extends \cenozo\database\record
       'ADD INDEX fk_last_consent_accept ( last_consent_accept ), '.
       'ADD INDEX fk_last_assignment_id ( last_assignment_id )' );
 
-    static::db()->execute(
+    static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue_phone_count' );
+    static::db()->execute( sprintf(
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_phone_count '.
-      'SELECT person_id, COUNT(*) phone_count '.
-      'FROM phone '.
-      'WHERE active AND number IS NOT NULL '.
-      'GROUP BY person_id' );
+      'SELECT participant.person_id, COUNT(*) phone_count '.
+      'FROM participant '.
+      'JOIN service_has_participant ON participant.id = service_has_participant.participant_id '.
+      'AND service_has_participant.service_id = %s '.
+      'LEFT JOIN phone ON participant.person_id = phone.person_id '.
+      'AND phone.active AND phone.number IS NOT NULL '.
+      'GROUP BY participant.person_id',
+      $database_class_name::format_string( $service_id ) ) );
     static::db()->execute(
       'ALTER TABLE participant_for_queue_phone_count '.
       'ADD INDEX dk_person_id ( person_id ), '.
       'ADD INDEX dk_phone_count ( phone_count )' );
 
-    static::db()->execute(
+    static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue_primary_region' );
+    static::db()->execute( sprintf(
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_primary_region '.
       'SELECT person_primary_address.person_id, '.
              'region.id AS primary_region_id, '.
-             'jurisdiction.site_id jurisdiction_site_id '.
+             'jurisdiction.site_id jurisdiction_site_id, '.
+             'jurisdiction.service_id jurisdiction_service_id '.
       'FROM person_primary_address '.
       'LEFT JOIN address '.
       'ON person_primary_address.address_id = address.id '.
       'LEFT JOIN region '.
       'ON address.region_id = region.id '.
       'LEFT JOIN jurisdiction '.
-      'ON jurisdiction.postcode = address.postcode' );
+      'ON jurisdiction.service_id = %s '.
+      'AND jurisdiction.postcode = address.postcode',
+      $database_class_name::format_string( $service_id ) ) );
     static::db()->execute(
       'ALTER TABLE participant_for_queue_primary_region '.
       'ADD INDEX dk_person_id ( person_id ), '.
       'ADD INDEX dk_primary_region_id ( primary_region_id ), '.
-      'ADD INDEX dk_jurisdiction_site_id ( jurisdiction_site_id )' );
+      'ADD INDEX dk_jurisdiction_site_id ( jurisdiction_site_id ), '.
+      'ADD INDEX dk_jurisdiction_service_id ( jurisdiction_service_id )' );
 
+    static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue_first_address' );
     static::db()->execute(
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_first_address '.
       'SELECT person_first_address.person_id, '.
@@ -1190,7 +1197,6 @@ last_assignment.id AS last_assignment_id,
 last_assignment.user_id AS last_assignment_user_id,
 last_assignment.site_id AS last_assignment_site_id,
 last_assignment.interview_id AS last_assignment_interview_id,
-last_assignment.queue_id AS last_assignment_queue_id,
 last_assignment.start_datetime AS last_assignment_start_datetime,
 last_assignment.end_datetime AS last_assignment_end_datetime,
 current_qnaire.id AS current_qnaire_id,
@@ -1226,7 +1232,6 @@ next_prev_assignment.id AS next_prev_assignment_id,
 next_prev_assignment.user_id AS next_prev_assignment_user_id,
 next_prev_assignment.site_id AS next_prev_assignment_site_id,
 next_prev_assignment.interview_id AS next_prev_assignment_interview_id,
-next_prev_assignment.queue_id AS next_prev_assignment_queue_id,
 next_prev_assignment.start_datetime AS next_prev_assignment_start_datetime,
 next_prev_assignment.end_datetime AS next_prev_assignment_end_datetime
 FROM participant

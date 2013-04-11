@@ -42,7 +42,6 @@ class assignment_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'user', 'constant', 'User' );
     $this->add_item( 'site', 'constant', 'Site' );
     $this->add_item( 'participant', 'constant', 'Participant' );
-    $this->add_item( 'queue', 'constant', 'Queue' );
     $this->add_item( 'datetime', 'constant', 'Date' );
     $this->add_item( 'start_time_only', 'constant', 'Start Time' );
     $this->add_item( 'end_time_only', 'constant', 'End Time' );
@@ -65,15 +64,11 @@ class assignment_view extends \cenozo\ui\widget\base_view
        
     $db_participant = $this->get_record()->get_interview()->get_participant();
     $participant = sprintf( '%s, %s', $db_participant->last_name, $db_participant->first_name );
-    $queue = is_null( $this->get_record()->get_queue() )
-           ? 'none'
-           : $this->get_record()->get_queue()->name;
 
     // set the view's items
     $this->set_item( 'user', $this->get_record()->get_user()->name );
     $this->set_item( 'site', $this->get_record()->get_site()->name );
     $this->set_item( 'participant', $participant );
-    $this->set_item( 'queue', $queue );
     $this->set_item( 'datetime',
       util::get_formatted_date( $this->get_record()->start_datetime ) );
     $this->set_item( 'start_time_only',

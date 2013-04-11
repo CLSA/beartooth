@@ -38,6 +38,7 @@ class onyx_consent extends \cenozo\ui\push
     parent::execute();
 
     $participant_class_name = lib::create( 'database\participant' );
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
 
     // get the body of the request
     $body = http_get_request_body();
@@ -109,10 +110,17 @@ class onyx_consent extends \cenozo\ui\push
                             'written' => true,
                             'note' => 'Provided by Onyx.' );
           $args = array( 'columns' => $columns );
+
           if( array_key_exists( 'pdfForm', $object_vars ) )
+          { // if a form is included we need to send the request to mastodon
             $args['form'] = $consent_data->pdfForm;
-          $operation = lib::create( 'ui\push\consent_new', $args );
-          $operation->process();
+            $mastodon_manager->push( 'consent', 'new', $args );
+          }
+          else
+          {
+            $operation = lib::create( 'ui\push\consent_new', $args );
+            $operation->process();
+          }
         }
       }
     }
