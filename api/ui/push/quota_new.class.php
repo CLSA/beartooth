@@ -58,24 +58,5 @@ class quota_new extends \cenozo\ui\push\base_new
       throw lib::create( 'exception\notice',
         'The quota\'s population cannot be left blank.', __METHOD__ );
   }
-  
-  /**
-   * Converts primary keys to unique keys in operation arguments.
-   * All converted arguments will appear in the array under a 'noid' key.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param array $args An argument list, usually those passed to the push operation.
-   * @return array
-   * @access protected
-   */
-  protected function convert_to_noid( $args )
-  {
-    $args = parent::convert_to_noid( $args );
-
-    // add in the site's cohort
-    $args['columns']['cohort'] =
-      lib::create( 'business\setting_manager' )->get_setting( 'general', 'cohort' );
-
-    return $args;
-  }
 }
 ?>

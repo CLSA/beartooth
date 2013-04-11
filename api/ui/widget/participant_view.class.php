@@ -48,10 +48,13 @@ class participant_view extends \cenozo\ui\widget\base_view
     $this->add_item( 'status', 'enum', 'Condition' );
     $this->add_item( 'default_site', 'constant', 'Default Site' );
     $this->add_item( 'site_id', 'enum', 'Prefered Site' );
-    $this->add_item( 'consent_to_draw_blood', 'boolean', 'Consent to Draw Blood' );
+    $this->add_item( 'email', 'string', 'Email' );
+    $this->add_item( 'gender', 'enum', 'Gender' );
+    $this->add_item( 'date_of_birth', 'date', 'Date of Birth' );
     $this->add_item( 'prior_contact_date', 'constant', 'Prior Contact Date' );
     $this->add_item( 'current_qnaire_name', 'constant', 'Current Questionnaire' );
     $this->add_item( 'start_qnaire_date', 'constant', 'Delay Questionnaire Until' );
+    $this->add_item( 'consent_to_draw_blood', 'boolean', 'Consent to Draw Blood' );
     $this->add_item( 'defer_until', 'date', 'Defer Contact Until' );
     
     // create the address sub-list widget
@@ -97,24 +100,26 @@ class participant_view extends \cenozo\ui\widget\base_view
     
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $site_class_name = lib::get_class_name( 'database\site' );
-
-    $db_participant = $this->get_record();
+    $operation_class_name = lib::get_class_name( 'database\operation' );
+    $record = $this->get_record();
 
     // create enum arrays
+    $languages = $participant_class_name::get_enum_values( 'language' );
+    $languages = array_combine( $languages, $languages );
+    $statuses = $participant_class_name::get_enum_values( 'status' );
+    $statuses = array_combine( $statuses, $statuses );
     $sites = array();
     $site_mod = lib::create( 'database\modifier' );
     $site_mod->order( 'name' );
     foreach( $site_class_name::select( $site_mod ) as $db_site )
       $sites[$db_site->id] = $db_site->name;
-    $db_site = $db_participant->get_site();
+    $db_site = $record->get_site();
     $site_id = is_null( $db_site ) ? '' : $db_site->id;
-    $languages = $participant_class_name::get_enum_values( 'language' );
-    $languages = array_combine( $languages, $languages );
-    $statuses = $participant_class_name::get_enum_values( 'status' );
-    $statuses = array_combine( $statuses, $statuses );
+    $genders = $participant_class_name::get_enum_values( 'gender' );
+    $genders = array_combine( $genders, $genders );
     
-    $start_qnaire_date = $db_participant->start_qnaire_date;
-    if( is_null( $db_participant->current_qnaire_id ) )
+    $start_qnaire_date = $record->start_qnaire_date;
+    if( is_null( $record->current_qnaire_id ) )
     {
       $current_qnaire_name = '(none)';
 
@@ -122,29 +127,32 @@ class participant_view extends \cenozo\ui\widget\base_view
     }
     else
     {
-      $db_current_qnaire = lib::create( 'database\qnaire', $db_participant->current_qnaire_id );
+      $db_current_qnaire = lib::create( 'database\qnaire', $record->current_qnaire_id );
       $current_qnaire_name = $db_current_qnaire->name;
       $start_qnaire_date = util::get_formatted_date( $start_qnaire_date, 'immediately' );
     }
 
-    $db_default_site = $db_participant->get_default_site();
+    $db_default_site = $record->get_default_site();
     $default_site = is_null( $db_default_site ) ? 'None' : $db_default_site->name;
 
     // set the view's items
-    $this->set_item( 'active', $db_participant->active, true );
-    $this->set_item( 'uid', $db_participant->uid );
-    $this->set_item( 'source', $db_participant->get_source()->name );
-    $this->set_item( 'first_name', $db_participant->first_name );
-    $this->set_item( 'last_name', $db_participant->last_name );
-    $this->set_item( 'language', $db_participant->language, false, $languages );
-    $this->set_item( 'status', $db_participant->status, false, $statuses );
+    $this->set_item( 'active', $record->active, true );
+    $this->set_item( 'uid', $record->uid );
+    $this->set_item( 'source', $record->get_source()->name );
+    $this->set_item( 'first_name', $record->first_name );
+    $this->set_item( 'last_name', $record->last_name );
+    $this->set_item( 'language', $record->language, false, $languages );
+    $this->set_item( 'status', $record->status, false, $statuses );
     $this->set_item( 'default_site', $default_site );
     $this->set_item( 'site_id', $site_id, false, $sites );
-    $this->set_item( 'consent_to_draw_blood', $db_participant->consent_to_draw_blood );
-    $this->set_item( 'prior_contact_date', $db_participant->prior_contact_date );
+    $this->set_item( 'email', $record->email );
+    $this->set_item( 'gender', $record->gender, true, $genders );
+    $this->set_item( 'date_of_birth', $record->date_of_birth );
+    $this->set_item( 'prior_contact_date', $record->prior_contact_date );
     $this->set_item( 'current_qnaire_name', $current_qnaire_name );
     $this->set_item( 'start_qnaire_date', $start_qnaire_date );
-    $this->set_item( 'defer_until', $db_participant->defer_until, false );
+    $this->set_item( 'consent_to_draw_blood', $record->consent_to_draw_blood );
+    $this->set_item( 'defer_until', $record->defer_until, false );
 
     try
     {
@@ -189,6 +197,43 @@ class participant_view extends \cenozo\ui\widget\base_view
       $this->set_variable( 'interview_list', $this->interview_list->get_variables() );
     }
     catch( \cenozo\exception\permission $e ) {}
+
+    // add an action for secondary contact if this participant has no active phone numbers or
+    // too many failed call attempts
+    $allow_secondary = false;
+    $interview_mod = lib::create( 'database\modifier' );
+    $interview_mod->where( 'completed', '=', false );
+    $interview_list = $this->get_record()->get_interview_list( $interview_mod );
+    
+    $phone_mod = lib::create( 'database\modifier' );
+    $phone_mod->where( 'active', '=', true );
+    if( 0 == $this->get_record()->get_phone_count( $phone_mod ) )
+    {
+      $allow_secondary = true;
+    }
+    else if( 0 < count( $interview_list ) )
+    {
+      $max_failed_calls = lib::create( 'business\setting_manager' )->get_setting(
+        'calling', 'max failed calls', $this->get_record()->get_primary_site() );
+
+      // should only be one incomplete interview
+      $db_interview = current( $interview_list );
+      if( $max_failed_calls <= $db_interview->get_failed_call_count() ) $allow_secondary = true;
+    }
+
+    if( $allow_secondary )
+    {
+      $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'secondary' );
+      if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+      {
+        $this->add_action( 'secondary', 'Secondary Contacts', NULL,
+          'A list of alternate contacts which can be called to update a '.
+          'participant\'s contact information' );
+      }
+      else $allow_secondary = false;
+    }
+
+    $this->set_variable( 'allow_secondary', $allow_secondary );
   }
   
   /**

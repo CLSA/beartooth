@@ -39,6 +39,8 @@ CREATE  TABLE IF NOT EXISTS `site` (
   `city` VARCHAR(100) NULL ,
   `region_id` INT UNSIGNED NULL DEFAULT NULL ,
   `postcode` VARCHAR(10) NULL ,
+  `voip_host` VARCHAR(45) NULL ,
+  `voip_xor_key` VARCHAR(45) NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `uq_name` (`name` ASC) ,
   INDEX `fk_region_id` (`region_id` ASC) ,
@@ -99,9 +101,10 @@ CREATE  TABLE IF NOT EXISTS `participant` (
   `gender` ENUM('male','female') NOT NULL ,
   `date_of_birth` DATE NULL ,
   `age_group_id` INT UNSIGNED NULL ,
-  `status` ENUM('deceased','deaf','mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','noncompliant','other') NULL DEFAULT NULL ,
+  `status` ENUM('deceased','deaf','mentally unfit','language barrier','age range','not canadian','federal reserve','armed forces','institutionalized','noncompliant','sourcing required','unreachable','other') NULL DEFAULT NULL ,
   `language` ENUM('en','fr') NULL DEFAULT NULL ,
   `site_id` INT UNSIGNED NULL DEFAULT NULL ,
+  `email` VARCHAR(255) NULL ,
   `defer_until` DATE NULL DEFAULT NULL ,
   `consent_to_draw_blood` TINYINT(1) NOT NULL DEFAULT false ,
   `consent_to_draw_blood_continue` TINYINT(1) NULL DEFAULT NULL ,
@@ -738,13 +741,15 @@ CREATE  TABLE IF NOT EXISTS `quota` (
   `update_timestamp` TIMESTAMP NOT NULL ,
   `create_timestamp` TIMESTAMP NOT NULL ,
   `region_id` INT UNSIGNED NOT NULL ,
+  `site_id` INT UNSIGNED NOT NULL ,
   `gender` ENUM('male','female') NOT NULL ,
   `age_group_id` INT UNSIGNED NOT NULL ,
   `population` INT NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_region_id` (`region_id` ASC) ,
   INDEX `fk_age_group_id` (`age_group_id` ASC) ,
-  UNIQUE INDEX `uq_region_id_gender_age_group_id` (`region_id` ASC, `gender` ASC, `age_group_id` ASC) ,
+  UNIQUE INDEX `uq_region_id_site_id_gender_age_group_id` (`region_id` ASC, `site_id` ASC, `gender` ASC, `age_group_id` ASC) ,
+  INDEX `fk_site_id` (`site_id` ASC) ,
   CONSTRAINT `fk_quota_region`
     FOREIGN KEY (`region_id` )
     REFERENCES `region` (`id` )
@@ -753,6 +758,11 @@ CREATE  TABLE IF NOT EXISTS `quota` (
   CONSTRAINT `fk_quota_age_group_id`
     FOREIGN KEY (`age_group_id` )
     REFERENCES `age_group` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_quota_site_id`
+    FOREIGN KEY (`site_id` )
+    REFERENCES `site` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -839,8 +849,9 @@ DROP VIEW IF EXISTS `assignment_last_phone_call` ;
 DROP TABLE IF EXISTS `assignment_last_phone_call`;
 CREATE  OR REPLACE VIEW `assignment_last_phone_call` AS
 SELECT assignment_1.id as assignment_id, phone_call_1.id as phone_call_id
-FROM phone_call AS phone_call_1, assignment AS assignment_1
-WHERE assignment_1.id = phone_call_1.assignment_id
+FROM assignment AS assignment_1
+LEFT JOIN phone_call AS phone_call_1
+ON assignment_1.id = phone_call_1.assignment_id
 AND phone_call_1.start_datetime = (
   SELECT MAX( phone_call_2.start_datetime )
   FROM phone_call AS phone_call_2, assignment AS assignment_2

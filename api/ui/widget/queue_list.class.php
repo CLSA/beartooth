@@ -41,11 +41,8 @@ class queue_list extends \cenozo\ui\widget\base_list
     // make sure to display all queues on the same page
     $this->set_items_per_page( 1000 );
     
-    $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
-
     $this->add_column( 'rank', 'number', 'Rank', true );
-    if( $restrict_site_id )
-      $this->add_column( 'enabled', 'boolean', 'Enabled', false );
+    $this->add_column( 'enabled', 'boolean', 'Enabled', false );
     $this->add_column( 'participant_count', 'number', 'Participants', false );
     $this->add_column( 'description', 'text', 'Description', true, true, 'left' );
     $session = lib::create( 'business\session' );
@@ -139,11 +136,11 @@ class queue_list extends \cenozo\ui\widget\base_list
         if( 'en' == $restrict_language )
         {
           $modifier->where_bracket( true );
-          $modifier->where( 'participant.language', '=', $restrict_language );
-          $modifier->or_where( 'participant.language', '=', NULL );
+          $modifier->where( 'participant_language', '=', $restrict_language );
+          $modifier->or_where( 'participant_language', '=', NULL );
           $modifier->where_bracket( false );
         }
-        else $modifier->where( 'participant.language', '=', $restrict_language );
+        else $modifier->where( 'participant_language', '=', $restrict_language );
       }
 
       $this->add_row( $record->id,

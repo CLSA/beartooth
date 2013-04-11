@@ -66,34 +66,6 @@ class session extends \cenozo\business\session
   }
 
   /**
-   * Get the audit database.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @return database
-   * @access public
-   */
-  public function get_audit_database()
-  {
-    // create the database if it doesn't exist yet
-    if( is_null( $this->audit_database ) )
-    {
-      $setting_manager = lib::create( 'business\setting_manager' );
-      if( $setting_manager->get_setting( 'audit_db', 'enabled' ) )
-      {
-        $this->audit_database = lib::create( 'database\database',
-          $setting_manager->get_setting( 'audit_db', 'driver' ),
-          $setting_manager->get_setting( 'audit_db', 'server' ),
-          $setting_manager->get_setting( 'audit_db', 'username' ),
-          $setting_manager->get_setting( 'audit_db', 'password' ),
-          $setting_manager->get_setting( 'audit_db', 'database' ),
-          $setting_manager->get_setting( 'audit_db', 'prefix' ) );
-      }
-    }
-
-    return $this->audit_database;
-  }
-
-  /**
    * Get the user's current assignment.
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
@@ -186,10 +158,31 @@ class session extends \cenozo\business\session
    */
   public function slot_current( $slot )
   {
+    $widget = parent::slot_current( $slot );
     return 'main' == $slot &&
-           $this->get_current_assignment()
+           $this->get_current_assignment() &&
+           'participant_secondary' != $widget['name']
          ? array( 'name' => 'self_assignment', 'args' => NULL )
-         : parent::slot_current( $slot );
+         : $widget;
+  }
+
+  /**
+   * Resets the slot stacks to their initial state.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param string $slot The name of the slot.
+   * @return string The name of the widget or NULL if the stack is empty.
+   * @access public
+   */
+  public function slot_reset( $slot )
+  {
+    // kill the secondary contact cookies in case they exist
+    setcookie( 'secondary_id', NULL, time() - 3600, COOKIE_PATH );
+    setcookie( 'secondary_participant_id', NULL, time() - 3600, COOKIE_PATH );
+    setcookie( 'secondary_participant_first_name', NULL, time() - 3600, COOKIE_PATH );
+    setcookie( 'secondary_participant_last_name', NULL, time() - 3600, COOKIE_PATH );
+
+    parent::slot_reset( $slot );
   }
 
   /**
@@ -198,12 +191,5 @@ class session extends \cenozo\business\session
    * @access private
    */
   private $survey_database = NULL;
-
-  /**
-   * The survey database object.
-   * @var database
-   * @access private
-   */
-  private $audit_database = NULL;
 }
 ?>

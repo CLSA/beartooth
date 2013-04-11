@@ -7,6 +7,22 @@
  #}
 {% extends "base_view.twig" %}
 
+{% block javascript %}
+  {{ parent() }}
+  {% if allow_secondary %}
+    <script type="text/javascript">
+      $( function() {
+        // secondary button
+        $( "#{{ widget.full }}__secondary" ).click( function() {
+          window.location.reload();
+          // force the secondary list to be loaded in the main slot
+          slot_load( 'main', 'participant', 'secondary', { id: {{ id }} } );
+        } );
+      } );
+    </script>
+  {% endif %}
+{% endblock javascript %}
+
 {% block record %}
 
   {{ parent() }}

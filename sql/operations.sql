@@ -180,6 +180,8 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "participant", "sync", true, "Returns a summary of changes to be made given a list of UIDs to sync." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "participant", "sync", true, "Updates participants with their information in Mastodon." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "participant", "secondary", true, "Lists a participant's alternates for sourcing purposes." );
 
 -- phase
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -302,6 +304,10 @@ VALUES( "pull", "quota", "primary", true, "Retrieves base quota information." );
 -- VALUES( "widget", "demographics", "report", true, "Set up a new demographics report." );
 -- INSERT INTO operation( type, subject, name, restricted, description )
 -- VALUES( "pull", "demographics", "report", true, "Download a new demographics report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "progress", "report", true, "Set up a progress report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "progress", "report", true, "Download a progress report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "participant_tree", "report", true, "Set up a participant tree report." );
 INSERT INTO operation( type, subject, name, restricted, description )

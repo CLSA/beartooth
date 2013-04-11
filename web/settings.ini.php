@@ -11,7 +11,7 @@ global $SETTINGS;
 
 // tagged version
 $SETTINGS['general']['application_name'] = 'beartooth';
-$SETTINGS['general']['version'] = '1.0.3';
+$SETTINGS['general']['version'] = '1.0.5';
 
 // always leave as false when running as production server
 $SETTINGS['general']['development_mode'] = false;
@@ -45,22 +45,12 @@ $SETTINGS['db']['password'] = '';
 $SETTINGS['db']['database'] = 'beartooth';
 $SETTINGS['db']['prefix'] = '';
 
-// audit database settings (false values use the limesurvey database settings)
-$SETTINGS['audit_db']['enabled'] = false;
-$SETTINGS['audit_db']['driver'] = false;
-$SETTINGS['audit_db']['server'] = false;
-$SETTINGS['audit_db']['username'] = false;
-$SETTINGS['audit_db']['password'] = false;
-$SETTINGS['audit_db']['database'] = false;
-$SETTINGS['audit_db']['prefix'] = 'audit_';
-
 // voip settings
 $SETTINGS['voip']['enabled'] = false;
 $SETTINGS['voip']['url'] = 'http://localhost:8088/mxml';
 $SETTINGS['voip']['username'] = '';
 $SETTINGS['voip']['password'] = '';
 $SETTINGS['voip']['prefix'] = '';
-$SETTINGS['voip']['xor_key'] = '';
 
 // the directory to write recorded calls
 // (must be an absolute path that the asterisk server's user has access to)
