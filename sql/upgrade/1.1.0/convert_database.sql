@@ -313,7 +313,7 @@ CREATE PROCEDURE convert_database()
         "JOIN participant ON old.participant_id = participant.id ",
         "JOIN ", @cenozo, ".participant cparticipant ON participant.uid = cparticipant.uid ",
         "LEFT JOIN user ON old.user_id = user.id ",
-        "LEFT JOIN ", @cenozo, ".user cuser ON user.id = cuser.id ",
+        "LEFT JOIN ", @cenozo, ".user cuser ON user.name = cuser.name ",
         "LEFT JOIN address ON old.address_id = address.id ",
         "LEFT JOIN ", @cenozo, ".address caddress ON address.rank = caddress.rank ",
         "AND cparticipant.person_id = caddress.person_id" );
