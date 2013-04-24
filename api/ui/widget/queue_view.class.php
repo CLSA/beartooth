@@ -39,10 +39,9 @@ class queue_view extends \cenozo\ui\widget\base_view
     parent::prepare();
     
     $session = lib::create( 'business\session' );
-    $is_top_tier = 3 == $session->get_role()->tier;
     $is_interviewer = 'interviewer' == $session->get_role()->name;
 
-    if( !$is_top_tier ) $this->db_site = $session->get_site();
+    if( !$session->get_role()->all_sites ) $this->db_site = $session->get_site();
     else
     {
       $site_id = $this->get_argument( 'site_id', 0 );

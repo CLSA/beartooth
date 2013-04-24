@@ -43,10 +43,10 @@ class participant_tree extends \cenozo\ui\widget
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
 
     $session = lib::create( 'business\session' );
-    $is_top_tier = 3 == $session->get_role()->tier;
+    $all_sites = $session->get_role()->all_sites;
 
     // if this is a top tier role give them a list of sites to choose from
-    if( $is_top_tier )
+    if( $all_sites )
     {
       $sites = array();
       foreach( $site_class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
@@ -99,7 +99,7 @@ class participant_tree extends \cenozo\ui\widget
     foreach( $queue_class_name::select( $modifier ) as $db_queue )
     {
       // restrict queue based on user's role
-      if( !$is_top_tier ) $db_queue->set_site( $session->get_site() );
+      if( !$all_sites ) $db_queue->set_site( $session->get_site() );
       else if( !is_null( $db_site ) ) $db_queue->set_site( $db_site );
       
       // handle queues which are not qnaire specific
