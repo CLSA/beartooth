@@ -423,7 +423,7 @@ class queue extends \cenozo\database\record
     // join to the quota table based on site, region, gender and age group
     $quota_join =
       'LEFT JOIN quota '.
-      'ON quota.site_id = '.$participant_site_id.
+      'ON quota.site_id = jurisdiction_site_id '.
       'AND quota.region_id = primary_region_id '.
       'AND quota.gender = participant_gender '.
       'AND quota.age_group_id = participant_age_group_id '.
@@ -1240,6 +1240,7 @@ next_prev_assignment.end_datetime AS next_prev_assignment_end_datetime
 FROM participant
 JOIN service_has_participant
 ON participant.id = service_has_participant.participant_id
+AND service_has_participant.datetime IS NOT NULL
 AND service_id = %s
 JOIN participant_last_consent
 ON participant.id = participant_last_consent.participant_id

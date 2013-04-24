@@ -158,8 +158,13 @@ class queue_view extends \cenozo\ui\widget\base_view
         $modifier->change_where_column(
           $column, preg_replace( '/^participant\./', 'participant_', $column ) );
       foreach( $modifier->get_order_columns() as $column )
-        $modifier->change_order_column(
-          $column, preg_replace( '/^participant\./', 'participant_', $column ) );
+      {
+        if( 'participant.id' == $column )
+          $modifier->change_order_column( 'participant.id', 'participant_for_queue.id' );
+        else
+          $modifier->change_order_column(
+            $column, preg_replace( '/^participant\./', 'participant_', $column ) );
+      }
     }
 
     $db_queue = $this->get_record();
