@@ -152,7 +152,7 @@ class site_assignment_select extends \cenozo\ui\widget
       foreach( $modifier->get_order_columns() as $column )
       {
         if( 'participant.id' == $column )
-          $modifier->change_order_column( 'participant.id', 'participant_for_queue.id' );
+          $modifier->change_order_column( 'participant.id', 'ranked_participant_for_queue.id' );
         else
           $modifier->change_order_column(
             $column, preg_replace( '/^participant\./', 'participant_', $column ) );
