@@ -117,7 +117,7 @@ class onyx_proxy extends \cenozo\ui\push
         {
           $parts = explode( ' ', trim( $proxy_data->$var_name ), 2 );
           $entry['proxy_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
-          $entry['proxy_street_name'] = array_key_exists( 0, $parts ) ? $parts[1] : NULL;
+          $entry['proxy_street_name'] = array_key_exists( 1, $parts ) ? $parts[1] : NULL;
         }
 
         $var_name = 'ICF_PXADD2_COM';
