@@ -5,10 +5,10 @@ SET AUTOCOMMIT=0;
 
 -- make sure all roles exist
 INSERT IGNORE INTO cenozo.role( name, tier ) VALUES
-( "administrator", 3 ),
-( "coordinator", 2 ),
-( "interviewer", 1 ),
-( "onyx", 1 );
+( "administrator", 3, true ),
+( "coordinator", 2, false ),
+( "interviewer", 1, false ),
+( "onyx", 1, false );
 
 -- access
 
