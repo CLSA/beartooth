@@ -298,6 +298,7 @@ class queue extends \cenozo\database\record
         $sql .= $db_queue->get_sql(
           'participant_for_queue.*, '.
           'participant_for_queue_primary_region.jurisdiction_site_id, '.
+          'participant_for_queue_first_address.first_address_address1, '.
           'participant_for_queue_first_address.first_address_city, '.
           'participant_for_queue_first_address.first_address_region_id, '.
           'participant_for_queue_first_address.first_address_postcode' );
@@ -1030,6 +1031,7 @@ class queue extends \cenozo\database\record
     static::db()->execute(
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_first_address '.
       'SELECT person_first_address.person_id, '.
+             'address.address1 AS first_address_address1, '.
              'address.city AS first_address_city, '.
              'address.region_id AS first_address_region_id, '.
              'address.postcode AS first_address_postcode, '.
@@ -1041,6 +1043,7 @@ class queue extends \cenozo\database\record
     static::db()->execute(
       'ALTER TABLE participant_for_queue_first_address '.
       'ADD INDEX dk_person_id ( person_id ), '.
+      'ADD INDEX dk_first_address_address1 ( first_address_address1 ), '.
       'ADD INDEX dk_first_address_city ( first_address_city ), '.
       'ADD INDEX dk_first_address_region_id ( first_address_region_id ), '.
       'ADD INDEX dk_first_address_postcode ( first_address_postcode ), '.
