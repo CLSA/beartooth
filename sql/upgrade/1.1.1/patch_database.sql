@@ -3,5 +3,6 @@
 SET AUTOCOMMIT=0;
 
 SOURCE role.sql
+SOURCE assignment_note.sql
 
 COMMIT;
