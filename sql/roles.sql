@@ -609,7 +609,12 @@ AND role.name IN( "administrator", "coordinator", "interviewer" );
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "push" AND subject = "participant" AND operation.name = "withdraw"
-AND role.name IN ( "interviewer" );
+AND role.name IN ( "administrator", "coordinator", "interviewer" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "participant" AND operation.name = "withdraw"
+AND role.name IN ( "administrator", "coordinator" );
 
 -- participant_tree
 
