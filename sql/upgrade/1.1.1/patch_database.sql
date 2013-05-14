@@ -6,5 +6,6 @@ SOURCE operation.sql
 SOURCE role.sql
 SOURCE role_has_operation.sql
 SOURCE assignment_note.sql
+SOURCE participant.sql
 
 COMMIT;
