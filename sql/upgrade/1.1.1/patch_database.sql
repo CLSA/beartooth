@@ -8,5 +8,6 @@ SOURCE role_has_operation.sql
 SOURCE assignment_note.sql
 SOURCE participant.sql
 SOURCE queue.sql
+SOURCE participant_last_interview.sql
 
 COMMIT;
