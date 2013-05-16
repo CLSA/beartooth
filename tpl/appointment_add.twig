@@ -43,7 +43,7 @@
         } );
         args.columns = columns;
     
-        if( ajax_push( "{{ widget.subject }}", "new", args ) ) slot_prev( {{ slot }} );
+        if( ajax_push( "{{ widget.subject }}", "new", args ) ) slot_prev_clip( {{ slot }} );
       } );
 
       {% if 'home' == current_qnaire_type %}
