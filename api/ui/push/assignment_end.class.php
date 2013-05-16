@@ -61,22 +61,43 @@ class assignment_end extends \cenozo\ui\push
       // if no call was made then delete the assignment
       if( 0 == $db_assignment->get_phone_call_count() )
       {
+        // un-associate any callbacks associated with this assignment
+        foreach( $db_assignment->get_callback_list() as $db_callback )
+        {
+          $db_callback->assignment_id = NULL;
+          $db_callback->save();
+        }
+
         foreach( $db_assignment->get_assignment_note_list() as $db_assignment_note )
           $db_assignment_note->delete();
         $db_assignment->delete();
       }
       else
       {
+        // if there is a callback associated with this assignment, set the status
+        $callback_list = $db_assignment->get_callback_list();
+        if( 0 < count( $callback_list ) )
+        {
+          // there should always only be one callback per assignment
+          if( 1 < count( $callback_list ) )
+            log::crit(
+              sprintf( 'Assignment %d has more than one associated callback!',
+                       $db_assignment->id ) );
+
+          $db_callback = current( $callback_list );
+
+          // set the callback status based on whether any calls reached the participant
+          $modifier = lib::create( 'database\modifier' );
+          $modifier->where( 'status', '=', 'contacted' );
+          $db_callback->reached = 0 < $db_assignment->get_phone_call_count( $modifier );
+          $db_callback->save();
+        }
+
         // save the assignment's end time
         $date_obj = util::get_datetime_object();
         $db_assignment->end_datetime = $date_obj->format( 'Y-m-d H:i:s' );
         $db_assignment->save();
       }
     }
-
-    // reset the main slot to prevent the user from returning to the assignment using
-    // the navigation buttons
-    $session->slot_reset( 'main' );
   }
 }
-?>

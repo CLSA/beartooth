@@ -42,6 +42,7 @@ class onyx_participants extends \cenozo\ui\push
     $participant_class_name = lib::create( 'database\participant' );
     $interview_class_name = lib::create( 'database\interview' );
     $qnaire_class_name = lib::create( 'database\qnaire' );
+    $event_type_class_name = lib::create( 'database\event_type' );
 
     // get the body of the request
     $body = http_get_request_body();
@@ -63,59 +64,25 @@ class onyx_participants extends \cenozo\ui\push
           throw lib::create( 'exception\runtime',
             sprintf( 'Participant UID "%s" does not exist.', $uid ), __METHOD__ );
 
+        $db_next_of_kin = $db_participant->get_next_of_kin();
+        if( is_null( $db_next_of_kin ) )
+        {
+          $db_next_of_kin = lib::create( 'database\next_of_kin' );
+          $db_next_of_kin->participant_id = $db_participant->id;
+        }
+
+        $db_data_collection = $db_participant->get_data_collection();
+        if( is_null( $db_data_collection ) )
+        {
+          $db_data_collection = lib::create( 'database\data_collection' );
+          $db_data_collection->participant_id = $db_participant->id;
+        }
+
         $participant_changed = false;
-        $mastodon_columns = array();
+        $next_of_kin_changed = false;
+        $data_collection_changed = false;
 
         // process fields which we want to update
-        $method = 'Admin.Participant.firstName';
-        if( array_key_exists( $method, $object_vars ) )
-        {
-          $value = $participant_data->$method;
-          if( 0 != strcasecmp( $value, $db_participant->first_name ) )
-          {
-            $db_participant->first_name = $value;
-            $mastodon_columns['first_name'] = $value;
-            $participant_changed = true;
-          }
-        }
-
-        $method = 'Admin.Participant.lastName';
-        if( array_key_exists( $method, $object_vars ) )
-        {
-          $value = $participant_data->$method;
-          if( 0 != strcasecmp( $value, $db_participant->last_name ) )
-          {
-            $db_participant->last_name = $value;
-            $mastodon_columns['last_name'] = $value;
-            $participant_changed = true;
-          }
-        }
-
-        $method = 'Admin.Participant.consentToDrawBlood';
-        if( array_key_exists( $method, $object_vars ) )
-        {
-          $value = $participant_data->$method;
-          if( is_string( $value ) ) $value = 'true' === $value ? 1 : 0;
-          else $value = $value ? 1 : 0;
-          if( $value != $db_participant->consent_to_draw_blood )
-          {
-            $db_participant->consent_to_draw_blood = $value;
-            $participant_changed = true;
-          }
-        }
-
-        $method = 'Admin.Participant.gender';
-        if( array_key_exists( $method, $object_vars ) )
-          $mastodon_columns['gender'] =
-            0 == strcasecmp( 'f', substr( $participant_data->$method, 0, 1 ) )
-            ? 'female' : 'male';
-
-        $method = 'Admin.Participant.birthDate';
-        if( array_key_exists( $method, $object_vars ) )
-          $mastodon_columns['date_of_birth'] =
-            util::get_datetime_object(
-              $participant_data->$method )->format( 'Y-m-d' );
-
         $method = 'Admin.Interview.status';
         if( !array_key_exists( $method, $object_vars ) )
           throw lib::create( 'exception\argument',
@@ -130,14 +97,74 @@ class onyx_participants extends \cenozo\ui\push
         else if( preg_match( '/home/i', $participant_data->$method ) ) $interview_type = 'home';
         else $interview_type = false;
 
+        $method = 'Admin.Participant.firstName';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->first_name ) )
+          {
+            $db_participant->first_name = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.lastName';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( 0 != strcasecmp( $value, $db_participant->last_name ) )
+          {
+            $db_participant->last_name = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.consentToDrawBlood';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = $participant_data->$method;
+          if( is_string( $value ) ) $value = preg_match( '/y|yes|true|1/i', $value ) ? 1 : 0;
+          else $value = $value ? 1 : 0;
+          if( is_null( $db_data_collection->draw_blood ) ||
+              $value != $db_data_collection->draw_blood )
+          {
+            $db_data_collection->draw_blood = $value;
+            $data_collection_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.gender';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value =
+            0 == strcasecmp( 'f', substr( $participant_data->$method, 0, 1 ) )
+            ? 'female' : 'male';
+          if( $value != $db_participant->gender )
+          {
+            $db_participant->gender = $value;
+            $participant_changed = true;
+          }
+        }
+
+        $method = 'Admin.Participant.birthDate';
+        if( array_key_exists( $method, $object_vars ) )
+        {
+          $value = util::get_datetime_object( $participant_data->$method )->format( 'Y-m-d' );
+          if( $value != $db_participant->date_of_birth )
+          {
+            $db_participant->date_of_birth = $value;
+            $participant_changed = true;
+          }
+        }
+
         $method = 'Admin.Participant.nextOfKin.firstName';
         if( array_key_exists( $method, $object_vars ) )
         {
           $value = $participant_data->$method;
-          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_first_name ) )
+          if( 0 != strcasecmp( $value, $db_next_of_kin->first_name ) )
           {
-            $db_participant->next_of_kin_first_name = $value;
-            $participant_changed = true;
+            $db_next_of_kin->first_name = $value;
+            $next_of_kin_changed = true;
           }
         }
 
@@ -145,10 +172,10 @@ class onyx_participants extends \cenozo\ui\push
         if( array_key_exists( $method, $object_vars ) )
         {
           $value = $participant_data->$method;
-          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_last_name ) )
+          if( 0 != strcasecmp( $value, $db_next_of_kin->last_name ) )
           {
-            $db_participant->next_of_kin_last_name = $value;
-            $participant_changed = true;
+            $db_next_of_kin->last_name = $value;
+            $next_of_kin_changed = true;
           }
         }
 
@@ -156,10 +183,10 @@ class onyx_participants extends \cenozo\ui\push
         if( array_key_exists( $method, $object_vars ) )
         {
           $value = $participant_data->$method;
-          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_gender ) )
+          if( 0 != strcasecmp( $value, $db_next_of_kin->gender ) )
           {
-            $db_participant->next_of_kin_gender = $value;
-            $participant_changed = true;
+            $db_next_of_kin->gender = $value;
+            $next_of_kin_changed = true;
           }
         }
 
@@ -167,10 +194,10 @@ class onyx_participants extends \cenozo\ui\push
         if( array_key_exists( $method, $object_vars ) )
         {
           $value = $participant_data->$method;
-          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_phone ) )
+          if( 0 != strcasecmp( $value, $db_next_of_kin->phone ) )
           {
-            $db_participant->next_of_kin_phone = $value;
-            $participant_changed = true;
+            $db_next_of_kin->phone = $value;
+            $next_of_kin_changed = true;
           }
         }
 
@@ -178,10 +205,10 @@ class onyx_participants extends \cenozo\ui\push
         if( array_key_exists( $method, $object_vars ) )
         {
           $value = $participant_data->$method;
-          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_street ) )
+          if( 0 != strcasecmp( $value, $db_next_of_kin->street ) )
           {
-            $db_participant->next_of_kin_street = $value;
-            $participant_changed = true;
+            $db_next_of_kin->street = $value;
+            $next_of_kin_changed = true;
           }
         }
 
@@ -189,10 +216,10 @@ class onyx_participants extends \cenozo\ui\push
         if( array_key_exists( $method, $object_vars ) )
         {
           $value = $participant_data->$method;
-          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_city ) )
+          if( 0 != strcasecmp( $value, $db_next_of_kin->city ) )
           {
-            $db_participant->next_of_kin_city = $value;
-            $participant_changed = true;
+            $db_next_of_kin->city = $value;
+            $next_of_kin_changed = true;
           }
         }
 
@@ -200,10 +227,10 @@ class onyx_participants extends \cenozo\ui\push
         if( array_key_exists( $method, $object_vars ) )
         {
           $value = $participant_data->$method;
-          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_province ) )
+          if( 0 != strcasecmp( $value, $db_next_of_kin->province ) )
           {
-            $db_participant->next_of_kin_province = $value;
-            $participant_changed = true;
+            $db_next_of_kin->province = $value;
+            $next_of_kin_changed = true;
           }
         }
 
@@ -211,15 +238,17 @@ class onyx_participants extends \cenozo\ui\push
         if( array_key_exists( $method, $object_vars ) )
         {
           $value = $participant_data->$method;
-          if( 0 != strcasecmp( $value, $db_participant->next_of_kin_postal_code ) )
+          if( 0 != strcasecmp( $value, $db_next_of_kin->postal_code ) )
           {
-            $db_participant->next_of_kin_postal_code = $value;
-            $participant_changed = true;
+            $db_next_of_kin->postal_code = $value;
+            $next_of_kin_changed = true;
           }
         }
 
-        // now update the participant, appointment and interview, then pass data to mastodon
+        // now update the database
         if( $participant_changed ) $db_participant->save();
+        if( $next_of_kin_changed ) $db_next_of_kin->save();
+        if( $data_collection_changed ) $db_data_collection->save();
 
         // complete all appointments in the past
         $appointment_mod = lib::create( 'database\modifier' );
@@ -254,18 +283,20 @@ class onyx_participants extends \cenozo\ui\push
           $db_interview = current( $interview_list );
           $db_interview->completed = true;
           $db_interview->save();
-        }
 
-        if( 0 < count( $mastodon_columns ) )
-        {
-          $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
-          $args = array();
-          $args['columns'] = $mastodon_columns;
-          $args['noid']['participant']['uid'] = $db_participant->uid;
-          $mastodon_manager->push( 'participant', 'edit', $args );
+          // record the event (if one exists)
+          $event_type_name = sprintf( 'completed (%s)', $db_interview->get_qnaire()->name );
+          $db_event_type = $event_type_class_name::get_unique_record( 'name', $event_type_name );
+          if( !is_null( $db_event_type ) )
+          {
+            $db_event = lib::create( 'database\event' );
+            $db_event->participant_id = $db_participant->id;
+            $db_event->event_type_id = $db_event_type->id;
+            $db_event->datetime = util::get_datetime_object()->format( 'Y-m-d H:i:s' );
+            $db_event->save();
+          }
         }
       }
     }
   }
 }
-?>

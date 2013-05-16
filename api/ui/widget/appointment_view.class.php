@@ -81,15 +81,20 @@ class appointment_view extends base_appointment_view
     {
       $role_class_name = lib::get_class_name( 'database\role' );
       $user_class_name = lib::get_class_name( 'database\user' );
+      $db_current_user = $this->get_record()->get_user();
 
-      $db_site = $this->get_record()->get_participant()->get_primary_site();
+      $db_site = $this->get_record()->get_participant()->get_effective_site();
       $db_role = $role_class_name::get_unique_record( 'name', 'interviewer' );
       $user_mod = lib::create( 'database\modifier' );
-      $user_mod->where( 'site_id', '=', $db_site->id );
-      $user_mod->where( 'role_id', '=', $db_role->id );
+      $user_mod->where( 'access.site_id', '=', $db_site->id );
+      $user_mod->where( 'access.role_id', '=', $db_role->id );
       $interviewers = array();
       foreach( $user_class_name::select( $user_mod ) as $db_user )
         $interviewers[$db_user->id] = $db_user->name;
+
+      // if the current user no longer has interview access then add them to the end of the list
+      if( !array_key_exists( $db_current_user->id, $interviewers ) )
+        $interviewers[$db_current_user->id] = $db_current_user->name;
 
       foreach( $db_participant->get_address_list( $modifier ) as $db_address )
         $address_list[$db_address->id] = sprintf(
@@ -120,7 +125,7 @@ class appointment_view extends base_appointment_view
     // add an action to view the participant's details
     $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'view' );
     if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
-      $this->add_action( 'view_details', 'View Details', NULL, 'View the participant\'s details' );
+      $this->add_action( 'view_details', 'View Participant', NULL, 'View the participant\'s details' );
   }
   
   /**
@@ -130,4 +135,3 @@ class appointment_view extends base_appointment_view
    */
   protected $select_address = false;
 }
-?>

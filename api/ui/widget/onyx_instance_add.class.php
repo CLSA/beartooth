@@ -59,6 +59,8 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
   {
     parent::setup();
 
+    $site_class_name = lib::get_class_name( 'database\site' );
+
     $session = lib::create( 'business\session' );
     $is_top_tier = 3 == $session->get_role()->tier;
     
@@ -66,8 +68,7 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
     if( $is_top_tier )
     {
       $sites = array();
-      $class_name = lib::get_class_name( 'database\site' );
-      foreach( $class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
+      foreach( $site_class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
     }
     
     $db_site = $session->get_site();
@@ -75,8 +76,8 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
     $db_role = $class_name::get_unique_record( 'name', 'interviewer' );
     
     $user_mod = lib::create( 'database\modifier' );
-    $user_mod->where( 'site_id', '=', $db_site->id );
-    $user_mod->where( 'role_id', '=', $db_role->id );
+    $user_mod->where( 'access.site_id', '=', $db_site->id );
+    $user_mod->where( 'access.role_id', '=', $db_role->id );
     $interviewers = array( 'NULL' => 'site' );
     $class_name = lib::get_class_name( 'database\user' );
     foreach( $class_name::select( $user_mod ) as $db_user )
@@ -91,4 +92,3 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
       'interviewer_user_id', key( $interviewers ), true, $interviewers, true );
   }
 }
-?>

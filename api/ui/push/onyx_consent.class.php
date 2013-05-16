@@ -38,6 +38,7 @@ class onyx_consent extends \cenozo\ui\push
     parent::execute();
 
     $participant_class_name = lib::create( 'database\participant' );
+    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
 
     // get the body of the request
     $body = http_get_request_body();
@@ -62,9 +63,7 @@ class onyx_consent extends \cenozo\ui\push
         if( !array_key_exists( 'ConclusiveStatus', $object_vars ) )
           throw lib::create( 'exception\argument',
             'ConclusiveStatus', NULL, __METHOD__ );
-        if( 'CONSENT' == $consent_data->ConclusiveStatus ) $event = 'written accept';
-        else if( 'RETRACT' == $consent_data->ConclusiveStatus ) $event = 'retract';
-        else $event = 'withdraw';
+        $accept = 'CONSENT' == $consent_data->ConclusiveStatus ? 1 : 0;
 
         // try timeEnd, if null then try timeStart, if null then use today's date
         $var_name = 'timeEnd';
@@ -87,29 +86,43 @@ class onyx_consent extends \cenozo\ui\push
         // update the draw blood consent if it is provided
         if( array_key_exists( 'PCF_CSTSAMP_COM', $object_vars ) )
         {
-          $db_participant->consent_to_draw_blood =
-            1 == preg_match( '/y|yes|true|1/i', $consent_data->PCF_CSTSAMP_COM ) ? 'YES' : 'NO';
-          $db_participant->save();
+          $db_data_collection = $db_participant->get_data_collection();
+          if( is_null( $db_data_collection ) )
+          {
+            $db_data_collection = lib::create( 'database\data_collection' );
+            $db_data_collection->participant_id = $db_participant->id;
+          }
+          $db_data_collection->draw_blood =
+            1 == preg_match( '/y|yes|true|1/i', $consent_data->PCF_CSTSAMP_COM );
+          $db_data_collection->save();
         }
 
         // see if this form already exists
         $consent_mod = lib::create( 'database\modifier' );
-        $consent_mod->where( 'event', '=', $event );
+        $consent_mod->where( 'accept', '=', $accept );
+        $consent_mod->where( 'written', '=', 1 );
         $consent_mod->where( 'date', '=', $date );
         if( 0 == $db_participant->get_consent_count( $consent_mod ) )
         {
           $columns = array( 'participant_id' => $db_participant->id,
                             'date' => $date,
-                            'event' => $event,
+                            'accept' => $accept,
+                            'written' => 1,
                             'note' => 'Provided by Onyx.' );
           $args = array( 'columns' => $columns );
+
           if( array_key_exists( 'pdfForm', $object_vars ) )
+          { // if a form is included we need to send the request to mastodon
             $args['form'] = $consent_data->pdfForm;
-          $operation = lib::create( 'ui\push\consent_new', $args );
-          $operation->process();
+            $mastodon_manager->push( 'consent', 'new', $args );
+          }
+          else
+          {
+            $operation = lib::create( 'ui\push\consent_new', $args );
+            $operation->process();
+          }
         }
       }
     }
   }
 }
-?>

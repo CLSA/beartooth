@@ -174,7 +174,7 @@ class survey_manager extends \cenozo\singleton
       $db_participant = $db_interview->get_participant();
       $db_consent = $db_participant->get_last_consent();
       
-      if( $db_consent && 'withdraw' == $db_consent->event )
+      if( $db_consent && false == $db_consent->accept )
       { // the participant has withdrawn, check to see if the withdraw script is complete
         $db_qnaire = $db_interview->get_qnaire();
         
@@ -278,4 +278,3 @@ class survey_manager extends \cenozo\singleton
    */
   private $current_token = NULL;
 }
-?>

@@ -32,7 +32,7 @@ class self_shortcuts extends \cenozo\ui\widget\self_shortcuts
     $voip_enabled = $setting_manager->get_setting( 'voip', 'enabled' );
     
     // get the xor key and make sure it is at least as long as the password
-    $xor_key = $db_site->voip_xor_key;
+    $xor_key = $setting_manager->get_setting( 'voip', 'xor_key' );
     $password = $_SERVER['PHP_AUTH_PW'];
 
     // avoid infinite loops by using a counter
@@ -44,8 +44,7 @@ class self_shortcuts extends \cenozo\ui\widget\self_shortcuts
     }
     
     $this->set_variable( 'webphone_parameters', sprintf(
-      'host=%s&username=%s&password=%s',
-      $db_site->voip_host,
+      'username=%s&password=%s',
       $_SERVER['PHP_AUTH_USER'],
       base64_encode( $password ^ $xor_key ) ) );
     $this->set_variable( 'webphone', $voip_enabled && !$voip_manager->get_sip_enabled() );
@@ -55,4 +54,3 @@ class self_shortcuts extends \cenozo\ui\widget\self_shortcuts
     $this->set_variable( 'navigation', is_null( $session->get_current_assignment() ) );
   }
 }
-?>

@@ -48,4 +48,3 @@ class sourcing_required_report extends base_report
       'for two alternates.' );
   }
 }
-?>

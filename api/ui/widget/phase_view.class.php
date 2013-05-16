@@ -74,4 +74,3 @@ class phase_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'repeated', $this->get_record()->repeated, true );
   }
 }
-?>

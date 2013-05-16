@@ -17,9 +17,32 @@ use cenozo\lib, cenozo\log, beartooth\util;
  */
 abstract class sid_record extends record
 {
+  /**
+   * Returns the current SID for all records of this class type.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return int
+   * @access public
+   * @static
+   */
+  public static function get_sid()
+  {
+    $class_index = lib::get_class_name( get_called_class(), true );
+    return array_key_exists( $class_index, self::$table_sid_list )
+         ? self::$table_sid_list[$class_index] : NULL;
+  }
+
+  /**
+   * Sets the current SID for all records of this class type.
+   * Make sure to call this method BEFORE using any normal or static methods.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param int $sid
+   * @access public
+   * @static
+   */
   public static function set_sid( $sid )
   {
-    static::$table_sid = $sid;
+    $class_index = lib::get_class_name( get_called_class(), true );
+    self::$table_sid_list[$class_index] = $sid;
   }
 
   /**
@@ -31,22 +54,20 @@ abstract class sid_record extends record
    */
   public static function get_table_name()
   {
-    if( is_null( static::$table_sid ) )
+    if( is_null( static::get_sid() ) )
     {
       throw lib::create( 'exception\runtime',
         'The survey id (table_sid) must be set before using this class.', __METHOD__ );
     }
 
-    return sprintf( '%s_%s',
-                    parent::get_table_name(),
-                    static::$table_sid );
+    return sprintf( '%s_%s', parent::get_table_name(), static::get_sid() );
   }
   
   /**
-   * The current survey table's sid.  Be sure to set this before calling the class constructor.
-   * @var int
-   * @access public
+   * The table's current sid.  This is an array since every class must track its own sid
+   * separately.
+   * @var array(int)
+   * @access private
    */
-  protected static $table_sid = NULL;
+  private static $table_sid_list = array();
 }
-?>

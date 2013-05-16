@@ -55,4 +55,3 @@ class site_appointment_calendar extends \cenozo\ui\widget\base_calendar
     $this->set_variable( 'allow_all_day', false );
   }
 }
-?>

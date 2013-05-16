@@ -55,9 +55,8 @@ class appointment_list extends \cenozo\ui\pull\base_list
    */
   protected function execute()
   {
-    parent::execute();
-
-    $event_list = array();
+    // replace the parent class to get a specific record list
+    $this->data = array();
 
     $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
     $appointment_class_name = lib::get_class_name( 'database\appointment' );
@@ -95,60 +94,58 @@ class appointment_list extends \cenozo\ui\pull\base_list
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $db_participant = $db_appointment->get_participant();
-
-      $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
-      $participant_obj = new \stdClass();
-      if( $mastodon_manager->is_enabled() )
-      {
-        $participant_obj = $mastodon_manager->pull( 'participant', 'primary',
-                             array( 'uid' => $db_participant->uid ) );
-      }
-      else
-      {
-        throw lib::create( 'exception\runtime', 
-          'Onyx requires populated dob and gender data from Mastodon', __METHOD__ );
-      }
-
+      $db_next_of_kin = $db_participant->get_next_of_kin();
       $db_address = $db_participant->get_primary_address();
 
-      $event = array(
+      $dob = $db_participant->date_of_birth
+           ? util::get_datetime_object( $db_participant->date_of_birth )->format( 'Y-m-d' )
+           : '';
+      $data = array(
         'uid'        => $db_participant->uid,
         'first_name' => $db_participant->first_name,
         'last_name'  => $db_participant->last_name,
-        'dob'        => is_null( $participant_obj->data->date_of_birth )
-                      ? ''
-                      : util::get_datetime_object( 
-                          $participant_obj->data->date_of_birth )->format( 
-                            'Y-m-d' ),
-        'gender'    => $participant_obj->data->gender,
+        'dob'        => $dob,
+        'gender'    => $db_participant->gender,
         'datetime'  => $start_datetime_obj->format( \DateTime::ISO8601 ),
         'street'    => is_null( $db_address ) ? 'NA' : $db_address->address1,
         'city'      => is_null( $db_address ) ? 'NA' : $db_address->city,
         'province'  => is_null( $db_address ) ? 'NA' : $db_address->get_region()->name,
         'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode );
 
-      if( !is_null( $db_participant->next_of_kin_first_name ) )
-        $event['nextOfKin.firstName'] = $db_participant->next_of_kin_first_name;
-      if( !is_null( $db_participant->next_of_kin_last_name ) )
-        $event['nextOfKin.lastName'] = $db_participant->next_of_kin_last_name;
-      if( !is_null( $db_participant->next_of_kin_gender ) )
-        $event['nextOfKin.gender'] = $db_participant->next_of_kin_gender;
-      if( !is_null( $db_participant->next_of_kin_phone ) )
-        $event['nextOfKin.phone'] = $db_participant->next_of_kin_phone;
-      if( !is_null( $db_participant->next_of_kin_street ) )
-        $event['nextOfKin.street'] = $db_participant->next_of_kin_street;
-      if( !is_null( $db_participant->next_of_kin_city ) )
-        $event['nextOfKin.city'] = $db_participant->next_of_kin_city;
-      if( !is_null( $db_participant->next_of_kin_province ) )
-        $event['nextOfKin.province'] = $db_participant->next_of_kin_province;
-      if( !is_null( $db_participant->next_of_kin_postal_code ) )
-        $event['nextOfKin.postalCode'] = $db_participant->next_of_kin_postal_code;
+      if( !is_null( $db_next_of_kin ) )
+      {
+        if( !is_null( $db_next_of_kin->first_name ) )
+          $data['nextOfKin.firstName'] = $db_next_of_kin->first_name;
+        if( !is_null( $db_next_of_kin->last_name ) )
+          $data['nextOfKin.lastName'] = $db_next_of_kin->last_name;
+        if( !is_null( $db_next_of_kin->gender ) )
+          $data['nextOfKin.gender'] = $db_next_of_kin->gender;
+        if( !is_null( $db_next_of_kin->phone ) )
+          $data['nextOfKin.phone'] = $db_next_of_kin->phone;
+        if( !is_null( $db_next_of_kin->street ) )
+          $data['nextOfKin.street'] = $db_next_of_kin->street;
+        if( !is_null( $db_next_of_kin->city ) )
+          $data['nextOfKin.city'] = $db_next_of_kin->city;
+        if( !is_null( $db_next_of_kin->province ) )
+          $data['nextOfKin.province'] = $db_next_of_kin->province;
+        if( !is_null( $db_next_of_kin->postal_code ) )
+          $data['nextOfKin.postalCode'] = $db_next_of_kin->postal_code;
+      }
 
-      // include consent to draw blood if this is a site appointment (value is a string: YES or NO)
-      if( 'site' == $interview_type && $db_participant->consent_to_draw_blood )
-        $event['consent_to_draw_blood'] = (bool) $db_participant->consent_to_draw_blood;
+      // include consent to draw blood if this is a site appointment
+      if( 'site' == $interview_type )
+      {
+        $db_data_collection = $db_participant->get_data_collection();
+        if( !is_null( $db_data_collection ) )
+        {
+          $db_data_collection = $db_participant->get_data_collection();
+          $data['consent_to_draw_blood'] = is_null( $db_data_collection )
+                                         ? NULL
+                                         : $db_data_collection->draw_blood;
+        }
+      }
 
-      $event_list[] = $event;
+      $this->data[] = $data;
 
       if( !$db_appointment->completed )
       {
@@ -206,8 +203,6 @@ class appointment_list extends \cenozo\ui\pull\base_list
         }
       }
     }
-
-    $this->data = $event_list;
   }
 
   /**
@@ -224,4 +219,3 @@ class appointment_list extends \cenozo\ui\pull\base_list
    */
   protected $end_datetime = NULL;
 }
-?>
