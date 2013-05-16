@@ -40,10 +40,10 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
     
     // define all columns defining this record
 
-    $type = 3 == lib::create( 'business\session' )->get_role()->tier ? 'enum' : 'hidden';
     $this->add_item( 'username', 'string', 'Username' );
     $this->add_item( 'password', 'string', 'Password',
       'Passwords must be at least 6 characters long.' );
+    $type = lib::create( 'business\session' )->get_role()->all_sites ? 'enum' : 'hidden';
     $this->add_item( 'site_id', $type, 'Site' );
     $this->add_item( 'interviewer_user_id', 'enum', 'Instance',
       'Determines whether to link this instance to a site or an interviewer.' );
@@ -62,10 +62,10 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
     $site_class_name = lib::get_class_name( 'database\site' );
 
     $session = lib::create( 'business\session' );
-    $is_top_tier = 3 == $session->get_role()->tier;
+    $all_sites = $session->get_role()->all_sites;
     
     // create enum arrays
-    if( $is_top_tier )
+    if( $all_sites )
     {
       $sites = array();
       foreach( $site_class_name::select() as $db_site ) $sites[$db_site->id] = $db_site->name;
@@ -87,7 +87,7 @@ class onyx_instance_add extends \cenozo\ui\widget\base_view
     $this->set_item( 'username', '' );
     $this->set_item( 'password', '' );
     $this->set_item(
-      'site_id', $db_site->id, true, $is_top_tier ? $sites : NULL );
+      'site_id', $db_site->id, true, $all_sites ? $sites : NULL );
     $this->set_item(
       'interviewer_user_id', key( $interviewers ), true, $interviewers, true );
   }

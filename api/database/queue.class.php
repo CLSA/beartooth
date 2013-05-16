@@ -298,6 +298,7 @@ class queue extends \cenozo\database\record
         $sql .= $db_queue->get_sql(
           'participant_for_queue.*, '.
           'participant_for_queue_primary_region.jurisdiction_site_id, '.
+          'participant_for_queue_first_address.first_address_address1, '.
           'participant_for_queue_first_address.first_address_city, '.
           'participant_for_queue_first_address.first_address_region_id, '.
           'participant_for_queue_first_address.first_address_postcode' );
@@ -360,6 +361,9 @@ class queue extends \cenozo\database\record
   public function set_site( $db_site = NULL )
   {
     $this->db_site = $db_site;
+
+    // reset the query list
+    self::$query_list = array();
   }
 
   /**
@@ -420,7 +424,7 @@ class queue extends \cenozo\database\record
     // join to the quota table based on site, region, gender and age group
     $quota_join =
       'LEFT JOIN quota '.
-      'ON quota.site_id = '.$participant_site_id.
+      'ON quota.site_id = jurisdiction_site_id '.
       'AND quota.region_id = primary_region_id '.
       'AND quota.gender = participant_gender '.
       'AND quota.age_group_id = participant_age_group_id '.
@@ -1027,6 +1031,7 @@ class queue extends \cenozo\database\record
     static::db()->execute(
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_first_address '.
       'SELECT person_first_address.person_id, '.
+             'address.address1 AS first_address_address1, '.
              'address.city AS first_address_city, '.
              'address.region_id AS first_address_region_id, '.
              'address.postcode AS first_address_postcode, '.
@@ -1038,6 +1043,7 @@ class queue extends \cenozo\database\record
     static::db()->execute(
       'ALTER TABLE participant_for_queue_first_address '.
       'ADD INDEX dk_person_id ( person_id ), '.
+      'ADD INDEX dk_first_address_address1 ( first_address_address1 ), '.
       'ADD INDEX dk_first_address_city ( first_address_city ), '.
       'ADD INDEX dk_first_address_region_id ( first_address_region_id ), '.
       'ADD INDEX dk_first_address_postcode ( first_address_postcode ), '.
@@ -1237,6 +1243,7 @@ next_prev_assignment.end_datetime AS next_prev_assignment_end_datetime
 FROM participant
 JOIN service_has_participant
 ON participant.id = service_has_participant.participant_id
+AND service_has_participant.datetime IS NOT NULL
 AND service_id = %s
 JOIN participant_last_consent
 ON participant.id = participant_last_consent.participant_id

@@ -46,7 +46,7 @@ class queue_list extends \cenozo\ui\widget\base_list
     $this->add_column( 'participant_count', 'number', 'Participants', false );
     $this->add_column( 'description', 'text', 'Description', true, true, 'left' );
     $session = lib::create( 'business\session' );
-    if( 3 != $session->get_role()->tier )
+    if( !$session->get_role()->all_sites )
       $this->set_heading(
         sprintf( '%s %s for %s',
                  $this->get_subject(),
@@ -70,10 +70,8 @@ class queue_list extends \cenozo\ui\widget\base_list
     $participant_class_name = lib::get_class_name( 'database\participant' );
 
     $session = lib::create( 'business\session' );
-    $is_top_tier = 3 == $session->get_role()->tier;
-    
-    // if this is a top tier role, give them a list of sites to choose from
-    if( $is_top_tier )
+    $all_sites = $session->get_role()->all_sites;
+    if( $all_sites )
     {
       $sites = array();
       foreach( $site_class_name::select() as $db_site )
@@ -119,7 +117,7 @@ class queue_list extends \cenozo\ui\widget\base_list
     foreach( $this->get_record_list() as $record )
     {
       // restrict queue based on user's role
-      if( $is_top_tier )
+      if( $all_sites )
       {
         if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );
       }

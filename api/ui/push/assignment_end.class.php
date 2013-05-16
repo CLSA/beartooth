@@ -68,8 +68,6 @@ class assignment_end extends \cenozo\ui\push
           $db_callback->save();
         }
 
-        foreach( $db_assignment->get_assignment_note_list() as $db_assignment_note )
-          $db_assignment_note->delete();
         $db_assignment->delete();
       }
       else

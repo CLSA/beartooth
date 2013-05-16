@@ -52,6 +52,23 @@ class survey_manager extends \cenozo\singleton
 
       return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s', $sid, $lang, $token );
     }
+    else if( array_key_exists( 'withdrawing_participant', $_COOKIE ) ) 
+    {
+      // get the participant being withdrawn
+      $db_participant = lib::create( 'database\participant', $_COOKIE['withdrawing_participant'] );
+      if( is_null( $db_participant ) ) return false;
+
+      // determine the current sid and token
+      $sid = $this->get_current_sid();
+      $token = $this->get_current_token();
+      if( false === $sid || false == $token ) return false;
+
+      // determine which language to use
+      $lang = $db_participant->language;
+      if( !$lang ) $lang = 'en';
+
+      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s', $sid, $lang, $token );
+    }
     else
     {
       // must have an assignment
@@ -160,6 +177,55 @@ class survey_manager extends \cenozo\singleton
       $this->current_sid = $sid;
       $this->current_token = $token;
     }
+    else if( array_key_exists( 'withdrawing_participant', $_COOKIE ) )
+    {
+      // get the participant being withdrawn
+      $db_participant = lib::create( 'database\participant', $_COOKIE['withdrawing_participant'] );
+      if( is_null( $db_participant ) )
+      {
+        log::warning( 'Tried to determine survey information for an invalid participant.' );
+        return false;
+      }
+
+      $qnaire_id = $db_participant->current_qnaire_id;
+      if( is_null( $qnaire_id ) )
+      { // finished all qnaires, find the last one completed
+        $db_assignment = $db_participant->get_last_finished_assignment();
+        if( is_null( $db_assignment ) )
+          throw lib::create( 'exception\runtime',
+                             'Trying to withdraw participant without a questionnaire.' );
+
+        $qnaire_id = $db_assignment->get_interview()->qnaire_id;
+      }
+
+      $db_qnaire = lib::create( 'database\qnaire', $qnaire_id );
+      $sid = $db_qnaire->withdraw_sid;
+
+      $tokens_class_name::set_sid( $sid );
+      $token = $db_participant->uid;
+      $tokens_mod = lib::create( 'database\modifier' );
+      $tokens_mod->where( 'token', '=', $token );
+      $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
+
+      if( false === $db_tokens )
+      { // token not found, create it
+        $db_tokens = lib::create( 'database\limesurvey\tokens' );
+        $db_tokens->token = $token;
+        $db_tokens->firstname = $db_participant->first_name;
+        $db_tokens->lastname = $db_participant->last_name;
+        $db_tokens->update_attributes( $db_participant );
+        $db_tokens->save();
+
+        $this->current_sid = $sid;
+        $this->current_token = $token;
+      }
+      else if( 'N' == $db_tokens->completed )
+      {
+        $this->current_sid = $sid;
+        $this->current_token = $token;
+      }
+      // else do not set the current_sid or current_token members!
+    }
     else
     {
       $db_assignment = $session->get_current_assignment();
@@ -168,20 +234,19 @@ class survey_manager extends \cenozo\singleton
         log::warning( 'Tried to determine survey information without an active assignment.' );
         return false;
       }
-      
+
       // records which we will need
       $db_interview = $db_assignment->get_interview();
       $db_participant = $db_interview->get_participant();
       $db_consent = $db_participant->get_last_consent();
-      
+
       if( $db_consent && false == $db_consent->accept )
       { // the participant has withdrawn, check to see if the withdraw script is complete
         $db_qnaire = $db_interview->get_qnaire();
-        
+
         // let the tokens record class know which SID we are dealing with
         $tokens_class_name::set_sid( $db_qnaire->withdraw_sid );
-
-        $token = $tokens_class_name::determine_token_string( $db_interview );
+        $token = $db_participant->uid;
         $tokens_mod = lib::create( 'database\modifier' );
         $tokens_mod->where( 'token', '=', $token );
         $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
@@ -209,7 +274,7 @@ class survey_manager extends \cenozo\singleton
       { // the participant has not withdrawn, check each phase of the interview
         $phase_mod = lib::create( 'database\modifier' );
         $phase_mod->order( 'rank' );
-        
+
         $phase_list = $db_interview->get_qnaire()->get_phase_list( $phase_mod );
         if( 0 == count( $phase_list ) )
         {
@@ -221,14 +286,14 @@ class survey_manager extends \cenozo\singleton
           {
             // let the tokens record class know which SID we are dealing with
             $tokens_class_name::set_sid( $db_phase->sid );
-    
+
             $token = $tokens_class_name::determine_token_string(
                        $db_interview,
                        $db_phase->repeated ? $db_assignment : NULL );
             $tokens_mod = lib::create( 'database\modifier' );
             $tokens_mod->where( 'token', '=', $token );
             $db_tokens = current( $tokens_class_name::select( $tokens_mod ) );
-    
+
             if( false === $db_tokens )
             { // token not found, create it
               $db_tokens = lib::create( 'database\limesurvey\tokens' );
@@ -243,7 +308,7 @@ class survey_manager extends \cenozo\singleton
                 $db_tokens->attribute_9 = "UNKNOWN";
 
               $db_tokens->save();
-    
+
               $this->current_sid = $db_phase->sid;
               $this->current_token = $token;
               break;

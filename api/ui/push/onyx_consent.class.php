@@ -63,7 +63,7 @@ class onyx_consent extends \cenozo\ui\push
         if( !array_key_exists( 'ConclusiveStatus', $object_vars ) )
           throw lib::create( 'exception\argument',
             'ConclusiveStatus', NULL, __METHOD__ );
-        $accept = 'CONSENT' == $consent_data->ConclusiveStatus;
+        $accept = 'CONSENT' == $consent_data->ConclusiveStatus ? 1 : 0;
 
         // try timeEnd, if null then try timeStart, if null then use today's date
         $var_name = 'timeEnd';
@@ -100,14 +100,14 @@ class onyx_consent extends \cenozo\ui\push
         // see if this form already exists
         $consent_mod = lib::create( 'database\modifier' );
         $consent_mod->where( 'accept', '=', $accept );
-        $consent_mod->where( 'written', '=', true );
+        $consent_mod->where( 'written', '=', 1 );
         $consent_mod->where( 'date', '=', $date );
         if( 0 == $db_participant->get_consent_count( $consent_mod ) )
         {
           $columns = array( 'participant_id' => $db_participant->id,
                             'date' => $date,
                             'accept' => $accept,
-                            'written' => true,
+                            'written' => 1,
                             'note' => 'Provided by Onyx.' );
           $args = array( 'columns' => $columns );
 

@@ -335,37 +335,6 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `beartooth`.`assignment_note`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `beartooth`.`assignment_note` ;
-
-CREATE  TABLE IF NOT EXISTS `beartooth`.`assignment_note` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `update_timestamp` TIMESTAMP NOT NULL ,
-  `create_timestamp` TIMESTAMP NOT NULL ,
-  `user_id` INT UNSIGNED NOT NULL ,
-  `assignment_id` INT UNSIGNED NOT NULL ,
-  `sticky` TINYINT(1) NOT NULL DEFAULT 0 ,
-  `datetime` DATETIME NOT NULL ,
-  `note` TEXT NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  INDEX `fk_assignment_id` (`assignment_id` ASC) ,
-  INDEX `fk_user_id` (`user_id` ASC) ,
-  INDEX `dk_sticky_datetime` (`sticky` ASC, `datetime` ASC) ,
-  CONSTRAINT `fk_assignment_note_assignment_id`
-    FOREIGN KEY (`assignment_id` )
-    REFERENCES `beartooth`.`assignment` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_assignment_note_user_id`
-    FOREIGN KEY (`user_id` )
-    REFERENCES `cenozo`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `beartooth`.`appointment`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `beartooth`.`appointment` ;
@@ -628,6 +597,11 @@ CREATE TABLE IF NOT EXISTS `beartooth`.`participant_last_appointment` (`particip
 CREATE TABLE IF NOT EXISTS `beartooth`.`interview_last_assignment` (`interview_id` INT, `assignment_id` INT);
 
 -- -----------------------------------------------------
+-- Placeholder table for view `beartooth`.`participant_last_interview`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `beartooth`.`participant_last_interview` (`participant_id` INT, `interview_id` INT);
+
+-- -----------------------------------------------------
 -- View `beartooth`.`assignment_last_phone_call`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `beartooth`.`assignment_last_phone_call` ;
@@ -694,6 +668,22 @@ AND assignment_1.start_datetime = (
   WHERE interview_2.id = assignment_2.interview_id
   AND interview_1.id = interview_2.id
   GROUP BY interview_2.id );
+
+-- -----------------------------------------------------
+-- View `beartooth`.`participant_last_interview`
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `beartooth`.`participant_last_interview` ;
+DROP TABLE IF EXISTS `beartooth`.`participant_last_interview`;
+USE `beartooth`;
+CREATE  OR REPLACE VIEW `beartooth`.`participant_last_interview` AS
+SELECT interview_1.participant_id, interview_1.id AS interview_id
+FROM interview AS interview_1
+JOIN qnaire AS qnaire_1 ON interview_1.qnaire_id = qnaire_1.id
+WHERE qnaire_1.rank = (
+  SELECT MAX( qnaire_2.rank )
+  FROM qnaire AS qnaire_2
+  JOIN interview AS interview_2 ON qnaire_2.id = interview_2.qnaire_id
+  WHERE interview_2.participant_id = interview_1.participant_id );
 USE `cenozo`;
 
 DELIMITER $$
