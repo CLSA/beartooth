@@ -33,10 +33,11 @@ class tokens extends sid_record
     $session = lib::create( 'business\session' );
     $db_user = $session->get_user();
     $db_site = $session->get_site();
+    $db_cohort = $db_participant->get_cohort();
 
     // determine the first part of the token
     $token_part = substr( $this->token, 0, strpos( $this->token, '_' ) + 1 );
-    
+
     // fill in the email
     $this->email = $db_participant->email;
 
@@ -50,9 +51,13 @@ class tokens extends sid_record
         $key = 'attribute_'.substr( $attribute, 10, strpos( $attribute, '=' ) - 10 );
         $value = substr( $attribute, strpos( $attribute, '=' ) + 1 );
         $matches = array(); // for pregs below
-        
+
         // now get the info based on the attribute name
-        if( false !== strpos( $value, 'address' ) )
+        if( 'cohort' == $value )
+        {
+          $this->$key = $db_cohort->name;
+        }
+        else if( false !== strpos( $value, 'address' ) )
         {
           $db_address = $db_participant->get_primary_address();
 
@@ -96,11 +101,56 @@ class tokens extends sid_record
         }
         else if( 'consented to provide HIN' == $value )
         {
-          $this->$key = $db_participant->get_hin()->access;
+          $db_hin = $db_participant->get_hin();
+          $this->$key = is_null( $db_hin ) ? -1 : $db_hin->access;
         }
         else if( 'HIN recorded' == $value )
         {
+          $db_hin = $db_participant->get_hin();
           $this->$key = !is_null( $db_participant->get_hin()->code );
+        }
+        else if( 'provided data' == $value )
+        {
+          $event_type_class_name = lib::get_class_name( 'database\event_type' );
+
+          // participants have provided data once their first interview is done
+          $event_mod = lib::create( 'database\modifier' );
+          $event_mod->where( 'event_type_id', '=',
+            $event_type_class_name::get_unique_record( 'name', 'completed (Baseline Home)' )->id );
+
+          $event_list = $db_participant->get_event_list( $event_mod );
+          $provided_data = 0 < count( $event_list ) ? 'yes' : 'no';
+
+          $this->$key = $provided_data;
+        }
+        else if( 'DCS samples' == $value )
+        {
+          // get data from Opal
+          $setting_manager = lib::create( 'business\setting_manager' );
+          $opal_url = $setting_manager->get_setting( 'opal', 'server' );
+          $opal_manager = lib::create( 'business\opal_manager', $opal_url );
+
+          $this->$key = 0;
+
+          if( $opal_manager->get_enabled() )
+          {
+            try
+            {
+              $blood = $opal_manager->get_value(
+                'clsa-dcs', 'Phlebotomy', $db_participant, 'AGREE_BS' );
+              $urine = $opal_manager->get_value(
+                'clsa-dcs', 'Phlebotomy', $db_participant, 'AGREE_URINE' );
+
+              $this->$key = 0 == strcasecmp( 'yes', $blood ) ||
+                            0 == strcasecmp( 'yes', $urine )
+                          ? 1 : 0;
+            }
+            catch( \cenozo\exception\base_exception $e )
+            {
+              // ignore argument exceptions (data not found in Opal) and report the rest
+              if( 'argument' != $e->get_type() ) log::warning( $e->get_message() );
+            }
+          }
         }
         else if( 'INCL_2e' == $value )
         {
@@ -108,7 +158,7 @@ class tokens extends sid_record
           // introduction survey.  This code is not generic and needs to eventually be made
           // generic.
           $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
-          
+
           $db_interview = lib::create( 'business\session')->get_current_assignment()->get_interview();
           $phase_mod = lib::create( 'database\modifier' );
           $phase_mod->where( 'rank', '=', 1 );
@@ -138,7 +188,7 @@ class tokens extends sid_record
               {
                 // ignore the error and continue without setting the attribute
               }
-              
+
               if( $found ) break;
             }
           }
@@ -155,6 +205,20 @@ class tokens extends sid_record
         {
           $db_source = $db_participant->get_source();
           $this->$key = is_null( $db_source ) ? '(none)' : $db_source->name;
+        }
+        else if( 'last interview date' == $value )
+        {
+          $event_type_class_name = lib::get_class_name( 'database\event_type' );
+          $event_mod = lib::create( 'database\modifier' );
+          $event_mod->order_desc( 'datetime' );
+          $event_mod->where( 'event_type_id', '=',
+            $event_type_class_name::get_unique_record( 'name', 'completed (Baseline Site)' )->id );
+
+          $event_list = $db_participant->get_event_list( $event_mod );
+          $db_event = 0 < count( $event_list ) ? current( $event_list ) : NULL;
+          $this->$key = is_null( $db_event )
+                      ? 'DATE UNKNOWN'
+                      : util::get_formatted_date( $db_event->datetime );
         }
         else if( 'dcs phone_number' == $value )
         {
