@@ -50,7 +50,7 @@ class survey_manager extends \cenozo\singleton
       $lang = $db_participant->language;
       if( !$lang ) $lang = 'en';
 
-      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s', $sid, $lang, $token );
+      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s&newtest=Y', $sid, $lang, $token );
     }
     else if( array_key_exists( 'withdrawing_participant', $_COOKIE ) ) 
     {
@@ -67,7 +67,7 @@ class survey_manager extends \cenozo\singleton
       $lang = $db_participant->language;
       if( !$lang ) $lang = 'en';
 
-      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s', $sid, $lang, $token );
+      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s&newtest=Y', $sid, $lang, $token );
     }
     else
     {
@@ -90,7 +90,7 @@ class survey_manager extends \cenozo\singleton
       $lang = $db_assignment->get_interview()->get_participant()->language;
       if( !$lang ) $lang = 'en';
       
-      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s', $sid, $lang, $token );
+      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s&newtest=Y', $sid, $lang, $token );
     }
 
     return false; // will never happen
