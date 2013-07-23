@@ -191,11 +191,24 @@ class survey_manager extends \cenozo\singleton
       if( is_null( $qnaire_id ) )
       { // finished all qnaires, find the last one completed
         $db_assignment = $db_participant->get_last_finished_assignment();
+        if( !is_null( $db_assignment ) )
+        {
+          $qnaire_id = $db_assignment->get_interview()->qnaire_id;
+        }
         if( is_null( $db_assignment ) )
-          throw lib::create( 'exception\runtime',
-                             'Trying to withdraw participant without a questionnaire.' );
+        { // it is possible that the interview was completed without any assignments
+          $interview_mod = lib::create( 'database\modifier' );
+          $interview_mod->order_desc( 'id' );
+          $interview_list = $db_participant->get_interview_list( $interview_mod );
+          
+          if( 0 == count( $interview_list ) )
+            throw lib::create( 'exception\runtime',
+                               'Trying to withdraw participant without a questionnaire.',
+                               __METHOD__ );
 
-        $qnaire_id = $db_assignment->get_interview()->qnaire_id;
+          $db_interview = current( $interview_list );
+          $qnaire_id = $db_interview->qnaire_id;
+        }
       }
 
       $db_qnaire = lib::create( 'database\qnaire', $qnaire_id );
