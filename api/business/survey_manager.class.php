@@ -243,7 +243,7 @@ class survey_manager extends \cenozo\singleton
         // figure out which token attributes are which
         $db_surveys = lib::create( 'database\limesurvey\surveys', $sid );
         $attributes = array();
-        foreach( $db_surveys->get_attributes() as $key => $value )
+        foreach( $db_surveys->get_token_attribute_names() as $key => $value )
           $attributes[$value] = $db_tokens->$key;
 
         // only worry about participants who have provided data
