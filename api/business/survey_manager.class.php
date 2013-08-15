@@ -191,11 +191,24 @@ class survey_manager extends \cenozo\singleton
       if( is_null( $qnaire_id ) )
       { // finished all qnaires, find the last one completed
         $db_assignment = $db_participant->get_last_finished_assignment();
+        if( !is_null( $db_assignment ) )
+        {
+          $qnaire_id = $db_assignment->get_interview()->qnaire_id;
+        }
         if( is_null( $db_assignment ) )
-          throw lib::create( 'exception\runtime',
-                             'Trying to withdraw participant without a questionnaire.' );
+        { // it is possible that the interview was completed without any assignments
+          $interview_mod = lib::create( 'database\modifier' );
+          $interview_mod->order_desc( 'id' );
+          $interview_list = $db_participant->get_interview_list( $interview_mod );
+          
+          if( 0 == count( $interview_list ) )
+            throw lib::create( 'exception\runtime',
+                               'Trying to withdraw participant without a questionnaire.',
+                               __METHOD__ );
 
-        $qnaire_id = $db_assignment->get_interview()->qnaire_id;
+          $db_interview = current( $interview_list );
+          $qnaire_id = $db_interview->qnaire_id;
+        }
       }
 
       $db_qnaire = lib::create( 'database\qnaire', $qnaire_id );
@@ -230,15 +243,8 @@ class survey_manager extends \cenozo\singleton
         // figure out which token attributes are which
         $db_surveys = lib::create( 'database\limesurvey\surveys', $sid );
         $attributes = array();
-        foreach( explode( "\n", $db_surveys->attributedescriptions ) as $attribute )
-        {   
-          if( 10 < strlen( $attribute ) ) 
-          {   
-            $key = 'attribute_'.substr( $attribute, 10, strpos( $attribute, '=' ) - 10 );
-            $value = substr( $attribute, strpos( $attribute, '=' ) + 1 );
-            $attributes[$value] = $db_tokens->$key;
-          }   
-        }   
+        foreach( $db_surveys->get_token_attribute_names() as $key => $value )
+          $attributes[$value] = $db_tokens->$key;
 
         // only worry about participants who have provided data
         if( array_key_exists( 'provided data', $attributes ) &&

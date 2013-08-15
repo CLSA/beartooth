@@ -24,4 +24,23 @@ class appointment_delete extends \cenozo\ui\push\base_delete
   {
     parent::__construct( 'appointment', $args );
   }
+  
+  /**
+   * Validate the operation.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws exception\notice
+   * @access protected
+   */
+  protected function validate()
+  {
+    parent::validate();
+
+    // do not delete completed appointments
+    if( true == $this->get_record()->completed )
+    {
+      throw lib::create( 'exception\notice',
+        'Completed appointments cannot be deleted.', __METHOD__ );
+    }
+  }
 }

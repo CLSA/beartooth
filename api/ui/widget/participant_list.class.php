@@ -61,7 +61,7 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
         $this->add_column( 'cohort.name', 'string', 'Cohort', true );
       $this->add_column( 'site', 'string', 'Site', false );
     }
-    else
+    else if( 'home' == $this->assignment_type )
     {
       // When the list is parented by an assignment select widget the internal query
       // comes from the queue class, so every participant is linked to their first
@@ -72,6 +72,11 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
         'ranked_participant_for_queue.first_address_city', 'string', 'City', true );
       $this->add_column(
         'ranked_participant_for_queue.first_address_postcode', 'string', 'Postcode', true );
+    }
+    else // site assignment
+    {
+      // show the date of when the home interview was completed
+      $this->add_column( 'home_interview', 'date', 'Home Interview Completed', false );
     }
 
     $this->extended_site_selection = true;
@@ -110,7 +115,7 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
           $columns['cohort.name'] = $record->get_cohort()->name;
         $columns['site'] = $db_site ? $db_site->name : '(none)';
       }
-      else
+      else if( 'home' == $this->assignment_type )
       {
         $columns['ranked_participant_for_queue.first_address_address1'] =
                  is_null( $db_address ) ? '(none)' : $db_address->address1;
@@ -118,6 +123,26 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
                  is_null( $db_address ) ? '(none)' : $db_address->city;
         $columns['ranked_participant_for_queue.first_address_postcode'] =
                  is_null( $db_address ) ? '(none)' : $db_address->postcode;
+      }
+      else // site assignment
+      {
+        $date = NULL;
+
+        // get the last completed in-home appointment
+        $appointment_mod = lib::create( 'database\modifier' );
+        $appointment_mod->where( 'completed', '=', true );
+        $appointment_mod->where( 'address_id', '!=', NULL );
+        $appointment_mod->order_desc( 'datetime' );
+        $appointment_mod->limit( 1 );
+        $appointment_list = $record->get_appointment_list( $appointment_mod );
+
+        if( 0 < count( $appointment_list ) )
+        {
+          $db_appointment = current( $appointment_list );
+          $date = $db_appointment->datetime;
+        }
+
+        $columns['home_interview'] = $date;
       }
 
       $this->add_row( $record->id, $columns );

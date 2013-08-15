@@ -47,16 +47,29 @@ class callback_feed extends \cenozo\ui\pull\base_feed
     $this->data = array();
     $callback_class_name = lib::get_class_name( 'database\callback' );
     $setting_manager = lib::create( 'business\setting_manager');
+    $now_datetime_obj = util::get_datetime_object();
+    $today = $now_datetime_obj->format( 'Y-m-d' );
+
     foreach( $callback_class_name::select( $modifier ) as $db_callback )
     {
       $datetime_obj = util::get_datetime_object( $db_callback->datetime );
 
+      // get the participant and the participant's current qnaire type (home/site)
       $db_participant = $db_callback->get_participant();
+      $title = is_null( $db_participant->uid ) || 0 == strlen( $db_participant->uid )
+             ? $db_participant->first_name.' '.$db_participant->last_name
+             : $db_participant->uid;
+
+      if( $datetime_obj->diff( $now_datetime_obj )->invert ||
+          $today == $datetime_obj->format( 'Y-m-d' ) )
+      {
+        $type = $db_participant->current_qnaire_type;
+        $title .= sprintf( ' (%s)', is_null( $type ) ? 'unknown' : $type );
+      }
+
       $this->data[] = array(
         'id' => $db_callback->id,
-        'title' => is_null( $db_participant->uid ) || 0 == strlen( $db_participant->uid ) ?
-          $db_participant->first_name.' '.$db_participant->last_name :
-          $db_participant->uid,
+        'title' => $title,
         'allDay' => false,
         'start' => $datetime_obj->format( \DateTime::ISO8601 ) );
     }
