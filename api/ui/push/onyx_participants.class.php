@@ -289,11 +289,17 @@ class onyx_participants extends \cenozo\ui\push
           $db_event_type = $event_type_class_name::get_unique_record( 'name', $event_type_name );
           if( !is_null( $db_event_type ) )
           {
-            $db_event = lib::create( 'database\event' );
-            $db_event->participant_id = $db_participant->id;
-            $db_event->event_type_id = $db_event_type->id;
-            $db_event->datetime = util::get_datetime_object()->format( 'Y-m-d H:i:s' );
-            $db_event->save();
+            // make sure the event doesn't already exist
+            $event_mod = lib::create( 'database\modifier' );
+            $event_mod->where( 'event_type_id', '=', $db_event_type->id );
+            if( 0 == $db_participant->get_event_count( $event_mod ) )
+            {
+              $db_event = lib::create( 'database\event' );
+              $db_event->participant_id = $db_participant->id;
+              $db_event->event_type_id = $db_event_type->id;
+              $db_event->datetime = util::get_datetime_object()->format( 'Y-m-d H:i:s' );
+              $db_event->save();
+            }
           }
         }
       }
