@@ -6,9 +6,12 @@ CREATE PROCEDURE patch_operation()
     SET @cenozo = CONCAT( SUBSTRING( DATABASE(), 1, LOCATE( 'beartooth', DATABASE() ) - 1 ),
                           'cenozo' );
 
-    -- add new participant withdraw widget
     SELECT "Adding new operations" AS "";
 
+    INSERT IGNORE INTO operation( type, subject, name, restricted, description )
+    VALUES( "pull", "interview", "report", true, "Download an interview report." );
+    INSERT IGNORE INTO operation( type, subject, name, restricted, description )
+    VALUES( "widget", "interview", "report", true, "Set up an interview report." );
     INSERT IGNORE INTO operation( type, subject, name, restricted, description )
     VALUES( "widget", "participant", "withdraw", true, "Pseudo-assignment to handle participant withdraws." );
   END //
