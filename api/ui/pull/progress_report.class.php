@@ -83,6 +83,25 @@ class progress_report extends \cenozo\ui\pull\base_report
         $db_event_type =
           $event_type_class_name::get_unique_record( 'name', $event_name );
 
+        // this week's callbacks
+        $category = sprintf( 'Callbacks scheduled this week (%s)', $db_qnaire->name );
+        $db_queue = $queue_class_name::get_unique_record( 'name', 'callback' );
+        $db_queue->set_site( $db_site );
+        $db_queue->set_qnaire( $db_qnaire );
+        $queue_mod = lib::create( 'database\modifier' );
+        $queue_mod->where(
+          'callback.datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d' ) );
+        $queue_mod->where(
+          'callback.datetime', '<', $next_monday_datetime_obj->format( 'Y-m-d' ) );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
+
+        // total callbacks
+        $category = sprintf( 'Total Callbacks scheduled (%s)', $db_qnaire->name );
+        $db_queue = $queue_class_name::get_unique_record( 'name', 'callback' );
+        $db_queue->set_site( $db_site );
+        $db_queue->set_qnaire( $db_qnaire );
+        $site_totals[ $category ] = $db_queue->get_participant_count( NULL, false);
+
         // this week's appointments
         $category = sprintf( 'Appointments scheduled this week (%s)', $db_qnaire->name );
         $db_queue = $queue_class_name::get_unique_record( 'name', 'appointment' );
