@@ -193,6 +193,12 @@ VALUES( "push", "queue_restriction", "new", true, "Add a new queue restriction t
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "queue_restriction", "view", true, "View a queue restriction's details." );
 
+-- sample
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "sample", "report", true, "Download a sample report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "sample", "report", true, "Set up a sample report." );
+
 -- self
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "self", "assignment", false, "Displays the assignment manager." );
