@@ -122,7 +122,7 @@ class sample_report extends \cenozo\ui\pull\base_report
           $appointment_mod = lib::create( 'database\modifier' );
           $appointment_mod->order_desc( 'datetime' );
           $appointment_mod->limit( 1 );
-          $appointment_list = $db_participant->get_appointment_list();
+          $appointment_list = $db_participant->get_appointment_list( $appointment_mod );
           if( 0 < count( $appointment_list ) )
           {
             $db_appointment = current( $appointment_list );
@@ -165,7 +165,7 @@ class sample_report extends \cenozo\ui\pull\base_report
         is_null( $db_participant->email ) ? 'no' : 'yes',
         is_null( $db_home_interview ) ? 0 : $db_home_interview->get_assignment_count(),
         $home_interview_date,
-        is_null( $db_site_interview ) ? 'no' : ( $db_site_interview->completed ? 'yes' : 'no' ),
+        is_null( $db_home_interview ) ? 'no' : ( $db_home_interview->completed ? 'yes' : 'no' ),
         is_null( $db_site_interview ) ? 0 : $db_site_interview->get_assignment_count(),
         $site_interview_date,
         is_null( $db_callback ) ? 'none' : $db_callback->datetime );
