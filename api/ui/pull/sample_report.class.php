@@ -126,8 +126,9 @@ class sample_report extends \cenozo\ui\pull\base_report
           if( 0 < count( $appointment_list ) )
           {
             $db_appointment = current( $appointment_list );
-            $site_interview_date =
-              util::get_datetime_object( $db_appointment->datetime )->format( 'Y-m-d' );
+            if( is_null( $db_appointment->address_id ) )
+              $site_interview_date =
+                util::get_datetime_object( $db_appointment->datetime )->format( 'Y-m-d' );
           }
         }
         else // the site interview is complete, get it's complete time from events
