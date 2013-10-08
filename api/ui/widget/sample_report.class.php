@@ -38,6 +38,7 @@ class sample_report extends base_report
   {
     parent::prepare();
 
+    $this->add_parameter( 'site_id', 'enum', 'Site' );
     $this->add_parameter( 'quota_id', 'enum', 'Quota' );
 
     $this->set_variable( 'description',
@@ -56,17 +57,30 @@ class sample_report extends base_report
 
     $quota_class_name = lib::get_class_name( 'database\quota' );
 
+    // get a list of all possible sites from this application's quotas
     $quota_mod = lib::create( 'database\modifier' );
     $quota_mod->where(
       'site.service_id', '=', lib::create( 'business\session' )->get_service()->id );
-    $quota_mod->order( 'site.name' );
-    $quota_mod->order( 'age_group.lower' );
-    $quota_mod->order( 'gender' );
+    $quota_mod->group( 'site.name' );
+    $site_list = array( 0 => 'All' );
+    foreach( $quota_class_name::select( $quota_mod ) as $db_quota )
+    {
+      $db_site = $db_quota->get_site();
+      $site_list[$db_site->id] = $db_site->name;
+    }
+
+    $this->set_parameter( 'site_id', NULL, true, $site_list );
+
+    // get a list of all possible age group / gender pairs from this application's quotas
+    $quota_mod = lib::create( 'database\modifier' );
+    $quota_mod->where(
+      'site.service_id', '=', lib::create( 'business\session' )->get_service()->id );
+    $quota_mod->group( 'age_group_id' );
+    $quota_mod->group( 'gender' );
     $quota_list = array();
     foreach( $quota_class_name::select( $quota_mod ) as $db_quota )
       $quota_list[$db_quota->id] =
-        sprintf( '%s (%s, %s)',
-                 $db_quota->get_site()->name,
+        sprintf( '%s, %s',
                  $db_quota->gender,
                  $db_quota->get_age_group()->to_string() );
 

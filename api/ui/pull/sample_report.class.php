@@ -38,18 +38,22 @@ class sample_report extends \cenozo\ui\pull\base_report
   {
     $participant_class_name = lib::create( 'database\participant' );
     $event_type_class_name = lib::create( 'database\event_type' );
+
+    $site_id = $this->get_argument( 'site_id' );
+    $db_site = $site_id ? lib::create( 'database\site', $site_id ) : NULL;
     $db_quota = lib::create( 'database\quota', $this->get_argument( 'quota_id' ) );
 
     $this->add_title(
       sprintf( 'For %s (%s, %s)',
-               $db_quota->get_site()->name,
+               is_null( $db_site ) ? 'All sites' : $db_site->name,
                $db_quota->gender,
                $db_quota->get_age_group()->to_string() ) );
 
     $participant_mod = lib::create( 'database\modifier' );
     $participant_mod->where( 'gender', '=', $db_quota->gender );
     $participant_mod->where( 'age_group_id', '=', $db_quota->age_group_id );
-    $participant_mod->where( 'participant_site.site_id', '=', $db_quota->site_id );
+    if( !is_null( $db_site ) )
+      $participant_mod->where( 'participant_site.site_id', '=', $db_site->id );
     $participant_mod->where( 'IFNULL( participant_last_consent.accept, true )', '=', true );
     $participant_mod->where( 'interview.qnaire_id', '=', 'qnaire.id', false );
     $participant_mod->where_bracket( true );
@@ -159,6 +163,7 @@ class sample_report extends \cenozo\ui\pull\base_report
       $import_datetime_object = 
       $content[] = array(
         $db_participant->uid,
+        $db_participant->get_effective_site()->name,
         $db_participant->active ? 'yes' : 'no',
         $db_participant->status,
         $import_date,
@@ -174,6 +179,7 @@ class sample_report extends \cenozo\ui\pull\base_report
 
     $header = array(
       'UID',
+      'Site',
       'Active',
       'Condition',
       'Imported',
