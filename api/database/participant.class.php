@@ -243,3 +243,9 @@ AND
 AND participant.id = %s
 SQL;
 }
+
+// define the join to the interview table
+$interview_mod = lib::create( 'database\modifier' );
+$interview_mod->where( 'participant.id', '=', 'participant_last_interview.participant_id', false );
+$interview_mod->where( 'participant_last_interview.interview_id', '=', 'interview.id', false );
+participant::customize_join( 'interview', $interview_mod );

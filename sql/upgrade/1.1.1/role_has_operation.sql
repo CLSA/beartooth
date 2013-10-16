@@ -140,6 +140,16 @@ CREATE PROCEDURE patch_role_has_operation()
     SET @sql = CONCAT(
       "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
       "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'interview' AND operation.name = 'report' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'administrator', 'coordinator' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
       "WHERE subject = 'note' "
       "AND operation.restricted = true ",
       "AND role.name IN( 'curator', 'helpline' )" );
@@ -195,6 +205,24 @@ CREATE PROCEDURE patch_role_has_operation()
       "WHERE subject = 'voip' AND operation.name = 'dtmf' "
       "AND operation.restricted = true ",
       "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE type = 'pull' AND subject = 'sample' AND operation.name = 'report' "
+      "AND role.name IN ( 'administrator' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE type = 'widget' AND subject = 'sample' AND operation.name = 'report' "
+      "AND role.name IN ( 'administrator' )" );
     PREPARE statement FROM @sql;
     EXECUTE statement;
     DEALLOCATE PREPARE statement;
