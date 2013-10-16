@@ -728,11 +728,16 @@ class queue extends \cenozo\database\record
               {
                 // who belong to a quota which is disabled
                 $parts['where'][] = 'quota_state.disabled = true';
+                // and who are ot marked to override quota
+                $parts['where'][] = 'participant_override_quota = false';
               }
               else
               {
                 // who belong to a quota which is not disabled or doesn't exist
-                $parts['where'][] = '( quota_state.disabled IS NULL OR quota_state.disabled = false )';
+                $parts['where'][] =
+                  '( quota_state.disabled IS NULL OR '.
+                    'quota_state.disabled = false OR '.
+                    'participant_override_quota = true )';
 
                 if( 'outside calling time' == $queue )
                 {
@@ -1173,6 +1178,7 @@ participant.age_group_id AS participant_age_group_id,
 participant.status AS participant_status,
 participant.language AS participant_language,
 participant.use_informant AS participant_use_informant,
+participant.override_quota AS participant_override_quota,
 participant.email AS participant_email,
 service_has_participant.service_id AS service_has_participant_service_id,
 service_has_participant.participant_id AS service_has_participant_participant_id,
