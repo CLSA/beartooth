@@ -66,8 +66,6 @@ class queue extends \cenozo\database\record
       'upcoming callback',
       'assignable callback',
       'new participant',
-      'new participant available',
-      'new participant not available',
       'old participant' );
 
     foreach( $queue_list as $queue )
@@ -113,8 +111,7 @@ class queue extends \cenozo\database\record
         $queue_list = array(
           'phone call status',
           'phone call status waiting',
-          'phone call status available',
-          'phone call status not available' );
+          'phone call status ready' );
 
         foreach( $queue_list as $queue )
         {
@@ -510,47 +507,6 @@ class queue extends \cenozo\database\record
         ') '.
       ')';
 
-    // checks a participant's availability
-    $check_availability_sql = sprintf(
-      '( SELECT MAX( '.
-          'CASE DAYOFWEEK( %s ) '.
-            'WHEN 1 THEN availability.sunday '.
-            'WHEN 2 THEN availability.monday '.
-            'WHEN 3 THEN availability.tuesday '.
-            'WHEN 4 THEN availability.wednesday '.
-            'WHEN 5 THEN availability.thursday '.
-            'WHEN 6 THEN availability.friday '.
-            'WHEN 7 THEN availability.saturday '.
-            'ELSE 0 END ',
-      $viewing_date );
-
-    if( $check_time )
-    {
-      $check_availability_sql .= sprintf(
-        '* IF( IF( TIME( %s ) < availability.start_time, '.
-                '24*60*60 + TIME_TO_SEC( TIME( %s ) ), '.
-                'TIME_TO_SEC( TIME( %s ) ) ) >= '.
-            'TIME_TO_SEC( availability.start_time ), 1, 0 ) '.
-        '* IF( IF( TIME( %s ) < availability.start_time, '.
-                '24*60*60 + TIME_TO_SEC( TIME( %s ) ), '.
-                'TIME_TO_SEC( TIME( %s ) ) ) < '.
-            'IF( availability.end_time < availability.start_time, '.
-                '24*60*60 + TIME_TO_SEC( availability.end_time ), '.
-                'TIME_TO_SEC( availability.end_time ) ), 1, 0 ) ',
-        $viewing_date,
-        $viewing_date,
-        $viewing_date,
-        $viewing_date,
-        $viewing_date,
-        $viewing_date );
-    }
-
-    // finish the check availability sql
-    $check_availability_sql .=
-      ') '.
-      'FROM availability '.
-      'WHERE availability.participant_id = participant_for_queue.id )';
-
     // checks to make sure a participant is hours
     if( $check_time )
     {
@@ -818,19 +774,6 @@ class queue extends \cenozo\database\record
         $viewing_date,
         $viewing_date );
     }
-    else if( 'new participant available' == $queue )
-    {
-      // the participant has availability and is currently available
-      $parts['where'][] = $check_availability_sql.' = true';
-    }
-    else if( 'new participant not available' == $queue )
-    {
-      // the participant has availability and is currently not available
-      // or doesn't specify availability
-      $parts['where'][] = sprintf( '( %s = false OR %s IS NULL )',
-                                   $check_availability_sql,
-                                   $check_availability_sql );
-    }
     else
     {
       // a phone call status has been included (all remaining queues require it)
@@ -854,7 +797,7 @@ class queue extends \cenozo\database\record
           $viewing_date,
           str_replace( ' ', '_', strtoupper( $phone_call_status ) ) );
       }
-      else if( 'phone call status available' == $queue )
+      else if( 'phone call status ready' == $queue )
       {
         $parts['where'][] = sprintf(
           $check_time ? '%s >= phone_call.end_datetime + INTERVAL <CALLBACK_%s> MINUTE' :
@@ -862,22 +805,6 @@ class queue extends \cenozo\database\record
                         'DATE( phone_call.end_datetime + INTERVAL <CALLBACK_%s> MINUTE )',
           $viewing_date,
           str_replace( ' ', '_', strtoupper( $phone_call_status ) ) );
-        // the participant has availability and is currently available
-        $parts['where'][] = $check_availability_sql.' = true';
-      }
-      else if( 'phone call status not available' == $queue )
-      {
-        $parts['where'][] = sprintf(
-          $check_time ? '%s >= phone_call.end_datetime + INTERVAL <CALLBACK_%s> MINUTE' :
-                        'DATE( %s ) >= '.
-                        'DATE( phone_call.end_datetime + INTERVAL <CALLBACK_%s> MINUTE )',
-          $viewing_date,
-          str_replace( ' ', '_', strtoupper( $phone_call_status ) ) );
-        // the participant has availability and is currently not available
-        // or doesn't specify availability
-        $parts['where'][] = sprintf( '( %s = false OR %s IS NULL )',
-                                     $check_availability_sql,
-                                     $check_availability_sql );
       }
       else // invalid queue name
       {
