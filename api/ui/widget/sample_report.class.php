@@ -25,6 +25,7 @@ class sample_report extends base_report
   public function __construct( $args )
   {
     parent::__construct( 'sample', $args );
+    $this->use_cache = true;
   }
 
   /**
