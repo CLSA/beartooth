@@ -213,7 +213,7 @@ description = "Participants who have an immediate callback which is ready to be 
 INSERT INTO queue SET
 name = "new participant",
 title = "Never assigned participants",
-rank = NULL,
+rank = 9,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
@@ -221,30 +221,6 @@ parent_queue_id = (
     FROM queue
     WHERE name = "qnaire" ) AS tmp ),
 description = "Participants who have never been assigned to an interviewer.";
-
-INSERT INTO queue SET
-name = "new participant available",
-title = "New participants, available",
-rank = 16,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "new participant" ) AS tmp ),
-description = "New participants who are available.";
-
-INSERT INTO queue SET
-name = "new participant not available",
-title = "New participants, not available",
-rank = 17,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "new participant" ) AS tmp ),
-description = "New participants who are not available.";
 
 INSERT INTO queue SET
 name = "old participant",
@@ -284,8 +260,8 @@ description = "Participants whose last call result was 'contacted' and the sched
 time has not yet been reached.";
 
 INSERT INTO queue SET
-name = "contacted available",
-title = "Last call: contacted (available)",
+name = "contacted ready",
+title = "Last call: contacted (ready)",
 rank = 2,
 qnaire_specific = true,
 parent_queue_id = (
@@ -293,20 +269,7 @@ parent_queue_id = (
     SELECT id
     FROM queue
     WHERE name = "contacted" ) AS tmp ),
-description = "Available participants whose last call result was 'contacted' and the scheduled call
-back time has been reached.";
-
-INSERT INTO queue SET
-name = "contacted not available",
-title = "Last call: contacted (not available)",
-rank = 3,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "contacted" ) AS tmp ),
-description = "Unavailable participants whose last call result was 'contacted' and the scheduled call
+description = "Participants whose last call result was 'contacted' and the scheduled call
 back time has been reached.";
 
 INSERT INTO queue SET
@@ -335,29 +298,16 @@ description = "Participants whose last call result was 'busy' and the scheduled 
 time has not yet been reached.";
 
 INSERT INTO queue SET
-name = "busy available",
-title = "Last call: busy (available)",
-rank = 4,
+name = "busy ready",
+title = "Last call: busy (ready)",
+rank = 3,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
     WHERE name = "busy" ) AS tmp ),
-description = "Available participants whose last call result was 'busy' and the scheduled call
-back time has been reached.";
-
-INSERT INTO queue SET
-name = "busy not available",
-title = "Last call: busy (not available)",
-rank = 5,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "busy" ) AS tmp ),
-description = "Unavailable participants whose last call result was 'busy' and the scheduled call
+description = "Participants whose last call result was 'busy' and the scheduled call
 back time has been reached.";
 
 INSERT INTO queue SET
@@ -386,29 +336,16 @@ description = "Participants whose last call result was 'fax' and the scheduled c
 time has not yet been reached.";
 
 INSERT INTO queue SET
-name = "fax available",
-title = "Last call: fax (available)",
-rank = 6,
+name = "fax ready",
+title = "Last call: fax (ready)",
+rank = 4,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
     WHERE name = "fax" ) AS tmp ),
-description = "Available participants whose last call result was 'fax' and the scheduled call 
-back time has been reached.";
-
-INSERT INTO queue SET
-name = "fax not available",
-title = "Last call: fax (not available)",
-rank = 7,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "fax" ) AS tmp ),
-description = "Unavailable participants whose last call result was 'fax' and the scheduled call 
+description = "Participants whose last call result was 'fax' and the scheduled call 
 back time has been reached.";
 
 INSERT INTO queue SET
@@ -439,32 +376,18 @@ description = "Participants whose last call result was 'machine message', 'machi
 reached.";
 
 INSERT INTO queue SET
-name = "not reached available",
-title = "Last call: not reached (available)",
-rank = 8,
+name = "not reached ready",
+title = "Last call: not reached (ready)",
+rank = 5,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
     WHERE name = "not reached" ) AS tmp ),
-description = "Available participants whose last call result was 'machine message',
+description = "Participants whose last call result was 'machine message',
 'machine no message', 'not reached', 'disconnected' or 'wrong number' and the scheduled call
 back time has been reached.";
-
-INSERT INTO queue SET
-name = "not reached not available",
-title = "Last call: not reached (not available)",
-rank = 9,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "not reached" ) AS tmp ),
-description = "Unavailable participants whose last call result was 'machine message',
-'machine no message', 'not reached', 'disconnected' or 'wrong number' and the scheduled
-call back time has been reached.";
 
 INSERT INTO queue SET
 name = "no answer",
@@ -492,29 +415,16 @@ description = "Participants whose last call result was 'no answer' and the sched
 time has not yet been reached.";
 
 INSERT INTO queue SET
-name = "no answer available",
-title = "Last call: no answer (available)",
-rank = 10,
+name = "no answer ready",
+title = "Last call: no answer (ready)",
+rank = 6,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
     WHERE name = "no answer" ) AS tmp ),
-description = "Available participants whose last call result was 'no answer' and the scheduled call
-back time has been reached.";
-
-INSERT INTO queue SET
-name = "no answer not available",
-title = "Last call: no answer (not available)",
-rank = 11,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "no answer" ) AS tmp ),
-description = "Unavailable participants whose last call result was 'no answer' and the scheduled call
+description = "Participants whose last call result was 'no answer' and the scheduled call
 back time has been reached.";
 
 INSERT INTO queue SET
@@ -543,29 +453,16 @@ description = "Participants whose last call result was 'hang up' and the schedul
 time has not yet been reached.";
 
 INSERT INTO queue SET
-name = "hang up available",
-title = "Last call: hang up (available)",
-rank = 12,
+name = "hang up ready",
+title = "Last call: hang up (ready)",
+rank = 7,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
     WHERE name = "hang up" ) AS tmp ),
-description = "Available participants whose last call result was 'hang up' and the scheduled call
-back time has been reached.";
-
-INSERT INTO queue SET
-name = "hang up not available",
-title = "Last call: hang up (not available)",
-rank = 13,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "hang up" ) AS tmp ),
-description = "Unavailable participants whose last call result was 'hang up' and the scheduled call
+description = "Participants whose last call result was 'hang up' and the scheduled call
 back time has been reached.";
 
 INSERT INTO queue SET
@@ -594,29 +491,16 @@ description = "Participants whose last call result was 'soft refusal' and the sc
 time has not yet been reached.";
 
 INSERT INTO queue SET
-name = "soft refusal available",
-title = "Last call: soft refusal (available)",
-rank = 14,
+name = "soft refusal ready",
+title = "Last call: soft refusal (ready)",
+rank = 8,
 qnaire_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
     FROM queue
     WHERE name = "soft refusal" ) AS tmp ),
-description = "Available participants whose last call result was 'soft refusal' and the scheduled call
+description = "Participants whose last call result was 'soft refusal' and the scheduled call
 back time has been reached.";
-
-INSERT INTO queue SET
-name = "soft refusal not available",
-title = "Last call: soft refusal (not available)",
-rank = 15,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "soft refusal" ) AS tmp ),
-description = "Unavailable participants whose last call result was 'soft refusal' and the scheduled
-call back time has been reached.";
 
 COMMIT;
