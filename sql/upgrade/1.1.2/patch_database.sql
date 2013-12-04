@@ -10,5 +10,6 @@ SOURCE person_primary_address.sql
 SOURCE participant_default_site.sql
 SOURCE participant_site.sql
 SOURCE queue.sql
+SOURCE setting.sql
 
 COMMIT;
