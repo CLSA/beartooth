@@ -3,8 +3,7 @@ DELIMITER //
 CREATE PROCEDURE patch_setting()
   BEGIN
     -- determine the @cenozo database name
-    SET @cenozo = CONCAT( SUBSTRING( DATABASE(), 1, LOCATE( 'beartooth', DATABASE() ) - 1 ),
-                          'cenozo' );
+    SET @cenozo = REPLACE( DATABASE(), 'beartooth', 'cenozo' );
 
     SELECT "Updating settings" AS "";
 
