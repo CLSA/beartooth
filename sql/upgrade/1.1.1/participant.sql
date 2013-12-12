@@ -4,8 +4,7 @@ CREATE PROCEDURE patch_participant()
   BEGIN
 
     -- determine the @cenozo database name
-    SET @cenozo = CONCAT( SUBSTRING( DATABASE(), 1, LOCATE( 'beartooth', DATABASE() ) - 1 ),
-                          'cenozo' );
+    SET @cenozo = REPLACE( DATABASE(), 'beartooth', 'cenozo' );
 
     -- add the 'duplicate' option to the participant.status enum column
     SELECT "Adding new values to participant.status enum column" AS "";
