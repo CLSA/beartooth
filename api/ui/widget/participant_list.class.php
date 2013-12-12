@@ -93,6 +93,7 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     parent::setup();
 
     $participant_class_name = lib::get_class_name( 'database\participant' );
+    $operation_class_name = lib::get_class_name( 'database\operation' );
     $session = lib::create( 'business\session' );
 
     foreach( $this->get_record_list() as $record )
@@ -153,6 +154,21 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
       $this->set_variable( 'conditions', $participant_class_name::get_enum_values( 'status' ) );
       $this->set_variable( 'restrict_condition', $this->get_argument( 'restrict_condition', '' ) );
     }
+    
+    // include the participant site reassign and search actions if the widget isn't parented
+    if( is_null( $this->parent ) ) 
+    {   
+      $db_operation =
+        $operation_class_name::get_operation( 'widget', 'participant', 'site_reassign' );
+      if( $session->is_allowed( $db_operation ) ) 
+        $this->add_action( 'reassign', 'Site Reassign', $db_operation,
+          'Change the preferred site of multiple participants at once' );
+      $db_operation =
+        $operation_class_name::get_operation( 'widget', 'participant', 'search' );
+      if( $session->is_allowed( $db_operation ) ) 
+        $this->add_action( 'search', 'Search', $db_operation,
+          'Search for participants based on partial information' );
+    }   
   }
 
   /**
