@@ -118,8 +118,13 @@ class onyx_consent extends \cenozo\ui\push
           }
           else
           {
-            $operation = lib::create( 'ui\push\consent_new', $args );
-            $operation->process();
+            try
+            {
+              $operation = lib::create( 'ui\push\consent_new', $args );
+              $operation->process();
+            }
+            // ignore notice exceptions
+            catch( \cenozo\exception\notice $e ) {}
           }
         }
       }
