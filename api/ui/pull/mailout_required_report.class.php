@@ -88,7 +88,7 @@ class mailout_required_report extends \cenozo\ui\pull\base_report
     $participant_mod->where( 'participant_site.site_id', '=', $restrict_site_id );
     if( $restrict_source_id ) $participant_mod->where( 'source_id', '=', $restrict_source_id );
     // $participant_mod->where( 'consent.event', 'not in', $consent_types );
-    $participant_mod->where( 'status', '=', NULL );
+    $participant_mod->where( 'state_id', '=', NULL );
     $participant_mod->where( 'interview.qnaire_id', '=', $db_qnaire->id );
     $participant_mod->where_bracket( true );
     $participant_mod->where( 'participant_last_consent.consent_id', '=', NULL );
