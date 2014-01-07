@@ -22,20 +22,20 @@
           icons: { primary: "ui-icon-play" }
         } ).click( function() {
           var id_string = $(this).attr( 'id' );
-          var id = parseInt( id_string.substring( id_string.lastIndexOf('_') + 1 ) );
-          if( ajax_push( "assignment", "begin", { "participant_id": id } ) )
+          var participant_id = parseInt( id_string.substring( id_string.lastIndexOf('_') + 1 ) );
+          if( ajax_push( "assignment", "begin", { "participant_id": participant_id } ) )
             window.location.reload();
         } );
       } );
     </script>
-  {% elseif states is defined %}
+  {% elseif state_list is defined %}
     <script type="text/javascript">
       $( function() {
         // reload page if state selector is changed
         $( "#{{ widget.full }}__restrict_state" ).change( function() {
-          var state = $( "#{{ widget.full }}__restrict_state option:selected" ).val();
+          var state_id = $( "#{{ widget.full }}__restrict_state option:selected" ).val();
           slot_load( {{ slot }}, "{{ widget.subject }}", "{{ widget.name }}", 
-                     { "restrict_state": state } );
+                     { "restrict_state_id": state_id } );
         } );
       } );
     </script>
@@ -45,15 +45,15 @@
 
 {% block prelist %}
   
-  {% if not assignment_type|default( false ) and states is defined %}
-    {% set restrict_state = restrict_state|default("") %}
+  {% if not assignment_type|default( false ) and state_list is defined %}
+    {% set restrict_state_id = restrict_state_id|default("") %}
     <label for="{{ widget.full }}__restrict_state">Restrict to state:</label>
     <select id="{{ widget.full }}__restrict_state" class="ui-state-default"
             style="margin-top:4px;margin-bottom:4px;">
       <option {% if "" == restrict_state %}selected{% endif %}
               value="">No restriction</option>
-      {% for name in states %}
-        <option {% if name == restrict_state %}selected{% endif %}
+      {% for id, name in state_list %}
+        <option {% if id == restrict_state_id %}selected{% endif %}
                 value="{{ name }}">{{ name }}</option>
       {% endfor %}
     </select>
