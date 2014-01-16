@@ -303,6 +303,18 @@ SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "widget" AND subject = "consent" AND operation.name = "view"
 AND role.name IN( "administrator", "coordinator", "curator", "helpline", "interviewer" );
 
+-- email
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "email" AND operation.name = "report"
+AND role.name IN ( "administrator", "curator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "email" AND operation.name = "report"
+AND role.name IN ( "administrator", "curator" );
+
 -- event
 
 INSERT INTO role_has_operation( role_id, operation_id )
