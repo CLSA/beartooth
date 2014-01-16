@@ -32,8 +32,8 @@
     <script type="text/javascript">
       $( function() {
         // reload page if state selector is changed
-        $( "#{{ widget.full }}__restrict_state" ).change( function() {
-          var state_id = $( "#{{ widget.full }}__restrict_state option:selected" ).val();
+        $( "#{{ widget.full }}__restrict_state_id" ).change( function() {
+          var state_id = $( "#{{ widget.full }}__restrict_state_id option:selected" ).val();
           slot_load( {{ slot }}, "{{ widget.subject }}", "{{ widget.name }}", 
                      { "restrict_state_id": state_id } );
         } );
@@ -46,15 +46,15 @@
 {% block prelist %}
   
   {% if not assignment_type|default( false ) and state_list is defined %}
-    {% set restrict_state_id = restrict_state_id|default("") %}
-    <label for="{{ widget.full }}__restrict_state">Restrict to state:</label>
-    <select id="{{ widget.full }}__restrict_state" class="ui-state-default"
+    {% set restrict_state_id = restrict_state_id|default(0) %}
+    <label for="{{ widget.full }}__restrict_state_id">Restrict to state:</label>
+    <select id="{{ widget.full }}__restrict_state_id" class="ui-state-default"
             style="margin-top:4px;margin-bottom:4px;">
-      <option {% if "" == restrict_state %}selected{% endif %}
+      <option {% if "" == restrict_state_id %}selected{% endif %}
               value="">No restriction</option>
       {% for id, name in state_list %}
         <option {% if id == restrict_state_id %}selected{% endif %}
-                value="{{ name }}">{{ name }}</option>
+                value="{{ id }}">{{ name }}</option>
       {% endfor %}
     </select>
   {% endif %}

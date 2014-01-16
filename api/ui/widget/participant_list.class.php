@@ -80,6 +80,16 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     }
 
     $this->extended_site_selection = true;
+
+    if( $this->allow_restrict_state )
+    {
+      $restrict_state_id = $this->get_argument( 'restrict_state_id', '' );
+      if( $restrict_state_id )
+        $this->set_heading(
+          sprintf( '%s, restricted to %s',
+                   $this->get_heading(),
+                   lib::create( 'database\state', $restrict_state_id )->name ) );
+    }
   }
   
   /**
@@ -152,7 +162,7 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     if( $this->allow_restrict_state )
     {
       $state_mod = lib::create( 'database\modifier' );
-      $state_mod->order( 'state_id' );
+      $state_mod->order( 'rank' );
       $state_list = array();
       foreach( $state_class_name::select( $state_mod ) as $db_state )
         $state_list[$db_state->id] = $db_state->name;
