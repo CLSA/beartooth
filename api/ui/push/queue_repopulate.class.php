@@ -1,6 +1,6 @@
 <?php
 /**
- * callback_delete.class.php
+ * queue_repopulate.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @filesource
@@ -10,9 +10,11 @@ namespace beartooth\ui\push;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * push: callback delete
+ * push: queue repopulate
+ *
+ * Repopulates the queue participant lists.
  */
-class callback_delete extends \cenozo\ui\push\base_delete
+class queue_repopulate extends \cenozo\ui\push
 {
   /**
    * Constructor.
@@ -22,9 +24,9 @@ class callback_delete extends \cenozo\ui\push\base_delete
    */
   public function __construct( $args )
   {
-    parent::__construct( 'callback', $args );
+    parent::__construct( 'queue', 'repopulate', $args );
   }
-
+  
   /**
    * This method executes the operation's purpose.
    * 
@@ -35,7 +37,7 @@ class callback_delete extends \cenozo\ui\push\base_delete
   {
     parent::execute();
 
-    // if the owner is a participant then update their queue status
-    $this->get_record()->get_participant()->update_queue_status();
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+    $queue_class_name::repopulate();
   }
 }

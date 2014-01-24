@@ -1,6 +1,6 @@
 <?php
 /**
- * callback_delete.class.php
+ * consent_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @filesource
@@ -10,21 +10,12 @@ namespace beartooth\ui\push;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * push: callback delete
+ * push: consent edit
+ *
+ * Create a edit consent.
  */
-class callback_delete extends \cenozo\ui\push\base_delete
+class consent_edit extends \cenozo\ui\push\consent_edit
 {
-  /**
-   * Constructor.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param array $args Push arguments
-   * @access public
-   */
-  public function __construct( $args )
-  {
-    parent::__construct( 'callback', $args );
-  }
-
   /**
    * This method executes the operation's purpose.
    * 
@@ -35,7 +26,7 @@ class callback_delete extends \cenozo\ui\push\base_delete
   {
     parent::execute();
 
-    // if the owner is a participant then update their queue status
+    // update this participant's queue status
     $this->get_record()->get_participant()->update_queue_status();
   }
 }

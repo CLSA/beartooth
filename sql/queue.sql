@@ -10,6 +10,7 @@ name = "all",
 title = "All Participants",
 rank = NULL,
 qnaire_specific = false,
+time_specific = false,
 parent_queue_id = NULL,
 description = "All participants in the database.";
 
@@ -18,6 +19,7 @@ name = "finished",
 title = "Finished all questionnaires",
 rank = NULL,
 qnaire_specific = false,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -30,6 +32,7 @@ name = "ineligible",
 title = "Not eligible to answer questionnaires",
 rank = NULL,
 qnaire_specific = false,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -43,6 +46,7 @@ name = "inactive",
 title = "Inactive participants",
 rank = NULL,
 qnaire_specific = false,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -56,6 +60,7 @@ name = "refused consent",
 title = "Participants who refused consent",
 rank = NULL,
 qnaire_specific = false,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -69,6 +74,7 @@ name = "condition",
 title = "Permanent Condition",
 rank = NULL,
 qnaire_specific = false,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -82,6 +88,7 @@ name = "eligible",
 title = "Eligible to answer questionnaires",
 rank = NULL,
 qnaire_specific = false,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -94,6 +101,7 @@ name = "qnaire",
 title = "Questionnaire",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -106,6 +114,7 @@ name = "qnaire waiting",
 title = "Waiting to begin",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -119,6 +128,7 @@ name = "appointment",
 title = "Appointment scheduled",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -131,6 +141,7 @@ name = "assigned",
 title = "Currently Assigned",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -139,22 +150,11 @@ parent_queue_id = (
 description = "Participants who are currently assigned to an interviewer.";
 
 INSERT INTO queue SET
-name = "restricted",
-title = "Restricted from calling",
-rank = NULL,
-qnaire_specific = true,
-parent_queue_id = (
-  SELECT id FROM(
-    SELECT id
-    FROM queue
-    WHERE name = "qnaire" ) AS tmp ),
-description = "Participants whose city, province or postcode have been restricted.";
-
-INSERT INTO queue SET
 name = "quota disabled",
 title = "Participant's quota is disabled",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -167,6 +167,7 @@ name = "outside calling time",
 title = "Outside calling time",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -179,6 +180,7 @@ name = "callback",
 title = "Participants with callbacks",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -191,6 +193,7 @@ name = "upcoming callback",
 title = "Callback upcoming",
 rank = NULL,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -203,6 +206,7 @@ name = "assignable callback",
 title = "Callback assignable",
 rank = 1,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -215,6 +219,7 @@ name = "new participant",
 title = "Never assigned participants",
 rank = 9,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -227,6 +232,7 @@ name = "old participant",
 title = "Previously assigned participants",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -239,6 +245,7 @@ name = "contacted",
 title = "Last call: contacted",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -251,6 +258,7 @@ name = "contacted waiting",
 title = "Last call: contacted (waiting)",
 rank = NULL,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -264,6 +272,7 @@ name = "contacted ready",
 title = "Last call: contacted (ready)",
 rank = 2,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -277,6 +286,7 @@ name = "busy",
 title = "Last call: busy line",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -289,6 +299,7 @@ name = "busy waiting",
 title = "Last call: busy line (waiting)",
 rank = NULL,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -302,6 +313,7 @@ name = "busy ready",
 title = "Last call: busy (ready)",
 rank = 3,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -315,6 +327,7 @@ name = "fax",
 title = "Last call: fax line",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -327,6 +340,7 @@ name = "fax waiting",
 title = "Last call: fax line (waiting)",
 rank = NULL,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -340,6 +354,7 @@ name = "fax ready",
 title = "Last call: fax (ready)",
 rank = 4,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -353,6 +368,7 @@ name = "not reached",
 title = "Last call: not reached",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -366,6 +382,7 @@ name = "not reached waiting",
 title = "Last call: not reached (waiting)",
 rank = NULL,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -380,6 +397,7 @@ name = "not reached ready",
 title = "Last call: not reached (ready)",
 rank = 5,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -394,6 +412,7 @@ name = "no answer",
 title = "Last call: no answer",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -406,6 +425,7 @@ name = "no answer waiting",
 title = "Last call: no answer (waiting)",
 rank = NULL,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -419,6 +439,7 @@ name = "no answer ready",
 title = "Last call: no answer (ready)",
 rank = 6,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -432,6 +453,7 @@ name = "hang up",
 title = "Last call: hang up",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -444,6 +466,7 @@ name = "hang up waiting",
 title = "Last call: hang up (waiting)",
 rank = NULL,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -457,6 +480,7 @@ name = "hang up ready",
 title = "Last call: hang up (ready)",
 rank = 7,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -470,6 +494,7 @@ name = "soft refusal",
 title = "Last call: soft refusal",
 rank = NULL,
 qnaire_specific = true,
+time_specific = false,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -482,6 +507,7 @@ name = "soft refusal waiting",
 title = "Last call: soft refusal (waiting)",
 rank = NULL,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id
@@ -495,6 +521,7 @@ name = "soft refusal ready",
 title = "Last call: soft refusal (ready)",
 rank = 8,
 qnaire_specific = true,
+time_specific = true,
 parent_queue_id = (
   SELECT id FROM(
     SELECT id

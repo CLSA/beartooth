@@ -96,6 +96,9 @@ class assignment_end extends \cenozo\ui\push
         $db_assignment->end_datetime = $date_obj->format( 'Y-m-d H:i:s' );
         $db_assignment->save();
       }
+
+      // update this participant's queue status
+      $db_assignment->get_interview()->get_participant()->update_queue_status();
     }
   }
 }

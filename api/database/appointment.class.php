@@ -84,7 +84,8 @@ class appointment extends \cenozo\database\record
 
     // check the qnaire type
     $type = is_null( $this->address_id ) ? 'site' : 'home';
-    if( $db_participant->current_qnaire_type != $type ) return false;
+    $db_effective_qnaire = $db_participant->get_effective_qnaire();
+    if( is_null( $db_effective_qnaire ) || $db_effective_qnaire->type != $type ) return false;
     
     return true;
   }

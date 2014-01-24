@@ -63,18 +63,18 @@ class participant_tree extends \cenozo\ui\pull
     {
       // restrict by language
       // Note: a new queue mod needs to be created for every iteration of the loop
-      $participant_mod = lib::create( 'database\modifier' );
+      $queue_mod = lib::create( 'database\modifier' );
       if( 'any' != $restrict_language )
       {
         // english is default, so if the language is english allow null values
         if( 'en' == $restrict_language )
         {
-          $participant_mod->where_bracket( true );
-          $participant_mod->where( 'participant_language', '=', $restrict_language );
-          $participant_mod->or_where( 'participant_language', '=', NULL );
-          $participant_mod->where_bracket( false );
+          $queue_mod->where_bracket( true );
+          $queue_mod->where( 'participant.language', '=', $restrict_language );
+          $queue_mod->or_where( 'participant.language', '=', NULL );
+          $queue_mod->where_bracket( false );
         }
-        else $participant_mod->where( 'participant_language', '=', $restrict_language );
+        else $queue_mod->where( 'participant.language', '=', $restrict_language );
       }
 
       // restrict queue based on user's role
@@ -85,15 +85,15 @@ class participant_tree extends \cenozo\ui\pull
       if( !$db_queue->qnaire_specific )
       {
         $index = sprintf( '%d_%d', 0, $db_queue->id );
-        $this->data[$index] = $db_queue->get_participant_count( $participant_mod );
+        $this->data[$index] = $db_queue->get_participant_count( $queue_mod );
       }
       else // handle queues which are qnaire specific
       {
         foreach( $qnaire_class_name::select() as $db_qnaire )
         {
-          $db_queue->set_qnaire( $db_qnaire );
+          $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
           $index = sprintf( '%d_%d', $db_qnaire->id, $db_queue->id );
-          $this->data[$index] = $db_queue->get_participant_count( $participant_mod );
+          $this->data[$index] = $db_queue->get_participant_count( $queue_mod );
         }
       }
     }

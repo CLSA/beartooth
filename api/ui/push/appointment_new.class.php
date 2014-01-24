@@ -73,4 +73,18 @@ class appointment_new extends \cenozo\ui\push\base_new
     if( !array_key_exists( 'address_id', $columns ) && array_key_exists( 'user_id', $columns ) )
       unset( $this->arguments['columns']['user_id'] );
   }
+
+  /**
+   * This method executes the operation's purpose.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access protected
+   */
+  protected function execute()
+  {
+    parent::execute();
+
+    // if the owner is a participant then update their queue status
+    $this->get_record()->get_participant()->update_queue_status();
+  }
 }

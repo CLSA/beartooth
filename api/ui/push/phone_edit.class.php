@@ -1,6 +1,6 @@
 <?php
 /**
- * callback_delete.class.php
+ * phone_edit.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @filesource
@@ -10,21 +10,12 @@ namespace beartooth\ui\push;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * push: callback delete
+ * push: phone edit
+ *
+ * Create a edit phone.
  */
-class callback_delete extends \cenozo\ui\push\base_delete
+class phone_edit extends \cenozo\ui\push\phone_edit
 {
-  /**
-   * Constructor.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param array $args Push arguments
-   * @access public
-   */
-  public function __construct( $args )
-  {
-    parent::__construct( 'callback', $args );
-  }
-
   /**
    * This method executes the operation's purpose.
    * 
@@ -36,6 +27,7 @@ class callback_delete extends \cenozo\ui\push\base_delete
     parent::execute();
 
     // if the owner is a participant then update their queue status
-    $this->get_record()->get_participant()->update_queue_status();
+    $db_participant = $this->get_record()->get_person()->get_participant();
+    if( !is_null( $db_participant ) ) $db_participant->update_queue_status();
   }
 }
