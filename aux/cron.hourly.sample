@@ -6,7 +6,7 @@
  * Author: Patrick Emond <emondpd@mcmaster.ca>
  */
 
-$url = 'https://localhost:443/web/path/to/sabretooth';
+$url = 'https://localhost:443/web/path/to/beartooth';
 $path = dirname( __FILE__ ).'/../web';
 
 chdir( $path );
