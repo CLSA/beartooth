@@ -198,7 +198,8 @@ class queue extends \cenozo\database\record
         'DISTINCT participant_for_queue.id, %s, '.
         'IFNULL( service_has_participant_preferred_site_id, jurisdiction_site_id ), '.
         'effective_qnaire_id, '.
-        'start_qnaire_date',
+        'start_qnaire_date, '.
+        'first_address_id',
         $database_class_name::format_string( $db_queue->id ) );
   
       $sql = sprintf(
@@ -214,7 +215,7 @@ class queue extends \cenozo\database\record
       {
         static::db()->execute( sprintf(
           'INSERT INTO queue_has_participant( '.
-            'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date ) %s',
+            'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id ) %s',
           $db_queue->get_sql( $columns ) ) );
       }
     }
@@ -270,8 +271,9 @@ class queue extends \cenozo\database\record
 
       $sql = sprintf(
         'INSERT INTO queue_has_participant( '.
-          'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date ) '.
-        'SELECT queue_has_participant.participant_id, %s, site_id, qnaire_id, start_qnaire_date '.
+          'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id ) '.
+        'SELECT queue_has_participant.participant_id, %s, site_id, qnaire_id, start_qnaire_date, '.
+               'queue_has_participant.address_id '.
         'FROM queue_has_participant '.
         'JOIN appointment ON queue_has_participant.participant_id = appointment.participant_id '.
         'AND appointment.assignment_id IS NULL '.
@@ -317,8 +319,9 @@ class queue extends \cenozo\database\record
     
       $sql = sprintf(
         'INSERT INTO queue_has_participant( '.
-          'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date ) '.
-        'SELECT queue_has_participant.participant_id, %s, site_id, qnaire_id, start_qnaire_date '.
+          'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id ) '.
+        'SELECT queue_has_participant.participant_id, %s, site_id, qnaire_id, start_qnaire_date, '.
+               'queue_has_participant.address_id '.
         'FROM queue_has_participant '.
         'JOIN callback ON queue_has_participant.participant_id = callback.participant_id '.
         'AND callback.assignment_id IS NULL '.
@@ -356,8 +359,9 @@ class queue extends \cenozo\database\record
 
       $sql = sprintf(
         'INSERT INTO queue_has_participant( '.
-          'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date ) '.
-        'SELECT queue_has_participant.participant_id, %s, site_id, qnaire_id, start_qnaire_date '.
+          'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id ) '.
+        'SELECT queue_has_participant.participant_id, %s, site_id, qnaire_id, start_qnaire_date, '.
+               'queue_has_participant.address_id '.
         'FROM queue_has_participant '.
         'JOIN participant_last_interview '.
         'ON queue_has_participant.participant_id = participant_last_interview.participant_id '.
@@ -460,11 +464,6 @@ class queue extends \cenozo\database\record
     $qnaire_children = array(
       'qnaire waiting', 'appointment', 'assigned', 'quota disabled',
       'outside calling time', 'callback', 'new participant', 'old participant' );
-
-    // join to the queue_restriction table based on site, city, region or postcode
-    $first_address_join =
-      'LEFT JOIN participant_for_queue_first_address '.
-      'ON participant_for_queue_first_address.person_id = participant_person_id ';
 
     // join to the quota table based on site, region, gender and age group
     $quota_join =
@@ -642,7 +641,6 @@ class queue extends \cenozo\database\record
               $parts['where'][] =
                 '( last_assignment_id IS NULL OR last_assignment_end_datetime IS NOT NULL )';
 
-              $parts['join'][] = $first_address_join;
               $parts['join'][] = $quota_join;
 
               if( 'quota disabled' == $queue )
@@ -832,9 +830,7 @@ class queue extends \cenozo\database\record
         'ADD INDEX fk_participant_active ( participant_active ), '.
         'ADD INDEX fk_participant_state_id ( participant_state_id ), '.
         'ADD INDEX fk_service_has_participant_preferred_site_id ( service_has_participant_preferred_site_id ), '.
-        'ADD INDEX fk_current_interview_completed ( current_interview_completed ), '.
         'ADD INDEX fk_effective_qnaire_id ( effective_qnaire_id ), '.
-        'ADD INDEX fk_next_qnaire_id ( next_qnaire_id ), '.
         'ADD INDEX fk_last_consent_accept ( last_consent_accept ), '.
         'ADD INDEX fk_last_assignment_id ( last_assignment_id )' );
 
@@ -861,37 +857,6 @@ class queue extends \cenozo\database\record
         'ALTER TABLE participant_for_queue_phone_count '.
         'ADD INDEX dk_person_id ( person_id ), '.
         'ADD INDEX dk_phone_count ( phone_count )' );
-
-    // build participant_for_queue_first_address table
-    $sql = 
-      'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_first_address '.
-      'SELECT person_first_address.person_id, '.
-             'address.address1 AS first_address_address1, '.
-             'address.city AS first_address_city, '.
-             'address.region_id AS first_address_region_id, '.
-             'address.postcode AS first_address_postcode, '.
-             'address.timezone_offset AS first_address_timezone_offset, '.
-             'address.daylight_savings AS first_address_daylight_savings '.
-      'FROM person_first_address '.
-      'LEFT JOIN address '.
-      'ON person_first_address.address_id = address.id';
-    if( !is_null( $db_participant ) )
-      $sql .= sprintf( 'WHERE person_first_address.person_id = %s ',
-                       $database_class_name::format_string( $db_participant->person_id ) );
-
-    static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue_first_address' );
-    static::db()->execute( $sql );
-
-    if( is_null( $db_participant ) )
-      static::db()->execute(
-        'ALTER TABLE participant_for_queue_first_address '.
-        'ADD INDEX dk_person_id ( person_id ), '.
-        'ADD INDEX dk_first_address_address1 ( first_address_address1 ), '.
-        'ADD INDEX dk_first_address_city ( first_address_city ), '.
-        'ADD INDEX dk_first_address_region_id ( first_address_region_id ), '.
-        'ADD INDEX dk_first_address_postcode ( first_address_postcode ), '.
-        'ADD INDEX dk_first_address_timezone_offset ( first_address_timezone_offset ), '.
-        'ADD INDEX dk_first_address_daylight_savings ( first_address_daylight_savings )' );
 
     static::$participant_for_queue_created = true;
   }
@@ -995,80 +960,20 @@ class queue extends \cenozo\database\record
 SELECT participant.id,
 participant.person_id AS participant_person_id,
 participant.active AS participant_active,
-participant.uid AS participant_uid,
-participant.source_id AS participant_source_id,
-participant.cohort_id AS participant_cohort_id,
-participant.first_name AS participant_first_name,
-participant.last_name AS participant_last_name,
 participant.gender AS participant_gender,
-participant.date_of_birth AS participant_date_of_birth,
 participant.age_group_id AS participant_age_group_id,
 participant.state_id AS participant_state_id,
 participant.language AS participant_language,
-participant.use_informant AS participant_use_informant,
 participant.override_quota AS participant_override_quota,
-participant.email AS participant_email,
-service_has_participant.service_id AS service_has_participant_service_id,
-service_has_participant.participant_id AS service_has_participant_participant_id,
 service_has_participant.preferred_site_id AS service_has_participant_preferred_site_id,
-service_has_participant.datetime AS service_has_participant_datetime,
-cohort.name AS cohort_name,
+first_address.id AS first_address_id,
+first_address.timezone_offset AS first_address_timezone_offset,
+first_address.daylight_savings AS first_address_daylight_savings,
 primary_region.id AS primary_region_id,
-jurisdiction.service_id AS jurisdiction_service_id,
-jurisdiction.postcode AS jurisdiction_postcode,
 jurisdiction.site_id AS jurisdiction_site_id,
-last_consent.id AS last_consent_id,
-last_consent.participant_id AS last_consent_participant_id,
 last_consent.accept AS last_consent_accept,
-last_consent.written AS last_consent_written,
-last_consent.date AS last_consent_date,
-last_consent.note AS last_consent_note,
-current_interview.id AS current_interview_id,
-current_interview.qnaire_id AS current_interview_qnaire_id,
-current_interview.participant_id AS current_interview_participant_id,
-current_interview.require_supervisor AS current_interview_require_supervisor,
-current_interview.completed AS current_interview_completed,
 last_assignment.id AS last_assignment_id,
-last_assignment.user_id AS last_assignment_user_id,
-last_assignment.site_id AS last_assignment_site_id,
-last_assignment.interview_id AS last_assignment_interview_id,
-last_assignment.start_datetime AS last_assignment_start_datetime,
 last_assignment.end_datetime AS last_assignment_end_datetime,
-current_qnaire.id AS current_qnaire_id,
-current_qnaire.name AS current_qnaire_name,
-current_qnaire.rank AS current_qnaire_rank,
-current_qnaire.prev_qnaire_id AS current_qnaire_prev_qnaire_id,
-current_qnaire.delay AS current_qnaire_delay,
-current_qnaire.type AS current_qnaire_type,
-current_qnaire.withdraw_sid AS current_qnaire_withdraw_sid,
-current_qnaire.description AS current_qnaire_description,
-next_qnaire.id AS next_qnaire_id,
-next_qnaire.name AS next_qnaire_name,
-next_qnaire.rank AS next_qnaire_rank,
-next_qnaire.prev_qnaire_id AS next_qnaire_prev_qnaire_id,
-next_qnaire.delay AS next_qnaire_delay,
-next_qnaire.type AS next_qnaire_type,
-next_qnaire.withdraw_sid AS next_qnaire_withdraw_sid,
-next_qnaire.description AS next_qnaire_description,
-next_prev_qnaire.id AS next_prev_qnaire_id,
-next_prev_qnaire.name AS next_prev_qnaire_name,
-next_prev_qnaire.rank AS next_prev_qnaire_rank,
-next_prev_qnaire.prev_qnaire_id AS next_prev_qnaire_prev_qnaire_id,
-next_prev_qnaire.delay AS next_prev_qnaire_delay,
-next_prev_qnaire.type AS next_prev_qnaire_type,
-next_prev_qnaire.withdraw_sid AS next_prev_qnaire_withdraw_sid,
-next_prev_qnaire.description AS next_prev_qnaire_description,
-next_prev_interview.id AS next_prev_interview_id,
-next_prev_interview.qnaire_id AS next_prev_interview_qnaire_id,
-next_prev_interview.participant_id AS next_prev_interview_participant_id,
-next_prev_interview.require_supervisor AS next_prev_interview_require_supervisor,
-next_prev_interview.completed AS next_prev_interview_completed,
-next_prev_assignment.id AS next_prev_assignment_id,
-next_prev_assignment.user_id AS next_prev_assignment_user_id,
-next_prev_assignment.site_id AS next_prev_assignment_site_id,
-next_prev_assignment.interview_id AS next_prev_assignment_interview_id,
-next_prev_assignment.start_datetime AS next_prev_assignment_start_datetime,
-next_prev_assignment.end_datetime AS next_prev_assignment_end_datetime,
 IF
 (
   current_interview.id IS NULL,
@@ -1097,7 +1002,10 @@ JOIN service_has_participant
 ON participant.id = service_has_participant.participant_id
 AND service_has_participant.datetime IS NOT NULL
 AND service_id = %s
-JOIN cohort ON cohort.id = participant.cohort_id
+LEFT JOIN person_first_address
+ON participant.person_id = person_first_address.person_id
+LEFT JOIN address first_address
+ON person_first_address.address_id = first_address.id
 LEFT JOIN person_primary_address
 ON participant.person_id = person_primary_address.person_id
 LEFT JOIN address AS primary_address

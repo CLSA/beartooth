@@ -57,11 +57,11 @@ class assignment_begin extends \cenozo\ui\push
         'Please click the refresh button.  If this message appears more than twice '.
         'consecutively report this error to a superior.', __METHOD__ );
 
-    $db_effective_qnaire = $db_participant->get_effective_qnaire();
+    $db_effective_qnaire = $this->db_participant->get_effective_qnaire();
     if( is_null( $db_effective_qnaire ) )
       throw lib::create( 'exception\runtime',
         sprintf( 'Trying to assign participant %s who has already completed all qnaires.',
-                 $db_participant->uid ),
+                 $this->db_participant->uid ),
         __METHOD__ );
 
     // make sure the qnaire has phases

@@ -559,11 +559,13 @@ CREATE TABLE IF NOT EXISTS `beartooth`.`queue_has_participant` (
   `site_id` INT UNSIGNED NULL,
   `qnaire_id` INT UNSIGNED NULL,
   `start_qnaire_date` DATE NULL,
+  `address_id` INT UNSIGNED NULL,
   PRIMARY KEY (`queue_id`, `participant_id`),
   INDEX `fk_participant_id` (`participant_id` ASC),
   INDEX `fk_queue_id` (`queue_id` ASC),
   INDEX `fk_site_id` (`site_id` ASC),
   INDEX `fk_qnaire_id` (`qnaire_id` ASC),
+  INDEX `fk_address_id` (`address_id` ASC),
   CONSTRAINT `fk_queue_has_participant_queue_id`
     FOREIGN KEY (`queue_id`)
     REFERENCES `beartooth`.`queue` (`id`)
@@ -582,6 +584,11 @@ CREATE TABLE IF NOT EXISTS `beartooth`.`queue_has_participant` (
   CONSTRAINT `fk_queue_has_participant_qnaire_id`
     FOREIGN KEY (`qnaire_id`)
     REFERENCES `beartooth`.`qnaire` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_queue_has_participant_address_id`
+    FOREIGN KEY (`address_id`)
+    REFERENCES `cenozo`.`address` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

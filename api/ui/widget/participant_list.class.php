@@ -63,15 +63,9 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     }
     else if( 'home' == $this->assignment_type )
     {
-      // When the list is parented by an assignment select widget the internal query
-      // comes from the queue class, so every participant is linked to their first
-      // address using table alias "first_address"
-      $this->add_column(
-        'ranked_participant_for_queue.first_address_address1', 'string', 'Address', true );
-      $this->add_column(
-        'ranked_participant_for_queue.first_address_city', 'string', 'City', true );
-      $this->add_column(
-        'ranked_participant_for_queue.first_address_postcode', 'string', 'Postcode', true );
+      $this->add_column( 'address.address1', 'string', 'Address', true );
+      $this->add_column( 'address.city', 'string', 'City', true );
+      $this->add_column( 'address.postcode', 'string', 'Postcode', true );
     }
     else // site assignment
     {
@@ -128,11 +122,11 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
       }
       else if( 'home' == $this->assignment_type )
       {
-        $columns['ranked_participant_for_queue.first_address_address1'] =
+        $columns['address.address1'] =
                  is_null( $db_address ) ? '(none)' : $db_address->address1;
-        $columns['ranked_participant_for_queue.first_address_city'] =
+        $columns['address.city'] =
                  is_null( $db_address ) ? '(none)' : $db_address->city;
-        $columns['ranked_participant_for_queue.first_address_postcode'] =
+        $columns['address.postcode'] =
                  is_null( $db_address ) ? '(none)' : $db_address->postcode;
       }
       else // site assignment

@@ -129,7 +129,7 @@ class home_assignment_select extends \cenozo\ui\widget
 
     $session = lib::create( 'business\session' );
 
-    $language = $this->get_user()->language;
+    $language = $session->get_user()->language;
     if( 'any' != $language )
     {
       if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
