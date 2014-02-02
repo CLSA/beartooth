@@ -41,6 +41,7 @@ class participant_tree extends \cenozo\ui\widget
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
+    $operation_class_name = lib::get_class_name( 'database\operation' );
 
     $session = lib::create( 'business\session' );
     $all_sites = $session->get_role()->all_sites;
@@ -126,8 +127,6 @@ class participant_tree extends \cenozo\ui\widget
         $modifier->order( 'rank' );
         foreach( $qnaire_class_name::select( $modifier ) as $db_qnaire )
         {
-          $db_queue->set_qnaire( $db_qnaire );
-          
           $index = sprintf( '%d_%d', $db_qnaire->id, $db_queue->id );
           $title = 'qnaire' == $db_queue->name
                  ? sprintf( 'Questionnaire #%d: "%s"', $db_qnaire->rank, $db_qnaire->name )
@@ -163,5 +162,8 @@ class participant_tree extends \cenozo\ui\widget
     } while( !is_null( $db_queue->parent_queue_id ) );
     
     $this->set_variable( 'tree', $tree );
+
+    $db_operation = $operation_class_name::get_operation( 'push', 'queue', 'repopulate' );
+    $this->set_variable( 'allow_repopulate', $session->is_allowed( $db_operation ) );
   }
 }

@@ -15,6 +15,31 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class participant extends \cenozo\database\participant
 {
   /**
+   * Updates the participant's queue status.
+   * 
+   * The participant's entries in the queue_has_participant table are all removed and
+   * re-determined.  This method should be called if any of the participant's details
+   * which affect which queue they belong in change (eg: change to appointments, consent
+   * status, state, etc).
+   * WARNING: this operation is db-intensive so it should only be called after all
+   * changes to the participant are complete (never more than once per operation).
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access public
+   */
+  public function update_queue_status()
+  {
+    // check the primary key value
+    if( is_null( $this->id ) )
+    {
+      log::warning( 'Tried to update queue status of participant with no id.' );
+      return NULL;
+    }
+
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+    $queue_class_name::repopulate( $this );
+  }
+
+  /**
    * Get the participant's most recent, closed assignment.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return assignment
@@ -67,58 +92,6 @@ class participant extends \cenozo\database\participant
   }
 
   /**
-   * Override parent's magic get method so that supplementary data can be retrieved
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param string $column_name The name of the column or table being fetched from the database
-   * @return mixed
-   * @access public
-   */
-  public function __get( $column_name )
-  {
-    if( 'current_qnaire_id' == $column_name ||
-        'current_qnaire_type' == $column_name ||
-        'start_qnaire_date' == $column_name )
-    {
-      $this->get_queue_data();
-      return $this->$column_name;
-    }
-
-    return parent::__get( $column_name );
-  }
-
-  /**
-   * Fills in the current qnaire id and start qnaire date
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access private
-   */
-  private function get_queue_data()
-  {
-    // check the primary key value
-    if( is_null( $this->id ) )
-    {
-      log::warning( 'Tried to query participant with no id.' );
-      return NULL;
-    }
-
-    if( is_null( $this->current_qnaire_id ) &&
-        is_null( $this->current_qnaire_type ) &&
-        is_null( $this->start_qnaire_date ) )
-    {
-      $database_class_name = lib::get_class_name( 'database\database' );
-      // special sql to get the current qnaire id and start date
-      // NOTE: when updating this query database\queue::get_query_parts()
-      //       should also be updated as it performs a very similar query
-      $sql = sprintf(
-        $this->participant_additional_sql,
-        $database_class_name::format_string( $this->id ) );
-      $row = static::db()->get_row( $sql );
-      $this->current_qnaire_id = $row['current_qnaire_id'];
-      $this->current_qnaire_type = $row['current_qnaire_type'];
-      $this->start_qnaire_date = $row['start_qnaire_date'];
-    }
-  }
-
-  /**
    * A convenience function to get this participant's next of kin.
    * This method is necessary since there is a 1 to N relationship between participant and
    * next_of_kin, however, the next_of_kin.participant_id column is unique.
@@ -147,18 +120,94 @@ class participant extends \cenozo\database\participant
   }
 
   /**
-   * The participant's current questionnaire id (from a custom query)
+   * Returns the participant's effective qnaire.
+   * 
+   * The "effective" qnaire is determined based on the participant's current interview.
+   * If they have not yet started an interview then the first qnaire is returned.
+   * If they current have an incomplete interview then that interview's qnaire is returned.
+   * If their current interview is complete then the next qnaire is returned, and if there
+   * is no next qnaire then NULL is returned (ie: the participant has completed all qnaires).
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return database\qnaire
+   * @access public
+   */
+  public function get_effective_qnaire()
+  {
+    $this->load_queue_data();
+    return is_null( $this->effective_qnaire_id ) ?
+      NULL : lib::create( 'database\qnaire', $this->effective_qnaire_id );
+  }
+
+  /**
+   * Returns the participant's qnaire start date.
+   * 
+   * The qnaire start date is determined based on the following rules:
+   * If they have not yet started an interview then the date is based on the first qnaire's
+   * delay and the start event needed to start that qnaire, or the current date if there is
+   * no start event for the first qnaire.
+   * If their current interview is complete then the date is based on the next qnaire's delay
+   * and the greatest of its start event and the completed interview's completion date.
+   * If there is no next qnaire or the current interview is not complete then NULL is returned,
+   * meaning the qnaire has already started (ie: the start date is in the past).
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return datetime
+   * @access public
+   */
+  public function get_start_qnaire_date()
+  {
+    $this->load_queue_data();
+    return is_null( $this->start_qnaire_date ) ?
+      NULL : util::get_datetime_object( $this->start_qnaire_date );
+  }
+
+  /**
+   * Fills in the effective qnaire id and start qnaire date
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @access private
+   */
+  private function load_queue_data()
+  {
+    if( $this->queue_data_loaded ) return;
+
+    // check the primary key value
+    if( is_null( $this->id ) )
+    {
+      log::warning( 'Tried to query participant with no id.' );
+      return NULL;
+    }
+
+    $database_class_name = lib::get_class_name( 'database\database' );
+
+    // the qnaire date is cached in the queue_has_participant joining table
+    $row = static::db()->get_row( sprintf(
+      'SELECT * FROM queue_has_participant '.
+      'WHERE participant_id = %s '.
+      'ORDER BY queue_id DESC '.
+      'LIMIT 1',
+      $database_class_name::format_string( $this->id ) ) );
+
+    if( count( $row ) )
+    {
+      $this->effective_qnaire_id = $row['qnaire_id'];
+      $this->start_qnaire_date = $row['start_qnaire_date'];
+    }
+
+    $this->queue_data_loaded = true;
+  }
+
+  /**
+   * Whether the participants queue-specific data has been read from the database
+   * @var boolean
+   * @access private
+   */
+  private $queue_data_loaded = false;
+
+  /**
+   * The participant's effective questionnaire id (from a custom query)
    * @var int
    * @access private
    */
-  private $current_qnaire_id = NULL;
-
-  /**
-   * The participant's current questionnaire type (from a custom query)
-   * @var string
-   * @access private
-   */
-  private $current_qnaire_type = NULL;
+  private $effective_qnaire_id = NULL;
 
   /**
    * The date that the current questionnaire is to begin (from a custom query)
@@ -166,82 +215,6 @@ class participant extends \cenozo\database\participant
    * @access private
    */
   private $start_qnaire_date = NULL;
-
-  /**
-   * A string containing the SQL used to get the additional participant information used by
-   * get_queue_data()
-   * @var string
-   * @access private
-   */
-  private $participant_additional_sql = <<<'SQL'
-SELECT IF
-(
-  current_interview.id IS NULL,
-  ( SELECT id FROM qnaire WHERE rank = 1 ),
-  IF( current_interview.completed, next_qnaire.id, current_qnaire.id )
-) AS current_qnaire_id,
-IF
-(
-  current_interview.id IS NULL,
-  ( SELECT type FROM qnaire WHERE rank = 1 ),
-  IF( current_interview.completed, next_qnaire.type, current_qnaire.type )
-) AS current_qnaire_type,
-IF
-(
-  current_interview.id IS NULL,
-  NULL,
-  IF
-  (
-    current_interview.completed,
-    next_prev_assignment.end_datetime + INTERVAL next_qnaire.delay WEEK,
-    NULL
-  )
-) AS start_qnaire_date
-FROM participant
-LEFT JOIN interview AS current_interview
-ON current_interview.participant_id = participant.id
-LEFT JOIN interview_last_assignment
-ON current_interview.id = interview_last_assignment.interview_id
-LEFT JOIN assignment
-ON interview_last_assignment.assignment_id = assignment.id
-LEFT JOIN qnaire AS current_qnaire
-ON current_qnaire.id = current_interview.qnaire_id
-LEFT JOIN qnaire AS next_qnaire
-ON next_qnaire.rank = ( current_qnaire.rank + 1 )
-LEFT JOIN qnaire AS next_prev_qnaire
-ON next_prev_qnaire.id = next_qnaire.prev_qnaire_id
-LEFT JOIN interview AS next_prev_interview
-ON next_prev_interview.qnaire_id = next_prev_qnaire.id
-AND next_prev_interview.participant_id = participant.id
-LEFT JOIN assignment next_prev_assignment
-ON next_prev_assignment.interview_id = next_prev_interview.id
-WHERE
-(
-  current_qnaire.rank IS NULL
-  OR current_qnaire.rank =
-  (
-    SELECT MAX( qnaire.rank )
-    FROM interview
-    JOIN qnaire ON qnaire.id = interview.qnaire_id
-    WHERE interview.participant_id = current_interview.participant_id
-    GROUP BY current_interview.participant_id
-  )
-)
-AND
-(
-  next_prev_assignment.end_datetime IS NULL
-  OR next_prev_assignment.end_datetime =
-  (
-    SELECT MAX( assignment.end_datetime )
-    FROM interview
-    JOIN assignment ON assignment.interview_id = interview.id
-    WHERE interview.qnaire_id = next_prev_qnaire.id
-    AND assignment.id = next_prev_assignment.id
-    GROUP BY next_prev_assignment.interview_id
-  )
-)
-AND participant.id = %s
-SQL;
 }
 
 // define the join to the interview table

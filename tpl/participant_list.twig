@@ -22,20 +22,20 @@
           icons: { primary: "ui-icon-play" }
         } ).click( function() {
           var id_string = $(this).attr( 'id' );
-          var id = parseInt( id_string.substring( id_string.lastIndexOf('_') + 1 ) );
-          if( ajax_push( "assignment", "begin", { "participant_id": id } ) )
+          var participant_id = parseInt( id_string.substring( id_string.lastIndexOf('_') + 1 ) );
+          if( ajax_push( "assignment", "begin", { "participant_id": participant_id } ) )
             window.location.reload();
         } );
       } );
     </script>
-  {% elseif conditions is defined %}
+  {% elseif state_list is defined %}
     <script type="text/javascript">
       $( function() {
-        // reload page if condition selector is changed
-        $( "#{{ widget.full }}__restrict_condition" ).change( function() {
-          var condition = $( "#{{ widget.full }}__restrict_condition option:selected" ).val();
+        // reload page if state selector is changed
+        $( "#{{ widget.full }}__restrict_state_id" ).change( function() {
+          var state_id = $( "#{{ widget.full }}__restrict_state_id option:selected" ).val();
           slot_load( {{ slot }}, "{{ widget.subject }}", "{{ widget.name }}", 
-                     { "restrict_condition": condition } );
+                     { "restrict_state_id": state_id } );
         } );
       } );
     </script>
@@ -45,16 +45,16 @@
 
 {% block prelist %}
   
-  {% if not assignment_type|default( false ) and conditions is defined %}
-    {% set restrict_condition = restrict_condition|default("") %}
-    <label for="{{ widget.full }}__restrict_condition">Restrict to condition:</label>
-    <select id="{{ widget.full }}__restrict_condition" class="ui-state-default"
+  {% if not assignment_type|default( false ) and state_list is defined %}
+    {% set restrict_state_id = restrict_state_id|default(0) %}
+    <label for="{{ widget.full }}__restrict_state_id">Restrict to state:</label>
+    <select id="{{ widget.full }}__restrict_state_id" class="ui-state-default"
             style="margin-top:4px;margin-bottom:4px;">
-      <option {% if "" == restrict_condition %}selected{% endif %}
+      <option {% if "" == restrict_state_id %}selected{% endif %}
               value="">No restriction</option>
-      {% for name in conditions %}
-        <option {% if name == restrict_condition %}selected{% endif %}
-                value="{{ name }}">{{ name }}</option>
+      {% for id, name in state_list %}
+        <option {% if id == restrict_state_id %}selected{% endif %}
+                value="{{ id }}">{{ name }}</option>
       {% endfor %}
     </select>
   {% endif %}

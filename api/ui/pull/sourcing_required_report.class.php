@@ -45,13 +45,11 @@ class sourcing_required_report extends \cenozo\ui\pull\base_report
     $contents = array();
     // loop through participants searching for those who have completed their most recent interview
     $participant_mod = lib::create( 'database\participant' );
+    $participant_mod->where( 'state_id', '=', NULL );
     if( $restrict_site_id )
       $participant_mod->where( 'participant_site.site_id', '=', $restrict_site_id );
     foreach( $participant_class_name::select( $participant_mod ) as $db_participant )
     {
-      // dont bother with deceased or otherwise impaired
-      if( !is_null( $db_participant->status ) ) continue;
-
       $interview_mod = lib::create( 'database\modifier' );
       $interview_mod->where( 'qnaire_id', '=', $db_qnaire->id );
       $db_interview = current( $db_participant->get_interview_list( $interview_mod ) );

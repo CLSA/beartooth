@@ -124,21 +124,22 @@ class queue_list extends \cenozo\ui\widget\base_list
       else $record->set_site( $session->get_site() );
       
       // restrict to the current qnaire
-      $record->set_qnaire( $db_restrict_qnaire );
+      $modifier = lib::create( 'database\modifier' );
+      if( !is_null( $db_restrict_qnaire ) )
+        $modifier->where( 'qnaire_id', '=', $db_restrict_qnaire->id );
 
       // restrict by language
-      $modifier = lib::create( 'database\modifier' );
       if( 'any' != $restrict_language )
       {
         // english is default, so if the language is english allow null values
         if( 'en' == $restrict_language )
         {
           $modifier->where_bracket( true );
-          $modifier->where( 'participant_language', '=', $restrict_language );
-          $modifier->or_where( 'participant_language', '=', NULL );
+          $modifier->where( 'participant.language', '=', $restrict_language );
+          $modifier->or_where( 'participant.language', '=', NULL );
           $modifier->where_bracket( false );
         }
-        else $modifier->where( 'participant_language', '=', $restrict_language );
+        else $modifier->where( 'participant.language', '=', $restrict_language );
       }
 
       $this->add_row( $record->id,

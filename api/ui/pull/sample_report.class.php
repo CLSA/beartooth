@@ -160,13 +160,14 @@ class sample_report extends \cenozo\ui\pull\base_report
       $callback_list = $db_participant->get_callback_list();
       $db_callback = 0 < count( $callback_list ) ? current( $callback_list ) : NULL;
       $db_effective_site = $db_participant->get_effective_site();
+      $db_state = $db_participant->get_state();
 
       $import_datetime_object = 
       $content[] = array(
         $db_participant->uid,
         is_null( $db_effective_site ) ? 'none' : $db_participant->get_effective_site()->name,
         $db_participant->active ? 'yes' : 'no',
-        $db_participant->status,
+        is_null( $db_state ) ? 'none' : $db_state->name,
         $import_date,
         $db_participant->get_release_date()->format( 'Y-m-d' ),
         is_null( $db_participant->email ) ? 'no' : 'yes',

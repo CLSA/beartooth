@@ -12,6 +12,24 @@ INSERT IGNORE INTO cenozo.role( name, tier ) VALUES
 ( "interviewer", 1, false ),
 ( "onyx", 1, false );
 
+-- add states to roles
+INSERT IGNORE INTO cenozo.role_has_state( role_id, state_id )
+SELECT role.id, state.id
+FROM role, state
+WHERE state.name NOT IN( "unreachable", "consent unavailable" );
+
+INSERT IGNORE INTO cenozo.role_has_state( role_id, state_id )
+SELECT role.id, state.id
+FROM role, state
+WHERE state.name = "unreachable"
+AND role.name IN ( "administrator", "curator", "supervisor" );
+
+INSERT IGNORE INTO cenozo.role_has_state( role_id, state_id )
+SELECT role.id, state.id
+FROM role, state
+WHERE state.name = "consent unavailable"
+AND role.name IN ( "administrator", "curator" );
+
 -- access
 
 INSERT INTO role_has_operation( role_id, operation_id )
@@ -284,6 +302,18 @@ INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "widget" AND subject = "consent" AND operation.name = "view"
 AND role.name IN( "administrator", "coordinator", "curator", "helpline", "interviewer" );
+
+-- email
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "pull" AND subject = "email" AND operation.name = "report"
+AND role.name IN ( "administrator", "curator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "email" AND operation.name = "report"
+AND role.name IN ( "administrator", "curator" );
 
 -- event
 
@@ -789,40 +819,13 @@ AND role.name IN( "administrator", "coordinator" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "queue" AND operation.name = "repopulate"
+AND role.name IN( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "widget" AND subject = "queue" AND operation.name = "view"
 AND role.name IN( "administrator", "coordinator" );
-
--- queue_restriction
-
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "widget" AND subject = "queue_restriction" AND operation.name = "add"
-AND role.name IN ( "administrator" );
-
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "push" AND subject = "queue_restriction" AND operation.name = "delete"
-AND role.name IN ( "administrator" );
-
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "push" AND subject = "queue_restriction" AND operation.name = "edit"
-AND role.name IN ( "administrator" );
-
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "widget" AND subject = "queue_restriction" AND operation.name = "list"
-AND role.name IN ( "administrator" );
-
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "push" AND subject = "queue_restriction" AND operation.name = "new"
-AND role.name IN ( "administrator" );
-
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "widget" AND subject = "queue_restriction" AND operation.name = "view"
-AND role.name IN ( "administrator" );
 
 -- quota
 
