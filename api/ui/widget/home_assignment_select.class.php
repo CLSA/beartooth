@@ -86,12 +86,12 @@ class home_assignment_select extends \cenozo\ui\widget
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $session = lib::create( 'business\session' );
 
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'qnaire.type', '=', 'home' );
+
     $language = $session->get_user()->language;
     if( 'any' != $language )
     {
-      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'qnaire.type', '=', 'home' );
-
       // english is default, so if the language is english allow null values
       if( 'en' == $language )
       {
@@ -130,12 +130,12 @@ class home_assignment_select extends \cenozo\ui\widget
 
     $session = lib::create( 'business\session' );
 
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'qnaire.type', '=', 'home' );
+
     $language = $session->get_user()->language;
     if( 'any' != $language )
     {
-      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'qnaire.type', '=', 'home' );
-
       // english is default, so if the language is english allow null values
       if( 'en' == $language )
       {
