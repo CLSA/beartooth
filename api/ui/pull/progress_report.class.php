@@ -87,8 +87,8 @@ class progress_report extends \cenozo\ui\pull\base_report
         $category = sprintf( 'Callbacks scheduled this week (%s)', $db_qnaire->name );
         $db_queue = $queue_class_name::get_unique_record( 'name', 'callback' );
         $db_queue->set_site( $db_site );
-        $db_queue->set_qnaire( $db_qnaire );
         $queue_mod = lib::create( 'database\modifier' );
+        $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
         $queue_mod->where(
           'callback.datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d' ) );
         $queue_mod->where(
@@ -99,15 +99,16 @@ class progress_report extends \cenozo\ui\pull\base_report
         $category = sprintf( 'Total Callbacks scheduled (%s)', $db_qnaire->name );
         $db_queue = $queue_class_name::get_unique_record( 'name', 'callback' );
         $db_queue->set_site( $db_site );
-        $db_queue->set_qnaire( $db_qnaire );
-        $site_totals[ $category ] = $db_queue->get_participant_count( NULL, false);
+        $queue_mod = lib::create( 'database\modifier' );
+        $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
 
         // this week's appointments
         $category = sprintf( 'Appointments scheduled this week (%s)', $db_qnaire->name );
         $db_queue = $queue_class_name::get_unique_record( 'name', 'appointment' );
         $db_queue->set_site( $db_site );
-        $db_queue->set_qnaire( $db_qnaire );
         $queue_mod = lib::create( 'database\modifier' );
+        $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
         $queue_mod->where(
           'appointment.datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d' ) );
         $queue_mod->where(
@@ -118,22 +119,25 @@ class progress_report extends \cenozo\ui\pull\base_report
         $category = sprintf( 'Total Appointments scheduled (%s)', $db_qnaire->name );
         $db_queue = $queue_class_name::get_unique_record( 'name', 'appointment' );
         $db_queue->set_site( $db_site );
-        $db_queue->set_qnaire( $db_qnaire );
-        $site_totals[ $category ] = $db_queue->get_participant_count( NULL, false);
+        $queue_mod = lib::create( 'database\modifier' );
+        $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
 
         // never assigned
         $category = sprintf( 'Never assigned (%s)', $db_qnaire->name );
         $db_queue = $queue_class_name::get_unique_record( 'name', 'new participant' );
         $db_queue->set_site( $db_site );
-        $db_queue->set_qnaire( $db_qnaire );
-        $site_totals[ $category ] = $db_queue->get_participant_count( NULL, false );
+        $queue_mod = lib::create( 'database\modifier' );
+        $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
 
         // previously assigned
         $category = sprintf( 'Previously assigned (%s)', $db_qnaire->name );
         $db_queue = $queue_class_name::get_unique_record( 'name', 'old participant' );
         $db_queue->set_site( $db_site );
-        $db_queue->set_qnaire( $db_qnaire );
-        $site_totals[ $category ] = $db_queue->get_participant_count( NULL, false );
+        $queue_mod = lib::create( 'database\modifier' );
+        $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
 
         if( !is_null( $db_event_type ) )
         {
