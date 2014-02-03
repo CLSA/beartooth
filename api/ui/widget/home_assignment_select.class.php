@@ -90,6 +90,7 @@ class home_assignment_select extends \cenozo\ui\widget
     if( 'any' != $language )
     {
       if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+      $modifier->where( 'qnaire.type', '=', 'home' );
 
       // english is default, so if the language is english allow null values
       if( 'en' == $language )
@@ -103,7 +104,6 @@ class home_assignment_select extends \cenozo\ui\widget
     }
 
     $queue_mod = lib::create( 'database\modifier' );
-    $queue_mod->where( 'qnaire.type', '=', 'home' );
     $queue_mod->where( 'queue.rank', '!=', NULL );
     $count = 0;
     foreach( $queue_class_name::select( $queue_mod ) as $db_queue )
@@ -133,6 +133,7 @@ class home_assignment_select extends \cenozo\ui\widget
     if( 'any' != $language )
     {
       if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+      $modifier->where( 'qnaire.type', '=', 'home' );
 
       // english is default, so if the language is english allow null values
       if( 'en' == $language )
@@ -146,7 +147,6 @@ class home_assignment_select extends \cenozo\ui\widget
     }
 
     $queue_mod = lib::create( 'database\modifier' );
-    $queue_mod->where( 'qnaire.type', '=', 'site' );
     $queue_mod->where( 'queue.rank', '!=', NULL );
     $list = array();
     foreach( $queue_class_name::select( $queue_mod ) as $db_queue )
