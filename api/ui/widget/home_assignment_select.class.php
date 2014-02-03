@@ -108,8 +108,9 @@ class home_assignment_select extends \cenozo\ui\widget
     $count = 0;
     foreach( $queue_class_name::select( $queue_mod ) as $db_queue )
     {
+      $mod = clone $modifier;
       $db_queue->set_site( $session->get_site() );
-      $count += $db_queue->get_participant_count( $modifier );
+      $count += $db_queue->get_participant_count( $mod );
     }
 
     return $count;
@@ -151,8 +152,9 @@ class home_assignment_select extends \cenozo\ui\widget
     $list = array();
     foreach( $queue_class_name::select( $queue_mod ) as $db_queue )
     {
+      $mod = clone $modifier;
       $db_queue->set_site( $session->get_site() );
-      $list = array_merge( $list, $db_queue->get_participant_list( $modifier ) );
+      $list = array_merge( $list, $db_queue->get_participant_list( $mod ) );
     }
 
     return $list;
