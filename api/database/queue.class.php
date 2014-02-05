@@ -32,6 +32,12 @@ class queue extends \cenozo\database\record
 
   public static function get_ranked_participant_list( $modifier = NULL, $count = false )
   {
+    // repopulate all ranked queues
+    $queue_mod = lib::create( 'database\modifier' );
+    $queue_mod->where( 'rank', '!=', NULL );
+    foreach( static::select( $queue_mod ) as $db_queue )
+      $db_queue->populate_time_specific();
+
     $sql = sprintf(
       'SELECT %s '.
       'FROM participant '.
