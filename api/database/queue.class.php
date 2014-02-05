@@ -30,6 +30,38 @@ class queue extends \cenozo\database\record
     parent::__construct( $id );
   }
 
+  public static function get_ranked_participant_list( $modifier = NULL, $count = false )
+  {
+    $sql = sprintf(
+      'SELECT %s '.
+      'FROM participant '.
+      'JOIN queue_has_participant ON participant.id = queue_has_participant.participant_id '.
+      'JOIN queue ON queue_has_participant.queue_id = queue.id '.
+      'AND queue.rank IS NOT NULL '.
+      'LEFT JOIN site ON queue_has_participant.site_id = site.id '.
+      'LEFT JOIN qnaire ON queue_has_participant.qnaire_id = qnaire.id '.
+      'LEFT JOIN address ON queue_has_participant.address_id = address.id %s',
+      $count ? 'COUNT( DISTINCT participant.id )' : 'DISTINCT participant.id',
+      is_null( $modifier ) ? '' : $modifier->get_sql() );
+
+    if( $count )
+    {
+      return intval( static::db()->get_one( $sql ) );
+    }
+    else
+    {
+      $ids = static::db()->get_col( $sql );
+      $records = array();
+      foreach( $ids as $id ) $records[] = lib::create( 'database\participant', $id );
+      return $records;
+    }
+  }
+
+  public static function get_ranked_participant_count( $modifier = NULL, $count = false )
+  {
+    return static::get_ranked_participant_list( $modifier, true );
+  }
+
   /**
    * Override parent get_record_list() method to dynamically populate time-specific queues
    * @author Patrick Emond <emondpd@mcmaster.ca>
@@ -749,14 +781,16 @@ class queue extends \cenozo\database\record
                     }
                     else // old participant
                     {
-                      // add the last phone call's information (only old participants will be
-                      // included since the join to assignment_last_phone_call necessitates it)
+                      // add the last phone call's information
                       $parts['from'][] = 'phone_call';
                       $parts['from'][] = 'assignment_last_phone_call';
                       $parts['where'][] =
                         'assignment_last_phone_call.assignment_id = last_assignment_id';
                       $parts['where'][] =
                         'phone_call.id = assignment_last_phone_call.phone_call_id';
+                      // make sure the current interview's qnaire matches the effective qnaire,
+                      // otherwise this participant has never been assigned
+                      $parts['where'][] = 'current_interview_qnaire_id = effective_qnaire_id';
                     }
                   }
                 }
@@ -1018,6 +1052,7 @@ first_address.daylight_savings AS first_address_daylight_savings,
 primary_region.id AS primary_region_id,
 jurisdiction.site_id AS jurisdiction_site_id,
 last_consent.accept AS last_consent_accept,
+current_interview.qnaire_id AS current_interview_qnaire_id,
 last_assignment.id AS last_assignment_id,
 last_assignment.end_datetime AS last_assignment_end_datetime,
 IF
