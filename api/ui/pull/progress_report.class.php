@@ -90,9 +90,11 @@ class progress_report extends \cenozo\ui\pull\base_report
         $queue_mod = lib::create( 'database\modifier' );
         $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
         $queue_mod->where(
-          'callback.datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d' ) );
+          'callback.participant_id', '=', 'queue_has_participant.participant_id', false );
         $queue_mod->where(
-          'callback.datetime', '<', $next_monday_datetime_obj->format( 'Y-m-d' ) );
+          'callback.datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d 0:00:00' ) );
+        $queue_mod->where(
+          'callback.datetime', '<', $next_monday_datetime_obj->format( 'Y-m-d 0:00:00' ) );
         $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod );
 
         // total callbacks
@@ -110,9 +112,11 @@ class progress_report extends \cenozo\ui\pull\base_report
         $queue_mod = lib::create( 'database\modifier' );
         $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
         $queue_mod->where(
-          'appointment.datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d' ) );
+          'appointment.participant_id', '=', 'queue_has_participant.participant_id', false );
         $queue_mod->where(
-          'appointment.datetime', '<', $next_monday_datetime_obj->format( 'Y-m-d' ) );
+          'datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d 0:00:00' ) );
+        $queue_mod->where(
+          'datetime', '<', $next_monday_datetime_obj->format( 'Y-m-d 0:00:00' ) );
         $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod );
 
         // total appointments
