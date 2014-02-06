@@ -39,7 +39,7 @@ class sample_report extends base_report
   {
     parent::prepare();
 
-    $this->add_parameter( 'site_id', 'enum', 'Site' );
+    $this->add_restriction( 'site' );
     $this->add_parameter( 'quota_id', 'enum', 'Quota' );
 
     $this->set_variable( 'description',
@@ -63,14 +63,6 @@ class sample_report extends base_report
     $quota_mod->where(
       'site.service_id', '=', lib::create( 'business\session' )->get_service()->id );
     $quota_mod->group( 'site.name' );
-    $site_list = array( 0 => 'All' );
-    foreach( $quota_class_name::select( $quota_mod ) as $db_quota )
-    {
-      $db_site = $db_quota->get_site();
-      $site_list[$db_site->id] = $db_site->name;
-    }
-
-    $this->set_parameter( 'site_id', NULL, true, $site_list );
 
     // get a list of all possible age group / gender pairs from this application's quotas
     $quota_mod = lib::create( 'database\modifier' );
