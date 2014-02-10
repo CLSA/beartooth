@@ -733,6 +733,7 @@ class queue extends \cenozo\database\record
                 $parts['where'][] = 'quota_state.disabled = true';
                 // and who are ot marked to override quota
                 $parts['where'][] = 'participant_override_quota = false';
+                $parts['where'][] = 'source_override_quota = false';
               }
               else
               {
@@ -740,7 +741,8 @@ class queue extends \cenozo\database\record
                 $parts['where'][] =
                   '( quota_state.disabled IS NULL OR '.
                     'quota_state.disabled = false OR '.
-                    'participant_override_quota = true )';
+                    'participant_override_quota = true OR '.
+                    'source_override_quota = true )';
 
                 if( 'outside calling time' == $queue )
                 {
@@ -1051,6 +1053,7 @@ participant.age_group_id AS participant_age_group_id,
 participant.state_id AS participant_state_id,
 participant.language AS participant_language,
 participant.override_quota AS participant_override_quota,
+source.override_quota AS source_override_quota,
 service_has_participant.preferred_site_id AS service_has_participant_preferred_site_id,
 first_address.id AS first_address_id,
 first_address.timezone_offset AS first_address_timezone_offset,
@@ -1089,6 +1092,8 @@ JOIN service_has_participant
 ON participant.id = service_has_participant.participant_id
 AND service_has_participant.datetime IS NOT NULL
 AND service_id = %s
+JOIN source
+ON participant.source_id = source.id
 LEFT JOIN person_first_address
 ON participant.person_id = person_first_address.person_id
 LEFT JOIN address first_address
