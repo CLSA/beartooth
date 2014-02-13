@@ -558,8 +558,8 @@ class queue extends \cenozo\database\record
           'first_address_timezone_offset IS NULL OR '.
           'first_address_daylight_savings IS NULL OR '.
           '( '.
-            'TIME( %s + INTERVAL %s HOUR ) >= "<CALLING_START_TIME>" AND '.
-            'TIME( %s + INTERVAL %s HOUR ) < "<CALLING_END_TIME>" '.
+            'TIME( %s + INTERVAL %s*60 MINUTE ) >= "<CALLING_START_TIME>" AND '.
+            'TIME( %s + INTERVAL %s*60 MINUTE ) < "<CALLING_END_TIME>" '.
           ') '.
         ')',
         $viewing_date,
@@ -825,9 +825,9 @@ class queue extends \cenozo\database\record
     // fill in the settings
     $setting_manager = lib::create( 'business\setting_manager' );
     $setting = $setting_manager->get_setting( 'calling', 'start time', $this->db_site );
-    $sql = str_replace( '<CALLING_START_TIME>', $setting, $sql );
+    $sql = str_replace( '<CALLING_START_TIME>', $setting.':00', $sql );
     $setting = $setting_manager->get_setting( 'calling', 'end time', $this->db_site );
-    $sql = str_replace( '<CALLING_END_TIME>', $setting, $sql );
+    $sql = str_replace( '<CALLING_END_TIME>', $setting.':00', $sql );
 
     return $sql;
   }
