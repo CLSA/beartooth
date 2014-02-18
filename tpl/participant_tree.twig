@@ -26,6 +26,9 @@
         args.site_id = 0;
       {% endif %}
 
+      // get the language
+      args.restrict_language = $( "#{{ widget.full }}__restrict_language" ).val();
+
       var data = ajax_pull( "participant", "tree", args );
       for( var index in data )
         $( "#{{ widget.full }}_nodespot__" + index + " span" ).html( data[index] );
@@ -53,9 +56,7 @@
       {% endif %}
 
       // reload page if language selector is changed
-      $( "#{{ widget.full }}__restrict_language" ).change( function() {
-        $( "#{{ widget.full }}__update" ).click();
-      } );
+      $( "#{{ widget.full }}__restrict_language" ).change( update_tree );
       
       // create the datepicker UI for the viewing date
       $( "#{{ widget.full }}__viewing_date" ).datepicker( {

@@ -90,10 +90,12 @@ class progress_report extends \cenozo\ui\pull\base_report
         $queue_mod = lib::create( 'database\modifier' );
         $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
         $queue_mod->where(
-          'callback.datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d' ) );
+          'callback.participant_id', '=', 'queue_has_participant.participant_id', false );
         $queue_mod->where(
-          'callback.datetime', '<', $next_monday_datetime_obj->format( 'Y-m-d' ) );
-        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
+          'callback.datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d 0:00:00' ) );
+        $queue_mod->where(
+          'callback.datetime', '<', $next_monday_datetime_obj->format( 'Y-m-d 0:00:00' ) );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod );
 
         // total callbacks
         $category = sprintf( 'Total Callbacks scheduled (%s)', $db_qnaire->name );
@@ -101,7 +103,7 @@ class progress_report extends \cenozo\ui\pull\base_report
         $db_queue->set_site( $db_site );
         $queue_mod = lib::create( 'database\modifier' );
         $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
-        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod );
 
         // this week's appointments
         $category = sprintf( 'Appointments scheduled this week (%s)', $db_qnaire->name );
@@ -110,10 +112,12 @@ class progress_report extends \cenozo\ui\pull\base_report
         $queue_mod = lib::create( 'database\modifier' );
         $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
         $queue_mod->where(
-          'appointment.datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d' ) );
+          'appointment.participant_id', '=', 'queue_has_participant.participant_id', false );
         $queue_mod->where(
-          'appointment.datetime', '<', $next_monday_datetime_obj->format( 'Y-m-d' ) );
-        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
+          'datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d 0:00:00' ) );
+        $queue_mod->where(
+          'datetime', '<', $next_monday_datetime_obj->format( 'Y-m-d 0:00:00' ) );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod );
 
         // total appointments
         $category = sprintf( 'Total Appointments scheduled (%s)', $db_qnaire->name );
@@ -121,7 +125,7 @@ class progress_report extends \cenozo\ui\pull\base_report
         $db_queue->set_site( $db_site );
         $queue_mod = lib::create( 'database\modifier' );
         $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
-        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod );
 
         // never assigned
         $category = sprintf( 'Never assigned (%s)', $db_qnaire->name );
@@ -129,7 +133,7 @@ class progress_report extends \cenozo\ui\pull\base_report
         $db_queue->set_site( $db_site );
         $queue_mod = lib::create( 'database\modifier' );
         $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
-        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod );
 
         // previously assigned
         $category = sprintf( 'Previously assigned (%s)', $db_qnaire->name );
@@ -137,7 +141,7 @@ class progress_report extends \cenozo\ui\pull\base_report
         $db_queue->set_site( $db_site );
         $queue_mod = lib::create( 'database\modifier' );
         $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
-        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod, false );
+        $site_totals[ $category ] = $db_queue->get_participant_count( $queue_mod );
 
         if( !is_null( $db_event_type ) )
         {

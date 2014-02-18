@@ -876,12 +876,12 @@ AND role.name IN( "administrator", "coordinator" );
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "pull" AND subject = "sample" AND operation.name = "report"
-AND role.name IN ( "administrator" );
+AND role.name IN ( "administrator", "coordinator" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "widget" AND subject = "sample" AND operation.name = "report"
-AND role.name IN ( "administrator" );
+AND role.name IN ( "administrator", "coordinator" );
 
 -- setting
 
