@@ -1,0 +1,237 @@
+DROP PROCEDURE IF EXISTS patch_role_has_operation;
+DELIMITER //
+CREATE PROCEDURE patch_role_has_operation()
+  BEGIN
+
+    -- determine the @cenozo database name
+    SET @cenozo = (
+      SELECT unique_constraint_schema
+      FROM information_schema.referential_constraints
+      WHERE constraint_schema = DATABASE()
+      AND constraint_name = "fk_role_has_operation_role_id" );
+
+    SELECT "Adding new operations to roles" AS "";
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE type = 'widget' AND subject = 'participant' AND operation.name = 'withdraw' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'administrator', 'coordinator' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE type = 'push' AND subject = 'participant' AND operation.name = 'withdraw' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'administrator', 'coordinator' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'address' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'alternate' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE type = 'widget' AND subject = 'appointment' AND operation.name = 'list' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'appointment' AND operation.name != 'list' "
+      "AND operation.restricted = true ",
+      "AND role.name = 'helpline'" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'assignment' AND operation.name IN( 'list', 'view' ) "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'availability' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'callback' AND operation.name NOT IN( 'calendar', 'feed' ) "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'consent' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'event' AND operation.name = 'list' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'home_appointment' AND operation.name != 'report' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'interview' AND operation.name IN ( 'list', 'view' ) "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'interview' AND operation.name = 'report' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'administrator', 'coordinator' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'note' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'participant' AND operation.name NOT IN",
+        "( 'add', 'add_appointment', 'add_event', 'delete', 'delete_appointment', 'delete_event', 'new' ) "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'participant' AND operation.name NOT IN",
+        "( 'add', 'add_appointment', 'add_event', 'delete', 'delete_appointment', 'delete_event', ",
+          "'multinote', 'new', 'report', 'site_reassign' ) "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject IN( 'phone', 'phone_call' ) "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'site_appointment' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE subject = 'voip' AND operation.name = 'dtmf' "
+      "AND operation.restricted = true ",
+      "AND role.name IN( 'curator', 'helpline' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE type = 'pull' AND subject = 'sample' AND operation.name = 'report' "
+      "AND role.name IN ( 'administrator' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) "
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation "
+      "WHERE type = 'widget' AND subject = 'sample' AND operation.name = 'report' "
+      "AND role.name IN ( 'administrator' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+  END //
+DELIMITER ;
+
+CALL patch_role_has_operation();
+DROP PROCEDURE IF EXISTS patch_role_has_operation;

@@ -46,16 +46,18 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "callback", "new", true, "Creates new callback entry for a participant." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "callback", "view", true, "View the details of a participant's particular callback." );
+
+-- home_appointment
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "home_appointment", "report", true, "Download a home appointment report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "home_appointment", "report", true, "Set up a home appointment report." );
-
--- home_assignment
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "home_appointment", "calendar", true, "A calendar listing home appointments." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "home_appointment", "feed", true, "Retrieves a list of home appointment times for a given time-span." );
+
+-- home_assignment
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "home_assignment", "select", true, "Provides a list of participants ready for a home appointment to begin an assignment with." );
 
@@ -64,6 +66,10 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "interview", "edit", true, "Edits the details of an interview." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "interview", "list", true, "Lists interviews." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "interview", "report", true, "Download an interview report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "interview", "report", true, "Set up an interview report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "interview", "view", true, "View interview details." );
 
@@ -112,6 +118,8 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "participant", "tree", true, "Displays participants in a tree format, revealing which queue the belong to." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "participant", "withdraw", true, "Withdraws the participant (or cancels the withdraw).  This is meant to be used during an interview if the participant suddenly wishes to withdraw." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "participant", "withdraw", true, "Pseudo-assignment to handle participant withdraws." );
 
 -- participant_tree
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -169,21 +177,15 @@ VALUES( "widget", "qnaire", "view", true, "View a questionnaire's details." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "queue", "list", true, "List queues in the system." );
 INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "queue", "repopulate", true, "Repopulate all queue participant lists." );
+INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "queue", "view", true, "View a queue's details and list of participants." );
 
--- queue_restriction
+-- sample
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "queue_restriction", "add", true, "View a form for creating a new queue restriction." );
+VALUES( "pull", "sample", "report", true, "Download a sample report." );
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "queue_restriction", "delete", true, "Removes a queue restriction from the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "queue_restriction", "edit", true, "Edits a queue restriction's details." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "queue_restriction", "list", true, "List queue restrictions in the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "queue_restriction", "new", true, "Add a new queue restriction to the system." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "queue_restriction", "view", true, "View a queue restriction's details." );
+VALUES( "widget", "sample", "report", true, "Set up a sample report." );
 
 -- self
 INSERT INTO operation( type, subject, name, restricted, description )

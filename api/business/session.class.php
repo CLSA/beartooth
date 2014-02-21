@@ -176,7 +176,8 @@ class session extends \cenozo\business\session
    */
   public function slot_reset( $slot )
   {
-    // kill the secondary contact cookies in case they exist
+    // kill the withdraw and secondary contact cookies in case they exist
+    setcookie( 'withdrawing_participant', NULL, time() - 3600, COOKIE_PATH );
     setcookie( 'secondary_id', NULL, time() - 3600, COOKIE_PATH );
     setcookie( 'secondary_participant_id', NULL, time() - 3600, COOKIE_PATH );
     setcookie( 'secondary_participant_first_name', NULL, time() - 3600, COOKIE_PATH );

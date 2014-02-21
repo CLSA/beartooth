@@ -26,6 +26,7 @@ class participant_edit extends \cenozo\ui\push\participant_edit
   {
     parent::execute();
 
+    $record = $this->get_record();
     $columns = $this->get_argument( 'columns', array() );
 
     $db_next_of_kin = NULL;
@@ -41,12 +42,12 @@ class participant_edit extends \cenozo\ui\push\participant_edit
         // make sure the next of kin entry exists
         if( is_null( $db_next_of_kin ) )
         {
-          $db_next_of_kin = $this->get_record()->get_next_of_kin();
+          $db_next_of_kin = $record->get_next_of_kin();
 
           if( is_null( $db_next_of_kin ) )
           { // the record doesn't exist, so create it
             $db_next_of_kin = lib::create( 'database\next_of_kin' );
-            $db_next_of_kin->participant_id = $this->get_record()->id;
+            $db_next_of_kin->participant_id = $record->id;
           }
         }
 
@@ -59,12 +60,12 @@ class participant_edit extends \cenozo\ui\push\participant_edit
         // make sure the next of kin entry exists
         if( is_null( $db_data_collection ) )
         {
-          $db_data_collection = $this->get_record()->get_data_collection();
+          $db_data_collection = $record->get_data_collection();
 
           if( is_null( $db_data_collection ) )
           { // the record doesn't exist, so create it
             $db_data_collection = lib::create( 'database\data_collection' );
-            $db_data_collection->participant_id = $this->get_record()->id;
+            $db_data_collection->participant_id = $record->id;
           }
         }
 
@@ -76,5 +77,17 @@ class participant_edit extends \cenozo\ui\push\participant_edit
 
     if( $found_next_of_kin ) $db_next_of_kin->save();
     if( $found_data_collection ) $db_data_collection->save();
+
+    // look for columns which will affect queue status
+    $column_list = array(
+      'active',
+      'gender',
+      'state_id',
+      'override_quota' );
+    foreach( $record->get_cohort()->get_service_list() as $db_service )
+      $column_list[] = sprintf( '%s_site_id', $db_service->name );
+
+    if( array_intersect_key( $columns, array_flip( $column_list ) ) )
+      $record->update_queue_status();
   }
 }

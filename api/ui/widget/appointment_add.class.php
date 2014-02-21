@@ -39,7 +39,14 @@ class appointment_add extends base_appointment_view
     parent::prepare();
 
     // only interviewers should select addresses
-    $this->select_address = 'home' == $this->parent->get_record()->current_qnaire_type;
+    $db_effective_qnaire = $this->parent->get_record()->get_effective_qnaire();
+    if( is_null( $db_effective_qnaire ) )
+      throw lib::create( 'exception\notice',
+        'You cannot add an appointment for this participant since they do not currently have '.
+        'any questionnaires to answer.',
+        __METHOD__ );
+
+    $this->select_address = 'home' == $db_effective_qnaire->type;
     
     // add items to the view
     $this->add_item( 'participant_id', 'hidden' );
@@ -106,17 +113,23 @@ class appointment_add extends base_appointment_view
     }
 
     // create the min datetime array
-    $start_qnaire_date = $db_participant->start_qnaire_date;
+    $start_qnaire_date = $db_participant->get_start_qnaire_date();
     $datetime_limits = !is_null( $start_qnaire_date )
-                     ? array( 'min_date' => substr( $start_qnaire_date, 0, -9 ) )
+                     ? array( 'min_date' => $start_qnaire_date->format( 'Y-m-d' ) )
                      : NULL;
 
     // set the view's items
     $this->set_item( 'participant_id', $db_participant->id );
     $this->set_item( 'datetime', '', true, $datetime_limits );
     
-    $this->set_variable( 'current_qnaire_type', $db_participant->current_qnaire_type );
-    $this->set_variable( 'is_mid_tier', 2 == $session->get_role()->tier );
+    $db_effective_qnaire = $db_participant->get_effective_qnaire();
+    if( is_null( $db_effective_qnaire ) )
+      throw lib::create( 'exception\notice',
+        'You cannot add an appointment for this participant since they do not currently have '.
+        'any questionnaires to answer.',
+        __METHOD__ );
+
+    $this->set_variable( 'current_qnaire_type', $db_effective_qnaire->type );
   }
   
   /**

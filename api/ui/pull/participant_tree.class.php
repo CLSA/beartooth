@@ -37,10 +37,10 @@ class participant_tree extends \cenozo\ui\pull
     parent::execute();
 
     $session = lib::create( 'business\session' );
-    $is_top_tier = 3 == $session->get_role()->tier;
+    $all_sites = $session->get_role()->all_sites;
     $is_interviewer = 'interviewer' == $session->get_role()->name;
     
-    if( $is_top_tier )
+    if( $all_sites )
     {
       $site_id = $this->get_argument( "site_id", 0 );
       $db_site = $site_id ? lib::create( 'database\site', $site_id ) : NULL;
@@ -63,37 +63,38 @@ class participant_tree extends \cenozo\ui\pull
     {
       // restrict by language
       // Note: a new queue mod needs to be created for every iteration of the loop
-      $participant_mod = lib::create( 'database\modifier' );
+      $queue_mod = lib::create( 'database\modifier' );
       if( 'any' != $restrict_language )
       {
         // english is default, so if the language is english allow null values
         if( 'en' == $restrict_language )
         {
-          $participant_mod->where_bracket( true );
-          $participant_mod->where( 'participant_language', '=', $restrict_language );
-          $participant_mod->or_where( 'participant_language', '=', NULL );
-          $participant_mod->where_bracket( false );
+          $queue_mod->where_bracket( true );
+          $queue_mod->where( 'participant.language', '=', $restrict_language );
+          $queue_mod->or_where( 'participant.language', '=', NULL );
+          $queue_mod->where_bracket( false );
         }
-        else $participant_mod->where( 'participant_language', '=', $restrict_language );
+        else $queue_mod->where( 'participant.language', '=', $restrict_language );
       }
 
       // restrict queue based on user's role
-      if( !$is_top_tier ) $db_queue->set_site( $session->get_site() );
+      if( !$all_sites ) $db_queue->set_site( $session->get_site() );
       else if( !is_null( $db_site ) ) $db_queue->set_site( $db_site );
       
       // handle queues which are not qnaire specific
       if( !$db_queue->qnaire_specific )
       {
         $index = sprintf( '%d_%d', 0, $db_queue->id );
-        $this->data[$index] = $db_queue->get_participant_count( $participant_mod );
+        $this->data[$index] = $db_queue->get_participant_count( $queue_mod );
       }
       else // handle queues which are qnaire specific
       {
         foreach( $qnaire_class_name::select() as $db_qnaire )
         {
-          $db_queue->set_qnaire( $db_qnaire );
+          $modifier = clone $queue_mod;
+          $modifier->where( 'qnaire_id', '=', $db_qnaire->id );
           $index = sprintf( '%d_%d', $db_qnaire->id, $db_queue->id );
-          $this->data[$index] = $db_queue->get_participant_count( $participant_mod );
+          $this->data[$index] = $db_queue->get_participant_count( $modifier );
         }
       }
     }

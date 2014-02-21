@@ -83,9 +83,7 @@ class assignment_list extends \cenozo\ui\widget\site_restricted_list
                'start_datetime' => $record->start_datetime,
                'start_time' => $record->start_datetime,
                'end_time' => $record->end_datetime,
-               'status' => $status,
-               // note_count isn't a column, it's used for the note button
-               'note_count' => $record->get_note_count() ) );
+               'status' => $status ) );
     }
   }
 

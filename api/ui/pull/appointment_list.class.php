@@ -110,7 +110,8 @@ class appointment_list extends \cenozo\ui\pull\base_list
         'street'    => is_null( $db_address ) ? 'NA' : $db_address->address1,
         'city'      => is_null( $db_address ) ? 'NA' : $db_address->city,
         'province'  => is_null( $db_address ) ? 'NA' : $db_address->get_region()->name,
-        'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode );
+        'postcode'  => is_null( $db_address ) ? 'NA' : $db_address->postcode,
+        'email'     => is_null( $db_participant->email ) ? 'NA' : $db_participant->email );
 
       if( !is_null( $db_next_of_kin ) )
       {

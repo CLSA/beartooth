@@ -77,14 +77,14 @@ class appointment extends \cenozo\database\record
     $db_participant = lib::create( 'database\participant', $this->participant_id );
 
     // check the qnaire start date
-    $start_qnaire_date = $db_participant->start_qnaire_date;
-    if( !is_null( $start_qnaire_date ) &&
-        util::get_datetime_object( $start_qnaire_date ) > util::get_datetime_object() )
+    $start_qnaire_date = $db_participant->get_start_qnaire_date();
+    if( !is_null( $start_qnaire_date ) && $start_qnaire_date > util::get_datetime_object() )
       return false;
 
     // check the qnaire type
     $type = is_null( $this->address_id ) ? 'site' : 'home';
-    if( $db_participant->current_qnaire_type != $type ) return false;
+    $db_effective_qnaire = $db_participant->get_effective_qnaire();
+    if( is_null( $db_effective_qnaire ) || $db_effective_qnaire->type != $type ) return false;
     
     return true;
   }

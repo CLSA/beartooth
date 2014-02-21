@@ -52,7 +52,7 @@ class home_assignment_select extends \cenozo\ui\widget
     $this->participant_list->set_addable( false );
     $this->participant_list->set_removable( false );
     $this->participant_list->set_heading( sprintf( 'Available participants (%s)', $language ) );
-    $this->participant_list->set_allow_restrict_condition( false );
+    $this->participant_list->set_allow_restrict_state( false );
   }
 
   /**
@@ -83,46 +83,28 @@ class home_assignment_select extends \cenozo\ui\widget
    */
   public function determine_participant_count( $modifier = NULL )
   {
-    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
-
     $session = lib::create( 'business\session' );
-    $db_site = $session->get_site();
-    $db_user = $session->get_user();
 
-    // replace participant. with participant_ in the where and order columns of the modifier
-    // (see queue record's participant_for_queue for details)
-    if( !is_null( $modifier ) ) 
-      foreach( $modifier->get_where_columns() as $column )
-        $modifier->change_where_column(
-          $column, preg_replace( '/^participant\./', 'participant_', $column ) );
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'site.id', '=', $session->get_site()->id );
+    $modifier->where( 'qnaire.type', '=', 'home' );
 
-    $language = $db_user->language;
+    $language = $session->get_user()->language;
     if( 'any' != $language )
     {
       // english is default, so if the language is english allow null values
       if( 'en' == $language )
       {
         $modifier->where_bracket( true );
-        $modifier->where( 'participant_language', '=', $language );
-        $modifier->or_where( 'participant_language', '=', NULL );
+        $modifier->where( 'participant.language', '=', $language );
+        $modifier->or_where( 'participant.language', '=', NULL );
         $modifier->where_bracket( false );
       }
-      else $modifier->where( 'participant_language', '=', $language );
+      else $modifier->where( 'participant.language', '=', $language );
     }
 
-    $qnaire_mod = lib::create( 'database\modifier' );
-    $qnaire_mod->where( 'type', '=', 'home' );
-    $qnaire_mod->order( 'rank' );
-
-    $count = 0;
-    foreach( $qnaire_class_name::select( $qnaire_mod ) as $db_qnaire )
-    {
-      $count = $queue_class_name::get_ranked_participant_count( $db_qnaire, $db_site, $modifier );
-      if( 0 < $count ) break;
-    }
-
-    return $count;
+    return $queue_class_name::get_ranked_participant_count( $modifier );
   }
 
   /**
@@ -135,56 +117,28 @@ class home_assignment_select extends \cenozo\ui\widget
    */
   public function determine_participant_list( $modifier = NULL )
   {
-    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
-
     $session = lib::create( 'business\session' );
-    $db_site = $session->get_site();
-    $db_user = $session->get_user();
 
-    // replace participant. with participant_ in the where and order columns of the modifier
-    // (see queue record's participant_for_queue for details)
-    if( !is_null( $modifier ) ) 
-    {   
-      foreach( $modifier->get_where_columns() as $column )
-        $modifier->change_where_column(
-          $column, preg_replace( '/^participant\./', 'participant_', $column ) );
-      foreach( $modifier->get_order_columns() as $column )
-      {
-        if( 'participant.id' == $column )
-          $modifier->change_order_column( 'participant.id', 'ranked_participant_for_queue.id' );
-        else
-          $modifier->change_order_column(
-            $column, preg_replace( '/^participant\./', 'participant_', $column ) );
-      }
-    }
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'site.id', '=', $session->get_site()->id );
+    $modifier->where( 'qnaire.type', '=', 'home' );
 
-    $language = $db_user->language;
+    $language = $session->get_user()->language;
     if( 'any' != $language )
     {
       // english is default, so if the language is english allow null values
       if( 'en' == $language )
       {
         $modifier->where_bracket( true );
-        $modifier->where( 'participant_language', '=', $language );
-        $modifier->or_where( 'participant_language', '=', NULL );
+        $modifier->where( 'participant.language', '=', $language );
+        $modifier->or_where( 'participant.language', '=', NULL );
         $modifier->where_bracket( false );
       }
-      else $modifier->where( 'participant_language', '=', $language );
+      else $modifier->where( 'participant.language', '=', $language );
     }
 
-    $qnaire_mod = lib::create( 'database\modifier' );
-    $qnaire_mod->where( 'type', '=', 'home' );
-    $qnaire_mod->order( 'rank' );
-
-    $list = array();
-    foreach( $qnaire_class_name::select( $qnaire_mod ) as $db_qnaire )
-    {
-      $list = $queue_class_name::get_ranked_participant_list( $db_qnaire, $db_site, $modifier );
-      if( 0 < count( $list ) ) break;
-    }
-
-    return $list;
+    return $queue_class_name::get_ranked_participant_list( $modifier );
   }
 
   /**
