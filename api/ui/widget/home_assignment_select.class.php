@@ -86,11 +86,13 @@ class home_assignment_select extends \cenozo\ui\widget
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $session = lib::create( 'business\session' );
 
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'site.id', '=', $session->get_site()->id );
+    $modifier->where( 'qnaire.type', '=', 'home' );
+
     $language = $session->get_user()->language;
     if( 'any' != $language )
     {
-      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-
       // english is default, so if the language is english allow null values
       if( 'en' == $language )
       {
@@ -102,17 +104,7 @@ class home_assignment_select extends \cenozo\ui\widget
       else $modifier->where( 'participant.language', '=', $language );
     }
 
-    $queue_mod = lib::create( 'database\modifier' );
-    $queue_mod->where( 'qnaire.type', '=', 'home' );
-    $queue_mod->where( 'queue.rank', '!=', NULL );
-    $count = 0;
-    foreach( $queue_class_name::select( $queue_mod ) as $db_queue )
-    {
-      $db_queue->set_site( $session->get_site() );
-      $count += $db_queue->get_participant_count( $modifier );
-    }
-
-    return $count;
+    return $queue_class_name::get_ranked_participant_count( $modifier );
   }
 
   /**
@@ -126,14 +118,15 @@ class home_assignment_select extends \cenozo\ui\widget
   public function determine_participant_list( $modifier = NULL )
   {
     $queue_class_name = lib::get_class_name( 'database\queue' );
-
     $session = lib::create( 'business\session' );
+
+    if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'site.id', '=', $session->get_site()->id );
+    $modifier->where( 'qnaire.type', '=', 'home' );
 
     $language = $session->get_user()->language;
     if( 'any' != $language )
     {
-      if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-
       // english is default, so if the language is english allow null values
       if( 'en' == $language )
       {
@@ -145,17 +138,7 @@ class home_assignment_select extends \cenozo\ui\widget
       else $modifier->where( 'participant.language', '=', $language );
     }
 
-    $queue_mod = lib::create( 'database\modifier' );
-    $queue_mod->where( 'qnaire.type', '=', 'site' );
-    $queue_mod->where( 'queue.rank', '!=', NULL );
-    $list = array();
-    foreach( $queue_class_name::select( $queue_mod ) as $db_queue )
-    {
-      $db_queue->set_site( $session->get_site() );
-      $list = array_merge( $list, $db_queue->get_participant_list( $modifier ) );
-    }
-
-    return $list;
+    return $queue_class_name::get_ranked_participant_list( $modifier );
   }
 
   /**

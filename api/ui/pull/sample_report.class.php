@@ -39,7 +39,7 @@ class sample_report extends \cenozo\ui\pull\base_report
     $participant_class_name = lib::create( 'database\participant' );
     $event_type_class_name = lib::create( 'database\event_type' );
 
-    $site_id = $this->get_argument( 'site_id' );
+    $site_id = $this->get_argument( 'restrict_site_id' );
     $db_site = $site_id ? lib::create( 'database\site', $site_id ) : NULL;
     $db_quota = lib::create( 'database\quota', $this->get_argument( 'quota_id' ) );
 
@@ -90,6 +90,7 @@ class sample_report extends \cenozo\ui\pull\base_report
 
       // determine the number of home and site assignment counts and complete dates
       $home_interview_date = 'none';
+      $home_interviewer = 'n/a';
       $site_interview_date = 'none';
       if( is_null( $db_home_interview ) || !$db_home_interview->completed )
       { // home interview isn't complete, the interview date will be the last appointment
@@ -100,8 +101,10 @@ class sample_report extends \cenozo\ui\pull\base_report
         if( 0 < count( $appointment_list ) )
         {
           $db_appointment = current( $appointment_list );
+          $db_user = $db_appointment->get_user();
           $home_interview_date =
             util::get_datetime_object( $db_appointment->datetime )->format( 'Y-m-d' );
+          $home_interviewer = is_null( $db_user ) ? 'unset' : $db_user->name;
         }
       }
       else // the home interview is complete, get it's complete time from events
@@ -114,10 +117,12 @@ class sample_report extends \cenozo\ui\pull\base_report
           $db_event = current( $event_list );
           $home_interview_date = 
             util::get_datetime_object( $db_event->datetime )->format( 'Y-m-d' );
+          $home_interviewer = '(exported)';
         }
         else // the interview is complete yet there is no event
         {
           $home_interview_date = 'unknown';
+          $home_interviewer = 'unknown';
         }
 
         // if the home interview is complete then the site interview may be as well
@@ -173,6 +178,7 @@ class sample_report extends \cenozo\ui\pull\base_report
         is_null( $db_participant->email ) ? 'no' : 'yes',
         is_null( $db_home_interview ) ? 0 : $db_home_interview->get_assignment_count(),
         $home_interview_date,
+        $home_interviewer,
         is_null( $db_home_interview ) ? 'no' : ( $db_home_interview->completed ? 'yes' : 'no' ),
         is_null( $db_site_interview ) ? 0 : $db_site_interview->get_assignment_count(),
         $site_interview_date,
@@ -189,6 +195,7 @@ class sample_report extends \cenozo\ui\pull\base_report
       'Has Email',
       '# Home Assignments',
       'Home Interview Date',
+      'Home Interviewer',
       'Home Completed',
       '# Site Assignments',
       'Site Interview Date',

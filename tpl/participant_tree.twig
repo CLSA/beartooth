@@ -26,10 +26,13 @@
         args.site_id = 0;
       {% endif %}
 
+      // get the language
+      args.restrict_language = $( "#{{ widget.full }}__restrict_language" ).val();
+
       var data = ajax_pull( "participant", "tree", args );
       for( var index in data )
         $( "#{{ widget.full }}_nodespot__" + index + " span" ).html( data[index] );
-      $( this ).find( "span" ).html( 'Update Tree Population' );
+      $( this ).find( "span" ).html( 'Update Tree' );
     }
 
     $( function() {
@@ -53,9 +56,7 @@
       {% endif %}
 
       // reload page if language selector is changed
-      $( "#{{ widget.full }}__restrict_language" ).change( function() {
-        $( "#{{ widget.full }}__update" ).click();
-      } );
+      $( "#{{ widget.full }}__restrict_language" ).change( update_tree );
       
       // create the datepicker UI for the viewing date
       $( "#{{ widget.full }}__viewing_date" ).datepicker( {
@@ -99,7 +100,7 @@
             $button = $( "#{{ widget.full }}__repopulate" );
             $button.find( "span" ).html( 'Update in progress...' );
             if( ajax_push( "queue", "repopulate" ) ) update_tree();
-            $button.find( "span" ).html( 'Re-populate Tree Population' );
+            $button.find( "span" ).html( 'Re-populate Tree' );
           }
         );
       } );
@@ -115,7 +116,7 @@
   
   <div style="padding-top: 8px; padding-bottom: 8px;">
     {% if allow_repopulate %}
-      <button id="{{ widget.full }}__repopulate" style="float:right">Re-populate Tree Population</button>
+      <button id="{{ widget.full }}__repopulate" style="float:right">Re-populate Tree</button>
     {% endif %}
     {% if sites is defined %}
       {% set restrict_site_id = restrict_site_id|default(0) %}

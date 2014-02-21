@@ -63,7 +63,7 @@ class callback_feed extends \cenozo\ui\pull\base_feed
       if( $datetime_obj->diff( $now_datetime_obj )->invert ||
           $today == $datetime_obj->format( 'Y-m-d' ) )
       {
-        $db_effective_qnaire = $db_participant->get_current_qnaire();
+        $db_effective_qnaire = $db_participant->get_effective_qnaire();
         $title .= sprintf(
           ' (%s)',
           is_null( $db_effective_qnaire ) ? 'unknown' : $db_effective_qnaire->type );
