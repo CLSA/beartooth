@@ -21,7 +21,7 @@
           text: false,
           icons: { primary: "ui-icon-play" }
         } ).click( function() {
-          var id_string = $(this).attr( 'id' );
+          var id_string = $(this).prop( 'id' );
           var participant_id = parseInt( id_string.substring( id_string.lastIndexOf('_') + 1 ) );
           if( ajax_push( "assignment", "begin", { "participant_id": participant_id } ) )
             window.location.reload();
