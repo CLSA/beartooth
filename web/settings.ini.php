@@ -12,7 +12,7 @@ global $SETTINGS;
 // tagged version
 $SETTINGS['general']['application_name'] = 'beartooth';
 $SETTINGS['general']['service_name'] = $SETTINGS['general']['application_name'];
-$SETTINGS['general']['version'] = '1.2.0';
+$SETTINGS['general']['version'] = '1.2.1';
 
 // always leave as false when running as production server
 $SETTINGS['general']['development_mode'] = false;
@@ -32,11 +32,6 @@ $SETTINGS['url']['MASTODON'] = NULL;
 // the url of limesurvey
 $SETTINGS['path']['LIMESURVEY'] = '/var/www/limesurvey';
 $SETTINGS['url']['LIMESURVEY'] = '../limesurvey';
-
-// additional javascript libraries
-$SETTINGS['url']['JQUERY'] = '/jquery';
-$SETTINGS['url']['JQUERY_PLUGINS'] = $SETTINGS['url']['JQUERY'].'/plugins';
-$SETTINGS['url']['JQUERY_JSTREE_JS'] = $SETTINGS['url']['JQUERY_PLUGINS'].'/jsTree.js';
 
 // voip settings
 $SETTINGS['voip']['enabled'] = false;

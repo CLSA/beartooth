@@ -39,7 +39,7 @@ class site_appointment_calendar extends \cenozo\ui\widget\base_calendar
     parent::prepare();
 
     $this->set_heading( 'Site appointment calendar' );
-    $this->set_editable( 2 == lib::create( 'business\session' )->get_role()->tier );
+    $this->set_editable( true );
   }
   
   /**
