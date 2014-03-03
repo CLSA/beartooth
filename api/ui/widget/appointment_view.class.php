@@ -38,6 +38,10 @@ class appointment_view extends base_appointment_view
   {
     parent::prepare();
     
+    // don't allow tier 1 users to remove site appointments
+    if( 1 == lib::create( 'business\session' )->get_role()->tier )
+      if( is_null( $this->get_record()->user_id ) ) $this->set_removable( false );
+
     // only interviewers should select addresses
     $this->select_address = !is_null( $this->get_record()->address_id );
     
