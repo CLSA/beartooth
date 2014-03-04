@@ -137,6 +137,7 @@ class survey_manager extends \cenozo\singleton
     $this->current_sid = false;
     $this->current_token = false;
 
+    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
     $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
     $session = lib::create( 'business\session' );
@@ -201,13 +202,20 @@ class survey_manager extends \cenozo\singleton
           $interview_mod->order_desc( 'id' );
           $interview_list = $db_participant->get_interview_list( $interview_mod );
           
-          if( 0 == count( $interview_list ) )
-            throw lib::create( 'exception\runtime',
-                               'Trying to withdraw participant without a questionnaire.',
-                               __METHOD__ );
+          if( 1 < count( $interview_list ) )
+          {
+            $db_interview = current( $interview_list );
+            $db_qnaire = $db_interview->get_qnaire();
+          }
+          else
+          { // no interview means we'll just use the first qnaire
+            $db_qnaire = $qnaire_class_name::get_unique_record( 'rank', 1 );
 
-          $db_interview = current( $interview_list );
-          $db_qnaire = $db_interview->get_qnaire();
+            if( is_null( $db_qnaire ) )
+              throw lib::create( 'exception\runtime',
+                                 'Trying to withdraw participant without a questionnaire.',
+                                 __METHOD__ );
+          }
         }
       }
 
