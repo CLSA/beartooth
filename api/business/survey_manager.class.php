@@ -171,7 +171,13 @@ class survey_manager extends \cenozo\singleton
       $db_tokens->token = $token;
       $db_tokens->firstname = $db_participant->first_name;
       $db_tokens->lastname = $db_participant->last_name;
-      $db_tokens->update_attributes( $db_participant );
+      $db_tokens->email = $db_participant->email;
+
+      // fill in the attributes
+      $db_surveys = lib::create( 'database\limesurvey\surveys', $sid );
+      foreach( $db_surveys->get_token_attribute_names() as $key => $value )
+        $db_tokens->$key = static::get_attribute( $db_participant, $value );
+
       $db_tokens->save();
 
       // the secondary survey can be brought back up after it is complete, so always set these
@@ -220,6 +226,7 @@ class survey_manager extends \cenozo\singleton
       }
 
       $sid = $db_qnaire->withdraw_sid;
+      $db_surveys = lib::create( 'database\limesurvey\surveys', $sid );
 
       $survey_class_name::set_sid( $sid );
       $tokens_class_name::set_sid( $sid );
@@ -234,7 +241,12 @@ class survey_manager extends \cenozo\singleton
         $db_tokens->token = $token;
         $db_tokens->firstname = $db_participant->first_name;
         $db_tokens->lastname = $db_participant->last_name;
-        $db_tokens->update_attributes( $db_participant );
+        $db_tokens->email = $db_participant->email;
+
+        // fill in the attributes
+        foreach( $db_surveys->get_token_attribute_names() as $key => $value )
+          $db_tokens->$key = static::get_attribute( $db_participant, $value );
+
         $db_tokens->save();
 
         $this->current_sid = $sid;
@@ -248,7 +260,6 @@ class survey_manager extends \cenozo\singleton
       else // token is complete, store the survey results
       {   
         // figure out which token attributes are which
-        $db_surveys = lib::create( 'database\limesurvey\surveys', $sid );
         $attributes = array();
         foreach( $db_surveys->get_token_attribute_names() as $key => $value )
           $attributes[$value] = $db_tokens->$key;
@@ -360,7 +371,13 @@ class survey_manager extends \cenozo\singleton
           $db_tokens->token = $token;
           $db_tokens->firstname = $db_participant->first_name;
           $db_tokens->lastname = $db_participant->last_name;
-          $db_tokens->update_attributes( $db_participant );
+          $db_tokens->email = $db_participant->email;
+
+          // fill in the attributes
+          $db_surveys = lib::create( 'database\limesurvey\surveys', $db_qnaire->withdraw_sid );
+          foreach( $db_surveys->get_token_attribute_names() as $key => $value )
+            $db_tokens->$key = static::get_attribute( $db_participant, $value );
+
           $db_tokens->save();
 
           $this->current_sid = $db_qnaire->withdraw_sid;
@@ -403,7 +420,12 @@ class survey_manager extends \cenozo\singleton
               $db_tokens->token = $token;
               $db_tokens->firstname = $db_participant->first_name;
               $db_tokens->lastname = $db_participant->last_name;
-              $db_tokens->update_attributes( $db_participant );
+              $db_tokens->email = $db_participant->email;
+
+              // fill in the attributes
+              $db_surveys = lib::create( 'database\limesurvey\surveys', $db_phase->sid );
+              foreach( $db_surveys->get_token_attribute_names() as $key => $value )
+                $db_tokens->$key = static::get_attribute( $db_participant, $value );
 
               // TODO: this is temporary code to fix the TOKEN != "NO" problem in limesurvey
               //       for survey 63834
@@ -432,6 +454,280 @@ class survey_manager extends \cenozo\singleton
     }
   }
   
+  /**
+   * Determines attributes needed at survey time.
+   * TODO: this method contains many reference to CLSA-specific features which
+   *       should be made generic
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\participant $db_participant
+   * @param string $key The name of the attribute to return.
+   * @return mixed
+   * @access public
+   */
+  public static function get_attribute( $db_participant, $key )
+  {
+    $value = NULL;
+
+    if( 'cohort' == $key )
+    {
+      $value = $db_participant->get_cohort()->name;
+    }
+    else if( 'uid' == $key )
+    {
+      $value = $db_participant->uid;
+    }
+    else if( 'override quota' == $key )
+    {
+      // override_quota is true if the participant's quota is disabled AND
+      // their override_quota is true
+      $override_quota = '0';
+      $db_quota = $db_participant->get_quota();
+      $value = !is_null( $db_quota ) &&
+                    $db_quota->state_disabled &&
+                    ( $db_participant->override_quota ||
+                      $db_participant->get_source()->override_quota )
+                  ? '1'
+                  : '0';
+    }
+    else if( false !== strpos( $key, 'address' ) )
+    {
+      $db_address = $db_participant->get_primary_address();
+
+      if( 'address street' == $key )
+      {
+        if( $db_address )
+        {
+          $value = $db_address->address1;
+          if( !is_null( $db_address->address2 ) ) $value .= ' '.$db_address->address2;
+        }
+        else
+        {
+          $value = '';
+        }
+      }
+      else if( 'address city' == $key )
+      {
+        $value = $db_address ? $db_address->city : '';
+      }
+      else if( 'address province' == $key )
+      {
+        $value = $db_address ? $db_address->get_region()->name : '';
+      }
+      else if( 'address postal code' == $key )
+      {
+        $value = $db_address ? $db_address->postcode : '';
+      }
+    }
+    else if( 'age' == $key )
+    {
+      $value = strlen( $db_participant->date_of_birth )
+                  ? util::get_interval(
+                      util::get_datetime_object( $db_participant->date_of_birth ) )->y
+                  : "";
+    }
+    else if( 'written consent received' == $key )
+    {
+      $consent_mod = lib::create( 'database\modifier' );
+      $consent_mod->where( 'written', '=', true );
+      $value = 0 < $db_participant->get_consent_count( $consent_mod ) ? '1' : '0';
+    }
+    else if( 'consented to provide HIN' == $key )
+    {
+      $db_hin = $db_participant->get_hin();
+      if( is_null( $db_hin ) ) $value = -1;
+      else $value = 1 == $db_hin->access ? 1 : 0;
+    }
+    else if( 'HIN recorded' == $key )
+    {
+      $db_hin = $db_participant->get_hin();
+      $value = !is_null( $db_participant->get_hin()->code );
+    }
+    else if( 'provided data' == $key )
+    {
+      $event_type_class_name = lib::get_class_name( 'database\event_type' );
+
+      // participants have provided data once their first interview is done
+      $event_mod = lib::create( 'database\modifier' );
+      $event_mod->where( 'event_type_id', '=',
+        $event_type_class_name::get_unique_record( 'name', 'completed (Baseline Home)' )->id );
+
+      $event_list = $db_participant->get_event_list( $event_mod );
+      $provided_data = 0 < count( $event_list ) ? 'yes' : 'no';
+
+      $value = $provided_data;
+    }
+    else if( 'DCS samples' == $key )
+    {
+      // get data from Opal
+      $setting_manager = lib::create( 'business\setting_manager' );
+      $opal_url = $setting_manager->get_setting( 'opal', 'server' );
+      $opal_manager = lib::create( 'business\opal_manager', $opal_url );
+
+      $value = 0;
+
+      if( $opal_manager->get_enabled() )
+      {
+        try
+        {
+          $blood = $opal_manager->get_value(
+            'clsa-dcs', 'Phlebotomy', $db_participant, 'AGREE_BS' );
+          $urine = $opal_manager->get_value(
+            'clsa-dcs', 'Phlebotomy', $db_participant, 'AGREE_URINE' );
+
+          $value = 0 == strcasecmp( 'yes', $blood ) ||
+                        0 == strcasecmp( 'yes', $urine )
+                      ? 1 : 0;
+        }
+        catch( \cenozo\exception\base_exception $e )
+        {
+          // ignore argument exceptions (data not found in Opal) and report the rest
+          if( 'argument' != $e->get_type() ) log::warning( $e->get_message() );
+        }
+      }
+    }
+    else if( 'INCL_2e' == $key )
+    {
+      // TODO: This is a custom token attribute which refers to a specific question in the
+      // introduction survey.  This code is not generic and needs to eventually be made
+      // generic.
+      $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
+
+      $db_interview = lib::create( 'business\session')->get_current_assignment()->get_interview();
+      $phase_mod = lib::create( 'database\modifier' );
+      $phase_mod->where( 'rank', '=', 1 );
+      $phase_list = $db_interview->get_qnaire()->get_phase_list( $phase_mod );
+
+      // determine the SID of the first phase of the questionnaire (where the question is asked)
+      if( 1 == count( $phase_list ) )
+      {
+        $db_phase = current( $phase_list );
+        $survey_class_name::set_sid( $db_phase->sid );
+
+        $survey_mod = lib::create( 'database\modifier' );
+        $survey_mod->where( 'token', 'LIKE', $db_interview->id.'_%' );
+        $survey_mod->order_desc( 'datestamp' );
+        $survey_list = $survey_class_name::select( $survey_mod );
+
+        $found = false;
+        foreach( $survey_list as $db_survey )
+        { // loop through all surveys until an answer is found
+          try
+          {
+            $value = $db_survey->get_response( $key );
+            // match any NON NULL response
+            if( !is_null( $value ) ) $found = true;
+          }
+          catch( \cenozo\exception\runtime $e )
+          {
+            // ignore the error and continue without setting the attribute
+          }
+
+          if( $found ) break;
+        }
+      }
+    }
+    else if( 'interviewer first_name' == $key )
+    {
+      $db_user = lib::create( 'business\session' )->get_user();
+      $value = $db_user->first_name;
+    }
+    else if( 'interviewer last_name' == $key )
+    {
+      $db_user = lib::create( 'business\session' )->get_user();
+      $value = $db_user->last_name;
+    }
+    else if( 'participant_source' == $key )
+    {
+      $db_source = $db_participant->get_source();
+      $value = is_null( $db_source ) ? '(none)' : $db_source->name;
+    }
+    else if( 'last interview date' == $key )
+    {
+      $event_type_class_name = lib::get_class_name( 'database\event_type' );
+      $event_mod = lib::create( 'database\modifier' );
+      $event_mod->order_desc( 'datetime' );
+      $event_mod->where( 'event_type_id', '=',
+        $event_type_class_name::get_unique_record( 'name', 'completed (Baseline Site)' )->id );
+
+      $event_list = $db_participant->get_event_list( $event_mod );
+      $db_event = 0 < count( $event_list ) ? current( $event_list ) : NULL;
+      $value = is_null( $db_event )
+                  ? 'DATE UNKNOWN'
+                  : util::get_formatted_date( $db_event->datetime );
+    }
+    else if( 'dcs phone_number' == $key )
+    {
+      $db_site = lib::create( 'business\session' )->get_site();
+      $value = $db_site->phone_number;
+    }
+    else if( 'dcs address street' == $key )
+    {
+      $db_site = lib::create( 'business\session' )->get_site();
+      $value = $db_site->address1.( is_null( $db_site->address2 ) ? '' : ', '.$db_site->address2 );
+    }
+    else if( 'dcs address city' == $key )
+    {
+      $db_site = lib::create( 'business\session' )->get_site();
+      $value = $db_site->city;
+    }
+    else if( 'dcs address province' == $key )
+    {
+      $db_site = lib::create( 'business\session' )->get_site();
+      $value = $db_site->get_region()->name;
+    }
+    else if( 'dcs address postal code' == $key )
+    {
+      $db_site = lib::create( 'business\session' )->get_site();
+      $value = $db_site->postcode;
+    }
+    else if( false !== strpos( $key, 'alternate' ) )
+    {
+      $alternate_list = $db_participant->get_alternate_list();
+
+      if( 'number of alternate contacts' == $key )
+      {
+        $value = count( $alterante_list );
+      }
+      else if(
+        preg_match( '/alternate([0-9]+) (first_name|last_name|phone)/', $key, $matches ) )
+      {
+        $alt_number = intval( $matches[1] );
+        $aspect = $matches[2];
+
+        if( count( $alterante_list ) < $alt_number )
+        {
+          $value = '';
+        }
+        else
+        {
+          if( 'phone' == $aspect )
+          {
+            $phone_list = $alterante_list[$alt_number - 1]->get_phone_list();
+            $value = is_array( $phone_list ) ? $phone_list[0]->number : '';
+          }
+          else
+          {
+            $value = $alterante_list[$alt_number - 1]->$aspect;
+          }
+        }
+      }
+    }
+    else if( 'previously completed' == $key )
+    {
+      $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
+      $interview_id = lib::create( 'business\session')->get_current_assignment()->interview_id;
+
+      // no need to set the token sid since it should already be set before calling this method
+      $tokens_mod = lib::create( 'database\modifier' );
+      $tokens_mod->where( 'token', 'like', $interview_id.'_%' );
+      $tokens_mod->where( 'completed', '!=', 'N' );
+      $value = $tokens_class_name::count( $tokens_mod );
+    }
+
+    return $value;
+  }
+
   /**
    * This assignment's current sid
    * @var int
