@@ -12,4 +12,6 @@ SOURCE participant_site.sql
 SOURCE queue.sql
 SOURCE setting.sql
 
+SOURCE update_version_number.sql
+
 COMMIT;
