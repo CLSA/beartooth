@@ -558,8 +558,8 @@ class queue extends \cenozo\database\record
           'first_address_timezone_offset IS NULL OR '.
           'first_address_daylight_savings IS NULL OR '.
           '( '.
-            'TIME( %s + INTERVAL %s*60 MINUTE ) >= "<CALLING_START_TIME>" AND '.
-            'TIME( %s + INTERVAL %s*60 MINUTE ) < "<CALLING_END_TIME>" '.
+            'TIME( %s + INTERVAL ( %s )*60 MINUTE ) >= "<CALLING_START_TIME>" AND '.
+            'TIME( %s + INTERVAL ( %s )*60 MINUTE ) < "<CALLING_END_TIME>" '.
           ') '.
         ')',
         $viewing_date,
