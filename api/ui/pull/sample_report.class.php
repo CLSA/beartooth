@@ -37,7 +37,7 @@ class sample_report extends \cenozo\ui\pull\base_report
   protected function build()
   {
     $participant_class_name = lib::create( 'database\participant' );
-    $event_type_class_name = lib::create( 'database\event_type' );
+    $qnaire_class_name = lib::create( 'database\qnaire' );
 
     $site_id = $this->get_argument( 'restrict_site_id' );
     $db_site = $site_id ? lib::create( 'database\site', $site_id ) : NULL;
@@ -109,8 +109,10 @@ class sample_report extends \cenozo\ui\pull\base_report
       }
       else // the home interview is complete, get it's complete time from events
       {
+        $db_qnaire = $qnaire_class_name::get_unique_record( 'rank', 1 );
+
         $event_mod = lib::create( 'database\modifier' );
-        $event_mod->where( 'event_type.name', '=', 'completed (Baseline Home)' );
+        $event_mod->where( 'event_type_id', '=', $db_qnaire->get_completed_event_type()->id );
         $event_list = $db_participant->get_event_list( $event_mod );
         if( 0 < count( $event_list ) )
         {
@@ -142,8 +144,10 @@ class sample_report extends \cenozo\ui\pull\base_report
         }
         else // the site interview is complete, get it's complete time from events
         {
+          $db_qnaire = $qnaire_class_name::get_unique_record( 'rank', 2 );
+
           $event_mod = lib::create( 'database\modifier' );
-          $event_mod->where( 'event_type.name', '=', 'completed (Baseline Site)' );
+          $event_mod->where( 'event_type_id', '=', $db_qnaire->get_completed_event_type()->id );
           $event_list = $db_participant->get_event_list( $event_mod );
           if( 0 < count( $event_list ) )
           {

@@ -162,6 +162,9 @@ CREATE TABLE IF NOT EXISTS `beartooth`.`qnaire` (
   `create_timestamp` TIMESTAMP NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `rank` INT NOT NULL,
+  `first_attempt_event_type_id` INT UNSIGNED NOT NULL,
+  `reached_event_type_id` INT UNSIGNED NOT NULL,
+  `completed_event_type_id` INT UNSIGNED NOT NULL,
   `prev_qnaire_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'The qnaire which must be completed before this one begins.',
   `delay` INT NOT NULL DEFAULT 0 COMMENT 'How many weeks after then end of the previous qnaire before starting.',
   `type` ENUM('home','site') NOT NULL,
@@ -171,9 +174,27 @@ CREATE TABLE IF NOT EXISTS `beartooth`.`qnaire` (
   UNIQUE INDEX `uq_name` (`name` ASC),
   UNIQUE INDEX `uq_rank` (`rank` ASC),
   INDEX `fk_prev_qnaire_id` (`prev_qnaire_id` ASC),
+  INDEX `fk_qnaire_first_attempt_event_type_id` (`first_attempt_event_type_id` ASC),
+  INDEX `fk_qnaire_reached_event_type_id` (`reached_event_type_id` ASC),
+  INDEX `fk_qnaire_completed_event_type_id` (`completed_event_type_id` ASC),
   CONSTRAINT `fk_qnaire_prev_qnaire_id`
     FOREIGN KEY (`prev_qnaire_id`)
     REFERENCES `beartooth`.`qnaire` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_qnaire_first_attempt_event_type_id`
+    FOREIGN KEY (`first_attempt_event_type_id`)
+    REFERENCES `cenozo`.`event_type` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_qnaire_reached_event_type_id`
+    FOREIGN KEY (`reached_event_type_id`)
+    REFERENCES `cenozo`.`event_type` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_qnaire_completed_event_type_id`
+    FOREIGN KEY (`completed_event_type_id`)
+    REFERENCES `cenozo`.`event_type` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
