@@ -141,9 +141,11 @@ class sample_report extends \cenozo\ui\pull\base_report
       'ON participant.id = home_interview.participant_id '.
       'AND home_interview.qnaire_id = ( SELECT id FROM qnaire WHERE rank = 1 ) '.
       // get the event associated with the home interview complete
+      'LEFT JOIN qnaire AS home_qnaire '.
+      'ON home_interview.qnaire_id = home_qnaire.id '.
       'LEFT JOIN event AS home_event '.
       'ON participant.id = home_event.participant_id '.
-      'AND home_event.event_type_id = ( SELECT id FROM event_type WHERE name = "completed (Baseline Home)" ) '.
+      'AND home_event.event_type_id = home_qnaire.completed_event_type_id '.
       // get the total number of assignments in the home interview
       'LEFT JOIN ( '.
         'SELECT interview_id, COUNT(*) AS total '.

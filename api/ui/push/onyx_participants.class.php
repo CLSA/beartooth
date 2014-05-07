@@ -42,7 +42,6 @@ class onyx_participants extends \cenozo\ui\push
     $participant_class_name = lib::create( 'database\participant' );
     $interview_class_name = lib::create( 'database\interview' );
     $qnaire_class_name = lib::create( 'database\qnaire' );
-    $event_type_class_name = lib::create( 'database\event_type' );
 
     // get the body of the request
     $body = http_get_request_body();
@@ -285,8 +284,7 @@ class onyx_participants extends \cenozo\ui\push
           $db_interview->save();
 
           // record the event (if one exists)
-          $event_type_name = sprintf( 'completed (%s)', $db_interview->get_qnaire()->name );
-          $db_event_type = $event_type_class_name::get_unique_record( 'name', $event_type_name );
+          $db_event_type = $db_interview->get_qnaire()->get_completed_event_type();
           if( !is_null( $db_event_type ) )
           {
             // make sure the event doesn't already exist

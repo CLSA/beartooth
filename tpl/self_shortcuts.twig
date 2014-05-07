@@ -5,7 +5,6 @@
  # TODO: have this extend cenozo's self_shortcuts.twig file instead of replacing it
  # @author Patrick Emond <emondpd@mcmaster.ca>
  # @param boolean navigation Whether to include the navigation buttons
- # @param boolean home Whether to include the home button
  #}
 {% extends "widget.twig" %}
 
@@ -113,17 +112,6 @@
         } ).parent().buttonset();
       {% endif %}
       
-      {% if home %}
-        $( "#{{ widget.full }}__home" ).button( {
-          text: false,
-          icons: {
-            primary: "ui-icon-home"
-          }
-        } ).click( function() {
-          slot_load( "main", "self", "home" );
-        } );
-      {% endif %}
-
       $( "#{{ widget.full }}__font_down" ).button( {
         text: false,
         icons: {
@@ -170,7 +158,6 @@
         <button id="{{ widget.full }}__next">forward</button>
       </span>
     {% endif %}
-    {% if home %}<button id="{{ widget.full }}__home">home</button>{% endif %}
     <span>
       <button id="{{ widget.full }}__font_down">smaller font</button>
       <button id="{{ widget.full }}__font_up">larger font</button>

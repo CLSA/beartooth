@@ -8,4 +8,6 @@ SOURCE operation.sql
 SOURCE role_has_operation.sql
 SOURCE queue_restriction.sql;
 
+SOURCE update_version_number.sql
+
 COMMIT;
