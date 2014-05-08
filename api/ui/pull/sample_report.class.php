@@ -36,8 +36,9 @@ class sample_report extends \cenozo\ui\pull\base_report
    */
   protected function build()
   {
-    $participant_class_name = lib::create( 'database\participant' );
-    $event_type_class_name = lib::create( 'database\event_type' );
+    $database_class_name = lib::get_class_name( 'database\database' );
+    $session = lib::create( 'business\session' );
+    $timezone = $session->get_site()->timezone;
 
     $site_id = $this->get_argument( 'restrict_site_id' );
     $db_site = $site_id ? lib::create( 'database\site', $site_id ) : NULL;
@@ -49,158 +50,174 @@ class sample_report extends \cenozo\ui\pull\base_report
                $db_quota->gender,
                $db_quota->get_age_group()->to_string() ) );
 
-    $participant_mod = lib::create( 'database\modifier' );
-    $participant_mod->where( 'gender', '=', $db_quota->gender );
-    $participant_mod->where( 'age_group_id', '=', $db_quota->age_group_id );
+    $service_id = $session->get_service()->id;
+    $sql = sprintf(
+      'SELECT participant.uid AS UID, '.
+             'site.name AS Site, '.
+             'IF( participant.active, "yes", "no" ) AS Active, '.
+             'IFNULL( state.name, "none" ) AS State, '.
+             'IFNULL( DATE( CONVERT_TZ( import_event.datetime, "UTC", %s ) ), "unknown" ) AS Imported, '.
+             'DATE( CONVERT_TZ( service_has_participant.datetime, "UTC", %s ) ) AS Released, '.
+             'IF( participant.email IS NULL, "no", "yes" ) AS HasEmail, '.
+             'IFNULL( home_assignment_count.total, 0 ) AS HomeAssignments, '.
+             // the home interview date is:
+             'IF( home_interview.completed, '.
+                 // if completed, the date of the event the interview was completed
+                 'IF( home_event.datetime IS NULL, '.
+                     '"unknown", '.
+                     'DATE( CONVERT_TZ( home_event.datetime, "UTC", %s ) ) '.
+                 '), '.
+                 // if not completed then the date of the next appointment, if it has an address
+                 'IF( appointment.id IS NOT NULL AND appointment.address_id IS NOT NULL, '.
+                     'DATE( CONVERT_TZ( appointment.datetime, "UTC", %s ) ), '.
+                     '"none" '.
+                 ') '.
+             ') AS HomeInterviewDate, '.
+             // the home interviewer is:
+             'IF( home_interview.completed, '.
+                 // if completed then the interview has been exported (no way to know the interviewer)
+                 '"(exported)", '.
+                 // if not completed then the user of the next appointment, if it has an address
+                 'IF( appointment.id IS NOT NULL AND appointment.address_id IS NOT NULL, '.
+                     'user.name, '.
+                     '"n/a" '.
+                 ') '.
+             ') '.
+             ' AS HomeInterviewer, '.
+             'IF( home_interview.completed, "yes", "no" ) AS HomeCompleted, '.
+             'IFNULL( site_assignment_count.total, 0 ) AS SiteAssignments, '.
+             // the site interview date is the date of the next appointment,
+             // if it does not have an address
+             'IF( appointment.id IS NOT NULL AND appointment.address_id IS NULL, '.
+                 'DATE( CONVERT_TZ( appointment.datetime, "UTC", %s ) ), '.
+                 '"none" '.
+             ') AS SiteInterviewDate, '.
+             'IFNULL( DATE( CONVERT_TZ( callback.datetime, "UTC", %s ) ), "none" ) AS Callback '.
+
+      // main table to select from
+      'FROM participant '.
+      // participants have to be released to this service
+      'JOIN service_has_participant '.
+      'ON participant.id = service_has_participant.participant_id '.
+      'AND service_has_participant.service_id = %s '.
+      // get the participant's state (if they have one)
+      'LEFT JOIN state '.
+      'ON participant.state_id = state.id '.
+      // get the participant's site for this service
+      'LEFT JOIN participant_site '.
+      'ON participant.id = participant_site.participant_id '.
+      'AND participant_site.service_id = %s '.
+      'LEFT JOIN site '.
+      'ON participant_site.site_id = site.id '.
+      // get the participant's current consent status
+      'JOIN participant_last_consent '.
+      'ON participant.id = participant_last_consent.participant_id '.
+      // get the event where the participant was first imported
+      'LEFT JOIN event AS import_event '.
+      'ON participant.id = import_event.participant_id '.
+      'AND import_event.datetime = ( '.
+        'SELECT MIN( datetime ) '.
+        'FROM event AS first_event '.
+        'WHERE import_event.participant_id = first_event.participant_id '.
+      ') '.
+      // get the participant's last appointment
+      'LEFT JOIN participant_last_appointment '.
+      'ON participant.id = participant_last_appointment.participant_id '.
+      'LEFT JOIN appointment '.
+      'ON participant_last_appointment.appointment_id = appointment.id '.
+      // get the user from the last appointment
+      'LEFT JOIN user '.
+      'ON appointment.user_id = user.id '.
+      // get the participant's last callback
+      'LEFT JOIN callback '.
+      'ON participant.id = callback.participant_id '.
+      'AND callback.datetime = ( '.
+        'SELECT MAX( datetime ) '.
+        'FROM callback AS last_callback '.
+        'WHERE callback.participant_id = last_callback.participant_id '.
+      ') '.
+      // get the participant's home interview
+      'LEFT JOIN interview AS home_interview '.
+      'ON participant.id = home_interview.participant_id '.
+      'AND home_interview.qnaire_id = ( SELECT id FROM qnaire WHERE rank = 1 ) '.
+      // get the event associated with the home interview complete
+      'LEFT JOIN qnaire AS home_qnaire '.
+      'ON home_interview.qnaire_id = home_qnaire.id '.
+      'LEFT JOIN event AS home_event '.
+      'ON participant.id = home_event.participant_id '.
+      'AND home_event.event_type_id = home_qnaire.completed_event_type_id '.
+      // get the total number of assignments in the home interview
+      'LEFT JOIN ( '.
+        'SELECT interview_id, COUNT(*) AS total '.
+        'FROM assignment '.
+        'JOIN interview ON assignment.interview_id = interview.id '.
+        'AND interview.qnaire_id = 1 '.
+        'GROUP BY interview_id '.
+      ') AS home_assignment_count '.
+      'ON home_interview.id = home_assignment_count.interview_id '.
+      // get the participant's site interview
+      'LEFT JOIN interview AS site_interview '.
+      'ON participant.id = site_interview.participant_id '.
+      'AND site_interview.qnaire_id = ( SELECT id FROM qnaire WHERE rank = 2 ) '.
+      // get the total number of assignments in the site interview
+      'LEFT JOIN ( '.
+        'SELECT interview_id, COUNT(*) AS total '.
+        'FROM assignment '.
+        'JOIN interview ON assignment.interview_id = interview.id '.
+        'AND interview.qnaire_id = 2 '.
+        'GROUP BY interview_id '.
+      ') AS site_assignment_count '.
+      'ON site_interview.id = site_assignment_count.interview_id '.
+      // get the participant's last interview
+      'LEFT JOIN participant_last_interview '.
+      'ON participant.id = participant_last_interview.participant_id '.
+      'LEFT JOIN interview AS last_interview '.
+      'ON participant_last_interview.interview_id = last_interview.id '.
+      // get the last interview's qnaire
+      'LEFT JOIN qnaire AS last_qnaire '.
+      'ON last_interview.qnaire_id = last_qnaire.id '.
+
+      // restrict to participants who have been released to this service
+      'WHERE service_has_participant.datetime IS NOT NULL '.
+      // restrict to the selected quota
+      'AND gender = %s '.
+      'AND age_group_id = %s '.
+      // remove any participants who have negative consent
+      'AND IFNULL( participant_last_consent.accept, true ) = true '.
+      // restrict to partcipants who haven't completed their site (2nd) interview
+      'AND ( '.
+        'IFNULL( last_qnaire.rank, 1 ) = 1 OR '.
+        '( last_qnaire.rank = "2" AND last_interview.completed = "0" ) '.
+      ') ',
+      $database_class_name::format_string( $timezone ),
+      $database_class_name::format_string( $timezone ),
+      $database_class_name::format_string( $timezone ),
+      $database_class_name::format_string( $timezone ),
+      $database_class_name::format_string( $timezone ),
+      $database_class_name::format_string( $timezone ),
+      $database_class_name::format_string( $service_id ),
+      $database_class_name::format_string( $service_id ),
+      $database_class_name::format_string( $db_quota->gender ),
+      $database_class_name::format_string( $db_quota->age_group_id )
+    );
+
+    // restrict to a particular site, if needed
     if( !is_null( $db_site ) )
-      $participant_mod->where( 'participant_site.site_id', '=', $db_site->id );
-    $participant_mod->where( 'IFNULL( participant_last_consent.accept, true )', '=', true );
-    $participant_mod->where( 'interview.qnaire_id', '=', 'qnaire.id', false );
-    $participant_mod->where_bracket( true );
-    $participant_mod->where( 'qnaire.rank', '=', 1 );
-    $participant_mod->where_bracket( true, true ); // or
-    $participant_mod->where( 'qnaire.rank', '=', 2 );
-    $participant_mod->where( 'interview.completed', '=', 0 );
-    $participant_mod->where_bracket( false );
-    $participant_mod->where_bracket( false );
+      $sql .= sprintf(
+        'AND participant_site.site_id = %s ',
+        $database_class_name::format_string( $db_site->id ) );
 
-    foreach( $participant_class_name::select( $participant_mod ) as $db_participant )
+    $sql .= 'ORDER BY uid';
+
+    // now run the query and build the table contents from its result
+    $header = NULL;
+    $content = array();
+    foreach( $session->get_database()->get_all( $sql ) as $row )
     {
-      // determine the date the participant was imported
-      $import_date = 'unknown';
-      $event_mod = lib::create( 'database\modifier' );
-      $event_mod->where(
-        'event_type.name', 'IN', array( 'consent to contact signed', 'imported by rdd' ) );
-      $event_list = $db_participant->get_event_list( $event_mod );
-      if( 0 < count( $event_list ) )
-      {
-        $db_event = current( $event_list );
-        $import_date = util::get_datetime_object( $db_event->datetime )->format( 'Y-m-d' );
-      }
-
-      // get the home and site interview records (if they exist)
-      $db_home_interview = NULL;
-      $db_site_interview = NULL;
-      $interview_list = $db_participant->get_interview_list();
-      foreach( $interview_list as $db_interview )
-      {
-        if( 1 == $db_interview->get_qnaire()->rank ) $db_home_interview = $db_interview;
-        else if( 2 == $db_interview->get_qnaire()->rank ) $db_site_interview = $db_interview;
-      }
-
-      // determine the number of home and site assignment counts and complete dates
-      $home_interview_date = 'none';
-      $home_interviewer = 'n/a';
-      $site_interview_date = 'none';
-      if( is_null( $db_home_interview ) || !$db_home_interview->completed )
-      { // home interview isn't complete, the interview date will be the last appointment
-        $appointment_mod = lib::create( 'database\modifier' );
-        $appointment_mod->order_desc( 'datetime' );
-        $appointment_mod->limit( 1 );
-        $appointment_list = $db_participant->get_appointment_list();
-        if( 0 < count( $appointment_list ) )
-        {
-          $db_appointment = current( $appointment_list );
-          $db_user = $db_appointment->get_user();
-          $home_interview_date =
-            util::get_datetime_object( $db_appointment->datetime )->format( 'Y-m-d' );
-          $home_interviewer = is_null( $db_user ) ? 'unset' : $db_user->name;
-        }
-      }
-      else // the home interview is complete, get it's complete time from events
-      {
-        $event_mod = lib::create( 'database\modifier' );
-        $event_mod->where( 'event_type.name', '=', 'completed (Baseline Home)' );
-        $event_list = $db_participant->get_event_list( $event_mod );
-        if( 0 < count( $event_list ) )
-        {
-          $db_event = current( $event_list );
-          $home_interview_date = 
-            util::get_datetime_object( $db_event->datetime )->format( 'Y-m-d' );
-          $home_interviewer = '(exported)';
-        }
-        else // the interview is complete yet there is no event
-        {
-          $home_interview_date = 'unknown';
-          $home_interviewer = 'unknown';
-        }
-
-        // if the home interview is complete then the site interview may be as well
-        if( is_null( $db_site_interview ) || !$db_site_interview->completed )
-        { // site interview isn't complete, the interview date will be the last appointment
-          $appointment_mod = lib::create( 'database\modifier' );
-          $appointment_mod->order_desc( 'datetime' );
-          $appointment_mod->limit( 1 );
-          $appointment_list = $db_participant->get_appointment_list( $appointment_mod );
-          if( 0 < count( $appointment_list ) )
-          {
-            $db_appointment = current( $appointment_list );
-            if( is_null( $db_appointment->address_id ) )
-              $site_interview_date =
-                util::get_datetime_object( $db_appointment->datetime )->format( 'Y-m-d' );
-          }
-        }
-        else // the site interview is complete, get it's complete time from events
-        {
-          $event_mod = lib::create( 'database\modifier' );
-          $event_mod->where( 'event_type.name', '=', 'completed (Baseline Site)' );
-          $event_list = $db_participant->get_event_list( $event_mod );
-          if( 0 < count( $event_list ) )
-          {
-            $db_event = current( $event_list );
-            $site_interview_date = 
-              util::get_datetime_object( $db_event->datetime )->format( 'Y-m-d' );
-          }
-          else // the interview is complete yet there is no event
-          {
-            $site_interview_date = 'unknown';
-          }
-        }
-      }
-
-      // get the last callback
-      $callback_mod = lib::create( 'database\modifier' );
-      $callback_mod->order_desc( 'datetime' );
-      $callback_mod->limit( 1 );
-      $callback_list = $db_participant->get_callback_list();
-      $db_callback = 0 < count( $callback_list ) ? current( $callback_list ) : NULL;
-      $db_effective_site = $db_participant->get_effective_site();
-      $db_state = $db_participant->get_state();
-
-      $import_datetime_object = 
-      $content[] = array(
-        $db_participant->uid,
-        is_null( $db_effective_site ) ? 'none' : $db_participant->get_effective_site()->name,
-        $db_participant->active ? 'yes' : 'no',
-        is_null( $db_state ) ? 'none' : $db_state->name,
-        $import_date,
-        $db_participant->get_release_date()->format( 'Y-m-d' ),
-        is_null( $db_participant->email ) ? 'no' : 'yes',
-        is_null( $db_home_interview ) ? 0 : $db_home_interview->get_assignment_count(),
-        $home_interview_date,
-        $home_interviewer,
-        is_null( $db_home_interview ) ? 'no' : ( $db_home_interview->completed ? 'yes' : 'no' ),
-        is_null( $db_site_interview ) ? 0 : $db_site_interview->get_assignment_count(),
-        $site_interview_date,
-        is_null( $db_callback ) ? 'none' : $db_callback->datetime );
+      if( is_null( $header ) ) $header = array_keys( $row );
+      $content[] = array_values( $row );
     }
-
-    $header = array(
-      'UID',
-      'Site',
-      'Active',
-      'Condition',
-      'Imported',
-      'Released',
-      'Has Email',
-      '# Home Assignments',
-      'Home Interview Date',
-      'Home Interviewer',
-      'Home Completed',
-      '# Site Assignments',
-      'Site Interview Date',
-      'Callback' );
-
+    
     $this->add_table( NULL, $header, $content, NULL );
   }
 }
