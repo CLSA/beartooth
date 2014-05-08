@@ -702,7 +702,7 @@ class queue extends \cenozo\database\record
               if( 'quota disabled' == $queue )
               {
                 // who belong to a quota which is disabled (row in qnaire_has_quota is found)
-                $parts['where'][] = 'qnaire_has_quota.quota_is IS NOT NULL';
+                $parts['where'][] = 'qnaire_has_quota.quota_id IS NOT NULL';
                 // and who are ot marked to override quota
                 $parts['where'][] = 'participant_override_quota = false';
                 $parts['where'][] = 'source_override_quota = false';
@@ -711,7 +711,7 @@ class queue extends \cenozo\database\record
               {
                 // who belong to a quota which is not disabled or doesn't exist
                 $parts['where'][] =
-                  '( qnaire_has_quota.quota_is IS NULL OR '.
+                  '( qnaire_has_quota.quota_id IS NULL OR '.
                     'participant_override_quota = true OR '.
                     'source_override_quota = true )';
 
