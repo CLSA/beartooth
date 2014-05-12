@@ -42,8 +42,3 @@ $SETTINGS['voip']['url'] = 'http://%s:8088/mxml'; // %s will be replaced with th
 $SETTINGS['voip']['username'] = 'put your asterisk username here';
 $SETTINGS['voip']['password'] = 'put your asterisk password here';
 $SETTINGS['voip']['prefix'] = '00';
-
-// the directory to write monitored calls
-// (must be an absolute path that the asterisk server's user has access to)
-$SETTINGS['path']['VOIP_MONITOR'] = $SETTINGS['path']['APPLICATION'].'/web/monitor';
-$SETTINGS['url']['VOIP_MONITOR'] = 'monitor';

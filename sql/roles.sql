@@ -1081,18 +1081,8 @@ AND role.name IN( "administrator", "coordinator" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "push" AND subject = "voip" AND operation.name = "begin_monitor"
-AND role.name IN ( "interviewer" );
-
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "push" AND subject = "voip" AND operation.name = "dtmf"
 AND role.name IN( "administrator", "coordinator", "curator", "helpline", "interviewer" );
-
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "push" AND subject = "voip" AND operation.name = "end_monitor"
-AND role.name IN ( "interviewer" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
