@@ -2,11 +2,6 @@
 
 SET AUTOCOMMIT=0;
 
-SOURCE language.sql
-SOURCE user_has_language.sql
-SOURCE user.sql
-SOURCE participant.sql
-SOURCE service.sql
 SOURCE operation.sql
 SOURCE role_has_operation.sql
 SOURCE operation2.sql
