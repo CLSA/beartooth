@@ -884,7 +884,7 @@ class queue extends \cenozo\database\record
         'ADD INDEX fk_id ( id ), '.
         'ADD INDEX fk_participant_person_id ( participant_person_id ), '.
         'ADD INDEX fk_participant_gender ( participant_gender ), '.
-        'ADD INDEX fk_participant_language ( participant_language ), '.
+        'ADD INDEX fk_participant_language_id ( participant_language_id ), '.
         'ADD INDEX fk_participant_age_group_id ( participant_age_group_id ), '.
         'ADD INDEX fk_participant_active ( participant_active ), '.
         'ADD INDEX fk_participant_state_id ( participant_state_id ), '.
@@ -1022,7 +1022,7 @@ participant.active AS participant_active,
 participant.gender AS participant_gender,
 participant.age_group_id AS participant_age_group_id,
 participant.state_id AS participant_state_id,
-participant.language AS participant_language,
+participant.language_id AS participant_language_id,
 participant.override_quota AS participant_override_quota,
 source.override_quota AS source_override_quota,
 service_has_participant.preferred_site_id AS service_has_participant_preferred_site_id,

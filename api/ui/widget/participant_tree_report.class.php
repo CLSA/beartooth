@@ -41,7 +41,7 @@ class participant_tree_report extends base_report
     $this->add_restriction( 'site' );
     $this->add_restriction( 'qnaire' );
     $this->add_restriction( 'source' );
-    $this->add_parameter( 'language', 'enum', 'Language' );
+    $this->add_parameter( 'language_id', 'enum', 'Language' );
 
     $this->set_variable( 'description',
       'This report lists the participant tree: where in the calling queue all participants '.
@@ -58,14 +58,13 @@ class participant_tree_report extends base_report
   {
     parent::setup();
 
-    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $language_class_name = lib::get_class_name( 'database\participant' );
 
     // create the necessary enum arrays
-    $languages = array( 'any' );
-    foreach( $participant_class_name::get_enum_values( 'language' ) as $language )
-      $languages[] = $language;
-    $languages = array_combine( $languages, $languages );
+    $languages = array( 'NULL' => 'any' );
+    foreach( $language_class_name::select( $language_mod ) as $db_language )
+      $languages[$db_language->id] = $db_language->name;
 
-    $this->set_parameter( 'language', 'any', true, $languages );
+    $this->set_parameter( 'language_id', key( $languages ), true, $languages );
   }
 }

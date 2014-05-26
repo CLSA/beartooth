@@ -34,6 +34,10 @@ class participant_tree extends \cenozo\ui\pull
    */
   protected function execute()
   {
+    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
+
     parent::execute();
 
     $session = lib::create( 'business\session' );
@@ -46,15 +50,13 @@ class participant_tree extends \cenozo\ui\pull
       $db_site = $site_id ? lib::create( 'database\site', $site_id ) : NULL;
     }
     
-    $restrict_language = $this->get_argument( 'restrict_language', 'any' );
+    $restrict_language_id = $this->get_argument( 'restrict_language_id', 'any' );
 
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
     $viewing_date = $this->get_argument( 'viewing_date', 'current' );
     if( $current_date == $viewing_date ) $viewing_date = 'current';
 
     // set the viewing date if it is not "current"
-    $queue_class_name = lib::get_class_name( 'database\queue' );
-    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     if( 'current' != $viewing_date ) $queue_class_name::set_viewing_date( $viewing_date );
 
     // get the participant count for every node in the tree
@@ -64,17 +66,12 @@ class participant_tree extends \cenozo\ui\pull
       // restrict by language
       // Note: a new queue mod needs to be created for every iteration of the loop
       $queue_mod = lib::create( 'database\modifier' );
-      if( 'any' != $restrict_language )
+      if( 'any' != $restrict_language_id )
       {
-        // english is default, so if the language is english allow null values
-        if( 'en' == $restrict_language )
-        {
-          $queue_mod->where_bracket( true );
-          $queue_mod->where( 'participant.language', '=', $restrict_language );
-          $queue_mod->or_where( 'participant.language', '=', NULL );
-          $queue_mod->where_bracket( false );
-        }
-        else $queue_mod->where( 'participant.language', '=', $restrict_language );
+        $column = sprintf( 'IFNULL( participant.language_id, %s )',
+                           $database_class_name::format_string(
+                             $session->get_service()->language_id ) );
+        $modifier->where( $column, '=', $restrict_language_id );
       }
 
       // restrict queue based on user's role
