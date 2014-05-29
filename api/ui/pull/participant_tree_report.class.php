@@ -44,16 +44,16 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
     $restrict_source_id = $this->get_argument( 'restrict_source_id', 0 );
     $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     $restrict_language_id = $this->get_argument( 'restrict_language_id' );
+    $db_language = $restrict_language_id
+                 ? lib::create( 'database\language', $restrict_language_id )
+                 : NULL;
     
     $site_mod = lib::create( 'database\modifier' );
     if( $restrict_site_id ) $site_mod->where( 'id', '=', $restrict_site_id );
     
     $this->add_title( 'for the '.$db_qnaire->name.' questionnaire' );
-    $this->add_title(
-      'any' == $restrict_language_id ?
-      'for all languages' :
-      sprintf( 'restricted to %s participants',
-               lib::create( 'database\language', $restrict_language_id )->name ) );
+    $this->add_title( is_null( $db_language ) ?
+      'for all languages' : sprintf( 'restricted to %s participants', $db_language->name ) );
 
     $contents = array();
 
@@ -76,12 +76,12 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
           $participant_mod->where( 'participant.source_id', '=', $restrict_source_id );
 
         // restrict by language
-        if( 'any' != $restrict_language_id )
+        if( !is_null( $db_language ) )
         {
-          $column = sprintf( 'IFNULL( participant.language, %s )',
+          $column = sprintf( 'IFNULL( participant.language_id, %s )',
                              $database_class_name::format_string(
                                lib::create( 'business\session' )->get_service()->language_id ) );
-          $participant_mod->where( $column, '=', $restrict_language_id );
+          $participant_mod->where( $column, '=', $db_language->id );
         }
 
         $db_queue->set_site( $db_site );
@@ -99,12 +99,12 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
           $participant_mod->where( 'participant.source_id', '=', $restrict_source_id );
 
         // restrict by language
-        if( 'any' != $restrict_language_id )
+        if( !is_null( $db_language ) )
         {
-          $column = sprintf( 'IFNULL( participant.language, %s )',
+          $column = sprintf( 'IFNULL( participant.language_id, %s )',
                              $database_class_name::format_string(
                                lib::create( 'business\session' )->get_service()->language_id ) );
-          $participant_mod->where( $column, '=', $restrict_language_id );
+          $participant_mod->where( $column, '=', $db_language->id );
         }
 
         $db_queue->set_site( NULL );
