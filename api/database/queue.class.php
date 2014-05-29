@@ -607,7 +607,7 @@ class queue extends \cenozo\database\record
         // ineligible means either inactive or with a "final" state
         $parts['join'][] = 
           'LEFT JOIN participant_for_queue_phone_count '.
-          'ON participant_for_queue_phone_count.person_id = participant_person_id';
+          'ON participant_for_queue_phone_count.id = participant_for_queue.id';
         $parts['where'][] =
           '( '.
             'participant_active = false '.
@@ -640,7 +640,7 @@ class queue extends \cenozo\database\record
         // active participant who does not have a "final" state and has at least one phone number
         $parts['join'][] = 
           'LEFT JOIN participant_for_queue_phone_count '.
-          'ON participant_for_queue_phone_count.person_id = participant_person_id';
+          'ON participant_for_queue_phone_count.id = participant_for_queue.id';
         $parts['where'][] = 'participant_active = true';
         $parts['where'][] = 'participant_state_id IS NULL';
         $parts['where'][] = 'phone_count > 0';
@@ -882,7 +882,6 @@ class queue extends \cenozo\database\record
       static::db()->execute(
         'ALTER TABLE participant_for_queue '.
         'ADD INDEX fk_id ( id ), '.
-        'ADD INDEX fk_participant_person_id ( participant_person_id ), '.
         'ADD INDEX fk_participant_gender ( participant_gender ), '.
         'ADD INDEX fk_participant_language_id ( participant_language_id ), '.
         'ADD INDEX fk_participant_age_group_id ( participant_age_group_id ), '.
@@ -896,7 +895,7 @@ class queue extends \cenozo\database\record
     // build participant_for_queue_phone_count table
     $sql = sprintf(
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_phone_count '.
-      'SELECT participant.person_id, COUNT(*) phone_count '.
+      'SELECT participant.id, COUNT(*) phone_count '.
       'FROM participant '.
       'JOIN service_has_participant ON participant.id = service_has_participant.participant_id '.
       'AND service_has_participant.service_id = %s '.
@@ -906,7 +905,7 @@ class queue extends \cenozo\database\record
     if( !is_null( $db_participant ) )
       $sql .= sprintf( 'WHERE participant.id = %s ',
                        $database_class_name::format_string( $db_participant->id ) );
-    $sql .= 'GROUP BY participant.person_id ';
+    $sql .= 'GROUP BY participant.id ';
 
     static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue_phone_count' );
     static::db()->execute( $sql );
@@ -914,7 +913,7 @@ class queue extends \cenozo\database\record
     if( is_null( $db_participant ) )
       static::db()->execute(
         'ALTER TABLE participant_for_queue_phone_count '.
-        'ADD INDEX dk_person_id ( person_id ), '.
+        'ADD INDEX dk_id ( id ), '.
         'ADD INDEX dk_phone_count ( phone_count )' );
 
     static::$participant_for_queue_created = true;
@@ -1017,7 +1016,6 @@ class queue extends \cenozo\database\record
    */
   protected static $participant_for_queue_sql = <<<'SQL'
 SELECT participant.id,
-participant.person_id AS participant_person_id,
 participant.active AS participant_active,
 participant.gender AS participant_gender,
 participant.age_group_id AS participant_age_group_id,
@@ -1065,14 +1063,14 @@ AND service_has_participant.datetime IS NOT NULL
 AND service_id = %s
 JOIN source
 ON participant.source_id = source.id
-LEFT JOIN person_first_address
-ON participant.person_id = person_first_address.person_id
+LEFT JOIN participant_first_address
+ON participant.id = participant_first_address.participant_id
 LEFT JOIN address first_address
-ON person_first_address.address_id = first_address.id
-LEFT JOIN person_primary_address
-ON participant.person_id = person_primary_address.person_id
+ON participant_first_address.address_id = first_address.id
+LEFT JOIN participant_primary_address
+ON participant.id = participant_primary_address.participant_id
 LEFT JOIN address AS primary_address
-ON person_primary_address.address_id = primary_address.id
+ON participant_primary_address.address_id = primary_address.id
 LEFT JOIN region AS primary_region
 ON primary_address.region_id = primary_region.id
 LEFT JOIN jurisdiction
