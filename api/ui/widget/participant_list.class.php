@@ -79,10 +79,21 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     {
       $restrict_state_id = $this->get_argument( 'restrict_state_id', '' );
       if( $restrict_state_id )
-        $this->set_heading(
-          sprintf( '%s, restricted to %s',
-                   $this->get_heading(),
-                   lib::create( 'database\state', $restrict_state_id )->name ) );
+      {
+        if( -1 == $restrict_state_id )
+        {
+          $this->set_heading(
+            sprintf( '%s, restricted to none (no condition)',
+                     $this->get_heading() ) );
+        }
+        else
+        {
+          $this->set_heading(
+            sprintf( '%s, restricted to %s',
+                     $this->get_heading(),
+                     lib::create( 'database\state', $restrict_state_id )->name ) );
+        }
+      }
     }
   }
   
@@ -157,7 +168,7 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     {
       $state_mod = lib::create( 'database\modifier' );
       $state_mod->order( 'rank' );
-      $state_list = array();
+      $state_list = array( '-1' => 'None (no condition)' );
       foreach( $state_class_name::select( $state_mod ) as $db_state )
         $state_list[$db_state->id] = $db_state->name;
       $this->set_variable( 'state_list', $state_list );
@@ -198,7 +209,8 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
       if( $restrict_state_id )
       {
         if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-        $modifier->where( 'state_id', '=', $restrict_state_id );
+        $modifier->where(
+          'state_id', '=', -1 == $restrict_state_id ? NULL : $restrict_state_id );
       }
     }
 
@@ -230,7 +242,8 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
       if( $restrict_state_id )
       {
         if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-        $modifier->where( 'state_id', '=', $restrict_state_id );
+        $modifier->where(
+          'state_id', '=', -1 == $restrict_state_id ? NULL : $restrict_state_id );
       }
     }
 
