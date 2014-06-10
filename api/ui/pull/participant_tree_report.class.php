@@ -36,24 +36,29 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
    */
   protected function build()
   {
+    $database_class_name = lib::get_class_name( 'database\database' );
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+    $site_class_name = lib::get_class_name( 'database\site' );
+
     $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
     $restrict_source_id = $this->get_argument( 'restrict_source_id', 0 );
     $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
-    $language = $this->get_argument( 'language' );
+    $restrict_language_id = $this->get_argument( 'restrict_language_id' );
+    $db_language = $restrict_language_id
+                 ? lib::create( 'database\language', $restrict_language_id )
+                 : NULL;
     
     $site_mod = lib::create( 'database\modifier' );
     if( $restrict_site_id ) $site_mod->where( 'id', '=', $restrict_site_id );
     
     $this->add_title( 'for the '.$db_qnaire->name.' questionnaire' );
-    $this->add_title( 'any' == $language ?
-      'for all languages' : 'restricted to the language "'.$language.'"' );
+    $this->add_title( is_null( $db_language ) ?
+      'for all languages' : sprintf( 'restricted to %s participants', $db_language->name ) );
 
     $contents = array();
 
     // The following code is very similar to the participant_tree widget
     // We loop through every queue to get the number of participants waiting in it
-    $queue_class_name = lib::get_class_name( 'database\queue' );
-    $site_class_name = lib::get_class_name( 'database\site' );
     $queue_mod = lib::create( 'database\modifier' );
     $queue_mod->order( 'id' );
     foreach( $queue_class_name::select( $queue_mod ) as $db_queue )
@@ -71,17 +76,12 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
           $participant_mod->where( 'participant.source_id', '=', $restrict_source_id );
 
         // restrict by language
-        if( 'any' != $language )
+        if( !is_null( $db_language ) )
         {
-          // english is default, so if the language is english allow null values
-          if( 'en' == $language )
-          {
-            $participant_mod->where_bracket( true );
-            $participant_mod->where( 'participant.language', '=', $language );
-            $participant_mod->or_where( 'participant.language', '=', NULL );
-            $participant_mod->where_bracket( false );
-          }
-          else $participant_mod->where( 'participant.language', '=', $language );
+          $column = sprintf( 'IFNULL( participant.language_id, %s )',
+                             $database_class_name::format_string(
+                               lib::create( 'business\session' )->get_service()->language_id ) );
+          $participant_mod->where( $column, '=', $db_language->id );
         }
 
         $db_queue->set_site( $db_site );
@@ -99,17 +99,12 @@ class participant_tree_report extends \cenozo\ui\pull\base_report
           $participant_mod->where( 'participant.source_id', '=', $restrict_source_id );
 
         // restrict by language
-        if( 'any' != $language )
+        if( !is_null( $db_language ) )
         {
-          // english is default, so if the language is english allow null values
-          if( 'en' == $language )
-          {
-            $participant_mod->where_bracket( true );
-            $participant_mod->where( 'participant.language', '=', $language );
-            $participant_mod->or_where( 'participant.language', '=', NULL );
-            $participant_mod->where_bracket( false );
-          }
-          else $participant_mod->where( 'participant.language', '=', $language );
+          $column = sprintf( 'IFNULL( participant.language_id, %s )',
+                             $database_class_name::format_string(
+                               lib::create( 'business\session' )->get_service()->language_id ) );
+          $participant_mod->where( $column, '=', $db_language->id );
         }
 
         $db_queue->set_site( NULL );

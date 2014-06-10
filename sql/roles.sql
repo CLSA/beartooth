@@ -435,6 +435,23 @@ SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "widget" AND subject = "jurisdiction" AND operation.name = "view"
 AND role.name IN ( "administrator" );
 
+-- language
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "language" AND operation.name = "edit"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "language" AND operation.name = "list"
+AND role.name IN ( "administrator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "language" AND operation.name = "view"
+AND role.name IN ( "administrator" );
+
 -- mailout_required
 
 INSERT INTO role_has_operation( role_id, operation_id )
@@ -1093,12 +1110,22 @@ AND role.name IN( "administrator", "coordinator" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "widget" AND subject = "user" AND operation.name = "add_language"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "push" AND subject = "user" AND operation.name = "delete"
 AND role.name IN( "administrator", "coordinator" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "push" AND subject = "user" AND operation.name = "delete_access"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "user" AND operation.name = "delete_language"
 AND role.name IN( "administrator", "coordinator" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
@@ -1128,6 +1155,11 @@ AND role.name IN( "administrator", "coordinator" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
+WHERE type = "push" AND subject = "user" AND operation.name = "new_language"
+AND role.name IN( "administrator", "coordinator" );
+
+INSERT INTO role_has_operation( role_id, operation_id )
+SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "push" AND subject = "user" AND operation.name = "reset_password"
 AND role.name IN( "administrator", "coordinator" );
 
@@ -1145,18 +1177,8 @@ AND role.name IN( "administrator", "coordinator" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "push" AND subject = "voip" AND operation.name = "begin_monitor"
-AND role.name IN ( "interviewer" );
-
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id FROM cenozo.role, operation
 WHERE type = "push" AND subject = "voip" AND operation.name = "dtmf"
 AND role.name IN( "administrator", "coordinator", "curator", "helpline", "interviewer" );
-
-INSERT INTO role_has_operation( role_id, operation_id )
-SELECT role.id, operation.id FROM cenozo.role, operation
-WHERE type = "push" AND subject = "voip" AND operation.name = "end_monitor"
-AND role.name IN ( "interviewer" );
 
 INSERT INTO role_has_operation( role_id, operation_id )
 SELECT role.id, operation.id FROM cenozo.role, operation
