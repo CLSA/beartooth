@@ -9,6 +9,7 @@ SOURCE qnaire.sql
 SOURCE service.sql
 SOURCE qnaire_has_quota.sql
 SOURCE quota_state.sql
+SOURCE setting.sql
 
 SOURCE update_version_number.sql
 

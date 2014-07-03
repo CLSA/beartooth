@@ -52,7 +52,7 @@ class survey_manager extends \cenozo\singleton
 
       return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s&newtest=Y', $sid, $lang, $token );
     }
-    else if( array_key_exists( 'withdrawing_participant', $_COOKIE ) ) 
+    else if( array_key_exists( 'withdrawing_participant', $_COOKIE ) )
     {
       // get the participant being withdrawn
       $db_participant = lib::create( 'database\participant', $_COOKIE['withdrawing_participant'] );
@@ -74,7 +74,7 @@ class survey_manager extends \cenozo\singleton
       // must have an assignment
       $db_assignment = $session->get_current_assignment();
       if( is_null( $db_assignment ) ) return false;
-      
+
       // the assignment must have an open call
       $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'end_datetime', '=', NULL );
@@ -85,15 +85,16 @@ class survey_manager extends \cenozo\singleton
       $sid = $this->get_current_sid();
       $token = $this->get_current_token();
       if( false === $sid || false == $token ) return false;
-      
+
       // determine which language to use
       $lang = $db_assignment->get_interview()->get_participant()->language;
       if( !$lang ) $lang = 'en';
-      
+
       return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s&newtest=Y', $sid, $lang, $token );
     }
 
-    return false; // will never happen
+    // there is currently no active survey
+    return false;
   }
 
   /**
@@ -194,38 +195,7 @@ class survey_manager extends \cenozo\singleton
         return false;
       }
 
-      $db_qnaire = $db_participant->get_effective_qnaire();
-      if( is_null( $db_qnaire ) )
-      { // finished all qnaires, find the last one completed
-        $db_assignment = $db_participant->get_last_finished_assignment();
-        if( !is_null( $db_assignment ) )
-        {
-          $db_qnaire = $db_assignment->get_interview()->get_qnaire();
-        }
-        else
-        { // it is possible that the interview was completed without any assignments
-          $interview_mod = lib::create( 'database\modifier' );
-          $interview_mod->order_desc( 'id' );
-          $interview_list = $db_participant->get_interview_list( $interview_mod );
-          
-          if( 1 < count( $interview_list ) )
-          {
-            $db_interview = current( $interview_list );
-            $db_qnaire = $db_interview->get_qnaire();
-          }
-          else
-          { // no interview means we'll just use the first qnaire
-            $db_qnaire = $qnaire_class_name::get_unique_record( 'rank', 1 );
-
-            if( is_null( $db_qnaire ) )
-              throw lib::create( 'exception\runtime',
-                                 'Trying to withdraw participant without a questionnaire.',
-                                 __METHOD__ );
-          }
-        }
-      }
-
-      $this->process_withdraw( $db_participant, $db_qnaire );
+      $this->process_withdraw( $db_participant );
     }
     else
     {
@@ -243,7 +213,7 @@ class survey_manager extends \cenozo\singleton
 
       if( $db_consent && false == $db_consent->accept )
       { // the participant has withdrawn, check to see if the withdraw script is complete
-        $this->process_withdraw( $db_participant, $db_interview->get_qnaire() );
+        $this->process_withdraw( $db_participant );
       }
       else
       { // the participant has not withdrawn, check each phase of the interview
@@ -313,18 +283,24 @@ class survey_manager extends \cenozo\singleton
    * Internal method to handle the withdraw script
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\participant $db_participant
-   * @param database\qnaire $db_qnaire
    * @access private
    */
-  private function process_withdraw( $db_participant, $db_qnaire )
+  private function process_withdraw( $db_participant )
   {
-    $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
     $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
+    $withdraw_manager = lib::create( 'business\withdraw_manager' );
 
-    $db_surveys = lib::create( 'database\limesurvey\surveys', $db_qnaire->withdraw_sid );
+    $withdraw_sid = $withdraw_manager->get_withdraw_sid( $db_participant );
+    if( is_null( $withdraw_sid ) )
+      throw lib::create( 'exception\runtime',
+        sprintf( 'Trying to process withdraw for participant %s without a questionnaire.',
+                 $db_participant->uid ),
+        __METHOD__ );
 
-    $survey_class_name::set_sid( $db_qnaire->withdraw_sid );
-    $tokens_class_name::set_sid( $db_qnaire->withdraw_sid );
+    $db_surveys = lib::create( 'database\limesurvey\surveys', $withdraw_sid );
+
+    // get the withdraw token
+    $tokens_class_name::set_sid( $withdraw_sid );
     $token = $db_participant->uid;
     $tokens_mod = lib::create( 'database\modifier' );
     $tokens_mod->where( 'token', '=', $token );
@@ -344,94 +320,17 @@ class survey_manager extends \cenozo\singleton
 
       $db_tokens->save();
 
-      $this->current_sid = $db_qnaire->withdraw_sid;
+      $this->current_sid = $withdraw_sid;
       $this->current_token = $token;
     }
     else if( 'N' == $db_tokens->completed )
     {
-      $this->current_sid = $db_qnaire->withdraw_sid;
+      $this->current_sid = $withdraw_sid;
       $this->current_token = $token;
     }
     else // token is complete, store the survey results
-    {   
-      // figure out which token attributes are which
-      $attributes = array();
-      foreach( $db_surveys->get_token_attribute_names() as $key => $value )
-        $attributes[$value] = $db_tokens->$key;
-
-      // only worry about participants who have provided data
-      if( array_key_exists( 'provided data', $attributes ) &&
-          'no' != $attributes['provided data'] )
-      {
-        if( 0 == $attributes['written consent received'] )
-          $letter_type = 0 < $attributes['consented to provide HIN'] ? 'q' : 'r';
-        else // written consent was received, write the letter type to the database
-        {   
-          if( 'partial' == $attributes['provided data'] )
-            $letter_type = 0 < $attributes['consented to provide HIN'] ? 's' : 't';
-          else // full data received
-          {   
-            if( 'comprehensive' == $db_participant->get_cohort()->name &&  
-                $attributes['last interview date'] == 'DATE UNKNOWN' ) // in-home only
-              $letter_type = 0 < $attributes['consented to provide HIN'] ? 'o' : 'p';
-            else // not in-home only
-            {   
-              // from here we need to know whether default was applied or not
-              $survey_mod = lib::create( 'database\modifier' );
-              $survey_mod->where( 'token', '=', $token );
-              $survey_list = $survey_class_name::select( $survey_mod );
-              $db_survey = current( $survey_list );
-   
-              // get the code for the def and opt responses
-              $code = 0 < $attributes['consented to provide HIN'] ? 'HIN' : 'NO_HIN';
-              $code .= 0 < $attributes['DCS samples'] ? '_SAMP' : '_NO_SAMP';
-
-              $response = array();
-              $response['start'] = $db_survey->get_response( 'WTD_START' );
-              $response['def'] = $db_survey->get_response( 'WTD_DEF_'.$code );
-              $response['opt'] = $db_survey->get_response( 'WTD_OPT_'.$code );
-
-              // the default option was applied if...
-              if( 'REFUSED' == $response['start'] ||
-                  'YES' == $response['def'] ||
-                  'REFUSED' == $response['def'] ||
-                  'REFUSED' == $response['opt'] )
-              {   
-                if( 1 == $attributes['DCS samples'] )
-                  $letter_type = 0 < $attributes['consented to provide HIN'] ? 'k' : 'm';
-                else
-                  $letter_type = 0 < $attributes['consented to provide HIN'] ? 'l' : 'n';
-              }   
-              else
-              {
-                if( 'OPTION1' == $response['opt'] )
-                {
-                  if( 1 == $attributes['DCS samples'] )
-                    $letter_type = 0 < $attributes['consented to provide HIN'] ? 'a' : 'c';
-                  else
-                    $letter_type = 0 < $attributes['consented to provide HIN'] ? 'b' : 'd';
-                }
-                else if( 'OPTION2' == $response['opt'] )
-                {
-                  if( 1 == $attributes['DCS samples'] )
-                    $letter_type = 0 < $attributes['consented to provide HIN'] ? 'e' : 'g';
-                  else
-                    $letter_type = 0 < $attributes['consented to provide HIN'] ? 'f' : 'h';
-                }
-                else // must be OPTION3
-                {
-                  // NOTE: to get option 3 participants must have provided HIN
-                  $letter_type = 1 == $attributes['DCS samples'] ? 'i' : 'j';
-                }
-              }
-            }
-          }
-        }
-
-        // now write the letter type for future reference
-        $db_participant->withdraw_letter = $letter_type;
-        $db_participant->save();
-      }
+    {
+      $withdraw_manager->process( $db_participant );
     }
   }
 
@@ -464,7 +363,7 @@ class survey_manager extends \cenozo\singleton
       $override_quota = '0';
       $value = false === $db_participant->get_quota_enabled() &&
                ( $db_participant->override_quota || $db_participant->get_source()->override_quota )
-             ? '1' 
+             ? '1'
              : '0';
     }
     else if( false !== strpos( $key, 'address' ) )
@@ -711,7 +610,7 @@ class survey_manager extends \cenozo\singleton
    * @access private
    */
   private $current_sid = NULL;
-  
+
   /**
    * This assignment's current token
    * @var string
