@@ -50,30 +50,33 @@ class self_assignment extends \cenozo\ui\widget
   protected function setup()
   {
     parent::setup();
-    
+
     $callback_class_name = lib::get_class_name( 'database\callback' );
     $phone_call_class_name = lib::get_class_name( 'database\phone_call' );
     $operation_class_name = lib::get_class_name( 'database\operation' );
 
     $session = lib::create( 'business\session' );
+    $setting_manager = lib::create( 'business\setting_manager' );
     $db_user = $session->get_user();
     $db_role = $session->get_role();
     $db_site = $session->get_site();
+    $current_sid = lib::create( 'business\survey_manager' )->get_current_sid();
 
     // see if this user has an open assignment
     $db_current_assignment = $session->get_current_assignment();
     $db_current_phone_call = $session->get_current_phone_call();
-    
+
     if( is_null( $db_current_assignment ) )
       throw lib::create( 'exception\notice', 'No active assignment.', __METHOD__ );
 
     // fill out the participant's details
     $db_interview = $db_current_assignment->get_interview();
     $db_participant = $db_interview->get_participant();
-    
+    $db_qnaire = $db_interview->get_qnaire();
+
     $db_last_consent = $db_participant->get_last_consent();
-    $consent = is_null( $db_last_consent ) ? 'none' : $db_last_consent->to_string();
-    
+    $withdrawing = !is_null( $db_last_consent ) && false == $db_last_consent->accept;
+
     $previous_call_list = array();
     $db_last_assignment = $db_participant->get_last_finished_assignment();
     if( !is_null( $db_last_assignment ) )
@@ -92,7 +95,7 @@ class self_assignment extends \cenozo\ui\widget
     $modifier->where( 'active', '=', true );
     $modifier->order( 'rank' );
     $db_phone_list = $db_participant->get_phone_list( $modifier );
-    
+
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'end_datetime', '!=', NULL );
     $current_calls = $db_current_assignment->get_phone_call_count( $modifier );
@@ -124,13 +127,29 @@ class self_assignment extends \cenozo\ui\widget
     $db_language = $db_participant->get_language();
     $this->set_variable(
       'participant_language', is_null( $db_language ) ? 'none' : $db_language->name );
-    $this->set_variable(
-      'participant_consent', is_null( $db_last_consent ) ? 'none' : $db_last_consent->to_string() );
-    $this->set_variable(
-      'withdrawing', !is_null( $db_last_consent ) && false == $db_last_consent->accept );
-    $this->set_variable(
-      'allow_withdraw', !is_null( $db_interview->get_qnaire()->withdraw_sid ) );
-    
+    $this->set_variable( 'current_consent',
+      is_null( $db_last_consent ) ? 'none' : $db_last_consent->to_string() );
+    $this->set_variable( 'withdrawing', $withdrawing );
+    $this->set_variable( 'allow_withdraw', !is_null( $db_qnaire->withdraw_sid ) );
+    $this->set_variable( 'survey_complete', !$current_sid );
+
+    // determine whether we want to show a warning before ending a call
+    $warn_before_ending_call = false;
+    if( $setting_manager->get_setting( 'calling', 'end call warning' ) && $current_sid )
+    {
+      $warn_before_ending_call = true;
+      if( !$withdrawing )
+      { // if we're not withdrawing then make sure we're not on a repeating survey
+        $phase_mod = lib::create( 'database\modifier' );
+        $phase_mod->where( 'sid', '=', $current_sid );
+        $phase_mod->order( 'rank' );
+        $phase_mod->limit( 1 );
+        $db_phase = current( $db_qnaire->get_phase_list( $phase_mod ) );
+        if( !$db_phase || $db_phase->repeated ) $warn_before_ending_call = false;
+      }
+    }
+    $this->set_variable( 'warn_before_ending_call', $warn_before_ending_call );
+
     // get the callback associated with this assignment, if any
     $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'assignment_id', '=', $db_current_assignment->id );
@@ -161,7 +180,7 @@ class self_assignment extends \cenozo\ui\widget
       $this->set_variable( 'phone_id', false );
       $this->set_variable( 'phone_at', false );
     }
-    
+
     if( !is_null( $db_last_assignment ) )
     {
       $this->set_variable( 'previous_assignment_id', $db_last_assignment->id );

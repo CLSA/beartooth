@@ -111,6 +111,8 @@ VALUES( "push", "participant", "delete_appointment", true, "Remove a participant
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "participant", "delete_callback", true, "Remove a participant's callback." );
 INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "push", "participant", "reverse_withdraw", true, "Removes the last negative verbal consent from the participant and deletes all withdraw survey data." );
+INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "participant", "secondary", true, "Lists a participant's alternates for sourcing purposes." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "participant", "tree", true, "Returns the number of participants for every node of the participant tree." );

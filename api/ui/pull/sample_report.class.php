@@ -55,6 +55,7 @@ class sample_report extends \cenozo\ui\pull\base_report
       'SELECT participant.uid AS UID, '.
              'site.name AS Site, '.
              'IF( participant.active, "yes", "no" ) AS Active, '.
+             'low_education AS LowEd, '.
              'IFNULL( state.name, "none" ) AS State, '.
              'IFNULL( DATE( CONVERT_TZ( import_event.datetime, "UTC", %s ) ), "unknown" ) AS Imported, '.
              'DATE( CONVERT_TZ( service_has_participant.datetime, "UTC", %s ) ) AS Released, '.
