@@ -217,11 +217,7 @@ VALUES( "widget", "survey", "list", true, "List surveys in the system." );
 
 -- voip
 INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "voip", "begin_monitor", true, "Starts monitoring the active call." );
-INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "voip", "dtmf", true, "Sends a DTMF tone to the Asterisk server." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "push", "voip", "end_monitor", true, "Stops monitoring the active call." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "voip", "play", true, "Plays a sound over the Asterisk server." );
 

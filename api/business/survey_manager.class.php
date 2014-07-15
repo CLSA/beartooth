@@ -35,39 +35,15 @@ class survey_manager extends \cenozo\singleton
   {
     $session = lib::create( 'business\session' );
 
+    // determine the participant
+    $db_participant = NULL;
     if( array_key_exists( 'secondary_id', $_COOKIE ) )
     {
-      // get the participant being sourced
       $db_participant = lib::create( 'database\participant', $_COOKIE['secondary_participant_id'] );
-      if( is_null( $db_participant ) ) return false;
-
-      // determine the current sid and token
-      $sid = $this->get_current_sid();
-      $token = $this->get_current_token();
-      if( false === $sid || false == $token ) return false;
-
-      // determine which language to use
-      $lang = $db_participant->language;
-      if( !$lang ) $lang = 'en';
-
-      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s&newtest=Y', $sid, $lang, $token );
     }
     else if( array_key_exists( 'withdrawing_participant', $_COOKIE ) )
     {
-      // get the participant being withdrawn
       $db_participant = lib::create( 'database\participant', $_COOKIE['withdrawing_participant'] );
-      if( is_null( $db_participant ) ) return false;
-
-      // determine the current sid and token
-      $sid = $this->get_current_sid();
-      $token = $this->get_current_token();
-      if( false === $sid || false == $token ) return false;
-
-      // determine which language to use
-      $lang = $db_participant->language;
-      if( !$lang ) $lang = 'en';
-
-      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s&newtest=Y', $sid, $lang, $token );
     }
     else
     {
@@ -87,10 +63,13 @@ class survey_manager extends \cenozo\singleton
       if( false === $sid || false == $token ) return false;
 
       // determine which language to use
-      $lang = $db_assignment->get_interview()->get_participant()->language;
-      if( !$lang ) $lang = 'en';
-
-      return LIMESURVEY_URL.sprintf( '/index.php?sid=%s&lang=%s&token=%s&newtest=Y', $sid, $lang, $token );
+      $db_language = $db_participant->get_language();
+      if( is_null( $db_language ) ) $db_language = $session->get_service()->get_language();
+      return sprintf( '%s/index.php?sid=%s&lang=%s&token=%s&newtest=Y',
+                      LIMESURVEY_URL,
+                      $sid,
+                      $db_language->code,
+                      $token );
     }
 
     // there is currently no active survey

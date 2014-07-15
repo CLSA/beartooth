@@ -167,52 +167,6 @@ class voip_call extends \cenozo\base_object
   }
   
   /**
-   * Starts recording (monitoring) the call.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @param string $filename The file name the recorded call is to be saved under.
-   * @access public
-   */
-  public function start_monitoring( $filename )
-  {
-    if( !lib::create( 'business\voip_manager' )->get_enabled() ) return;
- 
-    $filename = sprintf( '%s/%s', VOIP_MONITOR_PATH, $filename );
-
-    // make sure to not overwrite any existing recordings
-    if( file_exists( $filename.'-out.wav' ) )
-    {
-      $base_filename = str_replace( '-01', '', $filename );
-      $index = 1;
-      do
-      {
-        $index++;
-        $filename = sprintf( '%s-%s',
-                             $base_filename,
-                             str_pad( $index, 2, '0', STR_PAD_LEFT ) );
-      }
-      while( file_exists( $filename.'-out.wav' ) );
-    }
-
-    if( false == $this->manager->monitor( $this->get_channel(), $filename, 'wav' ) )
-      throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
-  }
-  
-  /**
-   * Stops recording (monitoring) the call.
-   * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
-   */
-  public function stop_monitoring()
-  {
-    if( !lib::create( 'business\voip_manager' )->get_enabled() ) return;
-
-    if( false == $this->manager->stopMonitor( $this->get_channel() ) )
-      throw lib::create( 'exception\voip', $this->manager->getLastError(), __METHOD__ );
-  }
-  
-  /**
    * Get the call's peer
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return string

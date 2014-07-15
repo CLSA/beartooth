@@ -64,10 +64,11 @@ class queue_list extends \cenozo\ui\widget\base_list
   {
     parent::setup();
     
+    $database_class_name = lib::get_class_name( 'database\database' );
     $site_class_name = lib::get_class_name( 'database\site' );
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
-    $participant_class_name = lib::get_class_name( 'database\participant' );
+    $language_class_name = lib::get_class_name( 'database\language' );
 
     $session = lib::create( 'business\session' );
     $all_sites = $session->get_role()->all_sites;
@@ -96,13 +97,15 @@ class queue_list extends \cenozo\ui\widget\base_list
                         ? lib::create( 'database\qnaire', $restrict_qnaire_id )
                         : NULL;
     
-    $languages = array( 'any' );
-    foreach( $participant_class_name::get_enum_values( 'language' ) as $language )
-      $languages[] = $language;
+    $language_mod = lib::create( 'database\modifier' );
+    $language_mod->where( 'active', '=', true );
+    $languages = array( 'any' => 'any' );
+    foreach( $language_class_name::select( $language_mod ) as $db_language )
+      $languages[$db_language->id] = $db_language->name;
     $this->set_variable( 'languages', $languages );
     
-    $restrict_language = $this->get_argument( 'restrict_language', 'any' );
-    $this->set_variable( 'restrict_language', $restrict_language );
+    $restrict_language_id = $this->get_argument( 'restrict_language_id', 'any' );
+    $this->set_variable( 'restrict_language_id', $restrict_language_id );
 
     $current_date = util::get_datetime_object()->format( 'Y-m-d' );
     $this->set_variable( 'current_date', $current_date );
@@ -129,17 +132,12 @@ class queue_list extends \cenozo\ui\widget\base_list
         $modifier->where( 'qnaire_id', '=', $db_restrict_qnaire->id );
 
       // restrict by language
-      if( 'any' != $restrict_language )
+      if( 'any' != $restrict_language_id )
       {
-        // english is default, so if the language is english allow null values
-        if( 'en' == $restrict_language )
-        {
-          $modifier->where_bracket( true );
-          $modifier->where( 'participant.language', '=', $restrict_language );
-          $modifier->or_where( 'participant.language', '=', NULL );
-          $modifier->where_bracket( false );
-        }
-        else $modifier->where( 'participant.language', '=', $restrict_language );
+        $column = sprintf( 'IFNULL( participant.language_id, %s )',
+                           $database_class_name::format_string(
+                             $session->get_service()->language_id ) );
+        $modifier->where( $column, '=', $restrict_language_id );
       }
 
       $this->add_row( $record->id,

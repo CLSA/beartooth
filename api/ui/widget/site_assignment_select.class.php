@@ -39,19 +39,22 @@ class site_assignment_select extends \cenozo\ui\widget
     parent::prepare();
     $this->set_heading( 'Select a site assignment:' );
     
-    $db_user = lib::create( 'business\session' )->get_user();
-    $language = '';
-    if( 'any' == $db_user->language ) $language = 'Any Language';
-    else if( 'fr' == $db_user->language ) $language = 'French Only';
-    else $language = 'English Only';
-    
+    $language_list = array();
+    foreach( lib::create( 'business\session' )->get_user()->get_language_list() as $db_language )
+      $language_list[] = $db_language->name;
+
+    $heading = sprintf( 'Available participants (%s)',
+                        0 < count( $language_list ) ?
+                        sprintf( 'restricted to %s only', implode( ', ', $language_list ) ) :
+                        'any language' );
+
     // create the participant sub-list widget
     $this->participant_list = lib::create( 'ui\widget\participant_list', $this->arguments );
     $this->participant_list->set_parent( $this );
     $this->participant_list->set_viewable( false );
     $this->participant_list->set_addable( false );
     $this->participant_list->set_removable( false );
-    $this->participant_list->set_heading( sprintf( 'Available participants (%s)', $language ) );
+    $this->participant_list->set_heading( $heading );
     $this->participant_list->set_allow_restrict_state( false );
   }
 
@@ -83,6 +86,7 @@ class site_assignment_select extends \cenozo\ui\widget
    */
   public function determine_participant_count( $modifier = NULL )
   {
+    $database_class_name = lib::get_class_name( 'database\database' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $session = lib::create( 'business\session' );
 
@@ -90,18 +94,16 @@ class site_assignment_select extends \cenozo\ui\widget
     $modifier->where( 'site.id', '=', $session->get_site()->id );
     $modifier->where( 'qnaire.type', '=', 'site' );
 
-    $language = $session->get_user()->language;
-    if( 'any' != $language )
+    $language_id_list = array();
+    foreach( $session->get_user()->get_language_list() as $db_language )
+      $language_id_list[] = $db_language->id;
+
+    if( 0 < count( $language_id_list ) )
     {
-      // english is default, so if the language is english allow null values
-      if( 'en' == $language )
-      {
-        $modifier->where_bracket( true );
-        $modifier->where( 'participant.language', '=', $language );
-        $modifier->or_where( 'participant.language', '=', NULL );
-        $modifier->where_bracket( false );
-      }
-      else $modifier->where( 'participant.language', '=', $language );
+      $column = sprintf(
+        'IFNULL( participant.language_id, %s )',
+        $database_class_name::format_string( $session->get_service()->language_id ) );
+      $modifier->where( $column, 'IN', $language_id_list );
     }
 
     return $queue_class_name::get_ranked_participant_count( $modifier );
@@ -117,6 +119,7 @@ class site_assignment_select extends \cenozo\ui\widget
    */
   public function determine_participant_list( $modifier = NULL )
   {
+    $database_class_name = lib::get_class_name( 'database\database' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $session = lib::create( 'business\session' );
 
@@ -124,18 +127,17 @@ class site_assignment_select extends \cenozo\ui\widget
     $modifier->where( 'site.id', '=', $session->get_site()->id );
     $modifier->where( 'qnaire.type', '=', 'site' );
 
-    $language = $session->get_user()->language;
-    if( 'any' != $language )
+    $language_id_list = array();
+    foreach( $session->get_user()->get_language_list() as $db_language )
+      $language_id_list[] = $db_language->id;
+
+    if( 0 < count( $language_id_list ) )
     {
-      // english is default, so if the language is english allow null values
-      if( 'en' == $language )
-      {
-        $modifier->where_bracket( true );
-        $modifier->where( 'participant.language', '=', $language );
-        $modifier->or_where( 'participant.language', '=', NULL );
-        $modifier->where_bracket( false );
-      }
-      else $modifier->where( 'participant.language', '=', $language );
+      // if the language isn't set, assume it is the service's default language
+      $column = sprintf(
+        'IFNULL( participant.language_id, %s )',
+        $database_class_name::format_string( $session->get_service()->language_id ) );
+      $modifier->where( $column, 'IN', $language_id_list );
     }
 
     return $queue_class_name::get_ranked_participant_list( $modifier );
