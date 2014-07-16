@@ -49,27 +49,32 @@ class survey_manager extends \cenozo\singleton
     {
       // must have an assignment
       $db_assignment = $session->get_current_assignment();
-      if( is_null( $db_assignment ) ) return false;
+      if( !is_null( $db_assignment ) )
+      {
+        // the assignment must have an open call
+        $modifier = lib::create( 'database\modifier' );
+        $modifier->where( 'end_datetime', '=', NULL );
+        $call_list = $db_assignment->get_phone_call_list( $modifier );
+        if( 0 != count( $call_list ) )
+          $db_participant = $db_assignment->get_interview()->get_participant();
+      }
+    }
 
-      // the assignment must have an open call
-      $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'end_datetime', '=', NULL );
-      $call_list = $db_assignment->get_phone_call_list( $modifier );
-      if( 0 == count( $call_list ) ) return false;
-
-      // determine the current sid and token
+    if( !is_null( $db_participant ) )
+    {
       $sid = $this->get_current_sid();
       $token = $this->get_current_token();
-      if( false === $sid || false == $token ) return false;
-
-      // determine which language to use
-      $db_language = $db_participant->get_language();
-      if( is_null( $db_language ) ) $db_language = $session->get_service()->get_language();
-      return sprintf( '%s/index.php?sid=%s&lang=%s&token=%s&newtest=Y',
-                      LIMESURVEY_URL,
-                      $sid,
-                      $db_language->code,
-                      $token );
+      if( false !== $sid && false != $token )
+      {
+        // determine which language to use
+        $db_language = $db_participant->get_language();
+        if( is_null( $db_language ) ) $db_language = $session->get_service()->get_language();
+        return sprintf( '%s/index.php?sid=%s&lang=%s&token=%s&newtest=Y',
+                        LIMESURVEY_URL,
+                        $sid,
+                        $db_language->code,
+                        $token );
+      }
     }
 
     // there is currently no active survey
