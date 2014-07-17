@@ -92,7 +92,7 @@ class queue_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'site', $this->db_site ? $this->db_site->name : 'All sites' );
     $this->set_item( 'qnaire', $this->db_qnaire ? $this->db_qnaire->name : 'All questionnaires' );
     $this->set_item(
-      'language_id', is_null( $this->db_language ) ? 'Any Language' : $this->db_language->name );
+      'language', is_null( $this->db_language ) ? 'Any Language' : $this->db_language->name );
     $this->set_item( 'viewing_date', $this->viewing_date );
 
     // process the child widgets
