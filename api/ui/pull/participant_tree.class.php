@@ -34,6 +34,7 @@ class participant_tree extends \cenozo\ui\pull
    */
   protected function execute()
   {
+    $database_class_name = lib::get_class_name( 'database\database' );
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
@@ -71,7 +72,7 @@ class participant_tree extends \cenozo\ui\pull
         $column = sprintf( 'IFNULL( participant.language_id, %s )',
                            $database_class_name::format_string(
                              $session->get_service()->language_id ) );
-        $modifier->where( $column, '=', $restrict_language_id );
+        $queue_mod->where( $column, '=', $restrict_language_id );
       }
 
       // restrict queue based on user's role

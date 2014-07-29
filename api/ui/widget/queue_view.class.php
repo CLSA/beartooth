@@ -51,8 +51,8 @@ class queue_view extends \cenozo\ui\widget\base_view
     $qnaire_id = $this->get_argument( 'qnaire_id', 0 );
     if( $qnaire_id ) $this->db_qnaire = lib::create( 'database\qnaire', $qnaire_id );
 
-    $language_id = $this->get_argument( 'language_id', NULL );
-    $this->db_language = is_null( $language_id )
+    $language_id = $this->get_argument( 'language_id', 'any' );
+    $this->db_language = 'any' == $language_id
                        ? NULL
                        : lib::create( 'database\language', $language_id );
 
