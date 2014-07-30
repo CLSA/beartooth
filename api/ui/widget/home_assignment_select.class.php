@@ -1,7 +1,7 @@
 <?php
 /**
  * home_assignment_select.class.php
- * 
+ *
  * @author Patrick Emond <emondpd@mcmaster.ca>
  * @filesource
  */
@@ -16,7 +16,7 @@ class home_assignment_select extends \cenozo\ui\widget
 {
   /**
    * Constructor
-   * 
+   *
    * Defines all variables which need to be set for the associated template.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param array $args An associative array of arguments to be processed by the widget
@@ -29,7 +29,7 @@ class home_assignment_select extends \cenozo\ui\widget
 
   /**
    * Processes arguments, preparing them for the operation.
-   * 
+   *
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @throws exception\notice
    * @access protected
@@ -44,8 +44,8 @@ class home_assignment_select extends \cenozo\ui\widget
       $language_list[] = $db_language->name;
 
     $heading = sprintf( 'Available participants (%s)',
-                        0 < count( $language_list ) ? 
-                        sprintf( 'restricted to %s only', implode( ', ', $language_list ) ) : 
+                        0 < count( $language_list ) ?
+                        sprintf( 'restricted to %s only', implode( ', ', $language_list ) ) :
                         'any language' );
 
     // create the participant sub-list widget
@@ -60,7 +60,7 @@ class home_assignment_select extends \cenozo\ui\widget
 
   /**
    * Sets up the operation with any pre-execution instructions that may be necessary.
-   * 
+   *
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @access protected
    */
@@ -78,7 +78,7 @@ class home_assignment_select extends \cenozo\ui\widget
 
   /**
    * Overrides the participant list widget's method.
-   * 
+   *
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\modifier $modifier Modifications to the list.
    * @return int
@@ -86,6 +86,7 @@ class home_assignment_select extends \cenozo\ui\widget
    */
   public function determine_participant_count( $modifier = NULL )
   {
+    $database_class_name = lib::get_class_name( 'database\database' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $session = lib::create( 'business\session' );
 
@@ -110,7 +111,7 @@ class home_assignment_select extends \cenozo\ui\widget
 
   /**
    * Overrides the participant list widget's method.
-   * 
+   *
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\modifier $modifier Modifications to the list.
    * @return array( record )
@@ -118,6 +119,7 @@ class home_assignment_select extends \cenozo\ui\widget
    */
   public function determine_participant_list( $modifier = NULL )
   {
+    $database_class_name = lib::get_class_name( 'database\database' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $session = lib::create( 'business\session' );
 

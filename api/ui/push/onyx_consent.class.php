@@ -110,12 +110,10 @@ class onyx_consent extends \cenozo\ui\push
             $db_hin->participant_id = $db_participant->id;
           }
 
-          if( array_key_exists( 'ADM_NUMB_NB_COM', $object_vars ) )
+          if( array_key_exists( 'ADM_NUMB_NB_COM', $object_vars ) &&
+              array_key_exists( 'ADM_NUMB_COM', $object_vars ) &&
+              'HEALTH-NUMBER' == $consent_data->ADM_NUMB_COM )
             $db_hin->code = $consent_data->ADM_NUMB_NB_COM;
-          
-          if( array_key_exists( 'ADM_NUMB_COM', $object_vars ) &&
-              'DK-NA' != $consent_data->ADM_NUMB_COM )
-            $db_hin->access = 'REFUSED' != $consent_data->ADM_NUMB_COM;
           
           if( array_key_exists( 'ADM_PROV_COM', $object_vars ) )
           {

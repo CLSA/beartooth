@@ -125,8 +125,8 @@ class self_assignment extends \cenozo\ui\widget
       sprintf( $db_participant->first_name.' '.$db_participant->last_name ) );
     $this->set_variable( 'participant_uid', $db_participant->uid );
     $db_language = $db_participant->get_language();
-    $this->set_variable(
-      'participant_language', is_null( $db_language ) ? 'none' : $db_language->name );
+    $this->set_variable( 'participant_language',
+      is_null( $db_language ) ? 'none' : $db_language->name );
     $this->set_variable( 'current_consent',
       is_null( $db_last_consent ) ? 'none' : $db_last_consent->to_string() );
     $this->set_variable( 'withdrawing', $withdrawing );

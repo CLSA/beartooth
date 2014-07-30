@@ -51,8 +51,8 @@ class queue_view extends \cenozo\ui\widget\base_view
     $qnaire_id = $this->get_argument( 'qnaire_id', 0 );
     if( $qnaire_id ) $this->db_qnaire = lib::create( 'database\qnaire', $qnaire_id );
 
-    $language_id = $this->get_argument( 'language_id', NULL );
-    $this->db_language = is_null( $language_id )
+    $language_id = $this->get_argument( 'language_id', 'any' );
+    $this->db_language = 'any' == $language_id
                        ? NULL
                        : lib::create( 'database\language', $language_id );
 
@@ -92,7 +92,7 @@ class queue_view extends \cenozo\ui\widget\base_view
     $this->set_item( 'site', $this->db_site ? $this->db_site->name : 'All sites' );
     $this->set_item( 'qnaire', $this->db_qnaire ? $this->db_qnaire->name : 'All questionnaires' );
     $this->set_item(
-      'language_id', is_null( $this->db_language ) ? 'Any Language' : $this->db_language->name );
+      'language', is_null( $this->db_language ) ? 'Any Language' : $this->db_language->name );
     $this->set_item( 'viewing_date', $this->viewing_date );
 
     // process the child widgets
@@ -129,7 +129,7 @@ class queue_view extends \cenozo\ui\widget\base_view
     {
       // if the language isn't set, assume it is the service's default language
       $column = sprintf(
-        'IFNULL( participant_language_id, %s )',
+        'IFNULL( participant.language_id, %s )',
         $database_class_name::format_string(
           lib::create( 'business\session' )->get_service()->language_id ) );
       $modifier->where( $column, '=', $this->db_language->id );
@@ -160,7 +160,7 @@ class queue_view extends \cenozo\ui\widget\base_view
     {
       // if the language isn't set, assume it is the service's default language
       $column = sprintf(
-        'IFNULL( participant_language_id, %s )',
+        'IFNULL( participant.language_id, %s )',
         $database_class_name::format_string(
           lib::create( 'business\session' )->get_service()->language_id ) );
       $modifier->where( $column, '=', $this->db_language->id );
