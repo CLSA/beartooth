@@ -97,6 +97,44 @@ class onyx_consent extends \cenozo\ui\push
           $db_data_collection->save();
         }
 
+        // update the HIN details if any are provided
+        if( array_key_exists( 'ADM_NUMB_NB_COM', $object_vars ) ||
+            array_key_exists( 'ADM_NUMB_COM', $object_vars ) ||
+            array_key_exists( 'ADM_PROV_COM', $object_vars ) ||
+            array_key_exists( 'PCF_CSTGVDB_COM', $object_vars ) )
+        {
+          $db_hin = $db_participant->get_hin();
+          if( is_null( $db_hin ) )
+          {
+            $db_hin = lib::create( 'database\hin' );
+            $db_hin->participant_id = $db_participant->id;
+          }
+
+          if( array_key_exists( 'ADM_NUMB_NB_COM', $object_vars ) )
+            $db_hin->code = $consent_data->ADM_NUMB_NB_COM;
+          
+          if( array_key_exists( 'ADM_NUMB_COM', $object_vars ) &&
+              'DK-NA' != $consent_data->ADM_NUMB_COM )
+            $db_hin->access = 'REFUSED' != $consent_data->ADM_NUMB_COM;
+          
+          if( array_key_exists( 'ADM_PROV_COM', $object_vars ) )
+          {
+            // convert province text to a region
+            $province = $consent_data->ADM_PROV_COM;
+
+            $province = 'NEW-FOUNDLAND-LABRADOR' == $province
+                      ? 'Newfoundland and Labrador' // special case
+                      : ucwords( trim( str_replace( '-', ' ', $province ) ) );
+            $db_region = $region_class_name::get_unique_record( 'name', $province );
+            if( !is_null( $db_region ) ) $db_hin->region_id = $db_region->id;
+          }
+          
+          if( array_key_exists( 'PCF_CSTGVDB_COM', $object_vars ) )
+            $db_hin->access = 1 == preg_match( '/y|yes|true|1/i', $consent_data->PCF_CSTGVDB_COM );
+
+          $db_hin->save();
+        }
+
         // see if this form already exists
         $consent_mod = lib::create( 'database\modifier' );
         $consent_mod->where( 'accept', '=', $accept );
