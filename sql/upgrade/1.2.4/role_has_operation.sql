@@ -120,8 +120,35 @@ CREATE PROCEDURE patch_role_has_operation()
     EXECUTE statement;
     DEALLOCATE PREPARE statement;
 
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) ",
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation ",
+      "WHERE type = 'pull' AND subject = 'appointment' AND operation.name = 'report' ",
+      "AND role.name IN ( 'coordinator', 'interviewer' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_operation( role_id, operation_id ) ",
+      "SELECT role.id, operation.id FROM ", @cenozo, ".role, operation ",
+      "WHERE type = 'widget' AND subject = 'appointment' AND operation.name = 'report' ",
+      "AND role.name IN ( 'coordinator', 'interviewer' )" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
   END //
 DELIMITER ;
 
 CALL patch_role_has_operation();
 DROP PROCEDURE IF EXISTS patch_role_has_operation;
+
+SELECT "Removing defunct operations from roles" AS "";
+
+DELETE FROM role_has_operation
+WHERE operation_id IN (
+  SELECT id FROM operation
+  WHERE subject = "home_appointment"
+  AND name = "report"
+);

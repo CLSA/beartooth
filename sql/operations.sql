@@ -17,6 +17,10 @@ VALUES( "widget", "appointment", "list", true, "Lists a participant's appointmen
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "push", "appointment", "new", true, "Creates new appointment entry for a participant." );
 INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "pull", "appointment", "report", true, "Download an appointment report." );
+INSERT INTO operation( type, subject, name, restricted, description )
+VALUES( "widget", "appointment", "report", true, "Set up an appointment report." );
+INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "appointment", "view", true, "View the details of a participant's particular appointment." );
 
 -- assignment
@@ -48,10 +52,6 @@ INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "callback", "view", true, "View the details of a participant's particular callback." );
 
 -- home_appointment
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "pull", "home_appointment", "report", true, "Download a home appointment report." );
-INSERT INTO operation( type, subject, name, restricted, description )
-VALUES( "widget", "home_appointment", "report", true, "Set up a home appointment report." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "home_appointment", "calendar", true, "A calendar listing home appointments." );
 INSERT INTO operation( type, subject, name, restricted, description )
@@ -203,11 +203,13 @@ VALUES( "widget", "self", "assignment", false, "Displays the assignment manager.
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "self", "dialing_pad", false, "A telephone dialing pad widget." );
 
--- site_assignment
+-- site_appointment
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "site_appointment", "calendar", true, "A calendar listing site appointments." );
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "pull", "site_appointment", "feed", true, "Retrieves a list of site appointment times for a given time-span." );
+
+-- site_assignment
 INSERT INTO operation( type, subject, name, restricted, description )
 VALUES( "widget", "site_assignment", "select", true, "Provides a list of participants ready for a site appointment to begin an assignment with." );
 
