@@ -6,6 +6,10 @@
   - collections are arbitrary groups of participant
   - can be locked so that editing is restricted to a list of specified users only
 
+* Appointment report has been re-designed to be more generic
+  - can now be used to view home and site appointment details
+  - interviewers must now use this report in place of the old home_appointment report
+
 ====================================================================================================
 1.2.3
 ====================================================================================================
