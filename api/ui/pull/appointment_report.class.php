@@ -45,6 +45,7 @@ class appointment_report extends \cenozo\ui\pull\base_report
     $db_site = lib::create( 'business\session' )->get_site();
     $db_service = lib::create( 'business\session' )->get_service();
     $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
+    $db_prev_qnaire = $db_qnaire->get_prev_qnaire();
     $db_queue = $queue_class_name::get_unique_record( 'name', 'qnaire' );
     $restrict_start_date = $this->get_argument( 'restrict_start_date' );
     $restrict_end_date = $this->get_argument( 'restrict_end_date' );
@@ -100,7 +101,7 @@ class appointment_report extends \cenozo\ui\pull\base_report
       $modifier->where( 'appointment.datetime', '<=',
         $end_datetime_obj->format( 'Y-m-d' ).' 23:59:59' );
 
-    if( !is_null( $completed ) ) $modifier->where( 'completed', '=', $completed );
+    if( !is_null( $completed ) ) $modifier->where( 'appointment.completed', '=', $completed );
 
     $timezone = lib::create( 'business\session' )->get_site()->timezone;
     $sql = sprintf(
@@ -112,7 +113,9 @@ class appointment_report extends \cenozo\ui\pull\base_report
       $database_class_name::format_string( $db_site->timezone ),
       $database_class_name::format_string( $db_site->timezone ) );
 
+    // add extra columns needed by home/site reports
     if( 'home' == $db_qnaire->type )
+    {
       $sql .= 
         'CONCAT_WS( '.
           '", ", '.
@@ -121,11 +124,34 @@ class appointment_report extends \cenozo\ui\pull\base_report
           'abbreviation, '.
           'postcode '.
         ') AS Address, ';
+      if( is_null( $db_user ) )
+      {
+        $sql .=
+          'CONCAT_WS( '.
+            '" ", '.
+            'user.first_name, '.
+            'user.last_name '.
+          ') AS interviewer, ';
+      }
+    }
+    else // site appointments
+    {
+      // include home-interviewer details (if the previous qnaire has type home)
+      if( !is_null( $db_prev_qnaire ) && 'home' == $db_prev_qnaire->type )
+        $sql .=
+          'CONCAT_WS( '.
+            '" ", '.
+            'user.first_name, '.
+            'user.last_name '.
+          ') AS home_interviewer, ';
+    }
 
     $sql .=
       sprintf(
         'IFNULL( '.
-          'GROUP_CONCAT( CONCAT( phone.type, ": ", phone.number ) ORDER BY phone.rank SEPARATOR "; " ), '.
+          'GROUP_CONCAT( '.
+            'CONCAT( phone.type, ": ", phone.number ) '.
+            'ORDER BY phone.rank SEPARATOR "; " ), '.
           '"no phone numbers" '.
         ') AS Phone '.
         'FROM appointment '.
@@ -142,9 +168,28 @@ class appointment_report extends \cenozo\ui\pull\base_report
         $db_service->id
       );
 
+    // add extra tables needed by home/site reports
     if( 'home' == $db_qnaire->type )
+    {
       $sql .= 'JOIN address ON appointment.address_id = address.id '.
               'JOIN region ON address.region_id = region.id ';
+
+      if( is_null( $db_user ) )
+        $sql .= 'JOIN user ON appointment.user_id = user.id ';
+    }
+    else // site appointments
+    {
+      // include home-interviewer details (if the previous qnaire has type home)
+      if( !is_null( $db_prev_qnaire ) && 'home' == $db_prev_qnaire->type )
+      {
+        $sql .=
+          'JOIN participant_last_home_appointment '.
+          'ON participant.id = participant_last_home_appointment.participant_id '.
+          'JOIN appointment AS home_appointment '.
+          'ON participant_last_home_appointment.appointment_id = home_appointment.id '.
+          'JOIN user ON home_appointment.user_id = user.id ';
+      }
+    }
 
     $sql .= $modifier->get_sql();
 
