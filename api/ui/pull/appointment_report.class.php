@@ -71,22 +71,13 @@ class appointment_report extends \cenozo\ui\pull\base_report
     if( 'home' == $db_qnaire->type && !is_null( $db_user ) )
       $modifier->where( 'appointment.user_id', '=', $db_user->id );
 
-    $now_datetime_obj = util::get_datetime_object();
-    $start_datetime_obj = NULL;
-    $end_datetime_obj = NULL;
+    $start_datetime_obj = $restrict_start_date
+                        ? util::get_datetime_object( $restrict_start_date )
+                        : NULL;
+    $end_datetime_obj = $restrict_end_date
+                        ? util::get_datetime_object( $restrict_end_date )
+                        : NULL;
 
-    if( $restrict_start_date )
-    {
-      $start_datetime_obj = util::get_datetime_object( $restrict_start_date );
-      if( $start_datetime_obj > $now_datetime_obj )
-        $start_datetime_obj = clone $now_datetime_obj;
-    }
-    if( $restrict_end_date )
-    {
-      $end_datetime_obj = util::get_datetime_object( $restrict_end_date );
-      if( $end_datetime_obj > $now_datetime_obj )
-        $end_datetime_obj = clone $now_datetime_obj;
-    }
     if( $restrict_start_date && $restrict_end_date && $end_datetime_obj < $start_datetime_obj )
     {
       $temp_datetime_obj = clone $start_datetime_obj;
@@ -95,20 +86,28 @@ class appointment_report extends \cenozo\ui\pull\base_report
     }
 
     if( $restrict_start_date )
-      $modifier->where( 'appointment.datetime', '>=',
+      $modifier->where(
+        sprintf( 'CONVERT_TZ( appointment.datetime, "UTC", %s )',
+                 $database_class_name::format_string( $db_site->timezone ) ),
+        '>=',
         $start_datetime_obj->format( 'Y-m-d' ).' 0:00:00' );
     if( $restrict_end_date )
-      $modifier->where( 'appointment.datetime', '<=',
+      $modifier->where(
+        sprintf( 'CONVERT_TZ( appointment.datetime, "UTC", %s )',
+                 $database_class_name::format_string( $db_site->timezone ) ),
+        '<=',
         $end_datetime_obj->format( 'Y-m-d' ).' 23:59:59' );
 
+    log::debug( $restrict_start_date );
+    log::debug( $start_datetime_obj->format( 'Y-m-d' ) );
     if( !is_null( $completed ) ) $modifier->where( 'appointment.completed', '=', $completed );
 
     $timezone = lib::create( 'business\session' )->get_site()->timezone;
     $sql = sprintf(
       'SELECT CONCAT( participant.first_name, " ", participant.last_name ) AS Name, '.
       'participant.uid AS UID, '.
-      'DATE_FORMAT( CONVERT_TZ( appointment.datetime, %s, "UTC" ), "%%W, %%M %%D" ) AS Date, '.
-      'DATE_FORMAT( CONVERT_TZ( appointment.datetime, %s, "UTC" ), "%%l:%%i %%p" ) AS Time, '.
+      'DATE_FORMAT( CONVERT_TZ( appointment.datetime, "UTC", %s ), "%%W, %%M %%D" ) AS Date, '.
+      'DATE_FORMAT( CONVERT_TZ( appointment.datetime, "UTC", %s ), "%%l:%%i %%p" ) AS Time, '.
       'YEAR( FROM_DAYS( DATEDIFF( NOW(), date_of_birth ) ) ) AS Age, ',
       $database_class_name::format_string( $db_site->timezone ),
       $database_class_name::format_string( $db_site->timezone ) );
@@ -195,8 +194,10 @@ class appointment_report extends \cenozo\ui\pull\base_report
 
     $header = array();
     $contents = array();
+    \cenozo\database\database::$debug = true;
     foreach( $appointment_class_name::db()->get_all( $sql ) as $row )
     {
+    \cenozo\database\database::$debug = false;
       if( 0 == count( $header ) )
         foreach( $row as $column => $value )
           $header[] = ucwords( str_replace( '_', ' ', $column ) );
