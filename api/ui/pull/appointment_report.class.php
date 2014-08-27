@@ -98,8 +98,6 @@ class appointment_report extends \cenozo\ui\pull\base_report
         '<=',
         $end_datetime_obj->format( 'Y-m-d' ).' 23:59:59' );
 
-    log::debug( $restrict_start_date );
-    log::debug( $start_datetime_obj->format( 'Y-m-d' ) );
     if( !is_null( $completed ) ) $modifier->where( 'appointment.completed', '=', $completed );
 
     $timezone = lib::create( 'business\session' )->get_site()->timezone;
@@ -194,10 +192,8 @@ class appointment_report extends \cenozo\ui\pull\base_report
 
     $header = array();
     $contents = array();
-    \cenozo\database\database::$debug = true;
     foreach( $appointment_class_name::db()->get_all( $sql ) as $row )
     {
-    \cenozo\database\database::$debug = false;
       if( 0 == count( $header ) )
         foreach( $row as $column => $value )
           $header[] = ucwords( str_replace( '_', ' ', $column ) );
