@@ -46,7 +46,8 @@ class appointment_report extends \cenozo\ui\pull\base_report
     $db_service = lib::create( 'business\session' )->get_service();
     $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     $db_prev_qnaire = $db_qnaire->get_prev_qnaire();
-    $db_queue = $queue_class_name::get_unique_record( 'name', 'qnaire' );
+    $db_qnaire_queue = $queue_class_name::get_unique_record( 'name', 'qnaire' );
+    $db_finished_queue = $queue_class_name::get_unique_record( 'name', 'finished' );
     $restrict_start_date = $this->get_argument( 'restrict_start_date' );
     $restrict_end_date = $this->get_argument( 'restrict_end_date' );
     $completed = $this->get_argument( 'completed' );
@@ -64,8 +65,6 @@ class appointment_report extends \cenozo\ui\pull\base_report
     $modifier = lib::create( 'database\modifier' );
     $modifier->group( 'appointment.id' );
     $modifier->order( 'appointment.datetime' );
-    $modifier->where( 'queue_has_participant.qnaire_id', '=', $db_qnaire->id );
-    $modifier->where( 'queue_has_participant.queue_id', '=', $db_queue->id );
     $modifier->where( 'participant_site.site_id', '=', $db_site->id );
 
     if( 'home' == $db_qnaire->type && !is_null( $db_user ) )
@@ -98,7 +97,38 @@ class appointment_report extends \cenozo\ui\pull\base_report
         '<=',
         $end_datetime_obj->format( 'Y-m-d' ).' 23:59:59' );
 
-    if( !is_null( $completed ) ) $modifier->where( 'appointment.completed', '=', $completed );
+    if( is_null( $completed ) )
+    {
+      $modifier->where_bracket( true );
+      // the participant has completed all interviews
+      $modifier->where( 'queue_has_participant.queue_id', '=', $db_finished_queue->id );
+      $modifier->where_bracket( true, true );
+      // or, the participant is in the qnaire queue
+      $modifier->where( 'queue_has_participant.queue_id', '=', $db_qnaire_queue->id );
+      $modifier->where_bracket( false );
+      $modifier->where_bracket( false );
+    }
+    else
+    {
+      $modifier->where( 'appointment.completed', '=', $completed );
+      if( $completed )
+      {
+        $modifier->where_bracket( true );
+        // the participant has completed all interviews
+        $modifier->where( 'queue_has_participant.queue_id', '=', $db_finished_queue->id );
+        $modifier->where_bracket( true, true );
+        // or, the participant is no longer on the requested qnaire
+        $modifier->where( 'queue_has_participant.qnaire_id', '!=', $db_qnaire->id );
+        $modifier->where( 'queue_has_participant.queue_id', '=', $db_qnaire_queue->id );
+        $modifier->where_bracket( false );
+        $modifier->where_bracket( false );
+      }
+      else // appointment not completed
+      {
+        $modifier->where( 'queue_has_participant.qnaire_id', '=', $db_qnaire->id );
+        $modifier->where( 'queue_has_participant.queue_id', '=', $db_qnaire_queue->id );
+      }
+    }
 
     $timezone = lib::create( 'business\session' )->get_site()->timezone;
     $sql = sprintf(
