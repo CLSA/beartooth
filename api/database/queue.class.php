@@ -76,11 +76,17 @@ class queue extends \cenozo\database\record
    * @param boolean $inverted Whether to invert the count (count records NOT in the joining table).
    * @param boolean $count If true then this method returns the count instead of list of records.
    * @param boolean $distinct Whether to use the DISTINCT sql keyword
-   * @return array( record ) | int
+   * @param boolean $id_only Whether to return a list of primary ids instead of active records
+   * @return array( record ) | array( int ) | int
    * @access protected
    */
   public function get_record_list(
-    $record_type, $modifier = NULL, $inverted = false, $count = false, $distinct = true )
+    $record_type,
+    $modifier = NULL,
+    $inverted = false,
+    $count = false,
+    $distinct = true,
+    $id_only = false )
   {
     // if we're getting a participant list/count for a time-specific column, populate it first
     if( 'participant' == $record_type ) $this->populate_time_specific();
@@ -94,7 +100,8 @@ class queue extends \cenozo\database\record
     }
 
     // now call the parent method as usual
-    return parent::get_record_list( $record_type, $modifier, $inverted, $count, $distinct );
+    return parent::get_record_list(
+      $record_type, $modifier, $inverted, $count, $distinct, $id_only );
   }
 
   /**
