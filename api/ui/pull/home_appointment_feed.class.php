@@ -50,9 +50,13 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
     $modifier->where(
       'participant_site.site_id', '=', lib::create( 'business\session' )->get_site()->id );
 
-    // restrict to participants in the "appointment" queue
-    $db_queue = $queue_class_name::get_unique_record( 'name', 'appointment' );
-    $modifier->where( 'appointment.participant_id', 'IN', $db_queue->get_participant_idlist() );
+    // do not include participants in the ineligible queue unless the appointment is complete
+    $db_queue = $queue_class_name::get_unique_record( 'name', 'ineligible' );
+    $modifier->where_bracket( true );
+    $modifier->where(
+      'appointment.participant_id', 'NOT IN', $db_queue->get_participant_idlist() );
+    $modifier->or_where( 'appointment.completed', '=', true );
+    $modifier->where_bracket( false );
 
     if( 'coordinator' != $db_role->name )
     { // for interviews only show their personal appointments
