@@ -7,6 +7,19 @@
  #}
 {% extends "base_view.twig" %}
 
+{% block javascript %}
+  {{ parent() }}
+  <script type="text/javascript">
+    $( function() {
+      // view participant details
+      $( "#{{ widget.full }}__view_participant" ).click( function() {
+        slot_load( {{ slot }}, "participant", "view", { id: {{ participant_id }} } );
+      } );
+    } );
+  </script>
+
+{% endblock javascript %}
+
 {% from 'macros.twig' import include_list, confirm_buttons %}
 {% block record %}
 

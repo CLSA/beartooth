@@ -39,6 +39,8 @@ class site_appointment_feed extends \cenozo\ui\pull\base_feed
 
     $setting_manager = lib::create( 'business\setting_manager' );
     $db_site = lib::create( 'business\session' )->get_site();
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+    $appointment_class_name = lib::get_class_name( 'database\appointment' );
 
     // create a list of site appointments between the feed's start and end time
     $modifier = lib::create( 'database\modifier' );
@@ -47,9 +49,16 @@ class site_appointment_feed extends \cenozo\ui\pull\base_feed
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
 
+    // do not include participants in the ineligible queue unless the appointment is complete
+    $db_queue = $queue_class_name::get_unique_record( 'name', 'ineligible' );
+    $modifier->where_bracket( true );
+    $modifier->where(
+      'appointment.participant_id', 'NOT IN', $db_queue->get_participant_idlist() );
+    $modifier->or_where( 'appointment.completed', '=', true );
+    $modifier->where_bracket( false );
+
     $this->data = array();
-    $class_name = lib::get_class_name( 'database\appointment' );
-    foreach( $class_name::select( $modifier ) as $db_appointment )
+    foreach( $appointment_class_name::select( $modifier ) as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
       $end_datetime_obj = clone $start_datetime_obj;

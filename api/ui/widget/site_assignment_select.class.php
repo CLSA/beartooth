@@ -94,9 +94,7 @@ class site_assignment_select extends \cenozo\ui\widget
     $modifier->where( 'site.id', '=', $session->get_site()->id );
     $modifier->where( 'qnaire.type', '=', 'site' );
 
-    $language_id_list = array();
-    foreach( $session->get_user()->get_language_list() as $db_language )
-      $language_id_list[] = $db_language->id;
+    $language_id_list = $session->get_user()->get_language_idlist();
 
     if( 0 < count( $language_id_list ) )
     {
@@ -127,9 +125,7 @@ class site_assignment_select extends \cenozo\ui\widget
     $modifier->where( 'site.id', '=', $session->get_site()->id );
     $modifier->where( 'qnaire.type', '=', 'site' );
 
-    $language_id_list = array();
-    foreach( $session->get_user()->get_language_list() as $db_language )
-      $language_id_list[] = $db_language->id;
+    $language_id_list = $session->get_user()->get_language_idlist();
 
     if( 0 < count( $language_id_list ) )
     {

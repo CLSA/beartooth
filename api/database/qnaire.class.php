@@ -15,6 +15,20 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class qnaire extends \cenozo\database\has_rank
 {
   /**
+   * Returns the previous qnaire
+   * 
+   * Returns the qnaire done previously to the current qnaire.  If there is no previous qnaire
+   * then this method will return NULL.
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return database\qnaire
+   * @access public
+   */
+  public function get_prev_qnaire()
+  {
+    return is_null( $this->prev_qnaire_id ) ?  NULL : new static( $this->prev_qnaire_id );
+  }
+
+  /**
    * Returns a special event-type associated with this qnaire
    * 
    * Returns the event-type associated with the first attempt of contacting a participant for this

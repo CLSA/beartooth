@@ -669,6 +669,16 @@ CREATE TABLE IF NOT EXISTS `beartooth`.`interview_last_assignment` (`interview_i
 CREATE TABLE IF NOT EXISTS `beartooth`.`participant_last_interview` (`participant_id` INT, `interview_id` INT);
 
 -- -----------------------------------------------------
+-- Placeholder table for view `beartooth`.`participant_last_home_appointment`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `beartooth`.`participant_last_home_appointment` (`participant_id` INT, `appointment_id` INT, `completed` INT);
+
+-- -----------------------------------------------------
+-- Placeholder table for view `beartooth`.`participant_last_site_appointment`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `beartooth`.`participant_last_site_appointment` (`participant_id` INT, `appointment_id` INT, `completed` INT);
+
+-- -----------------------------------------------------
 -- View `beartooth`.`assignment_last_phone_call`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `beartooth`.`assignment_last_phone_call` ;
@@ -751,6 +761,40 @@ WHERE qnaire_1.rank = (
   FROM qnaire AS qnaire_2
   JOIN interview AS interview_2 ON qnaire_2.id = interview_2.qnaire_id
   WHERE interview_2.participant_id = interview_1.participant_id );
+
+-- -----------------------------------------------------
+-- View `beartooth`.`participant_last_home_appointment`
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `beartooth`.`participant_last_home_appointment` ;
+DROP TABLE IF EXISTS `beartooth`.`participant_last_home_appointment`;
+USE `beartooth`;
+CREATE OR REPLACE VIEW `beartooth`.`participant_last_home_appointment` AS
+SELECT participant.id AS participant_id, t1.id AS appointment_id, t1.completed
+FROM cenozo.participant
+LEFT JOIN appointment t1
+ON participant.id = t1.participant_id
+AND t1.datetime = (
+  SELECT MAX( t2.datetime ) FROM appointment t2
+  WHERE t1.participant_id = t2.participant_id
+  AND t2.user_id IS NOT NULL )
+GROUP BY participant.id;
+
+-- -----------------------------------------------------
+-- View `beartooth`.`participant_last_site_appointment`
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `beartooth`.`participant_last_site_appointment` ;
+DROP TABLE IF EXISTS `beartooth`.`participant_last_site_appointment`;
+USE `beartooth`;
+CREATE OR REPLACE VIEW `beartooth`.`participant_last_site_appointment` AS
+SELECT participant.id AS participant_id, t1.id AS appointment_id, t1.completed
+FROM cenozo.participant
+LEFT JOIN appointment t1
+ON participant.id = t1.participant_id
+AND t1.datetime = (
+  SELECT MAX( t2.datetime ) FROM appointment t2
+  WHERE t1.participant_id = t2.participant_id
+  AND t2.user_id IS NULL )
+GROUP BY participant.id;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

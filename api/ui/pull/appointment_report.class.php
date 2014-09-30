@@ -45,7 +45,9 @@ class appointment_report extends \cenozo\ui\pull\base_report
     $db_site = lib::create( 'business\session' )->get_site();
     $db_service = lib::create( 'business\session' )->get_service();
     $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
-    $db_queue = $queue_class_name::get_unique_record( 'name', 'qnaire' );
+    $db_prev_qnaire = $db_qnaire->get_prev_qnaire();
+    $db_qnaire_queue = $queue_class_name::get_unique_record( 'name', 'qnaire' );
+    $db_finished_queue = $queue_class_name::get_unique_record( 'name', 'finished' );
     $restrict_start_date = $this->get_argument( 'restrict_start_date' );
     $restrict_end_date = $this->get_argument( 'restrict_end_date' );
     $completed = $this->get_argument( 'completed' );
@@ -63,29 +65,18 @@ class appointment_report extends \cenozo\ui\pull\base_report
     $modifier = lib::create( 'database\modifier' );
     $modifier->group( 'appointment.id' );
     $modifier->order( 'appointment.datetime' );
-    $modifier->where( 'queue_has_participant.qnaire_id', '=', $db_qnaire->id );
-    $modifier->where( 'queue_has_participant.queue_id', '=', $db_queue->id );
     $modifier->where( 'participant_site.site_id', '=', $db_site->id );
 
     if( 'home' == $db_qnaire->type && !is_null( $db_user ) )
       $modifier->where( 'appointment.user_id', '=', $db_user->id );
 
-    $now_datetime_obj = util::get_datetime_object();
-    $start_datetime_obj = NULL;
-    $end_datetime_obj = NULL;
+    $start_datetime_obj = $restrict_start_date
+                        ? util::get_datetime_object( $restrict_start_date )
+                        : NULL;
+    $end_datetime_obj = $restrict_end_date
+                        ? util::get_datetime_object( $restrict_end_date )
+                        : NULL;
 
-    if( $restrict_start_date )
-    {
-      $start_datetime_obj = util::get_datetime_object( $restrict_start_date );
-      if( $start_datetime_obj > $now_datetime_obj )
-        $start_datetime_obj = clone $now_datetime_obj;
-    }
-    if( $restrict_end_date )
-    {
-      $end_datetime_obj = util::get_datetime_object( $restrict_end_date );
-      if( $end_datetime_obj > $now_datetime_obj )
-        $end_datetime_obj = clone $now_datetime_obj;
-    }
     if( $restrict_start_date && $restrict_end_date && $end_datetime_obj < $start_datetime_obj )
     {
       $temp_datetime_obj = clone $start_datetime_obj;
@@ -94,25 +85,64 @@ class appointment_report extends \cenozo\ui\pull\base_report
     }
 
     if( $restrict_start_date )
-      $modifier->where( 'appointment.datetime', '>=',
+      $modifier->where(
+        sprintf( 'CONVERT_TZ( appointment.datetime, "UTC", %s )',
+                 $database_class_name::format_string( $db_site->timezone ) ),
+        '>=',
         $start_datetime_obj->format( 'Y-m-d' ).' 0:00:00' );
     if( $restrict_end_date )
-      $modifier->where( 'appointment.datetime', '<=',
+      $modifier->where(
+        sprintf( 'CONVERT_TZ( appointment.datetime, "UTC", %s )',
+                 $database_class_name::format_string( $db_site->timezone ) ),
+        '<=',
         $end_datetime_obj->format( 'Y-m-d' ).' 23:59:59' );
 
-    if( !is_null( $completed ) ) $modifier->where( 'completed', '=', $completed );
+    if( is_null( $completed ) )
+    {
+      $modifier->where_bracket( true );
+      // the participant has completed all interviews
+      $modifier->where( 'queue_has_participant.queue_id', '=', $db_finished_queue->id );
+      $modifier->where_bracket( true, true );
+      // or, the participant is in the qnaire queue
+      $modifier->where( 'queue_has_participant.queue_id', '=', $db_qnaire_queue->id );
+      $modifier->where_bracket( false );
+      $modifier->where_bracket( false );
+    }
+    else
+    {
+      $modifier->where( 'appointment.completed', '=', $completed );
+      if( $completed )
+      {
+        $modifier->where_bracket( true );
+        // the participant has completed all interviews
+        $modifier->where( 'queue_has_participant.queue_id', '=', $db_finished_queue->id );
+        $modifier->where_bracket( true, true );
+        // or, the participant is no longer on the requested qnaire
+        $modifier->where( 'queue_has_participant.qnaire_id', '!=', $db_qnaire->id );
+        $modifier->where( 'queue_has_participant.queue_id', '=', $db_qnaire_queue->id );
+        $modifier->where_bracket( false );
+        $modifier->where_bracket( false );
+      }
+      else // appointment not completed
+      {
+        $modifier->where( 'queue_has_participant.qnaire_id', '=', $db_qnaire->id );
+        $modifier->where( 'queue_has_participant.queue_id', '=', $db_qnaire_queue->id );
+      }
+    }
 
     $timezone = lib::create( 'business\session' )->get_site()->timezone;
     $sql = sprintf(
       'SELECT CONCAT( participant.first_name, " ", participant.last_name ) AS Name, '.
       'participant.uid AS UID, '.
-      'DATE_FORMAT( CONVERT_TZ( appointment.datetime, %s, "UTC" ), "%%W, %%M %%D" ) AS Date, '.
-      'DATE_FORMAT( CONVERT_TZ( appointment.datetime, %s, "UTC" ), "%%l:%%i %%p" ) AS Time, '.
+      'DATE_FORMAT( CONVERT_TZ( appointment.datetime, "UTC", %s ), "%%W, %%M %%D" ) AS Date, '.
+      'DATE_FORMAT( CONVERT_TZ( appointment.datetime, "UTC", %s ), "%%l:%%i %%p" ) AS Time, '.
       'YEAR( FROM_DAYS( DATEDIFF( NOW(), date_of_birth ) ) ) AS Age, ',
       $database_class_name::format_string( $db_site->timezone ),
       $database_class_name::format_string( $db_site->timezone ) );
 
+    // add extra columns needed by home/site reports
     if( 'home' == $db_qnaire->type )
+    {
       $sql .= 
         'CONCAT_WS( '.
           '", ", '.
@@ -121,11 +151,34 @@ class appointment_report extends \cenozo\ui\pull\base_report
           'abbreviation, '.
           'postcode '.
         ') AS Address, ';
+      if( is_null( $db_user ) )
+      {
+        $sql .=
+          'CONCAT_WS( '.
+            '" ", '.
+            'user.first_name, '.
+            'user.last_name '.
+          ') AS interviewer, ';
+      }
+    }
+    else // site appointments
+    {
+      // include home-interviewer details (if the previous qnaire has type home)
+      if( !is_null( $db_prev_qnaire ) && 'home' == $db_prev_qnaire->type )
+        $sql .=
+          'CONCAT_WS( '.
+            '" ", '.
+            'user.first_name, '.
+            'user.last_name '.
+          ') AS home_interviewer, ';
+    }
 
     $sql .=
       sprintf(
         'IFNULL( '.
-          'GROUP_CONCAT( CONCAT( phone.type, ": ", phone.number ) ORDER BY phone.rank SEPARATOR "; " ), '.
+          'GROUP_CONCAT( '.
+            'CONCAT( phone.type, ": ", phone.number ) '.
+            'ORDER BY phone.rank SEPARATOR "; " ), '.
           '"no phone numbers" '.
         ') AS Phone '.
         'FROM appointment '.
@@ -142,9 +195,28 @@ class appointment_report extends \cenozo\ui\pull\base_report
         $db_service->id
       );
 
+    // add extra tables needed by home/site reports
     if( 'home' == $db_qnaire->type )
+    {
       $sql .= 'JOIN address ON appointment.address_id = address.id '.
               'JOIN region ON address.region_id = region.id ';
+
+      if( is_null( $db_user ) )
+        $sql .= 'JOIN user ON appointment.user_id = user.id ';
+    }
+    else // site appointments
+    {
+      // include home-interviewer details (if the previous qnaire has type home)
+      if( !is_null( $db_prev_qnaire ) && 'home' == $db_prev_qnaire->type )
+      {
+        $sql .=
+          'JOIN participant_last_home_appointment '.
+          'ON participant.id = participant_last_home_appointment.participant_id '.
+          'JOIN appointment AS home_appointment '.
+          'ON participant_last_home_appointment.appointment_id = home_appointment.id '.
+          'JOIN user ON home_appointment.user_id = user.id ';
+      }
+    }
 
     $sql .= $modifier->get_sql();
 

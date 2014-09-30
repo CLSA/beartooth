@@ -62,6 +62,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     $appointment_class_name = lib::get_class_name( 'database\appointment' );
     $interview_class_name = lib::get_class_name( 'database\interview' );
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
+    $queue_class_name = lib::get_class_name( 'database\queue' );
 
     // create a list of appointments between the start and end time
     $db_user = lib::create( 'business\session' )->get_user();
@@ -84,6 +85,10 @@ class appointment_list extends \cenozo\ui\pull\base_list
       $modifier->where( 'appointment.user_id', '=', $db_onyx->interviewer_user_id );
       $modifier->where( 'appointment.address_id', '!=', NULL );
     }
+
+    // restrict to participants in the "appointment" queue
+    $db_queue = $queue_class_name::get_unique_record( 'name', 'appointment' );
+    $modifier->where( 'appointment.participant_id', 'IN', $db_queue->get_participant_idlist() );
 
     $appointment_list = $appointment_class_name::select( $modifier );
     if( is_null( $appointment_list ) )
