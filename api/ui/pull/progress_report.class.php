@@ -36,12 +36,12 @@ class progress_report extends \cenozo\ui\pull\base_report
    */
   protected function build()
   {
-    $qnaire_class_name = lib::create( 'database\qnaire' );
-    $queue_class_name = lib::create( 'database\queue' );
-    $site_class_name = lib::create( 'database\site' );
-    $interview_class_name = lib::create( 'database\interview' );
-    $event_type_class_name = lib::create( 'database\event_type' );
-    $participant_class_name = lib::create( 'database\participant' );
+    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+    $site_class_name = lib::get_class_name( 'database\site' );
+    $interview_class_name = lib::get_class_name( 'database\interview' );
+    $event_type_class_name = lib::get_class_name( 'database\event_type' );
+    $participant_class_name = lib::get_class_name( 'database\participant' );
 
     $datetime_obj = util::get_datetime_object();
 
