@@ -75,7 +75,9 @@ class queue_list extends \cenozo\ui\widget\base_list
     if( $all_sites )
     {
       $sites = array();
-      foreach( $site_class_name::select() as $db_site )
+      $site_mod = lib::create( 'database\modifier' );
+      $site_mod->order( 'name' );
+      foreach( $site_class_name::select( $site_mod ) as $db_site )
         $sites[$db_site->id] = $db_site->name;
       $this->set_variable( 'sites', $sites );
     }
@@ -120,11 +122,8 @@ class queue_list extends \cenozo\ui\widget\base_list
     foreach( $this->get_record_list() as $record )
     {
       // restrict queue based on user's role
-      if( $all_sites )
-      {
-        if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );
-      }
-      else $record->set_site( $session->get_site() );
+      if( !$all_sites ) $record->set_site( $session->get_site() );
+      else if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );
       
       // restrict to the current qnaire
       $modifier = lib::create( 'database\modifier' );
