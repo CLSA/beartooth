@@ -35,7 +35,6 @@ class participant_tree extends \cenozo\ui\pull
   protected function execute()
   {
     $database_class_name = lib::get_class_name( 'database\database' );
-    $participant_class_name = lib::get_class_name( 'database\participant' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
 
@@ -43,7 +42,6 @@ class participant_tree extends \cenozo\ui\pull
 
     $session = lib::create( 'business\session' );
     $all_sites = $session->get_role()->all_sites;
-    $is_interviewer = 'interviewer' == $session->get_role()->name;
     
     if( $all_sites )
     {

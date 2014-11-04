@@ -38,6 +38,7 @@ class onyx_consent extends \cenozo\ui\push
     parent::execute();
 
     $participant_class_name = lib::create( 'database\participant' );
+    $region_class_name = lib::create( 'database\region' );
     $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
 
     // get the body of the request

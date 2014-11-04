@@ -39,13 +39,14 @@ class queue_view extends \cenozo\ui\widget\base_view
     parent::prepare();
     
     $session = lib::create( 'business\session' );
-    $is_interviewer = 'interviewer' == $session->get_role()->name;
-
-    if( !$session->get_role()->all_sites ) $this->db_site = $session->get_site();
-    else
+    if( $session->get_role()->all_sites )
     {
       $site_id = $this->get_argument( 'site_id', 0 );
       if( $site_id ) $this->db_site = lib::create( 'database\site', $site_id );
+    }
+    else
+    {
+      $this->db_site = $session->get_site();
     }
 
     $qnaire_id = $this->get_argument( 'qnaire_id', 0 );
