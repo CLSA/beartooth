@@ -342,7 +342,14 @@ class survey_manager extends \cenozo\singleton
   {
     $value = NULL;
 
-    if( 'cohort' == $key )
+    if( false !== strpos( $key, '.' ) )
+    { // key contains a '.', use new style attribute
+      $data_manager = lib::create( 'business\data_manager' );
+      $value = 0 === strpos( $key, 'participant\.' )
+             ? $data_manager->get_participant_value( $db_participant, $key )
+             : $data_manager->get_value( $key );
+    }
+    else if( 'cohort' == $key )
     {
       $value = $db_participant->get_cohort()->name;
     }
