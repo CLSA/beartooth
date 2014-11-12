@@ -24,7 +24,7 @@ class participant_view extends \cenozo\ui\widget\participant_view
   protected function prepare()
   {
     parent::prepare();
-    
+
     $this->add_item( 'qnaire_quota', 'constant', 'Questionnaire Quota State' );
     $this->add_item( 'qnaire_name', 'constant', 'Current Questionnaire' );
     $this->add_item( 'qnaire_date', 'constant', 'Delay Questionnaire Until' );
@@ -65,14 +65,15 @@ class participant_view extends \cenozo\ui\widget\participant_view
   protected function setup()
   {
     parent::setup();
-    
+
+    $session =lib::create( 'business\session' );
+    $withdraw_manager = lib::create( 'business\withdraw_manager' );
     $operation_class_name = lib::get_class_name( 'database\operation' );
+    $db_participant = $this->get_record();
+    $db_next_of_kin = $db_participant->get_next_of_kin();
+    $db_data_collection = $db_participant->get_data_collection();
 
-    $record = $this->get_record();
-    $db_next_of_kin = $record->get_next_of_kin();
-    $db_data_collection = $record->get_data_collection();
-
-    $db_effective_qnaire = $record->get_effective_qnaire();
+    $db_effective_qnaire = $db_participant->get_effective_qnaire();
     if( is_null( $db_effective_qnaire ) )
     {
       $qnaire_name = '(none)';
@@ -81,14 +82,14 @@ class participant_view extends \cenozo\ui\widget\participant_view
     else
     {
       $qnaire_name = $db_effective_qnaire->name;
-      $start_qnaire_date = $record->get_start_qnaire_date();
+      $start_qnaire_date = $db_participant->get_start_qnaire_date();
       $qnaire_date = is_null( $start_qnaire_date )
                    ? 'immediately'
                    : util::get_formatted_date( $start_qnaire_date );
     }
 
     // set the view's items
-    $enabled = $record->get_quota_enabled();
+    $enabled = $db_participant->get_quota_enabled();
     $this->set_item( 'qnaire_quota',
       is_null( $enabled ) ? '(not applicable)' : ( $enabled ? 'Enabled' : 'Disabled' ) );
     $this->set_item( 'qnaire_name', $qnaire_name );
@@ -147,18 +148,18 @@ class participant_view extends \cenozo\ui\widget\participant_view
     $allow_secondary = false;
     $interview_mod = lib::create( 'database\modifier' );
     $interview_mod->where( 'completed', '=', false );
-    $interview_list = $this->get_record()->get_interview_list( $interview_mod );
-    
+    $interview_list = $db_participant->get_interview_list( $interview_mod );
+
     $phone_mod = lib::create( 'database\modifier' );
     $phone_mod->where( 'active', '=', true );
-    if( 0 == $this->get_record()->get_phone_count( $phone_mod ) )
+    if( 0 == $db_participant->get_phone_count( $phone_mod ) )
     {
       $allow_secondary = true;
     }
     else if( 0 < count( $interview_list ) )
     {
       $max_failed_calls = lib::create( 'business\setting_manager' )->get_setting(
-        'calling', 'max failed calls', $this->get_record()->get_effective_site() );
+        'calling', 'max failed calls', $db_participant->get_effective_site() );
 
       // should only be one incomplete interview
       $db_interview = current( $interview_list );
@@ -168,7 +169,7 @@ class participant_view extends \cenozo\ui\widget\participant_view
     if( $allow_secondary )
     {
       $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'secondary' );
-      if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+      if( $session->is_allowed( $db_operation ) )
       {
         $this->add_action( 'secondary', 'Secondary Contacts', NULL,
           'A list of alternate contacts which can be called to update a '.
@@ -179,31 +180,34 @@ class participant_view extends \cenozo\ui\widget\participant_view
 
     $this->set_variable( 'allow_secondary', $allow_secondary );
 
-    // add an action to withdraw the participant
-    $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'withdraw' );
-    $db_last_consent = $this->get_record()->get_last_consent();
-    if( lib::create( 'business\session' )->is_allowed( $db_operation ) &&
-        ( is_null( $db_last_consent ) || true == $db_last_consent->accept ) )
+    // add a withdraw button if there is a withdraw script set up
+    if( !is_null( $withdraw_manager->get_withdraw_sid( $db_participant ) ) )
     {
-      $this->add_action( 'withdraw', 'Withdraw', NULL,
-        'Marks the participant as denying consent and brings up the withdraw script '.
-        'in order to process the participant\'s withdraw preferences.' );
-    }
-
-    // add an action to reverse-withdraw the participant
-    $db_operation =
-      $operation_class_name::get_operation( 'push', 'participant', 'reverse_withdraw' );
-    $db_last_consent = $this->get_record()->get_last_consent();
-    if( lib::create( 'business\session' )->is_allowed( $db_operation ) &&
-        !is_null( $db_last_consent ) &&
-        false == $db_last_consent->accept )
-    {
-      $this->add_action( 'reverse_withdraw', 'Reverse Withdraw', NULL,
-        'Reverses an the participant\'s choice to withdraw and deletes the participant\'s '.
-        'withdraw preferences.' );
+      $db_last_consent = $db_participant->get_last_consent();
+      if( is_null( $db_last_consent ) || true == $db_last_consent->accept )
+      { // add an action to withdraw the participant
+        $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'withdraw' );
+        if( $session->is_allowed( $db_operation ) )
+        {
+          $this->add_action( 'withdraw', 'Withdraw', NULL,
+            'Marks the participant as denying consent and brings up the withdraw script '.
+            'in order to process the participant\'s withdraw preferences.' );
+        }
+      }
+      else
+      { // add an action to reverse-withdraw the participant (but only for administrators)
+        $db_operation = $operation_class_name::get_operation( 'push', 'participant', 'withdraw' );
+        if( 'administrator' == $session->get_role()->name &&
+            $session->is_allowed( $db_operation ) )
+        {
+          $this->add_action( 'reverse_withdraw', 'Reverse Withdraw', NULL,
+            'Reverses an the participant\'s choice to withdraw and deletes the participant\'s '.
+            'withdraw preferences.' );
+        }
+      }
     }
   }
-  
+
   /**
    * Overrides the interview list widget's method.
    * 
@@ -242,14 +246,14 @@ class participant_view extends \cenozo\ui\widget\participant_view
    * @access protected
    */
   protected $appointment_list = NULL;
-  
+
   /**
    * The participant list widget.
    * @var callback_list
    * @access protected
    */
   protected $callback_list = NULL;
-  
+
   /**
    * The participant list widget.
    * @var interview_list
