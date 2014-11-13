@@ -78,6 +78,7 @@ class site_feed extends \cenozo\ui\pull\base_feed
         // increment slot one interval later
         $appointment_datetime_obj->add( new \DateInterval( $interval ) );
         $end_time_as_int = intval( $appointment_datetime_obj->format( 'Gi' ) );
+        if( 0 == $end_time_as_int ) $end_time_as_int = 2400;
   
         if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[ $start_time_as_int ] = 0;
         $diffs[ $start_time_as_int ]--;
