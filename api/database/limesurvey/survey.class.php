@@ -95,12 +95,11 @@ class survey extends sid_record
   {
     $table_name = static::get_table_name();
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
-    $modifier->where( $table_name.'.id', '=', $table_name.'_timings.id', false );
+    $modifier->join( $table_name.'_timings', $table_name.'.id', $table_name.'_timings.id' );
 
     return static::db()->get_one( sprintf(
-      'SELECT SUM( IFNULL( interviewtime, 0 ) ) FROM %s, %s %s',
+      'SELECT SUM( IFNULL( interviewtime, 0 ) ) FROM %s %s',
       $table_name,
-      $table_name.'_timings',
       $modifier->get_sql() ) );
   }
 

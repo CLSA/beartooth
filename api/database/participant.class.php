@@ -238,6 +238,12 @@ class participant extends \cenozo\database\participant
 
 // define the join to the interview table
 $interview_mod = lib::create( 'database\modifier' );
-$interview_mod->where( 'participant.id', '=', 'participant_last_interview.participant_id', false );
-$interview_mod->where( 'participant_last_interview.interview_id', '=', 'interview.id', false );
+$interview_mod->join(
+  'participant_last_interview',
+  'participant.id',
+  'participant_last_interview.participant_id' );
+$interview_mod->join(
+  'interview',
+  'participant_last_interview.interview_id',
+  'interview.id' );
 participant::customize_join( 'interview', $interview_mod );
