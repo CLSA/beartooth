@@ -174,47 +174,42 @@ class appointment_report extends \cenozo\ui\pull\base_report
     }
 
     $sql .=
-      sprintf(
         'IFNULL( '.
           'GROUP_CONCAT( '.
             'CONCAT( phone.type, ": ", phone.number ) '.
             'ORDER BY phone.rank SEPARATOR "; " ), '.
           '"no phone numbers" '.
         ') AS Phone '.
-        'FROM appointment '.
-        'JOIN queue_has_participant '.
-        'ON appointment.participant_id = queue_has_participant.participant_id '.
-        'JOIN participant '.
-        'ON appointment.participant_id = participant.id '.
-        'JOIN participant_site '.
-        'ON participant.id = participant_site.participant_id '.
-        'AND participant_site.service_id = %s '.
-        'LEFT JOIN phone '.
-        'ON participant.person_id = phone.person_id '.
-        'AND phone.active = true ',
-        $db_service->id
-      );
+        'FROM appointment ';
+
+    $modifier->join( 'queue_has_participant', 'appointment.participant_id', 'queue_has_participant.participant_id' );
+    $modifier->join( 'participant', 'appointment.participant_id', 'participant.id' );
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'participant.id', '=', 'participant_site.participant_id', false );
+    $join_mod->where( 'participant_site.service_id', '=', $db_service->id );
+    $modifier->join( 'participant_site', $join_mod );
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'participant.person_id', '=', 'phone.person_id', false );
+    $join_mod->where( 'phone.active', '=', true );
+    $modifier->left_join( 'phone', $join_mod );
 
     // add extra tables needed by home/site reports
     if( 'home' == $db_qnaire->type )
     {
-      $sql .= 'JOIN address ON appointment.address_id = address.id '.
-              'JOIN region ON address.region_id = region.id ';
-
-      if( is_null( $db_user ) )
-        $sql .= 'JOIN user ON appointment.user_id = user.id ';
+      $modifier->join( 'address', 'appointment.address_id', 'address.id' );
+      $modifier->join( 'region', 'address.region_id', 'region.id' );
+      if( is_null( $db_user ) ) $modifier->join( 'user', 'appointment.user_id', 'user.id' );
     }
     else // site appointments
     {
       // include home-interviewer details (if the previous qnaire has type home)
       if( !is_null( $db_prev_qnaire ) && 'home' == $db_prev_qnaire->type )
       {
-        $sql .=
-          'JOIN participant_last_home_appointment '.
-          'ON participant.id = participant_last_home_appointment.participant_id '.
-          'JOIN appointment AS home_appointment '.
-          'ON participant_last_home_appointment.appointment_id = home_appointment.id '.
-          'JOIN user ON home_appointment.user_id = user.id ';
+        $modifier->join( 'participant_last_home_appointment',
+          'participant.id', 'participant_last_home_appointment.participant_id' );
+        $modifier->join( 'appointment AS home_appointment',
+          'participant_last_home_appointment.appointment_id', 'home_appointment.id' );
+        $modifier->join( 'user', 'home_appointment.user_id', 'user.id' );
       }
     }
 
