@@ -43,7 +43,7 @@ class appointment_view extends base_appointment_view
       if( is_null( $this->get_record()->user_id ) ) $this->set_removable( false );
 
     // only interviewers should select addresses
-    $this->select_address = !is_null( $this->get_record()->address_id );
+    $this->select_address = 'home' == $this->get_record()->get_interview()->get_qnaire->type;
     
     $this->add_item( 'type', 'constant', 'Type' );
     $this->add_item( 'uid', 'constant', 'UID' );

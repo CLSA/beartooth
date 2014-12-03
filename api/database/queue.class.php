@@ -542,22 +542,6 @@ class queue extends \cenozo\database\record
       'ON quota.id = qnaire_has_quota.quota_id '.
       'AND effective_qnaire_id = qnaire_has_quota.qnaire_id';
 
-    $appointment_join =
-      'LEFT JOIN appointment '.
-      'ON appointment.interview_id = participant_for_queue.current_interview_id '.
-      'AND '.
-      '( '.
-        '( '.
-          'effective_qnaire_type = "home" '.
-          'AND appointment.address_id IS NOT NULL '.
-        ') '.
-        'OR '.
-        '( '.
-          'effective_qnaire_type = "site" '.
-          'AND appointment.address_id IS NULL '.
-        ') '.
-      ')';
-
     // checks to make sure a participant is hours
     if( $check_time )
     {
@@ -687,7 +671,10 @@ class queue extends \cenozo\database\record
             ')',
             $viewing_date );
 
-          $parts['join'][] = $appointment_join;
+          $parts['join'][] = 
+            'LEFT JOIN appointment '.
+            'ON appointment.interview_id = participant_for_queue.current_interview_id ';
+
           if( 'appointment' == $queue )
           {
             // participants with a future appointment

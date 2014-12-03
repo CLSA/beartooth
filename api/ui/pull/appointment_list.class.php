@@ -70,6 +70,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     
     $modifier = lib::create( 'database\modifier' );
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
+    $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
     $modifier->where( 'datetime', '>=', $this->start_datetime->format( 'Y-m-d H:i:s' ) );
     $modifier->where( 'datetime', '<', $this->end_datetime->format( 'Y-m-d H:i:s' ) );
 
@@ -81,12 +82,12 @@ class appointment_list extends \cenozo\ui\pull\base_list
       $modifier->join(
         'participant_site', 'interview.participant_id', 'participant_site.participant_id' );
       $modifier->where( 'participant_site.site_id', '=', $db_onyx->get_site()->id );
-      $modifier->where( 'appointment.address_id', '=', NULL );
+      $modifier->where( 'qnaire.type', '=', 'site' );
     }
     else
     { // restrict the the onyx instance's interviewer
       $modifier->where( 'appointment.user_id', '=', $db_onyx->interviewer_user_id );
-      $modifier->where( 'appointment.address_id', '!=', NULL );
+      $modifier->where( 'qnaire.type', '=', 'home' );
     }
 
     // restrict to participants in the "appointment" queue

@@ -44,11 +44,12 @@ class site_appointment_feed extends \cenozo\ui\pull\base_feed
     // create a list of site appointments between the feed's start and end time
     $modifier = lib::create( 'database\modifier' );
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
+    $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
     $modifier->join(
       'participant_site', 'interview.participant_id', 'participant_site.participant_id' );
     $modifier->where(
       'participant_site.site_id', '=', lib::create( 'business\session' )->get_site()->id );
-    $modifier->where( 'appointment.address_id', '=', NULL );
+    $modifier->where( 'qnaire.type', '=', 'site' );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
 
