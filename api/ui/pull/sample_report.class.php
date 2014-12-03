@@ -68,9 +68,9 @@ class sample_report extends \cenozo\ui\pull\base_report
                      '"unknown", '.
                      'DATE( CONVERT_TZ( home_event.datetime, "UTC", %s ) ) '.
                  '), '.
-                 // if not completed then the date of the next appointment, if it has an address
-                 'IF( appointment.id IS NOT NULL AND appointment.address_id IS NOT NULL, '.
-                     'DATE( CONVERT_TZ( appointment.datetime, "UTC", %s ) ), '.
+                 // if not completed then the date of the next home appointment
+                 'IF( home_appointment.id IS NOT NULL, '.
+                     'DATE( CONVERT_TZ( home_appointment.datetime, "UTC", %s ) ), '.
                      '"none" '.
                  ') '.
              ') AS HomeInterviewDate, '.
@@ -78,19 +78,16 @@ class sample_report extends \cenozo\ui\pull\base_report
              'IF( home_interview.completed, '.
                  // if completed then the interview has been exported (no way to know the interviewer)
                  '"(exported)", '.
-                 // if not completed then the user of the next appointment, if it has an address
-                 'IF( appointment.id IS NOT NULL AND appointment.address_id IS NOT NULL, '.
-                     'user.name, '.
-                     '"n/a" '.
-                 ') '.
+                 // if not completed then the user of the next home appointment
+                 'IF( user.id IS NOT NULL, user.name, "n/a" ) '.
              ') '.
              ' AS HomeInterviewer, '.
              'IF( home_interview.completed, "yes", "no" ) AS HomeCompleted, '.
              'IFNULL( site_assignment_count.total, 0 ) AS SiteAssignments, '.
-             // the site interview date is the date of the next appointment,
+             // the site interview date is the date of the next site appointment,
              // if it does not have an address
-             'IF( appointment.id IS NOT NULL AND appointment.address_id IS NULL, '.
-                 'DATE( CONVERT_TZ( appointment.datetime, "UTC", %s ) ), '.
+             'IF( site_appointment.id IS NOT NULL, '.
+                 'DATE( CONVERT_TZ( site_appointment.datetime, "UTC", %s ) ), '.
                  '"none" '.
              ') AS SiteInterviewDate, '.
              'IFNULL( DATE( CONVERT_TZ( callback.datetime, "UTC", %s ) ), "none" ) AS Callback '.
@@ -121,14 +118,6 @@ class sample_report extends \cenozo\ui\pull\base_report
         'FROM event AS first_event '.
         'WHERE import_event.participant_id = first_event.participant_id '.
       ') '.
-      // get the participant's last appointment
-      'LEFT JOIN participant_last_appointment '.
-      'ON participant.id = participant_last_appointment.participant_id '.
-      'LEFT JOIN appointment '.
-      'ON participant_last_appointment.appointment_id = appointment.id '.
-      // get the user from the last appointment
-      'LEFT JOIN user '.
-      'ON appointment.user_id = user.id '.
       // get the participant's last callback
       'LEFT JOIN callback '.
       'ON participant.id = callback.participant_id '.
@@ -141,6 +130,14 @@ class sample_report extends \cenozo\ui\pull\base_report
       'LEFT JOIN interview AS home_interview '.
       'ON participant.id = home_interview.participant_id '.
       'AND home_interview.qnaire_id = ( SELECT id FROM qnaire WHERE rank = 1 ) '.
+      // get the home interview's last appointment
+      'LEFT JOIN interview_last_appointment AS interview_last_home_appointment '.
+      'ON home_interview.id = interview_last_home_appointment.interview_id '.
+      'LEFT JOIN home_appointment '.
+      'ON interview_last_home_appointment.appointment_id = home_appointment.id '.
+      // get the user from the last appointment
+      'LEFT JOIN user '.
+      'ON home_appointment.user_id = user.id '.
       // get the event associated with the home interview complete
       'LEFT JOIN qnaire AS home_qnaire '.
       'ON home_interview.qnaire_id = home_qnaire.id '.
@@ -160,6 +157,11 @@ class sample_report extends \cenozo\ui\pull\base_report
       'LEFT JOIN interview AS site_interview '.
       'ON participant.id = site_interview.participant_id '.
       'AND site_interview.qnaire_id = ( SELECT id FROM qnaire WHERE rank = 2 ) '.
+      // get the site interview's last appointment
+      'LEFT JOIN interview_last_appointment AS interview_last_site_appointment '.
+      'ON site_interview.id = interview_last_site_appointment.interview_id '.
+      'LEFT JOIN site_appointment '.
+      'ON interview_last_site_appointment.appointment_id = site_appointment.id '.
       // get the total number of assignments in the site interview
       'LEFT JOIN ( '.
         'SELECT interview_id, COUNT(*) AS total '.

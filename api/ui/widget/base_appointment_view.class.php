@@ -38,7 +38,7 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
   protected function prepare()
   {
     parent::prepare();
-    
+
     // create the site calendar widget
     $this->site_appointment_calendar =
       lib::create( 'ui\widget\site_appointment_calendar', $this->arguments );
@@ -50,6 +50,51 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
       lib::create( 'ui\widget\home_appointment_calendar', $this->arguments );
     $this->home_appointment_calendar->set_parent( $this );
     $this->home_appointment_calendar->set_editable( false );
+
+    // get and store the participant and interview objects
+    $subject = $this->parent->get_subject();
+    if( 'appointment' == $subject )
+    {
+      $this->db_interview = $this->get_record()->get_interview();
+      $this->db_participant = $this->db_interview->get_participant();
+    }
+    else if( 'interview' == $subject )
+    {
+      $this->db_interview = $this->parent->get_record();
+      $this->db_participant = $this->db_interview->get_participant();
+    }
+    else if( 'participant' == $subject )
+    {
+      $this->db_participant = $this->parent->get_record();
+      $this->db_interview = $this->db_participant->get_effective_interview();
+    }
+  }
+
+  /**
+   * Validate the operation.  If validation fails this method will throw a notice exception.
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @throws excpetion\argument, exception\permission
+   * @access protected
+   */
+  protected function validate()
+  {
+    parent::validate();
+
+    // make sure the subject is either participant or interview
+    $subject = $this->parent->get_subject();
+    if( 'appointment' != $subject &&
+        'interview' != $subject &&
+        'participant' != $subject )
+      throw lib::create( 'exception\runtime',
+        'Appointment widget must have a parent with participant or interview as the subject.',
+        __METHOD__ );
+
+    // make sure the interview isn't null (can happen if effective interview is null)
+    if( is_null( $this->db_interview ) )
+      throw lib::create( 'exception\notice',
+        'Cannot create appointment since the participant has no interviews to complete.',
+        __METHOD__ );
   }
 
   /**
@@ -61,14 +106,14 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
   protected function setup()
   {
     parent::setup();
-    
+
     // set up the site calendar if editing is enabled
     if( $this->get_editable() || 'add' == $this->get_name() )
     {
       try
       {
         $this->site_appointment_calendar->process();
-        $this->set_variable( 'site_appointment_calendar', 
+        $this->set_variable( 'site_appointment_calendar',
           $this->site_appointment_calendar->get_variables() );
       }
       catch( \cenozo\exception\permission $e ) {}
@@ -76,7 +121,7 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
       try
       {
         $this->home_appointment_calendar->process();
-        $this->set_variable( 'home_appointment_calendar', 
+        $this->set_variable( 'home_appointment_calendar',
           $this->home_appointment_calendar->get_variables() );
       }
       catch( \cenozo\exception\permission $e ) {}
@@ -96,4 +141,18 @@ abstract class base_appointment_view extends \cenozo\ui\widget\base_view
    * @access protected
    */
   protected $home_appointment_calendar = NULL;
+
+  /**
+   * The participant that the appointment belongs to
+   * @var database\participant $db_participant
+   * @access protected
+   */
+  protected $db_participant = NULL;
+
+  /**
+   * The interview that the appointment belongs to
+   * @var database\interview $db_interview
+   * @access protected
+   */
+  protected $db_interview = NULL;
 }

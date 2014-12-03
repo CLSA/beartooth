@@ -44,6 +44,9 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
 
     // create a list of home appointments between the feed's start and end time
     $modifier = lib::create( 'database\modifier' );
+    $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
+    $modifier->join(
+      'participant_site', 'interview.participant_id', 'participant_site.participant_id' );
     $modifier->where( 'datetime', '>=', $this->start_datetime );
     $modifier->where( 'datetime', '<', $this->end_datetime );
     $modifier->where( 'appointment.address_id', '!=', NULL );
@@ -54,14 +57,12 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
     $db_queue = $queue_class_name::get_unique_record( 'name', 'ineligible' );
     $modifier->where_bracket( true );
     $modifier->where(
-      'appointment.participant_id', 'NOT IN', $db_queue->get_participant_idlist() );
+      'interview.participant_id', 'NOT IN', $db_queue->get_participant_idlist() );
     $modifier->or_where( 'appointment.completed', '=', true );
     $modifier->where_bracket( false );
 
     if( 'coordinator' != $db_role->name )
     { // for interviews only show their personal appointments
-      $modifier->where(
-        'participant_site.site_id', '=', lib::create( 'business\session' )->get_site()->id );
       $modifier->where(
         'appointment.user_id', '=', lib::create( 'business\session' )->get_user()->id );
     }
@@ -75,7 +76,7 @@ class home_appointment_feed extends \cenozo\ui\pull\base_feed
         sprintf( '+%d minute',
         $setting_manager->get_setting( 'appointment', 'home duration' ) ) );
 
-      $db_participant = $db_appointment->get_participant();
+      $db_participant = $db_appointment->get_interview()->get_participant();
       $title = 'coordinator' == $db_role->name
              ? sprintf( '%s (%s)',
                         $db_appointment->get_user()->name,

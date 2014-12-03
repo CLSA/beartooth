@@ -48,6 +48,11 @@ class interview_view extends \cenozo\ui\widget\base_view
     $this->assignment_list = lib::create( 'ui\widget\assignment_list', $this->arguments );
     $this->assignment_list->set_parent( $this );
     $this->assignment_list->set_heading( 'Assignments associated with this interview' );
+  
+    // create the appointment sub-list widget
+    $this->appointment_list = lib::create( 'ui\widget\appointment_list', $this->arguments );
+    $this->appointment_list->set_parent( $this );
+    $this->appointment_list->set_heading( 'Appointments associated with this interview' );
   }
 
   /**
@@ -81,6 +86,13 @@ class interview_view extends \cenozo\ui\widget\base_view
     }
     catch( \cenozo\exception\permission $e ) {}
 
+    try 
+    {   
+      $this->appointment_list->process();
+      $this->set_variable( 'appointment_list', $this->appointment_list->get_variables() );
+    }   
+    catch( \cenozo\exception\permission $e ) {}
+
     // add an action to view the participant's details
     $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'view' );
     if( lib::create( 'business\session' )->is_allowed( $db_operation ) ) 
@@ -98,4 +110,11 @@ class interview_view extends \cenozo\ui\widget\base_view
    * @access protected
    */
   protected $assignment_list = NULL;
+
+  /**
+   * The appointment list widget.
+   * @var appointment_list
+   * @access protected
+   */
+  protected $appointment_list = NULL;
 }

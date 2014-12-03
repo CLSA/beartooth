@@ -109,6 +109,7 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
 
     $state_class_name = lib::get_class_name( 'database\state' );
     $operation_class_name = lib::get_class_name( 'database\operation' );
+    $appointment_class_name = lib::get_class_name( 'database\appointment' );
     $session = lib::create( 'business\session' );
 
     foreach( $this->get_record_list() as $record )
@@ -146,11 +147,14 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
 
         // get the last completed in-home appointment
         $appointment_mod = lib::create( 'database\modifier' );
+        $appointment_mod->join( 'interview'
+          'appointment.interview_id', '=', 'interview.id' );
+        $appointment_mod->where( 'participant.id', '=', $record->id );
         $appointment_mod->where( 'completed', '=', true );
         $appointment_mod->where( 'address_id', '!=', NULL );
         $appointment_mod->order_desc( 'datetime' );
         $appointment_mod->limit( 1 );
-        $appointment_list = $record->get_appointment_list( $appointment_mod );
+        $appointment_list = $appointment_class_name::select( $appointment_mod );
 
         if( 0 < count( $appointment_list ) )
         {

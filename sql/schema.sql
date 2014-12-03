@@ -365,7 +365,7 @@ CREATE TABLE IF NOT EXISTS `beartooth`.`appointment` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `update_timestamp` TIMESTAMP NOT NULL,
   `create_timestamp` TIMESTAMP NOT NULL,
-  `participant_id` INT UNSIGNED NOT NULL,
+  `interview_id` INT UNSIGNED NOT NULL,
   `user_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'NULL for site appointments',
   `address_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'NULL for site appointments',
   `datetime` DATETIME NOT NULL,
@@ -373,22 +373,22 @@ CREATE TABLE IF NOT EXISTS `beartooth`.`appointment` (
   PRIMARY KEY (`id`),
   INDEX `dk_reached` (`completed` ASC),
   INDEX `fk_address_id` (`address_id` ASC),
-  INDEX `fk_participant_id` (`participant_id` ASC),
   INDEX `dk_datetime` (`datetime` ASC),
   INDEX `fk_user_id` (`user_id` ASC),
+  INDEX `fk_interview_id` (`interview_id` ASC),
   CONSTRAINT `fk_appointment_address_id`
     FOREIGN KEY (`address_id`)
     REFERENCES `cenozo`.`address` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_appointment_participant_id`
-    FOREIGN KEY (`participant_id`)
-    REFERENCES `cenozo`.`participant` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_appointment_user_id`
     FOREIGN KEY (`user_id`)
     REFERENCES `cenozo`.`user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_appointment_interview_id`
+    FOREIGN KEY (`interview_id`)
+    REFERENCES `beartooth`.`interview` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -654,9 +654,9 @@ CREATE TABLE IF NOT EXISTS `beartooth`.`assignment_last_phone_call` (`assignment
 CREATE TABLE IF NOT EXISTS `beartooth`.`interview_phone_call_status_count` (`interview_id` INT, `status` INT, `total` INT);
 
 -- -----------------------------------------------------
--- Placeholder table for view `beartooth`.`participant_last_appointment`
+-- Placeholder table for view `beartooth`.`interview_last_appointment`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `beartooth`.`participant_last_appointment` (`participant_id` INT, `appointment_id` INT, `completed` INT);
+CREATE TABLE IF NOT EXISTS `beartooth`.`interview_last_appointment` (`interview_id` INT, `appointment_id` INT, `completed` INT);
 
 -- -----------------------------------------------------
 -- Placeholder table for view `beartooth`.`interview_last_assignment`
@@ -711,20 +711,20 @@ JOIN phone_call ON assignment.id = phone_call.assignment_id
 GROUP BY interview.id, phone_call.status;
 
 -- -----------------------------------------------------
--- View `beartooth`.`participant_last_appointment`
+-- View `beartooth`.`interview_last_appointment`
 -- -----------------------------------------------------
-DROP VIEW IF EXISTS `beartooth`.`participant_last_appointment` ;
-DROP TABLE IF EXISTS `beartooth`.`participant_last_appointment`;
+DROP VIEW IF EXISTS `beartooth`.`interview_last_appointment` ;
+DROP TABLE IF EXISTS `beartooth`.`interview_last_appointment`;
 USE `beartooth`;
-CREATE OR REPLACE VIEW `beartooth`.`participant_last_appointment` AS
-SELECT participant.id AS participant_id, t1.id AS appointment_id, t1.completed
-FROM cenozo.participant
+CREATE OR REPLACE VIEW `beartooth`.`interview_last_appointment` AS
+SELECT interview.id AS interview_id, t1.id AS appointment_id, t1.completed
+FROM interview
 LEFT JOIN appointment t1
-ON participant.id = t1.participant_id
+ON interview.id = t1.interview_id
 AND t1.datetime = (
   SELECT MAX( t2.datetime ) FROM appointment t2
-  WHERE t1.participant_id = t2.participant_id )
-GROUP BY participant.id;
+  WHERE t1.interview_id = t2.interview_id )
+GROUP BY interview.id;
 
 -- -----------------------------------------------------
 -- View `beartooth`.`interview_last_assignment`

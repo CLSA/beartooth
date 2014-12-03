@@ -69,6 +69,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     $db_onyx = $onyx_instance_class_name::get_unique_record( 'user_id' , $db_user->id );
     
     $modifier = lib::create( 'database\modifier' );
+    $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->where( 'datetime', '>=', $this->start_datetime->format( 'Y-m-d H:i:s' ) );
     $modifier->where( 'datetime', '<', $this->end_datetime->format( 'Y-m-d H:i:s' ) );
 
@@ -77,6 +78,8 @@ class appointment_list extends \cenozo\ui\pull\base_list
 
     if( 'site' == $interview_type )
     { // restrict by site
+      $modifier->join(
+        'participant_site', 'interview.participant_id', 'participant_site.participant_id' );
       $modifier->where( 'participant_site.site_id', '=', $db_onyx->get_site()->id );
       $modifier->where( 'appointment.address_id', '=', NULL );
     }
@@ -88,7 +91,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
 
     // restrict to participants in the "appointment" queue
     $db_queue = $queue_class_name::get_unique_record( 'name', 'appointment' );
-    $modifier->where( 'appointment.participant_id', 'IN', $db_queue->get_participant_idlist() );
+    $modifier->where( 'interview.participant_id', 'IN', $db_queue->get_participant_idlist() );
 
     $appointment_list = $appointment_class_name::select( $modifier );
     if( is_null( $appointment_list ) )
@@ -98,7 +101,7 @@ class appointment_list extends \cenozo\ui\pull\base_list
     foreach( $appointment_list as $db_appointment )
     {
       $start_datetime_obj = util::get_datetime_object( $db_appointment->datetime );
-      $db_participant = $db_appointment->get_participant();
+      $db_participant = $db_appointment->get_interview()->get_participant();
       $db_next_of_kin = $db_participant->get_next_of_kin();
       $db_address = $db_participant->get_primary_address();
 

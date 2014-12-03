@@ -34,14 +34,13 @@ class appointment extends \cenozo\database\record
    */
   public function save()
   {
-    // make sure there is a maximum of 1 future home appointment and 1 future site appointment
+    // make sure there is a maximum of 1 future appointment per interview
     if( !$this->completed )
     {
       $now_datetime_obj = util::get_datetime_object();
       $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'participant_id', '=', $this->participant_id );
+      $modifier->where( 'interview_id', '=', $this->interview_id );
       $modifier->where( 'datetime', '>', $now_datetime_obj->format( 'Y-m-d H:i:s' ) );
-      $modifier->where( 'address_id', $this->address_id ? '!=' : '=', NULL );
       if( !is_null( $this->id ) ) $modifier->where( 'id', '!=', $this->id );
       $appointment_list = static::select( $modifier );
       if( 0 < count( $appointment_list ) )
@@ -50,7 +49,7 @@ class appointment extends \cenozo\database\record
         throw lib::create( 'exception\notice',
           sprintf( 'Unable to add the appointment since the participant already has an upcomming '.
                    '%s appointment scheduled for %s.',
-                   is_null( $this->address_id ) ? 'site' : 'home',
+                   $db_appointment->get_interview()->get_qnaire()->type;
                    util::get_formatted_datetime( $db_appointment->datetime ) ),
           __METHOD__ );
       }
@@ -72,19 +71,20 @@ class appointment extends \cenozo\database\record
    */
   public function validate_date()
   {
-    // make sure the participant is ready for the appointment type (home/site)
-    // (don't use $this->get_participant(), the record may not have been created yet)
-    $db_participant = lib::create( 'database\participant', $this->participant_id );
+    // make sure the interview is ready for the appointment type (home/site)
+    // (don't use $this->get_interview(), the record may not have been created yet)
+    $db_interview = lib::create( 'database\interview', $this->interview_id );
+    $db_participant = $db_interview->get_participant();
 
     // check the qnaire start date
     $start_qnaire_date = $db_participant->get_start_qnaire_date();
     if( !is_null( $start_qnaire_date ) && $start_qnaire_date > util::get_datetime_object() )
       return false;
 
-    // check the qnaire type
-    $type = is_null( $this->address_id ) ? 'site' : 'home';
+    // check the qnaire
     $db_effective_qnaire = $db_participant->get_effective_qnaire();
-    if( is_null( $db_effective_qnaire ) || $db_effective_qnaire->type != $type ) return false;
+    if( is_null( $db_effective_qnaire ) ||
+       $db_effective_qnaire->id != $db_interview->get_qnaire()->id ) return false;
     
     return true;
   }
@@ -115,11 +115,3 @@ class appointment extends \cenozo\database\record
     return $now < $appointment ? 'upcoming' : 'passed';
   }
 }
-
-// define the join to the participant_site table
-$participant_site_mod = lib::create( 'database\modifier' );
-$participant_site_mod->join(
-  'participant_site',
-  'appointment.participant_id',
-  'participant_site.participant_id' );
-appointment::customize_join( 'participant_site', $participant_site_mod );

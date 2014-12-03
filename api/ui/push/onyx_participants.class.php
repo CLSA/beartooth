@@ -250,11 +250,12 @@ class onyx_participants extends \cenozo\ui\push
         if( $data_collection_changed ) $db_data_collection->save();
 
         // complete all appointments in the past
+        $db_interview = $db_participant->get_effective_interview();
         $appointment_mod = lib::create( 'database\modifier' );
-        $appointment_mod->where( 'completed', '=', false );
-        if( 'home' == $interview_type ) $appointment_mod->where( 'address_id', '!=', NULL );
-        else if( 'site' == $interview_type ) $appointment_mod->where( 'address_id', '=', NULL );
-        foreach( $db_participant->get_appointment_list( $appointment_mod ) as $db_appointment )
+        $appointment_mod->join( 'qnaire', 'interview.qnaire_id', '=', 'qnaire.id' );
+        $appointment_mod->where( 'appointment.completed', '=', false );
+        $appointment_mod->where( 'qnaire.type', '=', $interview_type );
+        foreach( $db_interview->get_appointment_list( $appointment_mod ) as $db_appointment )
         {
           $db_appointment->completed = true;
           $db_appointment->save();

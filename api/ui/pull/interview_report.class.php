@@ -117,7 +117,8 @@ class interview_report extends \cenozo\ui\pull\base_report
       foreach( $site_class_name::select( $site_mod ) as $db_site )
       {
         $home_event_mod = lib::create( 'database\modifier' );
-        $home_event_mod->where( 'event.participant_id', '=', 'participant_site.participant_id', false );
+        $home_event_mod->join( 'participant_site',
+          'event.participant_id', 'participant_site.participant_id' );
         $home_event_mod->where( 'participant_site.site_id', '=', $db_site->id );
         $home_event_mod->where( 'datetime', '>=', $from_datetime_obj->format( 'Y-m-d' ) );
         $home_event_mod->where( 'datetime', '<', $to_datetime_obj->format( 'Y-m-d' ) );
@@ -125,7 +126,8 @@ class interview_report extends \cenozo\ui\pull\base_report
         $home_content[] = $event_class_name::count( $home_event_mod );
 
         $site_event_mod = lib::create( 'database\modifier' );
-        $site_event_mod->where( 'event.participant_id', '=', 'participant_site.participant_id', false );
+        $home_event_mod->join( 'participant_site',
+          'event.participant_id', 'participant_site.participant_id' );
         $site_event_mod->where( 'participant_site.site_id', '=', $db_site->id );
         $site_event_mod->where( 'datetime', '>=', $from_datetime_obj->format( 'Y-m-d' ) );
         $site_event_mod->where( 'datetime', '<', $to_datetime_obj->format( 'Y-m-d' ) );

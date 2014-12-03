@@ -110,9 +110,14 @@ class progress_report extends \cenozo\ui\pull\base_report
         $db_queue = $queue_class_name::get_unique_record( 'name', 'appointment' );
         $db_queue->set_site( $db_site );
         $queue_mod = lib::create( 'database\modifier' );
-        $queue_mod->where( 'qnaire_id', '=', $db_qnaire->id );
-        $queue_mod->where(
-          'appointment.participant_id', '=', 'queue_has_participant.participant_id', false );
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where(
+          'queue_has_participant.participant_id', '=', 'interview.participant_id', false );
+        $join_mod->where(
+          'queue_has_participant.qnaire_id', '=', 'interview.qnaire_id', false );
+        $queue_mod->join( 'interview', $join_mod );
+        $queue_mod->join( 'appointment', 'interview.id', 'appointment.interview_id' );
+        $queue_mod->where( 'queue_has_participant.qnaire_id', '=', $db_qnaire->id );
         $queue_mod->where(
           'datetime', '>=', $this_monday_datetime_obj->format( 'Y-m-d 0:00:00' ) );
         $queue_mod->where(
@@ -160,6 +165,8 @@ class progress_report extends \cenozo\ui\pull\base_report
         // total completed
         $category = sprintf( 'Total Completed (%s)', $db_qnaire->name );
         $interview_mod = lib::create( 'database\modifier' );
+        $interview_mod->join( 'participant_site',
+          'interview.participant_id', 'participant_site.participant_id' );
         $interview_mod->where( 'participant_site.site_id', '=', $db_site->id );
         $interview_mod->where( 'qnaire_id', '=', $db_qnaire->id );
         $interview_mod->where( 'completed', '=', true );

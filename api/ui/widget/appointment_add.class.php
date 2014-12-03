@@ -49,7 +49,7 @@ class appointment_add extends base_appointment_view
     $this->select_address = 'home' == $db_effective_qnaire->type;
     
     // add items to the view
-    $this->add_item( 'participant_id', 'hidden' );
+    $this->add_item( 'interview_id', 'hidden' );
     if( $this->select_address )
     {
       $this->add_item( 'user_id', 'enum', 'Interviewer' );
@@ -68,19 +68,13 @@ class appointment_add extends base_appointment_view
   {
     parent::setup();
     
-    // this widget must have a parent, and it's subject must be a participant
-    if( is_null( $this->parent ) || 'participant' != $this->parent->get_subject() )
-      throw lib::create( 'exception\runtime',
-        'Appointment widget must have a parent with participant as the subject.', __METHOD__ );
-
     $session = lib::create( 'business\session' );
-    $db_participant = $this->parent->get_record();
     
     // create enum arrays
     $role_class_name = lib::get_class_name( 'database\role' );
     $user_class_name = lib::get_class_name( 'database\user' );
 
-    $db_site = $db_participant->get_effective_site();
+    $db_site = $this->db_participant->get_effective_site();
     $db_role = $role_class_name::get_unique_record( 'name', 'interviewer' );
     $user_mod = lib::create( 'database\modifier' );
     $user_mod->where( 'access.site_id', '=', $db_site->id );
@@ -96,7 +90,7 @@ class appointment_add extends base_appointment_view
       $address_mod->order( 'rank' );
 
       $address_list = array();
-      foreach( $db_participant->get_address_list( $address_mod ) as $db_address )
+      foreach( $this->db_participant->get_address_list( $address_mod ) as $db_address )
         $address_list[$db_address->id] = sprintf(
           '%s, %s, %s, %s',
           $db_address->address2 ? $db_address->address1.', '.$db_address->address2
@@ -113,16 +107,16 @@ class appointment_add extends base_appointment_view
     }
 
     // create the min datetime array
-    $start_qnaire_date = $db_participant->get_start_qnaire_date();
+    $start_qnaire_date = $this->db_participant->get_start_qnaire_date();
     $datetime_limits = !is_null( $start_qnaire_date )
                      ? array( 'min_date' => $start_qnaire_date->format( 'Y-m-d' ) )
                      : NULL;
 
     // set the view's items
-    $this->set_item( 'participant_id', $db_participant->id );
+    $this->set_item( 'interview_id', $this->db_interview->id );
     $this->set_item( 'datetime', '', true, $datetime_limits );
     
-    $db_effective_qnaire = $db_participant->get_effective_qnaire();
+    $db_effective_qnaire = $this->db_participant->get_effective_qnaire();
     if( is_null( $db_effective_qnaire ) )
       throw lib::create( 'exception\notice',
         'You cannot add an appointment for this participant since they do not currently have '.

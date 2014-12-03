@@ -52,8 +52,21 @@ class appointment_list extends \cenozo\ui\widget\site_restricted_list
     {
       // don't add appointments if the parent already has an incomplete appointment in the future
       $appointment_class_name = lib::get_class_name( 'database\appointment' );
+      $subject = $this->parent->get_subject();
+      if( 'interview' == $subject )
+      {   
+        $db_interview = $this->parent->get_record();
+        $db_participant = $db_interview->get_participant();
+      }   
+      else if( 'participant' == $subject )
+      {   
+        $db_participant = $this->parent->get_record();
+        $db_interview = $db_participant->get_effective_interview();
+      }   
+
       $appointment_mod = lib::create( 'database\modifier' );
-      $appointment_mod->where( 'participant_id', '=', $this->parent->get_record()->id );
+      $appointment_mod->where(
+        'interview_id', '=', is_null( $db_interview ) ? NULL : $db_interview->id );
       $appointment_mod->where( 'completed', '=', false );
       $appointment_mod->where(
         'datetime', '>', util::get_datetime_object()->format( 'Y-m-d H:i:s' ) );
@@ -62,8 +75,7 @@ class appointment_list extends \cenozo\ui\widget\site_restricted_list
       // don't add appointments if the user isn't currently assigned to the participant
       $db_assignment = lib::create( 'business\session' )->get_current_assignment();
       if( is_null( $db_assignment ) ||
-          $db_assignment->get_interview()->get_participant()->id !=
-          $this->parent->get_record()->id )
+          $db_assignment->get_interview()->participant_id != $db_participant->id )
         $this->addable = false;
     }
   }
@@ -93,7 +105,7 @@ class appointment_list extends \cenozo\ui\widget\site_restricted_list
       $db_user = $record->get_user();
       $this->add_row( $record->id,
         array( 'user.name' => is_null( $db_user ) ? 'none' : $record->get_user()->name,
-               'uid' => $record->get_participant()->uid,
+               'uid' => $record->get_interview()->get_participant()->uid,
                'address' => $address,
                'datetime' => $record->datetime,
                'state' => $record->get_state() ) );

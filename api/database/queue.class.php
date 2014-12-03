@@ -330,10 +330,12 @@ class queue extends \cenozo\database\record
       $sql = sprintf(
         'INSERT INTO queue_has_participant( '.
           'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id ) '.
-        'SELECT DISTINCT queue_has_participant.participant_id, %s, site_id, qnaire_id, start_qnaire_date, '.
-               'queue_has_participant.address_id '.
+        'SELECT DISTINCT queue_has_participant.participant_id, %s, site_id, '.
+          'interview.qnaire_id, start_qnaire_date, queue_has_participant.address_id '.
         'FROM queue_has_participant '.
-        'JOIN appointment ON queue_has_participant.participant_id = appointment.participant_id '.
+        'JOIN interview ON queue_has_participant.participant_id = interview.participant_id '.
+        'AND queue_has_participant.qnaire_id = interview.qnaire_id '.
+        'JOIN appointment ON interview.id = appointment.interview_id '.
         'AND appointment.assignment_id IS NULL '.
         'WHERE queue_id = %s AND ',
         $database_class_name::format_string( $this->id ),
@@ -542,7 +544,7 @@ class queue extends \cenozo\database\record
 
     $appointment_join =
       'LEFT JOIN appointment '.
-      'ON appointment.participant_id = participant_for_queue.id '.
+      'ON appointment.interview_id = participant_for_queue.current_interview_id '.
       'AND '.
       '( '.
         '( '.

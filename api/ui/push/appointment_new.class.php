@@ -45,12 +45,12 @@ class appointment_new extends \cenozo\ui\push\base_new
       throw lib::create( 'exception\notice', 'The date/time cannot be left blank.', __METHOD__ );
 
     // validate the appointment time
-    $this->get_record()->participant_id = $columns['participant_id'];
+    $this->get_record()->interview_id = $columns['interview_id'];
     $this->get_record()->address_id = array_key_exists( 'address_id', $columns )
                                     ? $columns['address_id'] : NULL;
     $this->get_record()->datetime = $columns['datetime'];
     
-    $type = 0 < $this->get_record()->address_id ? 'home' : 'site';
+    $type = 0 < $this->get_record()->get_interview()->get_qnaire()->type;
 
     if( !$this->get_record()->validate_date() )
       throw lib::create( 'exception\notice',
@@ -84,7 +84,7 @@ class appointment_new extends \cenozo\ui\push\base_new
   {
     parent::execute();
 
-    // if the owner is a participant then update their queue status
-    $this->get_record()->get_participant()->update_queue_status();
+    // update the participant's queue status
+    $this->get_record()->get_interview()->get_participant()->update_queue_status();
   }
 }
