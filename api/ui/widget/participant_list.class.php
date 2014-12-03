@@ -147,7 +147,7 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
 
         // get the last completed in-home appointment
         $appointment_mod = lib::create( 'database\modifier' );
-        $appointment_mod->join( 'interview'
+        $appointment_mod->join( 'interview',
           'appointment.interview_id', '=', 'interview.id' );
         $appointment_mod->where( 'participant.id', '=', $record->id );
         $appointment_mod->where( 'completed', '=', true );

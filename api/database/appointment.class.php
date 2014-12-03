@@ -49,7 +49,7 @@ class appointment extends \cenozo\database\record
         throw lib::create( 'exception\notice',
           sprintf( 'Unable to add the appointment since the participant already has an upcomming '.
                    '%s appointment scheduled for %s.',
-                   $db_appointment->get_interview()->get_qnaire()->type;
+                   $db_appointment->get_interview()->get_qnaire()->type,
                    util::get_formatted_datetime( $db_appointment->datetime ) ),
           __METHOD__ );
       }
