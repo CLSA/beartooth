@@ -182,7 +182,8 @@ class appointment_report extends \cenozo\ui\pull\base_report
         ') AS Phone '.
         'FROM appointment ';
 
-    $modifier->join( 'queue_has_participant', 'appointment.participant_id', 'queue_has_participant.participant_id' );
+    $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
+    $modifier->join( 'queue_has_participant', 'interview.participant_id', 'queue_has_participant.participant_id' );
     $modifier->join( 'participant', 'appointment.participant_id', 'participant.id' );
     $join_mod = lib::create( 'database\modifier' );
     $join_mod->where( 'participant.id', '=', 'participant_site.participant_id', false );
@@ -205,10 +206,13 @@ class appointment_report extends \cenozo\ui\pull\base_report
       // include home-interviewer details (if the previous qnaire has type home)
       if( !is_null( $db_prev_qnaire ) && 'home' == $db_prev_qnaire->type )
       {
-        $modifier->join( 'participant_last_home_appointment',
-          'participant.id', 'participant_last_home_appointment.participant_id' );
+        $modifier->join( 'interview AS home_interview',
+          'participant.id', 'home_interview.participant_id' );
+        $modifier->join( 'qnaire AS home_qnaire',
+          'home_interview.qnaire_id', 'home_qnaire.id' );
+        $modifier->where( 'home_interview.qnaire_id', '=', $db_prev_qnaire->id );
         $modifier->join( 'appointment AS home_appointment',
-          'participant_last_home_appointment.appointment_id', 'home_appointment.id' );
+          'interview_last_appointment.appointment_id', 'home_appointment.id' );
         $modifier->join( 'user', 'home_appointment.user_id', 'user.id' );
       }
     }

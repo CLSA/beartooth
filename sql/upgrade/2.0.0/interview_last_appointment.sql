@@ -1,3 +1,5 @@
+SELECT "Creating new interview_last_appointment view" AS "";
+
 CREATE OR REPLACE VIEW interview_last_appointment AS
 SELECT interview.id AS interview_id, t1.id AS appointment_id, t1.completed
 FROM interview
