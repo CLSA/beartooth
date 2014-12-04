@@ -115,7 +115,7 @@ class progress_report extends \cenozo\ui\pull\base_report
           'queue_has_participant.participant_id', '=', 'interview.participant_id', false );
         $join_mod->where(
           'queue_has_participant.qnaire_id', '=', 'interview.qnaire_id', false );
-        $queue_mod->join( 'interview', $join_mod );
+        $queue_mod->join_modifier( 'interview', $join_mod );
         $queue_mod->join( 'appointment', 'interview.id', 'appointment.interview_id' );
         $queue_mod->where( 'queue_has_participant.qnaire_id', '=', $db_qnaire->id );
         $queue_mod->where(

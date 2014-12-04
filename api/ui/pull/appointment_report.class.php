@@ -188,11 +188,11 @@ class appointment_report extends \cenozo\ui\pull\base_report
     $join_mod = lib::create( 'database\modifier' );
     $join_mod->where( 'participant.id', '=', 'participant_site.participant_id', false );
     $join_mod->where( 'participant_site.service_id', '=', $db_service->id );
-    $modifier->join( 'participant_site', $join_mod );
+    $modifier->join_modifier( 'participant_site', $join_mod );
     $join_mod = lib::create( 'database\modifier' );
     $join_mod->where( 'participant.person_id', '=', 'phone.person_id', false );
     $join_mod->where( 'phone.active', '=', true );
-    $modifier->left_join( 'phone', $join_mod );
+    $modifier->left_join_modifier( 'phone', $join_mod );
 
     // add extra tables needed by home/site reports
     if( 'home' == $db_qnaire->type )
