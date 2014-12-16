@@ -93,6 +93,7 @@ class site_assignment_select extends \cenozo\ui\widget
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'site.id', '=', $session->get_site()->id );
     $modifier->where( 'qnaire.type', '=', 'site' );
+    $modifier->where( 'IFNULL( queue_state.enabled, true )', '=', true );
 
     $language_id_list = $session->get_user()->get_language_idlist();
 
@@ -124,6 +125,7 @@ class site_assignment_select extends \cenozo\ui\widget
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'site.id', '=', $session->get_site()->id );
     $modifier->where( 'qnaire.type', '=', 'site' );
+    $modifier->where( 'IFNULL( queue_state.enabled, true )', '=', true );
 
     $language_id_list = $session->get_user()->get_language_idlist();
 

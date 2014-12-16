@@ -3,8 +3,12 @@
 SET AUTOCOMMIT=0;
 
 SOURCE activity.sql
+SOURCE operation.sql
 SOURCE role_has_operation.sql
 SOURCE operation2.sql
+SOURCE queue_state.sql
+SOURCE setting_value.sql
+SOURCE setting.sql
 SOURCE update_version_number.sql
 
 COMMIT;

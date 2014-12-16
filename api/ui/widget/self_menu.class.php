@@ -44,6 +44,7 @@ class self_menu extends \cenozo\ui\widget\self_menu
       'interviewer',
       'phase',
       'phone_call',
+      'queue_state',
       'service',
       'survey' ) );
 

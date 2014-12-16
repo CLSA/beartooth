@@ -38,14 +38,18 @@ class queue_list extends \cenozo\ui\widget\base_list
   {
     parent::prepare();
 
+    $session = lib::create( 'business\session' );
+
     // make sure to display all queues on the same page
     $this->set_items_per_page( 1000 );
-    
+
     $this->add_column( 'rank', 'number', 'Rank', true );
-    $this->add_column( 'enabled', 'boolean', 'Enabled', false );
+    if( ( !$session->get_role()->all_sites ||
+          $this->get_argument( 'restrict_site_id', false ) ) &&
+        $this->get_argument( 'restrict_qnaire_id', false ) )
+      $this->add_column( 'enabled', 'boolean', 'Enabled', false );
     $this->add_column( 'participant_count', 'number', 'Participants', false );
     $this->add_column( 'description', 'text', 'Description', true, true, 'left' );
-    $session = lib::create( 'business\session' );
     if( !$session->get_role()->all_sites )
       $this->set_heading(
         sprintf( '%s %s for %s',
@@ -63,7 +67,7 @@ class queue_list extends \cenozo\ui\widget\base_list
   protected function setup()
   {
     parent::setup();
-    
+
     $database_class_name = lib::get_class_name( 'database\database' );
     $site_class_name = lib::get_class_name( 'database\site' );
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
@@ -71,6 +75,13 @@ class queue_list extends \cenozo\ui\widget\base_list
     $language_class_name = lib::get_class_name( 'database\language' );
 
     $session = lib::create( 'business\session' );
+
+    $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
+    $this->set_variable( 'restrict_site_id', $restrict_site_id );
+    $db_restrict_site = $restrict_site_id
+                      ? lib::create( 'database\site', $restrict_site_id )
+                      : NULL;
+
     $all_sites = $session->get_role()->all_sites;
     if( $all_sites )
     {
@@ -81,31 +92,29 @@ class queue_list extends \cenozo\ui\widget\base_list
         $sites[$db_site->id] = $db_site->name;
       $this->set_variable( 'sites', $sites );
     }
-
-    $restrict_site_id = $this->get_argument( 'restrict_site_id', 0 );
-    $this->set_variable( 'restrict_site_id', $restrict_site_id );
-    $db_restrict_site = $restrict_site_id
-                      ? lib::create( 'database\site', $restrict_site_id )
-                      : NULL;
+    else
+    {
+      $db_restrict_site = $session->get_site();
+    }
 
     $qnaires = array();
     foreach( $qnaire_class_name::select() as $db_qnaire )
       $qnaires[$db_qnaire->id] = $db_qnaire->name;
     $this->set_variable( 'qnaires', $qnaires );
-    
+
     $restrict_qnaire_id = $this->get_argument( 'restrict_qnaire_id', 0 );
     $this->set_variable( 'restrict_qnaire_id', $restrict_qnaire_id );
     $db_restrict_qnaire = $restrict_qnaire_id
                         ? lib::create( 'database\qnaire', $restrict_qnaire_id )
                         : NULL;
-    
+
     $language_mod = lib::create( 'database\modifier' );
     $language_mod->where( 'active', '=', true );
     $languages = array( 'any' => 'any' );
     foreach( $language_class_name::select( $language_mod ) as $db_language )
       $languages[$db_language->id] = $db_language->name;
     $this->set_variable( 'languages', $languages );
-    
+
     $restrict_language_id = $this->get_argument( 'restrict_language_id', 'any' );
     $this->set_variable( 'restrict_language_id', $restrict_language_id );
 
@@ -122,9 +131,8 @@ class queue_list extends \cenozo\ui\widget\base_list
     foreach( $this->get_record_list() as $record )
     {
       // restrict queue based on user's role
-      if( !$all_sites ) $record->set_site( $session->get_site() );
-      else if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );
-      
+      if( !is_null( $db_restrict_site ) ) $record->set_site( $db_restrict_site );
+
       // restrict to the current qnaire
       $modifier = lib::create( 'database\modifier' );
       if( !is_null( $db_restrict_qnaire ) )
@@ -141,8 +149,9 @@ class queue_list extends \cenozo\ui\widget\base_list
 
       $this->add_row( $record->id,
         array( 'rank' => $record->rank,
-               'enabled' => $setting_manager->get_setting(
-                 'queue state', $record->name, $db_restrict_site ),
+               'enabled' => is_null( $db_restrict_site ) || is_null( $db_restrict_qnaire )
+                          ? false
+                          : $record->get_enabled( $db_restrict_site, $db_restrict_qnaire ),
                'participant_count' => $record->get_participant_count( $modifier ),
                // I hate to put html here, but the alternative is to implement code in the
                // parent class for this ONLY instance of where we need this functionality.
@@ -150,7 +159,7 @@ class queue_list extends \cenozo\ui\widget\base_list
                                 '<div>'.$record->description.'</div>' ) );
     }
   }
-  
+
   /**
    * Overrides the parent class method to only include ranked queues
    * 
@@ -167,7 +176,7 @@ class queue_list extends \cenozo\ui\widget\base_list
 
     return parent::determine_record_count( $modifier );
   }
-  
+
   /**
    * Overrides the parent class method since the record list depends on the active role.
    * 

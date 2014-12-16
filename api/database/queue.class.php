@@ -46,6 +46,10 @@ class queue extends \cenozo\database\record
       'AND queue.rank IS NOT NULL '.
       'LEFT JOIN site ON queue_has_participant.site_id = site.id '.
       'LEFT JOIN qnaire ON queue_has_participant.qnaire_id = qnaire.id '.
+      // link to the queue_state table so we can restrict based on the enabled column
+      'LEFT JOIN queue_state ON queue.id = queue_state.queue_id '.
+      'AND site.id = queue_state.site_id '.
+      'AND qnaire.id = queue_state.qnaire_id '.
       'LEFT JOIN address ON queue_has_participant.address_id = address.id %s',
       $count ? 'COUNT( DISTINCT participant.id )' : 'DISTINCT participant.id',
       is_null( $modifier ) ? '' : $modifier->get_sql() );
@@ -102,6 +106,21 @@ class queue extends \cenozo\database\record
     // now call the parent method as usual
     return parent::get_record_list(
       $record_type, $modifier, $inverted, $count, $distinct, $id_only );
+  }
+
+  /**
+   * Returns whether a queue is enabled or not for a given site and qnaire.
+   * @auther Patrick Emond <emondpd@mcmaster.ca>
+   * @access public
+   * @return boolean
+   */
+  public function get_enabled( $db_site, $db_qnaire )
+  {
+    $queue_state_class_name = lib::get_class_name( 'database\queue_state' );
+    $db_queue_state = $queue_state_class_name::get_unique_record(
+      array( 'queue_id', 'site_id', 'qnaire_id' ),
+      array( $this->id, $db_site->id, $db_qnaire->id ) );
+    return is_null( $db_queue_state ) ? true : $db_queue_state->enabled;
   }
 
   /**
@@ -845,7 +864,7 @@ class queue extends \cenozo\database\record
   }
 
   /**
-   * The date (YYYY-MM-DD) with respect to check all queue states.
+   * The date (YYYY-MM-DD) with respect to check all queues
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param string $date
    * @access public
@@ -997,7 +1016,7 @@ class queue extends \cenozo\database\record
   protected $db_site = NULL;
 
   /**
-   * The date (YYYY-MM-DD) with respect to check all queue states.
+   * The date (YYYY-MM-DD) with respect to check all queues
    * @var string
    * @access protected
    * @static
