@@ -233,7 +233,8 @@ class queue extends \cenozo\database\record
     $db_user = $session->get_user();
 
     // block with a semaphore
-    $session->acquire_semaphore();
+    $semaphore = lib::create( 'business\semaphore', 'repopulate' );
+    $semaphore->acquire();
 
     // make sure the temporary table exists
     static::create_participant_for_queue( $db_participant );
@@ -271,7 +272,7 @@ class queue extends \cenozo\database\record
       }
     }
 
-    $session->release_semaphore();
+    $semaphore->release();
   }
 
   /**
@@ -293,7 +294,8 @@ class queue extends \cenozo\database\record
     $db_user = $session->get_user();
 
     // block with a semaphore
-    $session->acquire_semaphore();
+    $semaphore = lib::create( 'business\semaphore', 'time_specific' );
+    $semaphore->acquire();
 
     // make sure the queue list cache exists and get the queue's parent
     static::create_queue_list_cache();
@@ -455,14 +457,14 @@ class queue extends \cenozo\database\record
     }
     else
     {
-      $session->release_semaphore();
+      $semaphore->release();
 
       throw lib::create( 'exception\runtime',
         sprintf( 'No rules to populate time-specific queue "%s"', $this->name ),
         __METHOD__ );
     }
 
-    $session->release_semaphore();
+    $semaphore->release();
   }
 
   /**
