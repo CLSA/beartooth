@@ -61,13 +61,13 @@ class sample_report extends base_report
     // get a list of all possible sites from this application's quotas
     $quota_mod = lib::create( 'database\modifier' );
     $quota_mod->where(
-      'site.service_id', '=', lib::create( 'business\session' )->get_service()->id );
+      'site.appointment_id', '=', lib::create( 'business\session' )->get_appointment()->id );
     $quota_mod->group( 'site.name' );
 
     // get a list of all possible age group / gender pairs from this application's quotas
     $quota_mod = lib::create( 'database\modifier' );
     $quota_mod->where(
-      'site.service_id', '=', lib::create( 'business\session' )->get_service()->id );
+      'site.appointment_id', '=', lib::create( 'business\session' )->get_appointment()->id );
     $quota_mod->group( 'age_group_id' );
     $quota_mod->group( 'gender' );
     $quota_list = array();

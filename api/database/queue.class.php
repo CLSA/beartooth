@@ -94,7 +94,6 @@ class queue extends \cenozo\database\record
     // if the queue's site has been set, add its restriction to the query
     if( !is_null( $this->db_site ) )
     {
-      $service_id = lib::create( 'business\session' )->get_service()->id;
       if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'queue_has_participant.site_id', '=', $this->db_site->id );
     }
@@ -864,14 +863,14 @@ class queue extends \cenozo\database\record
   protected static function create_participant_for_queue( $db_participant = NULL )
   {
     $database_class_name = lib::get_class_name( 'database\database' );
-    $service_id = lib::create( 'business\session' )->get_service()->id;
+    $application_id = lib::create( 'business\session' )->get_application()->id;
 
     if( static::$participant_for_queue_created ) return;
 
     // build participant_for_queue table
     $sql = sprintf( 'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue '.
                     static::$participant_for_queue_sql,
-                    $database_class_name::format_string( $service_id ) );
+                    $database_class_name::format_string( $application_id ) );
     if( !is_null( $db_participant ) )
       $sql .= sprintf( ' AND participant.id = %s ',
                        $database_class_name::format_string( $db_participant->id ) );
@@ -897,8 +896,8 @@ class queue extends \cenozo\database\record
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_participant_site '.
       'SELECT participant_id AS id, site_id AS participant_site_id '.
       'FROM participant_site '.
-      'WHERE service_id = %s ',
-      $database_class_name::format_string( $service_id ) );
+      'WHERE application_id = %s ',
+      $database_class_name::format_string( $application_id ) );
     if( !is_null( $db_participant ) )
       $sql .= sprintf( 'AND participant_id = %s ',
                        $database_class_name::format_string( $db_participant->id ) );
@@ -916,11 +915,11 @@ class queue extends \cenozo\database\record
       'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue_phone_count '.
       'SELECT participant.id, COUNT(*) phone_count '.
       'FROM participant '.
-      'JOIN service_has_participant ON participant.id = service_has_participant.participant_id '.
-      'AND service_has_participant.service_id = %s '.
+      'JOIN application_has_participant ON participant.id = application_has_participant.participant_id '.
+      'AND application_has_participant.application_id = %s '.
       'LEFT JOIN phone ON participant.person_id = phone.person_id '.
       'AND phone.active AND phone.number IS NOT NULL ',
-      $database_class_name::format_string( $service_id ) );
+      $database_class_name::format_string( $application_id ) );
     if( !is_null( $db_participant ) )
       $sql .= sprintf( 'WHERE participant.id = %s ',
                        $database_class_name::format_string( $db_participant->id ) );
@@ -1074,10 +1073,10 @@ IF
   )
 ) as start_qnaire_date
 FROM participant
-JOIN service_has_participant
-ON participant.id = service_has_participant.participant_id
-AND service_has_participant.datetime IS NOT NULL
-AND service_id = %s
+JOIN application_has_participant
+ON participant.id = application_has_participant.participant_id
+AND application_has_participant.datetime IS NOT NULL
+AND application_id = %s
 JOIN source
 ON participant.source_id = source.id
 LEFT JOIN participant_first_address

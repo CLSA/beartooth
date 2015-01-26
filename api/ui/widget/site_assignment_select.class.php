@@ -100,7 +100,7 @@ class site_assignment_select extends \cenozo\ui\widget
     {
       $column = sprintf(
         'IFNULL( participant.language_id, %s )',
-        $database_class_name::format_string( $session->get_service()->language_id ) );
+        $database_class_name::format_string( $session->get_appointment()->language_id ) );
       $modifier->where( $column, 'IN', $language_id_list );
     }
 
@@ -129,10 +129,10 @@ class site_assignment_select extends \cenozo\ui\widget
 
     if( 0 < count( $language_id_list ) )
     {
-      // if the language isn't set, assume it is the service's default language
+      // if the language isn't set, assume it is the appointment's default language
       $column = sprintf(
         'IFNULL( participant.language_id, %s )',
-        $database_class_name::format_string( $session->get_service()->language_id ) );
+        $database_class_name::format_string( $session->get_appointment()->language_id ) );
       $modifier->where( $column, 'IN', $language_id_list );
     }
 

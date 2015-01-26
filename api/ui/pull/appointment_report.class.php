@@ -43,7 +43,7 @@ class appointment_report extends \cenozo\ui\pull\base_report
     $user_id = $this->get_argument( 'user_id' );
     $db_user = $user_id ? lib::create( 'database\user', $user_id ) : NULL;
     $db_site = lib::create( 'business\session' )->get_site();
-    $db_service = lib::create( 'business\session' )->get_service();
+    $db_appointment = lib::create( 'business\session' )->get_appointment();
     $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     $db_prev_qnaire = $db_qnaire->get_prev_qnaire();
     $db_qnaire_queue = $queue_class_name::get_unique_record( 'name', 'qnaire' );
@@ -187,7 +187,7 @@ class appointment_report extends \cenozo\ui\pull\base_report
     $modifier->join( 'participant', 'appointment.participant_id', 'participant.id' );
     $join_mod = lib::create( 'database\modifier' );
     $join_mod->where( 'participant.id', '=', 'participant_site.participant_id', false );
-    $join_mod->where( 'participant_site.service_id', '=', $db_service->id );
+    $join_mod->where( 'participant_site.appointment_id', '=', $db_appointment->id );
     $modifier->join_modifier( 'participant_site', $join_mod );
     $join_mod = lib::create( 'database\modifier' );
     $join_mod->where( 'participant.person_id', '=', 'phone.person_id', false );

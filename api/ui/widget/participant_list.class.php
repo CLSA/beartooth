@@ -57,7 +57,7 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     {
       $this->add_column( 'active', 'boolean', 'Active', true );
       $this->add_column( 'source.name', 'string', 'Source', true );
-      if( 1 != $session->get_service()->get_cohort_count() )
+      if( 1 != $session->get_appointment()->get_cohort_count() )
         $this->add_column( 'cohort.name', 'string', 'Cohort', true );
       $this->add_column( 'site', 'string', 'Site', false );
     }
@@ -128,7 +128,7 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
       {
         $columns['active'] = $record->active;
         $columns['source.name'] = is_null( $db_source ) ? '(none)' : $db_source->name;
-        if( 1 != $session->get_service()->get_cohort_count() )
+        if( 1 != $session->get_appointment()->get_cohort_count() )
           $columns['cohort.name'] = $record->get_cohort()->name;
         $columns['site'] = $db_site ? $db_site->name : '(none)';
       }

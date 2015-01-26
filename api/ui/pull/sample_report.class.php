@@ -50,7 +50,7 @@ class sample_report extends \cenozo\ui\pull\base_report
                $db_quota->gender,
                $db_quota->get_age_group()->to_string() ) );
 
-    $service_id = $session->get_service()->id;
+    $appointment_id = $session->get_appointment()->id;
     $sql = sprintf(
       'SELECT participant.uid AS UID, '.
              'site.name AS Site, '.
@@ -58,7 +58,7 @@ class sample_report extends \cenozo\ui\pull\base_report
              'low_education AS LowEd, '.
              'IFNULL( state.name, "none" ) AS State, '.
              'IFNULL( DATE( CONVERT_TZ( import_event.datetime, "UTC", %s ) ), "unknown" ) AS Imported, '.
-             'DATE( CONVERT_TZ( service_has_participant.datetime, "UTC", %s ) ) AS Released, '.
+             'DATE( CONVERT_TZ( appointment_has_participant.datetime, "UTC", %s ) ) AS Released, '.
              'IF( participant.email IS NULL, "no", "yes" ) AS HasEmail, '.
              'IFNULL( home_assignment_count.total, 0 ) AS HomeAssignments, '.
              // the home interview date is:
@@ -103,19 +103,19 @@ class sample_report extends \cenozo\ui\pull\base_report
     // now create the modifier for the query
     $modifier = lib::create( 'database\modifier' );
 
-    // participants have to be released to this service
+    // participants have to be released to this appointment
     $join_mod = lib::create( 'database\modifier' );
-    $join_mod->where( 'participant.id', '=', 'service_has_participant.participant_id', false );
-    $join_mod->where( 'service_has_participant.service_id', '=', $service_id );
-    $modifier->join_modifier( 'service_has_participant', $join_mod );
+    $join_mod->where( 'participant.id', '=', 'appointment_has_participant.participant_id', false );
+    $join_mod->where( 'appointment_has_participant.appointment_id', '=', $appointment_id );
+    $modifier->join_modifier( 'appointment_has_participant', $join_mod );
 
     // get the participant's state (if they have one)
     $modifier->left_join( 'state', 'participant.state_id', 'state.id' );
     
-    // get the participant's site for this service
+    // get the participant's site for this appointment
     $join_mod = lib::create( 'database\modifier' );
     $join_mod->where( 'participant.id', '=', 'participant_site.participant_id', false );
-    $join_mod->where( 'participant_site.service_id', '=', $service_id );
+    $join_mod->where( 'participant_site.appointment_id', '=', $appointment_id );
     $modifier->left_join_modifier( 'participant_site', $join_mod );
     $modifier->left_join( 'site', 'participant_site.site_id', 'site.id' );
     
@@ -208,8 +208,8 @@ class sample_report extends \cenozo\ui\pull\base_report
     $modifier->left_join( 'qnaire AS last_qnaire',
       'last_interview.qnaire_id', 'last_qnaire.id' );
 
-    // restrict to participants who have been released to this service
-    $modifier->where( 'service_has_participant.datetime', '!=', 'NULL' );
+    // restrict to participants who have been released to this appointment
+    $modifier->where( 'appointment_has_participant.datetime', '!=', 'NULL' );
     
     // restrict to the selected quota
     $modifier->where( 'gender', '=', $db_quota->gender );

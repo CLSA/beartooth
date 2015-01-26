@@ -128,11 +128,11 @@ class queue_view extends \cenozo\ui\widget\base_view
 
     if( !is_null( $this->db_language ) )
     {
-      // if the language isn't set, assume it is the service's default language
+      // if the language isn't set, assume it is the appointment's default language
       $column = sprintf(
         'IFNULL( participant.language_id, %s )',
         $database_class_name::format_string(
-          lib::create( 'business\session' )->get_service()->language_id ) );
+          lib::create( 'business\session' )->get_appointment()->language_id ) );
       $modifier->where( $column, '=', $this->db_language->id );
     }
   
@@ -159,11 +159,11 @@ class queue_view extends \cenozo\ui\widget\base_view
 
     if( !is_null( $this->db_language ) )
     {
-      // if the language isn't set, assume it is the service's default language
+      // if the language isn't set, assume it is the appointment's default language
       $column = sprintf(
         'IFNULL( participant.language_id, %s )',
         $database_class_name::format_string(
-          lib::create( 'business\session' )->get_service()->language_id ) );
+          lib::create( 'business\session' )->get_appointment()->language_id ) );
       $modifier->where( $column, '=', $this->db_language->id );
     }
   
