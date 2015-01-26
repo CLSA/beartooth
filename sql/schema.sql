@@ -708,7 +708,7 @@ DROP TABLE IF EXISTS `beartooth`.`interview_last_appointment`;
 USE `beartooth`;
 CREATE OR REPLACE VIEW `beartooth`.`interview_last_appointment` AS
 SELECT interview.id AS interview_id, t1.id AS appointment_id, t1.completed
-FROM interview
+FROM cenozo.interview
 LEFT JOIN appointment t1
 ON interview.id = t1.interview_id
 AND t1.datetime = (
