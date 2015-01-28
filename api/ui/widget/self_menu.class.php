@@ -68,7 +68,7 @@ class self_menu extends \cenozo\ui\widget\self_menu
     
     // insert the participant tree into the utilities
     $db_operation = $operation_class_name::get_operation( 'widget', 'participant', 'tree' );
-    if( $session->is_allowed( $db_operation ) )
+    if( $session->is_operation_allowed( $db_operation ) )
       $utilities[] = array( 'heading' => 'Participant Tree',
                             'type' => 'widget',
                             'subject' => 'participant',
@@ -76,14 +76,14 @@ class self_menu extends \cenozo\ui\widget\self_menu
 
     // insert the assignment begin operation into the utilities
     $db_operation = $operation_class_name::get_operation( 'widget', 'home_assignment', 'select' );
-    if( $session->is_allowed( $db_operation ) )
+    if( $session->is_operation_allowed( $db_operation ) )
       $utilities[] = array( 'heading' => 'Home Assignment',
                             'type' => 'widget',
                             'subject' => 'home_assignment',
                             'name' => 'select' );
 
     $db_operation = $operation_class_name::get_operation( 'widget', 'site_assignment', 'select' );
-    if( $session->is_allowed( $db_operation ) )
+    if( $session->is_operation_allowed( $db_operation ) )
       $utilities[] = array( 'heading' => 'Site Assignment',
                             'type' => 'widget',
                             'subject' => 'site_assignment',

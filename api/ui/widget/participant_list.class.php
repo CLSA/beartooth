@@ -184,12 +184,12 @@ class participant_list extends \cenozo\ui\widget\site_restricted_list
     {   
       $db_operation =
         $operation_class_name::get_operation( 'widget', 'participant', 'site_reassign' );
-      if( $session->is_allowed( $db_operation ) ) 
+      if( $session->is_operation_allowed( $db_operation ) ) 
         $this->add_action( 'reassign', 'Site Reassign', $db_operation,
           'Change the preferred site of multiple participants at once' );
       $db_operation =
         $operation_class_name::get_operation( 'widget', 'participant', 'search' );
-      if( $session->is_allowed( $db_operation ) ) 
+      if( $session->is_operation_allowed( $db_operation ) ) 
         $this->add_action( 'search', 'Search', $db_operation,
           'Search for participants based on partial information' );
     }   

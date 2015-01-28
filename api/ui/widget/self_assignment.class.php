@@ -214,7 +214,7 @@ class self_assignment extends \cenozo\ui\widget
       {
         $db_operation =
           $operation_class_name::get_operation( 'widget', 'participant', 'secondary' );
-        if( lib::create( 'business\session' )->is_allowed( $db_operation ) )
+        if( lib::create( 'business\session' )->is_operation_allowed( $db_operation ) )
           $allow_secondary = true;
       }
     }
