@@ -89,7 +89,6 @@ class survey_timings extends sid_record
     else
     {
       $sql .= ' FROM '.static::get_table_name();
->>>>>>> release
     }
 
     return static::db()->get_row( $sql );
