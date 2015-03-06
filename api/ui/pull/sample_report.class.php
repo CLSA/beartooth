@@ -36,8 +36,8 @@ class sample_report extends \cenozo\ui\pull\base_report
    */
   protected function build()
   {
-    $database_class_name = lib::get_class_name( 'database\database' );
     $session = lib::create( 'business\session' );
+    $db = $session->get_database();
     $timezone = $session->get_site()->timezone;
 
     $site_id = $this->get_argument( 'restrict_site_id' );

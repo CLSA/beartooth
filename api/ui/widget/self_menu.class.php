@@ -45,6 +45,7 @@ class self_menu extends \cenozo\ui\widget\self_menu
       'phase',
       'phone_call',
       'appointment',
+      'queue_state',
       'survey' ) );
 
     // remove the assignment list from interviewers

@@ -42,8 +42,6 @@ class survey_timings extends sid_record
    */
   public static function get_averages( $db_region = NULL )
   {
-    $database_class_name = lib::get_class_name( 'database\database' );
-
     // we need to get all *X*X*time based column names from the information schema
     // to build custom sql
     $information_mod = lib::create( 'database\modifier' );
@@ -87,6 +85,11 @@ class survey_timings extends sid_record
         'participant_primary_address.address_id', 'address.id' );
       $modifier->where( 'address.region_id', '=', $db_region->id );
       $sql .= $modifier->get_sql();
+    }
+    else
+    {
+      $sql .= ' FROM '.static::get_table_name();
+>>>>>>> release
     }
 
     return static::db()->get_row( $sql );

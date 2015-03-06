@@ -36,14 +36,15 @@ class appointment_report extends \cenozo\ui\pull\base_report
    */
   protected function build()
   {
-    $database_class_name = lib::get_class_name( 'database\database' );
+    $session = lib::create( 'business\session' );
+    $db = $session->get_database();
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $appointment_class_name = lib::get_class_name( 'database\appointment' );
 
     $user_id = $this->get_argument( 'user_id' );
     $db_user = $user_id ? lib::create( 'database\user', $user_id ) : NULL;
-    $db_site = lib::create( 'business\session' )->get_site();
-    $db_appointment = lib::create( 'business\session' )->get_appointment();
+    $db_site = $session->get_site();
+    $db_application = $session->get_application();
     $db_qnaire = lib::create( 'database\qnaire', $this->get_argument( 'restrict_qnaire_id' ) );
     $db_prev_qnaire = $db_qnaire->get_prev_qnaire();
     $db_qnaire_queue = $queue_class_name::get_unique_record( 'name', 'qnaire' );
@@ -87,13 +88,13 @@ class appointment_report extends \cenozo\ui\pull\base_report
     if( $restrict_start_date )
       $modifier->where(
         sprintf( 'CONVERT_TZ( appointment.datetime, "UTC", %s )',
-                 $database_class_name::format_string( $db_site->timezone ) ),
+                 $db->format_string( $db_site->timezone ) ),
         '>=',
         $start_datetime_obj->format( 'Y-m-d' ).' 0:00:00' );
     if( $restrict_end_date )
       $modifier->where(
         sprintf( 'CONVERT_TZ( appointment.datetime, "UTC", %s )',
-                 $database_class_name::format_string( $db_site->timezone ) ),
+                 $db->format_string( $db_site->timezone ) ),
         '<=',
         $end_datetime_obj->format( 'Y-m-d' ).' 23:59:59' );
 
@@ -130,15 +131,15 @@ class appointment_report extends \cenozo\ui\pull\base_report
       }
     }
 
-    $timezone = lib::create( 'business\session' )->get_site()->timezone;
+    $timezone = $session->get_site()->timezone;
     $sql = sprintf(
       'SELECT CONCAT( participant.first_name, " ", participant.last_name ) AS Name, '.
       'participant.uid AS UID, '.
       'DATE_FORMAT( CONVERT_TZ( appointment.datetime, "UTC", %s ), "%%W, %%M %%D" ) AS Date, '.
       'DATE_FORMAT( CONVERT_TZ( appointment.datetime, "UTC", %s ), "%%l:%%i %%p" ) AS Time, '.
       'YEAR( FROM_DAYS( DATEDIFF( NOW(), date_of_birth ) ) ) AS Age, ',
-      $database_class_name::format_string( $db_site->timezone ),
-      $database_class_name::format_string( $db_site->timezone ) );
+      $db->format_string( $db_site->timezone ),
+      $db->format_string( $db_site->timezone ) );
 
     // add extra columns needed by home/site reports
     if( 'home' == $db_qnaire->type )

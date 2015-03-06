@@ -82,6 +82,7 @@ class site_feed extends \cenozo\ui\pull\base_feed
         // increment slot one interval later
         $appointment_datetime_obj->add( new \DateInterval( $interval ) );
         $end_time_as_int = intval( $appointment_datetime_obj->format( 'Gi' ) );
+        if( 0 == $end_time_as_int ) $end_time_as_int = 2400;
   
         if( !array_key_exists( $start_time_as_int, $diffs ) ) $diffs[ $start_time_as_int ] = 0;
         $diffs[ $start_time_as_int ]--;
@@ -139,7 +140,7 @@ class site_feed extends \cenozo\ui\pull\base_feed
               sprintf( '%s%s%s',
                        $hours > 12 ? $hours - 12 : $hours,
                        $minutes ? ':'.sprintf( '%02d', $minutes ) : '',
-                       $hours >= 12 ? 'p' : 'a' );
+                       $hours < 12 || 24 == $hours ? 'a' : 'p' );
             $this->data[] = array(
               'title' => sprintf( ' to %s: %d slots', $end_time_for_title, $available ),
               'allDay' => false,
