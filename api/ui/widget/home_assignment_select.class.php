@@ -86,9 +86,9 @@ class home_assignment_select extends \cenozo\ui\widget
    */
   public function determine_participant_count( $modifier = NULL )
   {
-    $database_class_name = lib::get_class_name( 'database\database' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $session = lib::create( 'business\session' );
+    $db = $session->get_database();
 
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'site.id', '=', $session->get_site()->id );
@@ -101,7 +101,7 @@ class home_assignment_select extends \cenozo\ui\widget
     {
       $column = sprintf(
         'IFNULL( participant.language_id, %s )',
-        $database_class_name::format_string( $session->get_service()->language_id ) );
+        $db->format_string( $session->get_service()->language_id ) );
       $modifier->where( $column, 'IN', $language_id_list );
     }
 
@@ -118,9 +118,9 @@ class home_assignment_select extends \cenozo\ui\widget
    */
   public function determine_participant_list( $modifier = NULL )
   {
-    $database_class_name = lib::get_class_name( 'database\database' );
     $queue_class_name = lib::get_class_name( 'database\queue' );
     $session = lib::create( 'business\session' );
+    $db = $session->get_database();
 
     if( is_null( $modifier ) ) $modifier = lib::create( 'database\modifier' );
     $modifier->where( 'site.id', '=', $session->get_site()->id );
@@ -133,7 +133,7 @@ class home_assignment_select extends \cenozo\ui\widget
     {
       $column = sprintf(
         'IFNULL( participant.language_id, %s )',
-        $database_class_name::format_string( $session->get_service()->language_id ) );
+        $db->format_string( $session->get_service()->language_id ) );
       $modifier->where( $column, 'IN', $language_id_list );
     }
 

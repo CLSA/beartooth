@@ -36,8 +36,8 @@ class sample_report extends \cenozo\ui\pull\base_report
    */
   protected function build()
   {
-    $database_class_name = lib::get_class_name( 'database\database' );
     $session = lib::create( 'business\session' );
+    $db = $session->get_database();
     $timezone = $session->get_site()->timezone;
 
     $site_id = $this->get_argument( 'restrict_site_id' );
@@ -190,23 +190,23 @@ class sample_report extends \cenozo\ui\pull\base_report
         'IFNULL( last_qnaire.rank, 1 ) = 1 OR '.
         '( last_qnaire.rank = "2" AND last_interview.completed = "0" ) '.
       ') ',
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $service_id ),
-      $database_class_name::format_string( $service_id ),
-      $database_class_name::format_string( $db_quota->gender ),
-      $database_class_name::format_string( $db_quota->age_group_id )
+      $db->format_string( $timezone ),
+      $db->format_string( $timezone ),
+      $db->format_string( $timezone ),
+      $db->format_string( $timezone ),
+      $db->format_string( $timezone ),
+      $db->format_string( $timezone ),
+      $db->format_string( $service_id ),
+      $db->format_string( $service_id ),
+      $db->format_string( $db_quota->gender ),
+      $db->format_string( $db_quota->age_group_id )
     );
 
     // restrict to a particular site, if needed
     if( !is_null( $db_site ) )
       $sql .= sprintf(
         'AND participant_site.site_id = %s ',
-        $database_class_name::format_string( $db_site->id ) );
+        $db->format_string( $db_site->id ) );
 
     $sql .= 'ORDER BY uid';
 

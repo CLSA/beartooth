@@ -270,14 +270,14 @@ class queue extends \cenozo\database\record
         'effective_qnaire_id, '.
         'start_qnaire_date, '.
         'first_address_id',
-        $database_class_name::format_string( $db_queue->id ) );
+        static::db()->format_string( $db_queue->id ) );
   
       $sql = sprintf(
         'DELETE FROM queue_has_participant WHERE queue_id = %s ',
-        $database_class_name::format_string( $db_queue->id ) );
+        static::db()->format_string( $db_queue->id ) );
       if( !is_null( $db_participant ) )
         $sql .= sprintf( ' AND participant_id = %s ',
-                         $database_class_name::format_string( $db_participant->id ) );
+                         static::db()->format_string( $db_participant->id ) );
       static::db()->execute( $sql );
       
       // only populate queues which are not time-specific
@@ -336,7 +336,7 @@ class queue extends \cenozo\database\record
 
     static::db()->execute( sprintf(
       'DELETE FROM queue_has_participant WHERE queue_id = %s',
-      $database_class_name::format_string( $this->id ) ) );
+      static::db()->format_string( $this->id ) ) );
 
     // populate appointment upcomming/assignable/missed queues
     if( ' appointment' == substr( $this->name, -12 ) )
@@ -355,8 +355,8 @@ class queue extends \cenozo\database\record
         'JOIN appointment ON queue_has_participant.participant_id = appointment.participant_id '.
         'AND appointment.assignment_id IS NULL '.
         'WHERE queue_id = %s AND ',
-        $database_class_name::format_string( $this->id ),
-        $database_class_name::format_string( $db_parent_queue->id ) );
+        static::db()->format_string( $this->id ),
+        static::db()->format_string( $db_parent_queue->id ) );
 
       if( 'upcoming appointment' == $this->name )
       {
@@ -403,8 +403,8 @@ class queue extends \cenozo\database\record
         'JOIN callback ON queue_has_participant.participant_id = callback.participant_id '.
         'AND callback.assignment_id IS NULL '.
         'WHERE queue_id = %s AND ',
-        $database_class_name::format_string( $this->id ),
-        $database_class_name::format_string( $db_parent_queue->id ) );
+        static::db()->format_string( $this->id ),
+        static::db()->format_string( $db_parent_queue->id ) );
 
       if( 'upcoming callback' == $this->name )
       {
@@ -448,8 +448,8 @@ class queue extends \cenozo\database\record
         'ON interview_last_assignment.assignment_id = assignment_last_phone_call.assignment_id '.
         'JOIN phone_call ON phone_call.id = assignment_last_phone_call.phone_call_id '.
         'WHERE queue_id = %s AND ',
-        $database_class_name::format_string( $this->id ),
-        $database_class_name::format_string( $db_parent_queue->id ) );
+        static::db()->format_string( $this->id ),
+        static::db()->format_string( $db_parent_queue->id ) );
 
       if( ' waiting' == substr( $this->name, -8 ) )
       {
@@ -847,7 +847,7 @@ class queue extends \cenozo\database\record
     $site_test_sql = is_null( $this->db_site )
                    ? 'true'
                    : sprintf( 'participant_site_id = %s',
-                              $database_class_name::format_string( $db_site->id ) );
+                              static::db()->format_string( $db_site->id ) );
     $sql = self::$query_list[ $this->name ];
     $sql = preg_replace( '/\<SELECT_PARTICIPANT\>/', $select_participant_sql, $sql, 1 );
     $sql = str_replace( '<SELECT_PARTICIPANT>', 'participant_for_queue.id', $sql );
@@ -899,10 +899,10 @@ class queue extends \cenozo\database\record
     // build participant_for_queue table
     $sql = sprintf( 'CREATE TEMPORARY TABLE IF NOT EXISTS participant_for_queue '.
                     static::$participant_for_queue_sql,
-                    $database_class_name::format_string( $service_id ) );
+                    static::db()->format_string( $service_id ) );
     if( !is_null( $db_participant ) )
       $sql .= sprintf( ' AND participant.id = %s ',
-                       $database_class_name::format_string( $db_participant->id ) );
+                       static::db()->format_string( $db_participant->id ) );
 
     static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue' );
     static::db()->execute( $sql );
@@ -926,10 +926,10 @@ class queue extends \cenozo\database\record
       'SELECT participant_id AS id, site_id AS participant_site_id '.
       'FROM participant_site '.
       'WHERE service_id = %s ',
-      $database_class_name::format_string( $service_id ) );
+      static::db()->format_string( $service_id ) );
     if( !is_null( $db_participant ) )
       $sql .= sprintf( 'AND participant_id = %s ',
-                       $database_class_name::format_string( $db_participant->id ) );
+                       static::db()->format_string( $db_participant->id ) );
 
     static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue_participant_site' );
     static::db()->execute( $sql );
@@ -948,10 +948,10 @@ class queue extends \cenozo\database\record
       'AND service_has_participant.service_id = %s '.
       'LEFT JOIN phone ON participant.person_id = phone.person_id '.
       'AND phone.active AND phone.number IS NOT NULL ',
-      $database_class_name::format_string( $service_id ) );
+      static::db()->format_string( $service_id ) );
     if( !is_null( $db_participant ) )
       $sql .= sprintf( 'WHERE participant.id = %s ',
-                       $database_class_name::format_string( $db_participant->id ) );
+                       static::db()->format_string( $db_participant->id ) );
     $sql .= 'GROUP BY participant.id ';
 
     static::db()->execute( 'DROP TABLE IF EXISTS participant_for_queue_phone_count' );
