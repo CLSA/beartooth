@@ -93,12 +93,12 @@ class sample_report extends \cenozo\ui\pull\base_report
              'IFNULL( DATE( CONVERT_TZ( callback.datetime, "UTC", %s ) ), "none" ) AS Callback '.
     // main table to select from
       'FROM participant ',
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $timezone ),
-      $database_class_name::format_string( $timezone ) );
+      $db->format_string( $timezone ),
+      $db->format_string( $timezone ),
+      $db->format_string( $timezone ),
+      $db->format_string( $timezone ),
+      $db->format_string( $timezone ),
+      $db->format_string( $timezone ) );
 
     // now create the modifier for the query
     $modifier = lib::create( 'database\modifier' );
