@@ -15,19 +15,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class appointment extends \cenozo\database\record
 {
   /**
-   * Overrides the parent load method.
-   * @author Patrick Emond
-   * @access public
-   */
-  public function load()
-  {
-    parent::load();
-
-    // appointments are not to the second, so remove the :00 at the end of the datetime field
-    $this->datetime = substr( $this->datetime, 0, -3 );
-  }
-
-  /**
    * Overrides the parent save method.
    * @author Patrick Emond
    * @access public
@@ -37,10 +24,9 @@ class appointment extends \cenozo\database\record
     // make sure there is a maximum of 1 future appointment per interview
     if( !$this->completed )
     {
-      $now_datetime_obj = util::get_datetime_object();
       $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'interview_id', '=', $this->interview_id );
-      $modifier->where( 'datetime', '>', $now_datetime_obj->format( 'Y-m-d H:i:s' ) );
+      $modifier->where( 'datetime', '>', 'UTC_DATETIME()', false );
       if( !is_null( $this->id ) ) $modifier->where( 'id', '!=', $this->id );
       $appointment_list = static::select( $modifier );
       if( 0 < count( $appointment_list ) )
@@ -50,7 +36,7 @@ class appointment extends \cenozo\database\record
           sprintf( 'Unable to add the appointment since the participant already has an upcomming '.
                    '%s appointment scheduled for %s.',
                    $db_appointment->get_interview()->get_qnaire()->type,
-                   util::get_formatted_datetime( $db_appointment->datetime ) ),
+                   $db_appointment->datetime->format( 'g:i A, T' ) ),
           __METHOD__ );
       }
     }
@@ -110,7 +96,7 @@ class appointment extends \cenozo\database\record
     if( $this->completed ) return 'completed';
 
     $now = util::get_datetime_object()->getTimestamp();
-    $appointment = util::get_datetime_object( $this->datetime )->getTimestamp();
+    $appointment = $this->datetime->getTimestamp();
 
     return $now < $appointment ? 'upcoming' : 'passed';
   }

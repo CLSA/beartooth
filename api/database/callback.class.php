@@ -15,19 +15,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class callback extends \cenozo\database\record
 {
   /**
-   * Overrides the parent load method.
-   * @author Patrick Emond
-   * @access public
-   */
-  public function load()
-  {
-    parent::load();
-
-    // callbacks are not to the second, so remove the :00 at the end of the datetime field
-    $this->datetime = substr( $this->datetime, 0, -3 );
-  }
-  
-  /**
    * Overrides the parent save method.
    * @author Patrick Emond
    * @access public
@@ -81,10 +68,9 @@ class callback extends \cenozo\database\record
     
     // settings are in minutes, time() is in seconds, so multiply by 60
     $setting_manager = lib::create( 'business\setting_manager' );
-    $pre_window_time  = 60 * $setting_manager->get_setting(
-                              'callback', 'call pre-window', $db_site );
+    $pre_window_time  = 60 * $setting_manager->get_setting( 'callback', 'call pre-window', $db_site );
     $now = util::get_datetime_object()->getTimestamp();
-    $callback = util::get_datetime_object( $this->datetime )->getTimestamp();
+    $callback = $this->datetime->getTimestamp();
 
     // get the status of the callback
     $db_assignment = $this->get_assignment();

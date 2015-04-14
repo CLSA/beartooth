@@ -197,8 +197,7 @@ class participant extends \cenozo\database\participant
   public function get_start_qnaire_date()
   {
     $this->load_queue_data();
-    return is_null( $this->start_qnaire_date ) ?
-      NULL : util::get_datetime_object( $this->start_qnaire_date );
+    return $this->start_qnaire_date;
   }
 
   /**
@@ -230,7 +229,9 @@ class participant extends \cenozo\database\participant
     if( count( $row ) )
     {
       $this->effective_qnaire_id = $row['qnaire_id'];
-      $this->start_qnaire_date = $row['start_qnaire_date'];
+      $this->start_qnaire_date = !$row['start_qnaire_date']
+                               ? NULL
+                               : util::get_datetime_object( $row['start_qnaire_date'] );
     }
 
     $this->queue_data_loaded = true;

@@ -35,8 +35,7 @@ class queue extends \cenozo\database\record
     // repopulate all ranked queues
     $queue_mod = lib::create( 'database\modifier' );
     $queue_mod->where( 'rank', '!=', NULL );
-    foreach( static::select( $queue_mod ) as $db_queue )
-      $db_queue->populate_time_specific();
+    foreach( static::select( $queue_mod ) as $db_queue ) $db_queue->populate_time_specific();
 
     $sql = sprintf(
       'SELECT %s '.
