@@ -25,23 +25,11 @@ DROP PROCEDURE IF EXISTS patch_appointment;
       FOREIGN KEY( interview_id ) REFERENCES interview( id ) 
       ON DELETE NO ACTION ON UPDATE NO ACTION;
 
-      -- fill in the new interview_id column using the existing participant_id colum
-
-      -- home appointments
+      -- fill in the new interview_id column using the existing participant_id column
       UPDATE appointment 
-      JOIN interview ON appointment.participant_id = interview.participant_id 
-      JOIN qnaire ON interview.qnaire_id = qnaire.id
-      SET interview_id = interview.id
-      WHERE appointment.address_id IS NOT NULL
-      AND qnaire.type = "home";
-
-      -- site appointments
-      UPDATE appointment 
-      JOIN interview ON appointment.participant_id = interview.participant_id 
-      JOIN qnaire ON interview.qnaire_id = qnaire.id
-      SET interview_id = interview.id
-      WHERE appointment.address_id IS NULL
-      AND qnaire.type = "site";
+      JOIN interview 
+      ON appointment.participant_id = interview.participant_id 
+      SET interview_id = interview.id;
 
       -- now get rid of the participant column, index and constraint
       ALTER TABLE appointment

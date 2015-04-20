@@ -1,3 +1,3 @@
-SELECT "Dropping old participant_last_appointment view" AS "";
+SELECT "Removing participant_last_appointment view" AS "";
 
 DROP VIEW IF EXISTS participant_last_appointment;
