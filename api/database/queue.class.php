@@ -930,7 +930,7 @@ class queue extends \cenozo\database\record
       'FROM participant '.
       'JOIN application_has_participant ON participant.id = application_has_participant.participant_id '.
       'AND application_has_participant.application_id = %s '.
-      'LEFT JOIN phone ON participant.person_id = phone.person_id '.
+      'LEFT JOIN phone ON participant.id = phone.participant_id '.
       'AND phone.active AND phone.number IS NOT NULL ',
       static::db()->format_string( $application_id ) );
     if( !is_null( $db_participant ) )
@@ -1092,10 +1092,10 @@ AND application_has_participant.datetime IS NOT NULL
 AND application_id = %s
 JOIN source
 ON participant.source_id = source.id
-LEFT JOIN person_first_address
-ON participant.person_id = person_first_address.person_id
+LEFT JOIN participant_first_address
+ON participant.id = participant_first_address.participant_id
 LEFT JOIN address first_address
-ON person_first_address.address_id = first_address.id
+ON participant_first_address.address_id = first_address.id
 LEFT JOIN participant_primary_address
 ON participant.id = participant_primary_address.participant_id
 LEFT JOIN address AS primary_address
