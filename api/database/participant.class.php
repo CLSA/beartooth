@@ -197,8 +197,7 @@ class participant extends \cenozo\database\participant
   public function get_start_qnaire_date()
   {
     $this->load_queue_data();
-    return is_null( $this->start_qnaire_date ) ?
-      NULL : util::get_datetime_object( $this->start_qnaire_date );
+    return $this->start_qnaire_date;
   }
 
   /**
@@ -225,12 +224,14 @@ class participant extends \cenozo\database\participant
       'WHERE participant_id = %s '.
       'ORDER BY queue_id DESC '.
       'LIMIT 1',
-      $database_class_name::format_string( $this->id ) ) );
+      static::db()->format_string( $this->id ) ) );
 
     if( count( $row ) )
     {
       $this->effective_qnaire_id = $row['qnaire_id'];
-      $this->start_qnaire_date = $row['start_qnaire_date'];
+      $this->start_qnaire_date = !$row['start_qnaire_date']
+                               ? NULL
+                               : util::get_datetime_object( $row['start_qnaire_date'] );
     }
 
     $this->queue_data_loaded = true;
@@ -257,15 +258,3 @@ class participant extends \cenozo\database\participant
    */
   private $start_qnaire_date = NULL;
 }
-
-// define the join to the interview table
-$interview_mod = lib::create( 'database\modifier' );
-$interview_mod->join(
-  'participant_last_interview',
-  'participant.id',
-  'participant_last_interview.participant_id' );
-$interview_mod->join(
-  'interview',
-  'participant_last_interview.interview_id',
-  'interview.id' );
-participant::customize_join( 'interview', $interview_mod );
