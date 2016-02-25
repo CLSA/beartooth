@@ -74,7 +74,8 @@ CREATE PROCEDURE patch_role_has_service()
       "WHERE role.name = 'curator' ",
       "AND service.restricted = 1 ",
       "AND service.subject IN ( ",
-        "'consent', 'event', 'language', 'note', 'participant', 'jurisdiction', 'source', 'state' ",
+        "'address', 'consent', 'event', 'language', 'note', ",
+        "'participant', 'phone', 'jurisdiction', 'source', 'state' ",
       ")" );
     PREPARE statement FROM @sql;
     EXECUTE statement;
@@ -105,8 +106,8 @@ CREATE PROCEDURE patch_role_has_service()
       "AND service.id NOT IN ( ",
         "SELECT id FROM service ",
         "WHERE subject IN( ",
-          "'application', 'collection', 'event', 'interview', 'jurisdiction', 'language', ",
-          "'onyx_instance', 'phase', 'qnaire', 'quota', 'jurisdiction', 'script', 'source', 'state' ) ",
+          "'address', 'application', 'collection', 'event', 'interview', 'jurisdiction', 'language', ",
+          "'onyx_instance', 'phase', 'phone', 'qnaire', 'quota', 'jurisdiction', 'script', 'source', 'state' ) ",
         "OR ( subject = 'setting' AND method = 'GET' ) ",
         "OR ( subject = 'site' AND method IN ( 'DELETE', 'POST' ) ) ",
       ")" );
