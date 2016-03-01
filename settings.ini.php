@@ -13,12 +13,10 @@ global $SETTINGS;
 $SETTINGS['general']['application_name'] = 'beartooth';
 $SETTINGS['general']['instance_name'] = $SETTINGS['general']['application_name'];
 $SETTINGS['general']['version'] = '2.0.0';
+$SETTINGS['general']['build'] = 'c126699';
 
 // always leave as false when running as production server
 $SETTINGS['general']['development_mode'] = false;
 
 // the location of beartooth internal path
 $SETTINGS['path']['APPLICATION'] = '/usr/local/lib/beartooth';
-
-// the url of mastodon (set to NULL to disable mastodon support)
-$SETTINGS['url']['MASTODON'] = NULL;
