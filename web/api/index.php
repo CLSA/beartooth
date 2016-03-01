@@ -1,6 +1,6 @@
 <?php
 /**
- * Main web script which drives the application's API
+ * Main web script which drives the application web api
  */
 
 // load web-script common code
