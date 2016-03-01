@@ -16,6 +16,9 @@ CREATE PROCEDURE patch_queue()
   BEGIN
     SELECT "Adding no address queue" AS "";
 
+    SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+    SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+
     SET @test = ( SELECT COUNT(*) FROM queue WHERE name = "no address" );
     IF @test = 0 THEN
       -- increment all queue ids by 1 from the eligible queue onward

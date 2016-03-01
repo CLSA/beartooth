@@ -199,4 +199,4 @@ INSERT INTO service ( subject, method, resource, restricted ) VALUES
 ( 'queue', 'PATCH', 1, 1 ),
 ( 'queue_state', 'DELETE', 1, 1 ),
 ( 'queue_state', 'GET', 0, 1 ),
-( 'queue_state', 'POST', 0, 1 ),
+( 'queue_state', 'POST', 0, 1 );
