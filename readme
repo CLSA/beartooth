@@ -6,7 +6,7 @@ coordinates the collection of questionnaires from participants in person or on s
 Designed for large epidemiology studies, Beartooth provides an interface for the
 management of multiple data-collection sites.
 
-api/
+src/
   This is where the programming interface belongs.
   This includes all packages, classes, functions, settings, etc.
 
