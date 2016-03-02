@@ -15,28 +15,57 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class participant extends \cenozo\database\participant
 {
   /**
+   * Override parent method
+   */
+  public function save()
+  {
+    // if we changed certain columns then update the queue
+    $update_queue = $this->has_column_changed(
+      array( 'active', 'sex', 'age_group_id', 'state_id', 'source_id', 'override_quota' ) );
+    parent::save();
+    if( $update_queue ) $this->repopulate_queue( true );
+  }
+
+  /**
+   * Override parent method
+   */
+  public function set_preferred_site( $db_application, $site = NULL )
+  {
+    parent::set_preferred_site( $db_application, $site );
+    $this->repopulate_queue( true );
+  }
+
+  /**
    * Updates the participant's queue status.
    * 
    * The participant's entries in the queue_has_participant table are all removed and
    * re-determined.  This method should be called if any of the participant's details
    * which affect which queue they belong in change (eg: change to appointments, consent
    * status, state, etc).
-   * WARNING: this operation is db-intensive so it should only be called after all
-   * changes to the participant are complete (never more than once per operation).
    * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param boolean $delayed Whether to wait until the end of execution or to process immediately
    * @access public
    */
-  public function update_queue_status()
+  public function repopulate_queue( $delayed = false )
   {
     // check the primary key value
     if( is_null( $this->id ) )
     {
-      log::warning( 'Tried to update queue status of participant with no id.' );
+      log::warning( 'Tried to update queue status of participant with no primary key.' );
       return NULL;
     }
 
     $queue_class_name = lib::get_class_name( 'database\queue' );
-    $queue_class_name::repopulate( $this );
+    if( $delayed )
+    {
+      $queue_class_name::delayed_repopulate( $this );
+      $queue_class_name::delayed_repopulate_time( $this );
+    }
+    else
+    {
+      $queue_class_name::repopulate( $this );
+      $queue_class_name::repopulate_time( $this );
+    }
   }
 
   /**
@@ -50,7 +79,7 @@ class participant extends \cenozo\database\participant
     // check the primary key value
     if( is_null( $this->id ) )
     {
-      log::warning( 'Tried to query participant with no id.' );
+      log::warning( 'Tried to query participant with no primary key.' );
       return NULL;
     }
 
@@ -76,47 +105,56 @@ class participant extends \cenozo\database\participant
     // check the primary key value
     if( is_null( $this->id ) )
     {
-      log::warning( 'Tried to query participant with no id.' );
+      log::warning( 'Tried to query participant with no primary key.' );
       return NULL;
     }
 
-    $modifier = lib::create( 'database\modifier' );
-    $modifier->where( 'interview.participant_id', '=', $this->id );
-    $modifier->where( 'end_datetime', '=', NULL );
-    $modifier->order_desc( 'start_datetime' );
-    $modifier->limit( 1 );
     $assignment_class_name = lib::get_class_name( 'database\assignment' );
-    $assignment_list = $assignment_class_name::select( $modifier );
 
+    $modifier = lib::create( 'database\modifier' );
+    $modifier->join( 'interview', 'assignment.interview_id', 'interview.id' );
+    $modifier->where( 'interview.participant_id', '=', $this->id );
+    $modifier->where( 'assignment.end_datetime', '=', NULL );
+    $modifier->order_desc( 'assignment.start_datetime' );
+    $assignment_list = $assignment_class_name::select_objects( $modifier );
+
+    if( 1 < count( $assignment_list ) )
+      log::warning( sprintf( 'Participant %d (%s) has more than one open assignment!', $this->id, $this->uid ) );
     return 0 == count( $assignment_list ) ? NULL : current( $assignment_list );
   }
 
   /**
-   * A convenience function to get this participant's next of kin.
-   * This method is necessary since there is a 1 to N relationship between participant and
-   * next_of_kin, however, the next_of_kin.participant_id column is unique.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @return database\next_of_kin
-   * @access public
+   * Extends parent method
    */
-  public function get_next_of_kin()
+  public function __get( $column_name )
   {
-    $next_of_kin_class_name = lib::get_class_name( 'database\next_of_kin' );
-    return $next_of_kin_class_name::get_unique_record( 'participant_id', $this->id );
+    $queue_columns = array(
+      'current_queue_id',
+      'effective_qnaire_id',
+      'start_qnaire_date' );
+
+    if( in_array( $column_name, $queue_columns ) )
+    {
+      $this->load_queue_data();
+      return $this->$column_name;
+    }
+
+    return parent::__get( $column_name );
   }
 
   /**
-   * A convenience function to get this participant's next of kin.
-   * This method is necessary since there is a 1 to N relationship between participant and
-   * data_collection, however, the data_collection.participant_id column is unique.
+   * Returns the participant's current queue.
+   * 
+   * The "current" queue is only set if the participant is in a ranked queue.
    * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @return database\data_collection
+   * @return database\queue
    * @access public
    */
-  public function get_data_collection()
+  public function get_current_queue()
   {
-    $data_collection_class_name = lib::get_class_name( 'database\data_collection' );
-    return $data_collection_class_name::get_unique_record( 'participant_id', $this->id );
+    $this->load_queue_data();
+    return is_null( $this->current_queue_id ) ?
+      NULL : lib::create( 'database\queue', $this->current_queue_id );
   }
 
   /**
@@ -141,23 +179,38 @@ class participant extends \cenozo\database\participant
   /**
    * Returns the participant's effective interview.
    * 
-   * The "effective" qnaire is determined by the queue.
-   * If they have not yet started an interview then the first qnaire is returned.
-   * If they current have an incomplete interview then that interview's qnaire is returned.
-   * If their current interview is complete then the next qnaire is returned, and if there
-   * is no next qnaire then NULL is returned (ie: the participant has completed all qnaires).
+   * The "effective" interview is determined by the queue.
+   * If they have not yet started an interview then a new interview is created or the first qnaire and returned.
+   * If they have an incomplete interview then that interviews is returned.
+   * If their current interview is complete then a new interview is created for the next qnaire and returned,
+   * and if there is no next qnaire then NULL is returned (ie: the participant has completed all interviews).
    * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param boolean $save If a new interview is created this determines whether to immediately write it to the db
    * @return database\qnaire
    * @access public
    */
-  public function get_effective_interview()
+  public function get_effective_interview( $save = true )
   {
     $interview_class_name = lib::get_class_name( 'database\interview' );
     $this->load_queue_data();
-    return is_null( $this->effective_qnaire_id ) ?
-      NULL : $interview_class_name::get_unique_record(
+
+    $db_interview = NULL;
+    if( !is_null( $this->effective_qnaire_id ) )
+    {
+      $db_interview = $interview_class_name::get_unique_record(
         array( 'participant_id', 'qnaire_id' ),
         array( $this->id, $this->effective_qnaire_id ) );
+
+      if( is_null( $db_interview ) )
+      { // create the interview if it isn't found
+        $db_interview = lib::create( 'database\interview' );
+        $db_interview->participant_id = $this->id;
+        $db_interview->qnaire_id = $this->effective_qnaire_id;
+        if( $save ) $db_interview->save();
+      }
+    }
+
+    return $db_interview;
   }
 
   /**
@@ -201,7 +254,7 @@ class participant extends \cenozo\database\participant
   }
 
   /**
-   * Fills in the effective qnaire id and start qnaire date
+   * Fills in the queue-based information about the participant
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @access private
    */
@@ -212,22 +265,27 @@ class participant extends \cenozo\database\participant
     // check the primary key value
     if( is_null( $this->id ) )
     {
-      log::warning( 'Tried to query participant with no id.' );
+      log::warning( 'Tried to query participant with no primary key.' );
       return NULL;
     }
 
     $database_class_name = lib::get_class_name( 'database\database' );
 
     // the qnaire date is cached in the queue_has_participant joining table
-    $row = static::db()->get_row( sprintf(
-      'SELECT * FROM queue_has_participant '.
-      'WHERE participant_id = %s '.
-      'ORDER BY queue_id DESC '.
-      'LIMIT 1',
-      static::db()->format_string( $this->id ) ) );
+    $select = lib::create( 'database\select' );
+    $select->from( 'queue_has_participant' );
+    $select->add_column( '*' );
+    $modifier = lib::create( 'database\modifier' );
+    $modifier->join( 'queue', 'queue_has_participant.queue_id', 'queue.id' );
+    $modifier->where( 'participant_id', '=', $this->id );
+    $modifier->where( 'queue.rank', '!=', NULL );
+    $modifier->order( 'queue.rank' );
+    $modifier->limit( 1 );
+    $row = static::db()->get_row( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) );
 
     if( count( $row ) )
     {
+      $this->current_queue_id = $row['queue_id'];
       $this->effective_qnaire_id = $row['qnaire_id'];
       $this->start_qnaire_date = !$row['start_qnaire_date']
                                ? NULL
@@ -245,7 +303,14 @@ class participant extends \cenozo\database\participant
   private $queue_data_loaded = false;
 
   /**
-   * The participant's effective questionnaire id (from a custom query)
+   * The participant's current queue id (from a custom query)
+   * @var int
+   * @access private
+   */
+  private $current_queue_id = NULL;
+
+  /**
+   * The participant's current questionnaire id (from a custom query)
    * @var int
    * @access private
    */
@@ -253,7 +318,7 @@ class participant extends \cenozo\database\participant
 
   /**
    * The date that the current questionnaire is to begin (from a custom query)
-   * @var int
+   * @var string
    * @access private
    */
   private $start_qnaire_date = NULL;

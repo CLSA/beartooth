@@ -6,7 +6,7 @@
  * @filesource
  */
 
-namespace sabretooth;
+namespace beartooth;
 
 /**
  * util: utility class of static methods

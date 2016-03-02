@@ -32,7 +32,6 @@ SOURCE operation.sql
 SOURCE setting_value.sql
 SOURCE setting.sql
 SOURCE system_message.sql
-SOURCE shift_template.sql
 SOURCE user.sql
 
 SOURCE table_character_sets.sql
