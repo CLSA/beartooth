@@ -90,10 +90,14 @@ class ui extends \cenozo\ui\ui
     }
     if( !$db_role->all_sites || 'helpline' == $db_role->name )
     {
-      $list['Appointment Calendar'] = array(
+      $list['Home Appointment Calendar'] = array(
         'subject' => 'appointment',
         'action' => 'calendar',
-        'identifier' => sprintf( 'name=%s', $db_site->name ) );
+        'identifier' => sprintf( 'name=%s;type=home', $db_site->name ) );
+      $list['Site Appointment Calendar'] = array(
+        'subject' => 'appointment',
+        'action' => 'calendar',
+        'identifier' => sprintf( 'name=%s;type=site', $db_site->name ) );
     }
 
     return $list;

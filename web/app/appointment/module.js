@@ -118,36 +118,44 @@ define( function() {
     }
   } );
 
-  // add an extra operation for each of the appointment-based calendars the user has access to
-  [ 'appointment' ].forEach( function( name ) {
-    var calendarModule = cenozoApp.module( name );
-    if( -1 < calendarModule.actions.indexOf( 'calendar' ) ) {
-      module.addExtraOperation(
-        'calendar',
-        calendarModule.subject.snake.replace( "_", " " ).ucWords(),
-        function( $state, model ) { $state.go( name + '.calendar', { identifier: model.site.getIdentifier() } ); },
-        'appointment' == name ? 'btn-warning' : undefined // highlight current model
-      );
-    }
+  // add an extra operation for home and site appointment types
+  module.addExtraOperation( 'calendar', {
+    id: 'home-appointment-button',
+    title: 'Home Appointment',
+    operation: function( $state, model ) {
+      $state.go( 'appointment.calendar', { identifier: model.site.getIdentifier() + ';type=home' } );
+    },
+    classes: 'home-appointment-button'
   } );
 
-  module.addExtraOperation(
-    'view',
-    'Appointment Calendar',
-    function( $state ) { $state.go( 'appointment.calendar' ); }
-  );
+  module.addExtraOperation( 'calendar', {
+    id: 'site-appointment-button',
+    title: 'Site Appointment',
+    operation: function( $state, model ) {
+      $state.go( 'appointment.calendar', { identifier: model.site.getIdentifier() + ';type=site' } );
+    },
+    classes: 'site-appointment-button'
+  } );
+
+  module.addExtraOperation( 'view', {
+    title: 'Appointment Calendar',
+    operation: function( $state, model ) {
+      $state.go( 'appointment.calendar', { identifier: model.site.getIdentifier() + ';type=' + model.type } );
+    }
+  } );
 
   // converts appointments into events
   function getEventFromAppointment( appointment, timezone, duration ) {
     if( angular.isDefined( appointment.start ) && angular.isDefined( appointment.end ) ) {
       return appointment;
     } else {
+      var offset = moment.tz.zone( timezone ).offset( moment( appointment.datetime ).unix() );
       var event = {
         getIdentifier: function() { return appointment.getIdentifier() },
         title: ( angular.isDefined( appointment.uid ) ? appointment.uid : 'new appointment' ) +
                ( angular.isDefined( appointment.qnaire_rank ) ? ' (' + appointment.qnaire_rank + ')' : '' ),
-        start: moment( appointment.datetime ).tz( timezone ),
-        end: moment( appointment.datetime ).tz( timezone ).add( duration, 'minute' )
+        start: moment( appointment.datetime ).subtract( offset, 'minutes' ),
+        end: moment( appointment.datetime ).subtract( offset, 'minutes' ).add( duration, 'minute' )
       };
       if( appointment.override ) {
         event.override = true;
@@ -174,8 +182,8 @@ define( function() {
 
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentCalendar', [
-    'CnAppointmentModelFactory', 'CnSession',
-    function( CnAppointmentModelFactory, CnSession ) {
+    'CnAppointmentModelFactory', 'CnSession', '$timeout',
+    function( CnAppointmentModelFactory, CnSession, $timeout ) {
       return {
         templateUrl: module.getFileUrl( 'calendar.tpl.html' ),
         restrict: 'E',
@@ -187,29 +195,36 @@ define( function() {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
           $scope.heading = $scope.model.site.name.ucWords() + ' Appointment Calendar';
         },
-        link: function( scope ) {
-          // factory name -> object map used below
-          var factoryList = {
-            appointment: CnAppointmentModelFactory
-          };
+        link: function( scope, element ) {
+          // add the calendar type to the heading
+          scope.heading = scope.heading.replace(
+            'Appointment', '- ' + scope.model.type.ucWords() + ' Appointment' );
 
           // synchronize appointment-based calendars
+          var homeCalendarModel =
+            CnAppointmentModelFactory.forSite( scope.model.site, 'home' ).calendarModel;
+          var siteCalendarModel =
+            CnAppointmentModelFactory.forSite( scope.model.site, 'site' ).calendarModel;
+
           scope.$watch( 'model.calendarModel.currentDate', function( date ) {
-            Object.keys( factoryList ).filter( function( name ) {
-              return -1 < cenozoApp.moduleList[name].actions.indexOf( 'calendar' );
-            } ).forEach( function( name ) {
-               var calendarModel = factoryList[name].forSite( scope.model.site ).calendarModel;
-               if( !calendarModel.currentDate.isSame( date, 'day' ) ) calendarModel.currentDate = date;
-            } );
+            if( !homeCalendarModel.currentDate.isSame( date, 'day' ) ) homeCalendarModel.currentDate = date;
+            if( !siteCalendarModel.currentDate.isSame( date, 'day' ) ) siteCalendarModel.currentDate = date;
           } );
           scope.$watch( 'model.calendarModel.currentView', function( view ) {
-            Object.keys( factoryList ).filter( function( name ) {
-              return -1 < cenozoApp.moduleList[name].actions.indexOf( 'calendar' );
-            } ).forEach( function( name ) {
-               var calendarModel = factoryList[name].forSite( scope.model.site ).calendarModel;
-               if( calendarModel.currentView != view ) calendarModel.currentView = view;
-            } );
+            if( homeCalendarModel.currentView != view ) homeCalendarModel.currentView = view;
+            if( siteCalendarModel.currentView != view ) siteCalendarModel.currentView = view;
           } );
+
+          // highlight the calendar button that we're currently viewing
+          $timeout( function() {
+            var homeButton = element.find( '#home-appointment-button' );
+            homeButton.addClass( 'home' == scope.model.type ? 'btn-warning' : 'btn-default' );
+            homeButton.removeClass( 'home' == scope.model.type ? 'btn-default' : 'btn-warning' );
+
+            var siteButton = element.find( '#site-appointment-button' );
+            siteButton.addClass( 'site' == scope.model.type ? 'btn-warning' : 'btn-default' );
+            siteButton.removeClass( 'site' == scope.model.type ? 'btn-default' : 'btn-warning' );
+          }, 200 );
         }
       };
     }
@@ -279,6 +294,9 @@ define( function() {
       var object = function( parentModel ) {
         var self = this;
         CnBaseCalendarFactory.construct( this, parentModel );
+
+        // remove day click callback
+        delete this.settings.dayClick;
 
         // extend onCalendar to transform templates into events
         this.onCalendar = function( replace, minDate, maxDate, ignoreParent ) {
@@ -377,9 +395,11 @@ define( function() {
               CnAppointmentAddFactory, CnAppointmentCalendarFactory,
               CnAppointmentListFactory, CnAppointmentViewFactory,
               CnSession, CnHttpFactory, $q, $state ) {
-      var object = function( site ) {
+      var object = function( site, type ) {
         if( !angular.isObject( site ) || angular.isUndefined( site.id ) )
           throw new Error( 'Tried to create CnAppointmentModel without specifying the site.' );
+        if( !angular.isString( type ) || 0 == type.length )
+          throw new Error( 'Tried to create CnAppointmentModel without specifying the type.' );
 
         var self = this;
 
@@ -392,11 +412,15 @@ define( function() {
         this.listModel = CnAppointmentListFactory.instance( this );
         this.viewModel = CnAppointmentViewFactory.instance( this, site.id == CnSession.site.id );
         this.site = site;
+        this.type = type;
 
         // customize service data
         this.getServiceData = function( type, columnRestrictLists ) {
           var data = this.$$getServiceData( type, columnRestrictLists );
-          if( 'calendar' == type ) data.restricted_site_id = self.site.id;
+          if( 'calendar' == type ) {
+            data.restricted_site_id = self.site.id;
+            data.type = self.type;
+          }
           return data;
         };
 
@@ -413,35 +437,21 @@ define( function() {
                 data: { select: { column: { column: 'participant_id' } } }
               } ).query().then( function( response ) {
                 // get the participant's effective site and list of phone numbers
-                return $q.all( [
-                  CnHttpFactory.instance( {
-                    path: ['participant', response.data.participant_id ].join( '/' ),
-                    data: { select: { column: [
-                      { table: 'site', column: 'id', alias: 'site_id' },
-                      { table: 'site', column: 'name' },
-                      { table: 'site', column: 'timezone' }
-                    ] } }
-                  } ).get().then( function( response ) {
-                    self.metadata.participantSite =
-                      CnSession.siteList.findByProperty( 'id', response.data.site_id );
-                  } ),
-
-                  CnHttpFactory.instance( {
-                    path: ['participant', response.data.participant_id, 'phone' ].join( '/' ),
-                    data: {
-                      select: { column: [ 'id', 'rank', 'type', 'number' ] },
-                      modifier: { order: { rank: false } }
-                    }
-                  } ).query().then( function( response ) {
-                    self.metadata.columnList.phone_id.enumList = [];
-                    response.data.forEach( function( item ) {
-                      self.metadata.columnList.phone_id.enumList.push( {
-                        value: item.id,
-                        name: '(' + item.rank + ') ' + item.type + ': ' + item.number
-                      } );
+                return CnHttpFactory.instance( {
+                  path: ['participant', response.data.participant_id, 'phone' ].join( '/' ),
+                  data: {
+                    select: { column: [ 'id', 'rank', 'type', 'number' ] },
+                    modifier: { order: { rank: false } }
+                  }
+                } ).query().then( function( response ) {
+                  self.metadata.columnList.phone_id.enumList = [];
+                  response.data.forEach( function( item ) {
+                    self.metadata.columnList.phone_id.enumList.push( {
+                      value: item.id,
+                      name: '(' + item.rank + ') ' + item.type + ': ' + item.number
                     } );
-                  } )
-                ] );
+                  } );
+                } );
               } )
             );
           }
@@ -452,27 +462,38 @@ define( function() {
 
       return {
         siteInstanceList: {},
-        forSite: function( site ) {
+        forSite: function( site, type ) {
           if( !angular.isObject( site ) ) {
             $state.go( 'error.404' );
             throw new Error( 'Cannot find site matching identifier "' + site + '", redirecting to 404.' );
           }
-          if( angular.isUndefined( this.siteInstanceList[site.id] ) )
-            this.siteInstanceList[site.id] = new object( site );
-          return this.siteInstanceList[site.id];
+          if( angular.isUndefined( this.siteInstanceList[site.id] ) ) this.siteInstanceList[site.id] = {};
+          if( angular.isUndefined( this.siteInstanceList[site.id][type] ) )
+            this.siteInstanceList[site.id][type] = new object( site, type );
+          return this.siteInstanceList[site.id][type];
         },
         instance: function() {
           var site = null;
+          var type = null;
           if( 'calendar' == $state.current.name.split( '.' )[1] ) {
-            var parts = $state.params.identifier.split( '=' );
-            if( 1 == parts.length && parseInt( parts[0] ) == parts[0] ) // int identifier
-              site = CnSession.siteList.findByProperty( 'id', parseInt( parts[0] ) );
-            else if( 2 == parts.length ) // key=val identifier
-              site = CnSession.siteList.findByProperty( parts[0], parts[1] );
+            $state.params.identifier.split( ';' ).forEach( function( identifier ) {
+              var parts = identifier.split( '=' );
+              if( 1 == parts.length && parseInt( parts[0] ) == parts[0] ) {
+                // int site identifier
+                site = CnSession.siteList.findByProperty( 'id', parseInt( parts[0] ) );
+              } else if( 2 == parts.length ) {
+                // key=val identifier
+                if( 'name' == parts[0] ) {
+                  site = CnSession.siteList.findByProperty( parts[0], parts[1] );
+                } else if( 'type' == parts[0] ) {
+                  type = parts[1];
+                }
+              }
+            } );
           } else {
             site = CnSession.site;
           }
-          return this.forSite( site );
+          return this.forSite( site, type );
         }
       };
     }

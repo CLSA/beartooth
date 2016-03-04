@@ -189,5 +189,9 @@ class module extends \cenozo\service\base_calendar_module
 
       $select->add_column( $sql, 'state', false );
     }
+
+    // restrict by type
+    $type = $this->get_argument( 'type', NULL );
+    if( !is_null( $type ) ) $modifier->where( 'qnaire.type', '=', $type );
   }
 }
