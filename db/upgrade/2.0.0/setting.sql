@@ -62,17 +62,28 @@ DROP PROCEDURE IF EXISTS patch_setting;
       WHERE old_setting_value.category = "voip"
       AND old_setting_value.name = "survey without sip";
 
-      UPDATE setting JOIN old_setting_value USING( site_id )
-      SET calling_start_time = value
-      WHERE old_setting_value.category = "calling"
-      AND old_setting_value.name = "start time";
+      -- start time needs to be converted to UTC
+      SET @sql = CONCAT(
+        "UPDATE setting JOIN old_setting_value USING( site_id ) ",
+        "JOIN ", @cenozo, ".site ON old_setting_value.site_id = site.id ",
+        "SET calling_start_time = TIME( CONVERT_TZ( CONCAT( '2000-01-01 ', value ), site.timezone, 'UTC' ) ) ",
+        "WHERE old_setting_value.category = 'calling' ",
+        "AND old_setting_value.name = 'start time'" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
 
-      UPDATE setting JOIN old_setting_value USING( site_id )
-      SET calling_end_time = value
-      WHERE old_setting_value.category = "calling"
-      AND old_setting_value.name = "end time";
+      -- start time needs to be converted to UTC
+      SET @sql = CONCAT(
+        "UPDATE setting JOIN old_setting_value USING( site_id ) ",
+        "JOIN ", @cenozo, ".site ON old_setting_value.site_id = site.id ",
+        "SET calling_end_time = TIME( CONVERT_TZ( CONCAT( '2000-01-01 ', value ), site.timezone, 'UTC' ) ) ",
+        "WHERE old_setting_value.category = 'calling' ",
+        "AND old_setting_value.name = 'end time'" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
 
-      UPDATE setting JOIN old_setting_value USING( site_id )
       SET appointment_update_span = value
       WHERE old_setting_value.category = "appointment"
       AND old_setting_value.name = "update span";
