@@ -27,11 +27,11 @@ define( function() {
       },
       calling_start_time: {
         title: 'Start Call',
-        type: 'time'
+        type: 'time_notz'
       },
       calling_end_time: {
         title: 'End Call',
-        type: 'time'
+        type: 'time_notz'
       },
       short_appointment: {
         title: 'Short Ap.',
@@ -70,12 +70,12 @@ define( function() {
     },
     calling_start_time: {
       title: 'Earliest Call Time',
-      type: 'time',
+      type: 'time_notz',
       help: 'The earliest time to assign participants (in their local time)'
     },
     calling_end_time: {
       title: 'Latest Call Time',
-      type: 'time',
+      type: 'time_notz',
       help: 'The latest time to assign participants (in their local time)'
     },
     short_appointment: {
