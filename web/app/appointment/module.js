@@ -31,19 +31,19 @@ define( function() {
         type: 'string',
         title: 'Reserved For'
       },
-      assignment_user: {
-        column: 'assignment_user.name',
+      address: {
+        column: 'address.rank',
         type: 'string',
-        title: 'Assigned to'
+        title: 'Address (TODO)'
       },
-      type: {
-        type: 'string',
-        title: 'Type'
+      appointment_type_id: {
+        type: 'enum',
+        title: 'Special Type'
       },
       state: {
         type: 'string',
         title: 'State',
-        help: 'One of reached, not reached, upcoming, assignable, missed, incomplete, assigned or in progress'
+        help: 'One of completed, upcoming or passed'
       }
     },
     defaultOrder: {
@@ -58,11 +58,6 @@ define( function() {
       type: 'datetime',
       min: 'now',
       help: 'Cannot be changed once the appointment has passed.'
-    },
-    override: {
-      title: 'Override Calendar',
-      type: 'boolean',
-      help: 'Whether to ignore if an operator is available for the appointment'
     },
     participant: {
       column: 'participant.uid',
@@ -95,15 +90,6 @@ define( function() {
       },
       help: 'The user the appointment is specifically reserved for. ' +
             'Cannot be changed once the appointment has passed.'
-    },
-    assignment_user: {
-      column: 'assignment_user.name',
-      title: 'Assigned to',
-      type: 'string',
-      exclude: 'add',
-      constant: true,
-      help: 'This will remain blank until the appointment has been assigned. The assigned user can only be ' +
-            ' different from the reserved user when the appointment was missed.'
     },
     state: {
       title: 'State',
@@ -149,7 +135,14 @@ define( function() {
     if( angular.isDefined( appointment.start ) && angular.isDefined( appointment.end ) ) {
       return appointment;
     } else {
-      var offset = moment.tz.zone( timezone ).offset( moment( appointment.datetime ).unix() );
+      var date = moment( appointment.datetime );
+      var offset = moment.tz.zone( timezone ).offset( date.unix() );
+
+      // adjust to/from daylight saving time
+      var isNowDST = moment().tz( timezone ).isDST();
+      var isDST = date.tz( timezone ).isDST();
+      if( isNowDST != isDST ) offset += ( isNowDST ? 1 : -1 ) * 60;
+      
       var event = {
         getIdentifier: function() { return appointment.getIdentifier() },
         title: ( angular.isDefined( appointment.uid ) ? appointment.uid : 'new appointment' ) +
@@ -157,10 +150,6 @@ define( function() {
         start: moment( appointment.datetime ).subtract( offset, 'minutes' ),
         end: moment( appointment.datetime ).subtract( offset, 'minutes' ).add( duration, 'minute' )
       };
-      if( appointment.override ) {
-        event.override = true;
-        event.color = 'green';
-      }
       return event;
     }
   }
@@ -402,9 +391,6 @@ define( function() {
           throw new Error( 'Tried to create CnAppointmentModel without specifying the type.' );
 
         var self = this;
-
-        // before constructing the model set whether the override input is constant
-        if( 2 > CnSession.role.tier ) module.inputGroupList[null].override.constant = true;
 
         CnBaseModelFactory.construct( this, module );
         this.addModel = CnAppointmentAddFactory.instance( this );

@@ -21,27 +21,39 @@ class appointment extends \cenozo\database\record
    */
   public function save()
   {
-    // make sure there is a maximum of 1 future appointment per interview
-    if( !$this->completed )
+    $callback_class_name = lib::get_class_name( 'database\callback' );
+
+    // make sure there is a maximum of 1 unassigned appointment or callback per interview
+    if( is_null( $this->id ) && is_null( $this->assignment_id ) )
     {
-      $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'interview_id', '=', $this->interview_id );
-      $modifier->where( 'datetime', '>', 'UTC_DATETIME()', false );
-      if( !is_null( $this->id ) ) $modifier->where( 'id', '!=', $this->id );
-      $appointment_list = static::select( $modifier );
-      if( 0 < count( $appointment_list ) )
-      {
-        $db_appointment = current( $appointment_list );
+      $appointment_mod = lib::create( 'database\modifier' );
+      $appointment_mod->where( 'interview_id', '=', $this->interview_id );
+      $appointment_mod->where( 'datetime', '>', 'UTC_DATETIME()', false );
+      if( !is_null( $this->id ) ) $appointment_mod->where( 'id', '!=', $this->id );
+
+      $callback_mod = lib::create( 'database\modifier' );
+      $callback_mod->where( 'interview_id', '=', $this->interview_id );
+      $callback_mod->where( 'assignment_id', '=', NULL );
+
+      if( 0 < static::count( $appointment_mod ) || 0 < $callback_class_name::count( $callback_mod ) )
         throw lib::create( 'exception\notice',
-          sprintf( 'Unable to add the appointment since the participant already has an upcomming '.
-                   '%s appointment scheduled for %s.',
-                   $db_appointment->get_interview()->get_qnaire()->type,
-                   $db_appointment->datetime->format( 'g:i A, T' ) ),
-          __METHOD__ );
-      }
+          'Cannot have more than one unassigned appointment or callback per interview.', __METHOD__ );
     }
 
+    // if we changed certain columns then update the queue
+    $update_queue = $this->has_column_changed( array( 'assignment_id', 'datetime' ) );
     parent::save();
+    if( $update_queue ) $this->get_interview()->get_participant()->repopulate_queue( true );
+  }
+
+  /**
+   * Override the parent method
+   */
+  public function delete()
+  {
+    $db_participant = $this->get_interview()->get_participant();
+    parent::delete();
+    $db_participant->repopulate_queue( true );
   }
   
   /**

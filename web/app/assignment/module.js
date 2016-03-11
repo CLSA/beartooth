@@ -213,7 +213,6 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
         this.participantModel.listModel.orderBy( 'rank', true );
 
         // override model functions
-        // TODO: override getServiceData instead of getServiceCollectionPath
         this.participantModel.getServiceCollectionPath = function() { return 'participant?assignment=true'; }
 
         // override the onChoose function
@@ -481,19 +480,38 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
         };
 
         this.startCall = function( phone ) {
-          if( CnSession.voip_enabled && !phone.international ) {
-            // TODO VOIP: start call
+          function postCall() {
+            CnHttpFactory.instance( {
+              path: 'phone_call?operation=open',
+              data: { phone_id: phone.id }
+            } ).post().then( function() { self.onLoad( false ); } );
           }
 
-          CnHttpFactory.instance( {
-            path: 'phone_call?operation=open',
-            data: { phone_id: phone.id }
-          } ).post().then( function() { self.onLoad( false ); } );
+          if( CnSession.voip.enabled && !phone.international ) {
+            CnHttpFactory.instance( {
+              path: 'voip',
+              data: { action: 'call', phone_id: phone.id }
+            } ).post().then( function( response ) {
+              if( 201 == response.status ) {
+                console.log( 'voip_call', response.data );
+                // postCall();
+              } else {
+                CnModalMessageFactory.instance( {
+                  title: 'Webphone Error',
+                  message: 'The webphone was unable to place your call, please try again. ' +
+                           'If this problem persists then please contact support.',
+                  error: true
+                } ).show();
+              }
+            } );
+          } else { postCall(); }
         };
 
         this.endCall = function( status ) {
-          if( CnSession.voip_enabled && !phone.international ) {
-            // TODO VOIP: end call
+          if( CnSession.voip.enabled && !phone.international ) {
+            CnHttpFactory.instance( {
+              path: 'voip/0'
+            } ).delete();
           }
 
           CnHttpFactory.instance( {

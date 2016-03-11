@@ -73,12 +73,6 @@ class module extends \cenozo\service\base_calendar_module
         $this->set_data( 'Appointments cannot be changed after they have passed.' );
         $this->get_status()->set_code( 406 );
       }
-      // don't allow tier-1 roles to override appointments
-      else if( $db_appointment->override && 1 > lib::create( 'business\session' )->get_role()->tier )
-      {
-        $this->set_data( 'Your role does not allow appointments to be overridden.' );
-        $this->get_status()->set_code( 406 );
-      }
       else
       {
         // validate if we are changing the datetime
@@ -133,12 +127,6 @@ class module extends \cenozo\service\base_calendar_module
     if( $select->has_table_columns( 'script' ) )
       $modifier->join( 'script', 'qnaire.script_id', 'script.id' );
 
-    if( $select->has_table_columns( 'assignment_user' ) )
-    {
-      $modifier->left_join( 'assignment', 'appointment.assignment_id', 'assignment.id' );
-      $modifier->left_join( 'user', 'assignment.user_id', 'assignment_user.id', 'assignment_user' );
-    }
-
     if( $select->has_table_column( 'phone', 'name' ) )
     {
       $modifier->left_join( 'phone', 'appointment.phone_id', 'phone.id' );
@@ -159,32 +147,9 @@ class module extends \cenozo\service\base_calendar_module
 
       // specialized sql used to determine the appointment's current state
       $sql =
-        'IF( reached IS NOT NULL, '.
-            // the appointment has been fulfilled
-            'IF( reached, "reached", "not reached" ), '.
-            // the appointment hasn't yet been fulfilled
-            'IF( appointment.assignment_id IS NOT NULL, '.
-                // the appointment has been assigned
-                'IF( assignment.end_datetime IS NULL, '.
-                    // the assignment is finished (the appointment should be fulfilled, this is an error)
-                    '"incomplete", '.
-                    // the assignment is in progress (either in phone call or not)
-                    'IF( phone_call.id IS NOT NULL, "in progress", "assigned" ) '.
-                '), '.
-                // the appointment hasn't been assigned
-                'IF( UTC_TIMESTAMP() < '.
-                    'appointment.datetime - INTERVAL IFNULL( pre_call_window, 0 ) MINUTE, '.
-                    // the appointment is in the pre-appointment time
-                    '"upcoming", '.
-                    'IF( UTC_TIMESTAMP() < '.
-                        'appointment.datetime + INTERVAL IFNULL( post_call_window, 0 ) MINUTE, '.
-                        // the appointment is in the post-appointment time
-                        '"assignable", '.
-                        // the appointment is after the post-appointment time
-                        '"missed" '.
-                    ') '.
-                ') '.
-            ') '.
+        'IF( appointment.completed, '.
+          '"completed", '.
+          'IF( UTC_TIMESTAMP() < appointment.datetime, "upcoming", "passed" ) '.
         ')';
 
       $select->add_column( $sql, 'state', false );

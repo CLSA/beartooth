@@ -372,39 +372,6 @@ class queue extends \cenozo\database\record
 
         static::db()->execute( sprintf( '%s %s', $base_sql, $modifier->get_sql() ) );
       }
-      // populate appointment upcomming/assignable/missed queues
-      else if( ' appointment' == substr( $db_queue->name, -12 ) )
-      {
-        $modifier->left_join( 'setting', 'queue_has_participant.site_id', 'setting.site_id' );
-
-        $join_mod = lib::create( 'database\modifier' );
-        $join_mod->where( 'queue_has_participant.participant_id', '=', 'interview.participant_id', false );
-        $join_mod->where( 'queue_has_participant.qnaire_id', '=', 'interview.qnaire_id', false );
-        $modifier->join_modifier( 'interview', $join_mod );
-
-        $join_mod = lib::create( 'database\modifier' );
-        $join_mod->where( 'interview.id', '=', 'appointment.interview_id', false );
-        $join_mod->where( 'appointment.assignment_id', '=', NULL );
-        $modifier->join_modifier( 'appointment', $join_mod );
-
-        $pre_call = 'appointment.datetime - INTERVAL IFNULL( pre_call_window, 0 ) MINUTE';
-        $post_call = 'appointment.datetime + INTERVAL IFNULL( post_call_window, 0 ) MINUTE';
-        if( 'upcoming appointment' == $db_queue->name )
-        {
-          $modifier->where( 'UTC_TIMESTAMP()', '<', $pre_call, false );
-        }
-        else if( 'assignable appointment' == $db_queue->name )
-        {
-          $modifier->where( 'UTC_TIMESTAMP()', '>=', $pre_call, false );
-          $modifier->where( 'UTC_TIMESTAMP()', '<=', $post_call, false );
-        }
-        else if( 'missed appointment' == $db_queue->name )
-        {
-          $modifier->where( 'UTC_TIMESTAMP()', '>', $post_call, false );
-        }
-
-        static::db()->execute( sprintf( '%s %s', $base_sql, $modifier->get_sql() ) );
-      }
       // populate callback upcoming/assignable queues
       else if( ' callback' == substr( $db_queue->name, -9 ) )
       {
@@ -471,20 +438,6 @@ class queue extends \cenozo\database\record
       '(Queue) Total repopulate_time() time%s: %0.2f',
       is_null( $db_participant ) ? '' : ' for '.$db_participant->uid,
       util::get_elapsed_time() - $total_time ) );
-  }
-
-  /**
-   * Get whether this queue is related to an appointment
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @return boolean
-   * @access public
-   */
-  public function from_appointment()
-  {
-    return in_array( $this->name, array( 'appointment',
-                                         'upcoming appointment',
-                                         'assignable appointment',
-                                         'missed appointment' ) );
   }
 
   /**
