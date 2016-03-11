@@ -68,7 +68,7 @@ DROP PROCEDURE IF EXISTS patch_setting;
       AND name = 'start time';
 
       UPDATE setting JOIN old_setting_value USING( site_id )
-      SET calling_end_time = value;
+      SET calling_end_time = value
       WHERE category = 'calling'
       AND name = 'end time';
 

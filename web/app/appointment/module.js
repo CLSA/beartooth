@@ -477,6 +477,7 @@ define( function() {
             } );
           } else {
             site = CnSession.site;
+            type = 'site';
           }
           return this.forSite( site, type );
         }

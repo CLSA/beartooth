@@ -33,20 +33,20 @@ define( function() {
         title: 'End Call',
         type: 'time_notz'
       },
-      short_appointment: {
-        title: 'Short Ap.',
+      appointment_update_span: {
+        title: 'Update Span',
         type: 'number'
       },
-      long_appointment: {
-        title: 'Long Ap.',
+      appointment_home_duration: {
+        title: 'Home Ap.',
+        type: 'number'
+      },
+      appointment_site_duration: {
+        title: 'Site Ap.',
         type: 'number'
       },
       pre_call_window: {
         title: 'Pre-Call',
-        type: 'number'
-      },
-      post_call_window: {
-        title: 'Post-Call',
         type: 'number'
       }
     },
@@ -78,19 +78,26 @@ define( function() {
       type: 'time_notz',
       help: 'The latest time to assign participants (in their local time)'
     },
-    short_appointment: {
-      title: 'Short Appointment Length',
+    appointment_update_span: {
+      title: 'Appointment Update Span',
       type: 'string',
       format: 'integer',
       minValue: 0,
-      help: 'The length of time, in minutes, of a short appointment'
+      help: 'How many days into the future to include appointments when fetching the appointment list'
     },
-    long_appointment: {
-      title: 'Long Appointment Length',
+    appointment_home_duration: {
+      title: 'Home Appointment Duration',
       type: 'string',
       format: 'integer',
       minValue: 0,
-      help: 'The length of time, in minutes, of a long appointment'
+      help: 'The length of time, in minutes, that a home appointment is estimated to take'
+    },
+    appointment_site_duration: {
+      title: 'Site Appointment Duration',
+      type: 'string',
+      format: 'integer',
+      minValue: 0,
+      help: 'The length of time, in minutes, that a site appointment is estimated to take'
     },
     pre_call_window: {
       title: 'Pre-Appointment Window',
@@ -98,14 +105,10 @@ define( function() {
       format: 'integer',
       minValue: 0,
       help: 'How many minutes before an appointment or callback that a participant can be assigned'
-    },
-    post_call_window: {
-      title: 'Post-Appointment Window',
-      type: 'string',
-      format: 'integer',
-      minValue: 0,
-      help: 'How many minutes after an appointment before it is considered missed'
-    },
+    }
+  } );
+
+  module.addInputGroup( 'Last Call Wait Times', {
     contacted_wait: {
       title: 'Contacted Wait',
       type: 'string',
