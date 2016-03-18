@@ -10,6 +10,8 @@ DROP PROCEDURE IF EXISTS patch_queue_has_participant;
       WHERE constraint_schema = DATABASE()
       AND constraint_name = "fk_access_site_id" );
 
+    TRUNCATE queue_has_participant;
+
     SELECT "Reparing nullable timestamp columns in queue_has_participant" AS "";
 
     SET @test = (
@@ -27,7 +29,7 @@ DROP PROCEDURE IF EXISTS patch_queue_has_participant;
       MODIFY COLUMN create_timestamp timestamp NOT NULL;
     END IF;
 
-    SELECT "Modifiying constraint delete rules in queue_has_participant table" AS "";
+    SELECT "Modifying constraint delete rules in queue_has_participant table" AS "";
 
     SET @test = (
       SELECT DELETE_RULE

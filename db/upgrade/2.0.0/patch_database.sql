@@ -2,6 +2,7 @@
 
 SET AUTOCOMMIT=0;
 
+SOURCE access.sql;
 SOURCE interview.sql
 SOURCE participant_last_interview.sql
 SOURCE update_participant_last_interview.sql
@@ -11,7 +12,6 @@ SOURCE assignment_last_phone_call.sql
 SOURCE update_assignment_last_phone_call.sql
 SOURCE participant_last_appointment.sql
 
-SOURCE access.sql;
 SOURCE event_type.sql
 SOURCE qnaire.sql
 SOURCE qnaire_has_event_type.sql

@@ -168,31 +168,51 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
       ALTER TABLE qnaire DROP COLUMN default_interview_method_id;
     END IF;
 
+    SELECT "Dropping completed_event_type_id column from qnaire table" AS "";
+
     SET @test = (
       SELECT COUNT(*)
       FROM information_schema.COLUMNS
       WHERE TABLE_SCHEMA = DATABASE()
       AND TABLE_NAME = "qnaire"
-      AND COLUMN_NAME = "script_id" );
-    IF @test = 0 THEN
-      SELECT "Adding new constraint to script table in qnaire table" AS "";
+      AND COLUMN_NAME = "completed_event_type_id" );
+    IF @test = 1 THEN
+      ALTER TABLE qnaire DROP FOREIGN KEY fk_qnaire_completed_event_type_id;
 
-      ALTER TABLE qnaire
-      ADD COLUMN script_id INT UNSIGNED NOT NULL
-      AFTER rank;
+      SET @sql = CONCAT(
+        "DELETE FROM ", @cenozo, ".event_type ",
+        "WHERE id IN ( ",
+          "SELECT completed_event_type_id FROM qnaire ",
+        ")" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
 
-      ALTER TABLE qnaire
-      ADD INDEX fk_script_id( script_id ASC );
+      ALTER TABLE qnaire DROP INDEX fk_completed_event_type_id;
 
-      -- eliminate any qnaires without phases
-      DELETE FROM qnaire
-      WHERE id IN ( SELECT id FROM (
-        SELECT qnaire.id
-        FROM qnaire
-        LEFT JOIN phase ON qnaire.id = phase.qnaire_id
-        WHERE phase.id IS NULL ) AS t
-      );
+      ALTER TABLE qnaire DROP COLUMN completed_event_type_id;
+    END IF;
 
+    SELECT "Dropping withdraw_sid column from qnaire table" AS "";
+
+    SET @test = (
+      SELECT COUNT(*)
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = "qnaire"
+      AND COLUMN_NAME = "withdraw_sid" );
+    IF @test = 1 THEN
+      ALTER TABLE qnaire DROP COLUMN withdraw_sid;
+    END IF;
+
+    SELECT "Dropping description column from qnaire table" AS "";
+
+    SET @test = (
+      SELECT COUNT(*)
+      FROM information_schema.TABLES
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = "phase" );
+    IF @test = 1 THEN
       SELECT "Creating new script-based event_types" AS "";
 
       SET @sql = CONCAT(
@@ -246,15 +266,6 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
       EXECUTE statement;
       DEALLOCATE PREPARE statement;
 
-      SELECT "Creating qnaires linked to newly created scripts" AS "";
-
-      SET @sql = CONCAT(
-        "UPDATE qnaire JOIN ", @cenozo, ".script USING( name ) ",
-        "SET qnaire.script_id = script.id" );
-      PREPARE statement FROM @sql;
-      EXECUTE statement;
-      DEALLOCATE PREPARE statement;
-
       SET @sql = CONCAT(
         "INSERT IGNORE INTO ", @cenozo, ".application_has_script( application_id, script_id ) ",
         "SELECT application.id, script.id ",
@@ -265,67 +276,8 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
       EXECUTE statement;
       DEALLOCATE PREPARE statement;
 
-      SET @sql = CONCAT(
-        "ALTER TABLE qnaire ",
-        "ADD CONSTRAINT fk_qnaire_script_id ",
-        "FOREIGN KEY( script_id ) REFERENCES ", @cenozo, ".script( id ) ",
-        "ON DELETE NO ACTION ON UPDATE NO ACTION" );
-      PREPARE statement FROM @sql;
-      EXECUTE statement;
-      DEALLOCATE PREPARE statement;
+      CALL create_events();
     END IF;
-
-    SELECT "Dropping name column from qnaire table" AS "";
-
-    SET @test = (
-      SELECT COUNT(*)
-      FROM information_schema.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = "qnaire"
-      AND COLUMN_NAME = "name" );
-    IF @test = 1 THEN
-      ALTER TABLE qnaire DROP INDEX uq_name;
-      ALTER TABLE qnaire DROP COLUMN name;
-    END IF;
-
-    SELECT "Dropping completed_event_type_id column from qnaire table" AS "";
-
-    SET @test = (
-      SELECT COUNT(*)
-      FROM information_schema.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = "qnaire"
-      AND COLUMN_NAME = "completed_event_type_id" );
-    IF @test = 1 THEN
-      ALTER TABLE qnaire DROP FOREIGN KEY fk_qnaire_completed_event_type_id;
-
-      SET @sql = CONCAT(
-        "DELETE FROM ", @cenozo, ".event_type ",
-        "WHERE id IN ( ",
-          "SELECT completed_event_type_id FROM qnaire ",
-        ")" );
-      PREPARE statement FROM @sql;
-      EXECUTE statement;
-      DEALLOCATE PREPARE statement;
-
-      ALTER TABLE qnaire DROP INDEX fk_completed_event_type_id;
-
-      ALTER TABLE qnaire DROP COLUMN completed_event_type_id;
-    END IF;
-
-    SELECT "Dropping withdraw_sid column from qnaire table" AS "";
-
-    SET @test = (
-      SELECT COUNT(*)
-      FROM information_schema.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = "qnaire"
-      AND COLUMN_NAME = "withdraw_sid" );
-    IF @test = 1 THEN
-      ALTER TABLE qnaire DROP COLUMN withdraw_sid;
-    END IF;
-
-    SELECT "Dropping description column from qnaire table" AS "";
 
     SET @test = (
       SELECT COUNT(*)
@@ -335,15 +287,6 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
       AND COLUMN_NAME = "description" );
     IF @test = 1 THEN
       ALTER TABLE qnaire DROP COLUMN description;
-    END IF;
-
-    SET @test = (
-      SELECT COUNT(*)
-      FROM information_schema.TABLES
-      WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = "phase" );
-    IF @test = 1 THEN
-      CALL create_events();
     END IF;
 
   END //
