@@ -36,6 +36,7 @@ SOURCE system_message.sql
 SOURCE user.sql
 SOURCE recording.sql
 SOURCE recording_file.sql
+SOURCE site.sql
 
 SOURCE table_character_sets.sql
 SOURCE column_character_sets.sql
