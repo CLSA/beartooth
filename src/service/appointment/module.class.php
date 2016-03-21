@@ -124,6 +124,9 @@ class module extends \cenozo\service\base_calendar_module
     if( !is_null( $db_restricted_site ) )
       $modifier->where( 'participant_site.site_id', '=', $db_restricted_site->id );
 
+    if( $select->has_table_columns( 'appointment_type' ) )
+      $modifier->left_join( 'appointment_type', 'appointment.appointment_type_id', 'appointment_type.id' );
+
     if( $select->has_column( 'state' ) )
     {
       $modifier->left_join( 'setting', 'participant_site.site_id', 'setting.site_id' );

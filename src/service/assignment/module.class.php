@@ -23,7 +23,6 @@ class module extends \cenozo\service\site_restricted_module
 
     $service_class_name = lib::get_class_name( 'service\service' );
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
-    $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
 
     $db_user = lib::create( 'business\session' )->get_user();
     $db_role = lib::create( 'business\session' )->get_role();
@@ -101,8 +100,6 @@ class module extends \cenozo\service\site_restricted_module
             $this->get_status()->set_code( 409 );
           }
         }
-
-        $tokens_class_name::set_sid( $old_sid );
       }
     }
     else if( 'POST' == $method )

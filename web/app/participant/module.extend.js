@@ -53,7 +53,7 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
                 data: {
                   modifier: { order: { start_datetime: true } },
                   select: {
-                    column: [ 'datetime', 'type', 'reached', 'assignment_id', 'user_id', {
+                    column: [ 'datetime', 'address_id', 'completed', {
                       table: 'user',
                       column: 'first_name',
                       alias: 'user_first'
@@ -61,21 +61,25 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
                       table: 'user',
                       column: 'last_name',
                       alias: 'user_last'
+                    }, {
+                      table: 'appointment_type',
+                      column: 'name',
+                      alias: 'type'
                     } ]
                   }
                 }
               } ).query().then( function( response ) {
                 response.data.forEach( function( item ) {
-                  var description = 'A ' + item.type + ' appointment scheduled for this time has ';
-                  description += item.assignment_id
-                               ? 'been met.\nDuring the call the participant was ' +
-                                 ( item.reached ? 'reached' : 'not reached' ) + '.\n'
-                               : 'not yet been met.';
+                  var title = 'a ' + ( null == item.type ? 'regular' : item.type ) + ' '
+                            + ( null == item.address_id ? 'site' : 'home' ) + ' appointment'
+                            + ( null == item.address_id ? '' : ' with ' + item.user_first + ' ' + item.user_last );
+                  var description = 'A ' + ( null == item.address_id ? 'site' : 'home' )
+                                  + ' appointment scheduled for this time has '
+                                  + ( item.completed ? 'been met.' : 'not yet been met.' );
                   historyList.push( {
                     datetime: item.datetime,
                     category: 'Appointment',
-                    title: 'scheduled for ' +
-                      ( null == item.user_id ? 'any operator' : item.user_first + ' ' + item.user_last ),
+                    title: title,
                     description: description
                   } );
                 } );
