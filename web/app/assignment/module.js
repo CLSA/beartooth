@@ -51,7 +51,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
       constant: true
     },
     qnaire: {
-      column: 'script.name',
+      column: 'qnaire.name',
       title: 'Questionnaire',
       type: 'string',
       constant: true
@@ -206,7 +206,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
         // add additional columns to the model
         this.participantModel.addColumn( 'rank', { title: 'Rank', column: 'queue.rank', type: 'rank' }, 0 );
         this.participantModel.addColumn( 'queue', { title: 'Queue', column: 'queue.name' }, 1 );
-        this.participantModel.addColumn( 'qnaire', { title: 'Questionnaire', column: 'script.name' }, 2 );
+        this.participantModel.addColumn( 'qnaire', { title: 'Questionnaire', column: 'qnaire.name' }, 2 );
         this.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 3 );
 
         // override the default order
@@ -254,8 +254,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
             data: { select: { column: [ 'id', 'interview_id', 'start_datetime',
               { table: 'participant', column: 'id', alias: 'participant_id' },
               { table: 'qnaire', column: 'id', alias: 'qnaire_id' },
-              { table: 'script', column: 'id', alias: 'script_id' },
-              { table: 'script', column: 'name', alias: 'qnaire' },
+              { table: 'qnaire', column: 'name', alias: 'qnaire' },
               { table: 'queue', column: 'title', alias: 'queue' }
             ] } },
             onError: function( response ) {
@@ -270,6 +269,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
                   CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: 'Select' } ] );
                 } );
               } else if( 403 == response.status ) {
+                CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: 'Wrong Site' } ] );
                 self.isForbidden = true;
               } else { CnModalMessageFactory.httpError( response ); }
             }
@@ -279,7 +279,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
             // get the assigned participant's details
             CnHttpFactory.instance( {
               path: 'participant/' + self.assignment.participant_id,
-              data: { select: { column: [ 'id', 'uid', 'first_name', 'other_name', 'last_name',
+              data: { select: { column: [ 'id', 'uid', 'honorific', 'first_name', 'other_name', 'last_name',
                 { table: 'language', column: 'code', alias: 'language_code' },
                 { table: 'language', column: 'name', alias: 'language' }
               ] } }
@@ -311,7 +311,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
                 CnHttpFactory.instance( {
                   path: 'qnaire',
                   data: {
-                    select: { column: ['id', 'rank', 'script_id', 'delay'] },
+                    select: { column: ['id', 'rank', 'delay'] },
                     modifier: { order: 'rank' }
                   }
                 } ).query().then( function( response ) {
@@ -351,7 +351,10 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
                 path: 'participant/' + self.assignment.participant_id + '/phone',
                 data: {
                   select: { column: [ 'id', 'rank', 'type', 'number', 'international' ] },
-                  modifier: { order: 'rank' }
+                  modifier: {
+                    where: { column: 'phone.active', operator: '=', value: true },
+                    order: 'rank'
+                  }
                 }
               } ).query().then( function( response ) {
                 self.phoneList = response.data;
@@ -393,17 +396,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
               ] }
             }
           } ).query().then( function( response ) {
-            // put qnaire scripts in separate list and only include the current qnaire script in the main list
-            self.scriptList = [];
-            self.qnaireScriptList = [];
-            response.data.forEach( function( item ) {
-              if( null != self.qnaireList.findByProperty( 'script_id', item.id ) ) {
-                self.qnaireScriptList.push( item );
-                if( item.id == self.assignment.script_id ) self.scriptList.unshift( item );
-              } else {
-                self.scriptList.push( item );
-              }
-            } );
+            self.scriptList = response.data;
 
             if( 0 == self.scriptList.length ) {
               self.activeScript = null;
@@ -487,30 +480,68 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
             } ).post().then( function() { self.onLoad( false ); } );
           }
 
-          if( CnSession.voip.enabled && !phone.international ) {
-            CnHttpFactory.instance( {
-              path: 'voip',
-              data: { action: 'call', phone_id: phone.id }
-            } ).post().then( function( response ) {
-              if( 201 == response.status ) {
-                console.log( 'voip_call', response.data );
-                // postCall();
+          // start by updating the voip status
+          CnSession.updateVoip().then( function() {
+            if( !CnSession.voip.enabled ) {
+              postCall();
+            } else {
+              if( !CnSession.voip.info ) {
+                if( !phone.international ) {
+                  CnModalConfirmFactory.instance( {
+                    title: 'Webphone Not Found',
+                    message: 'You are about to place a call with no webphone connection. ' +
+                             'If you choose to proceed you will have to contact the participant without the use ' +
+                             'of the software-based telephone system. ' +
+                             'If you wish to use the built-in telephone system click "No", then click on the ' +
+                             '"Webphone" link under the "Utilities" submenu to connect to the webphone.\n\n' +
+                             'Do you wish to proceed without a webphone connection?',
+                  } ).show().then( function( response ) {
+                    if( response ) postCall();
+                  } );
+                }
               } else {
-                CnModalMessageFactory.instance( {
-                  title: 'Webphone Error',
-                  message: 'The webphone was unable to place your call, please try again. ' +
-                           'If this problem persists then please contact support.',
-                  error: true
-                } ).show();
+                if( phone.international ) {
+                  CnModalConfirmFactory.instance( {
+                    title: 'International Phone Number',
+                    message: 'The phone number you are about to call is international. ' +
+                             'The VoIP system cannot place international calls so if you choose to proceed you ' +
+                             'will have to contact the participant without the use of the software-based ' +
+                             'telephone system.\n\n' +
+                             'Do you wish to proceed without a webphone connection?',
+                  } ).show().then( function( response ) {
+                    if( response ) postCall();
+                  } );
+                } else {
+                  CnHttpFactory.instance( {
+                    path: 'voip',
+                    data: { action: 'call', phone_id: phone.id }
+                  } ).post().then( function( response ) {
+                    if( 201 == response.status ) {
+                      postCall();
+                    } else {
+                      CnModalMessageFactory.instance( {
+                        title: 'Webphone Error',
+                        message: 'The webphone was unable to place your call, please try again. ' +
+                                 'If this problem persists then please contact support.',
+                        error: true
+                      } ).show();
+                    }
+                  } );
+                }
               }
-            } );
-          } else { postCall(); }
+            }
+          } );
         };
 
         this.endCall = function( status ) {
-          if( CnSession.voip.enabled && !phone.international ) {
+          if( CnSession.voip.enabled && CnSession.voip.info && !this.activePhoneCall.international ) {
             CnHttpFactory.instance( {
-              path: 'voip/0'
+              path: 'voip/0',
+              onError: function( response ) {
+                if( 404 == response.status ) {
+                  // ignore 404 errors, it just means there was no phone call found to hang up
+                } else { CnModalMessageFactory.httpError( response ); }
+              }
             } ).delete();
           }
 
