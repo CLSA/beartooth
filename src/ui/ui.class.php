@@ -77,7 +77,7 @@ class ui extends \cenozo\ui\ui
     $db_role = lib::create( 'business\session' )->get_role();
 
     // add application-specific states to the base list
-    if( in_array( $db_role->name, array( 'helpline', 'operator', 'supervisor' ) ) )
+    if( in_array( $db_role->name, array( 'helpline', 'coordinator', 'interviewer' ) ) )
       $list['Assignment Home'] = array( 'subject' => 'assignment', 'action' => 'home' );
     if( 2 <= $db_role->tier )
       $list['Queue Tree'] = array( 'subject' => 'queue', 'action' => 'tree' );

@@ -21,7 +21,7 @@ define( function() {
         title: 'UID'
       },
       qnaire: {
-        column: 'script.name',
+        column: 'qnaire.name',
         title: 'Questionnaire'
       },
       site: {
@@ -293,7 +293,7 @@ define( function() {
             CnHttpFactory.instance( {
               path: 'qnaire',
               data: {
-                select: { column: [ 'id', { table: 'script', column: 'name' } ] },
+                select: { column: [ 'id', 'name' ] },
                 modifier: { order: 'rank' }
               }
             } ).query().then( function success( response ) {

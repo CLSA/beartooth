@@ -23,12 +23,9 @@ class module extends \cenozo\service\participant\module
 
     if( $this->get_argument( 'assignment', false ) )
     {
-      $user_id = lib::create( 'business\session' )->get_user()->id;
-
       $modifier->join( 'queue_has_participant', 'participant.id', 'queue_has_participant.participant_id' );
       $modifier->join( 'queue', 'queue_has_participant.queue_id', 'queue.id' );
       $modifier->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
-      $modifier->join( 'script', 'qnaire.script_id', 'script.id' );
       $modifier->where( 'participant.active', '=', true );
       $modifier->where( 'queue.rank', '!=', NULL );
 
@@ -38,19 +35,6 @@ class module extends \cenozo\service\participant\module
       $join_mod->where( 'queue_has_participant.qnaire_id', '=', 'queue_state.qnaire_id', false );
       $modifier->join_modifier( 'queue_state', $join_mod, 'left' );
       $modifier->where( 'queue_state.id', '=', NULL );
-
-      // only show reserved appointments to the reserved user
-      $modifier->left_join(
-        'participant_last_interview', 'participant.id', 'participant_last_interview.participant_id' );
-      $join_mod = lib::create( 'database\modifier' );
-      $join_mod->where( 'participant_last_interview.interview_id', '=', 'appointment.interview_id', false );
-      $join_mod->where( 'appointment.assignment_id', '=', NULL );
-      $modifier->join_modifier( 'appointment', $join_mod, 'left' );
-
-      $modifier->where_bracket( true );
-      $modifier->where( 'queue.name', '!=', 'assignable appointment' );
-      $modifier->or_where( sprintf( 'IFNULL( appointment.user_id, %d )', $user_id ), '=', $user_id );
-      $modifier->where_bracket( false );
 
       // repopulate queue if it is out of date
       $queue_class_name = lib::get_class_name( 'database\queue' );
@@ -102,12 +86,9 @@ class module extends \cenozo\service\participant\module
         {
           $modifier->left_join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
 
-          // title is "qnaire.rank: script.name"
+          // title is "qnaire.rank: qnaire.name"
           if( $select->has_table_column( 'qnaire', 'title' ) )
-          {
-            $modifier->left_join( 'script', 'qnaire.script_id', 'script.id' );
-            $select->add_table_column( 'qnaire', 'CONCAT( qnaire.rank, ": ", script.name )', 'title', false );
-          }
+            $select->add_table_column( 'qnaire', 'CONCAT( qnaire.rank, ": ", qnaire.name )', 'title', false );
 
           // fake the qnaire start-date
           if( $select->has_table_column( 'qnaire', 'start_date' ) )

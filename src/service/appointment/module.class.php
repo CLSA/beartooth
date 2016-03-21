@@ -124,26 +124,9 @@ class module extends \cenozo\service\base_calendar_module
     if( !is_null( $db_restricted_site ) )
       $modifier->where( 'participant_site.site_id', '=', $db_restricted_site->id );
 
-    if( $select->has_table_columns( 'script' ) )
-      $modifier->join( 'script', 'qnaire.script_id', 'script.id' );
-
-    if( $select->has_table_column( 'phone', 'name' ) )
-    {
-      $modifier->left_join( 'phone', 'appointment.phone_id', 'phone.id' );
-      $select->add_table_column(
-        'phone', 'CONCAT( "(", phone.rank, ") ", phone.type, ": ", phone.number )', 'phone', false );
-    }
-
     if( $select->has_column( 'state' ) )
     {
-      if( !$modifier->has_join( 'assignment' ) )
-        $modifier->left_join( 'assignment', 'appointment.assignment_id', 'assignment.id' );
       $modifier->left_join( 'setting', 'participant_site.site_id', 'setting.site_id' );
-
-      $phone_call_join_mod = lib::create( 'database\modifier' );
-      $phone_call_join_mod->where( 'assignment.id', '=', 'phone_call.assignment_id', false );
-      $phone_call_join_mod->where( 'phone_call.end_datetime', '=', NULL );
-      $modifier->join_modifier( 'phone_call', $phone_call_join_mod, 'left' );
 
       // specialized sql used to determine the appointment's current state
       $sql =

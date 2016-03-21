@@ -21,11 +21,6 @@ define( function() {
         type: 'datetime',
         title: 'Date & Time'
       },
-      phone: {
-        column: 'phone.name',
-        type: 'string',
-        title: 'Number'
-      },
       user: {
         column: 'user.name',
         type: 'string',
@@ -67,17 +62,11 @@ define( function() {
       constant: true
     },
     qnaire: {
-      column: 'script.name',
+      column: 'qnaire.name',
       title: 'Questionnaire',
       type: 'string',
       exclude: 'add',
       constant: true
-    },
-    phone_id: {
-      title: 'Phone Number',
-      type: 'enum',
-      help: 'Which number should be called for the appointment, or leave this field blank if any of the ' +
-            'participant\'s phone numbers can be called.'
     },
     user_id: {
       column: 'appointment.user_id',
@@ -408,40 +397,6 @@ define( function() {
             data.type = self.type;
           }
           return data;
-        };
-
-        // extend getMetadata
-        this.getMetadata = function() {
-          var promiseList = [ this.$$getMetadata() ];
-
-          var parent = this.getParentIdentifier();
-          if( angular.isDefined( parent.subject ) && angular.isDefined( parent.identifier ) ) {
-            promiseList.push(
-              CnHttpFactory.instance( {
-                path: [ parent.subject, parent.identifier ].join( '/' ),
-                data: { select: { column: { column: 'participant_id' } } }
-              } ).query().then( function( response ) {
-                // get the participant's effective site and list of phone numbers
-                return CnHttpFactory.instance( {
-                  path: ['participant', response.data.participant_id, 'phone' ].join( '/' ),
-                  data: {
-                    select: { column: [ 'id', 'rank', 'type', 'number' ] },
-                    modifier: { order: { rank: false } }
-                  }
-                } ).query().then( function( response ) {
-                  self.metadata.columnList.phone_id.enumList = [];
-                  response.data.forEach( function( item ) {
-                    self.metadata.columnList.phone_id.enumList.push( {
-                      value: item.id,
-                      name: '(' + item.rank + ') ' + item.type + ': ' + item.number
-                    } );
-                  } );
-                } );
-              } )
-            );
-          }
-
-          return $q.all( promiseList );
         };
       };
 

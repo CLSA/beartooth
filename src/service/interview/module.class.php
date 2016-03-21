@@ -72,12 +72,8 @@ class module extends \cenozo\service\site_restricted_module
     if( $select->has_table_columns( 'site' ) )
       $modifier->left_join( 'site', 'interview.site_id', 'site.id' );
 
-    if( $select->has_table_columns( 'qnaire' ) || $select->has_table_columns( 'script' ) )
-    {
+    if( $select->has_table_columns( 'qnaire' ) )
       $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
-      if( $select->has_table_columns( 'script' ) )
-        $modifier->join( 'script', 'qnaire.script_id', 'script.id' );
-    }
 
     if( $select->has_column( 'open_appointment_count' ) )
     {
@@ -87,7 +83,7 @@ class module extends \cenozo\service\site_restricted_module
       $join_sel->add_column( 'COUNT( * )', 'open_appointment_count', false );
 
       $join_mod = lib::create( 'database\modifier' );
-      $join_mod->where( 'assignment_id', '=', NULL );
+      $join_mod->where( 'completed', '=', false );
       $join_mod->group( 'interview_id' );
 
       $modifier->left_join(

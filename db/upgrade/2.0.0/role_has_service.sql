@@ -81,12 +81,12 @@ CREATE PROCEDURE patch_role_has_service()
     EXECUTE statement;
     DEALLOCATE PREPARE statement;
 
-    -- helpline and operator
+    -- helpline and interviewer
     SET @sql = CONCAT(
       "INSERT INTO role_has_service( role_id, service_id ) ",
       "SELECT role.id, service.id ",
       "FROM ", @cenozo, ".role, service ",
-      "WHERE role.name IN( 'helpline', 'operator' ) ",
+      "WHERE role.name IN( 'helpline', 'interviewer' ) ",
       "AND service.restricted = 1 ",
       "AND service.subject IN ( 'appointment', 'assignment', 'callback', 'participant', 'phone_call', 'token' )" );
     PREPARE statement FROM @sql;

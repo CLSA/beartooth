@@ -33,7 +33,7 @@ class callback extends \cenozo\database\record
 
       $appointment_mod = lib::create( 'database\modifier' );
       $appointment_mod->where( 'interview_id', '=', $this->interview_id );
-      $appointment_mod->where( 'datetime', '>', 'UTC_DATETIME()', false );
+      $appointment_mod->where( 'completed', '=', true );
 
       if( 0 < static::count( $appointment_mod ) || 0 < $appointment_class_name::count( $appointment_mod ) )
         throw lib::create( 'exception\notice',

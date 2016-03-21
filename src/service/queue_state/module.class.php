@@ -21,11 +21,7 @@ class module extends \cenozo\service\module
   {
     parent::prepare_read( $select, $modifier );
 
-    if( $select->has_table_columns( 'qnaire' ) || $select->has_table_columns( 'script' ) )
-    {
+    if( $select->has_table_columns( 'qnaire' ) )
       $modifier->join( 'qnaire', 'queue_state.qnaire_id', 'qnaire.id' );
-      if( $select->has_table_columns( 'script' ) )
-        $modifier->join( 'script', 'qnaire.script_id', 'script.id' );
-    }
   }
 }

@@ -12,7 +12,6 @@ define( function() {
     },
     columnList: {
       name: {
-        column: 'script.name',
         title: 'Name'
       },
       rank: {
@@ -36,11 +35,9 @@ define( function() {
       title: 'Rank',
       type: 'rank'
     },
-    script_id: {
+    name: {
       title: 'Script',
-      type: 'enum',
-      constant: 'view',
-      help: 'Only scripts which are marked as non-repeatable may be used as a questionnaire.'
+      type: 'string'
     },
     delay: {
       title: 'Delay (weeks)',
@@ -144,31 +141,6 @@ define( function() {
         this.addModel = CnQnaireAddFactory.instance( this );
         this.listModel = CnQnaireListFactory.instance( this );
         this.viewModel = CnQnaireViewFactory.instance( this, root );
-
-        // extend getMetadata
-        this.getMetadata = function() {
-          return $q.all( [
-
-            this.$$getMetadata(),
-
-            CnHttpFactory.instance( {
-              path: 'application/' + CnSession.application.id + '/script',
-              data: {
-                select: { column: [ 'id', 'name' ] },
-                modifier: {
-                  where: [ { column: 'repeated', operator: '=', value: false } ],
-                  order: 'name'
-                }
-              }
-            } ).query().then( function( response ) {
-              self.metadata.columnList.script_id.enumList = [];
-              response.data.forEach( function( item ) {
-                self.metadata.columnList.script_id.enumList.push( { value: item.id, name: item.name } );
-              } );
-            } )
-
-          ] );
-        };
       };
 
       return {

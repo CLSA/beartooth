@@ -23,12 +23,12 @@ class appointment extends \cenozo\database\record
   {
     $callback_class_name = lib::get_class_name( 'database\callback' );
 
-    // make sure there is a maximum of 1 unassigned appointment or callback per interview
-    if( is_null( $this->id ) && is_null( $this->assignment_id ) )
+    // make sure there is a maximum of 1 incomplete appointment or callback per interview
+    if( is_null( $this->id ) && !$this->completed )
     {
       $appointment_mod = lib::create( 'database\modifier' );
       $appointment_mod->where( 'interview_id', '=', $this->interview_id );
-      $appointment_mod->where( 'datetime', '>', 'UTC_DATETIME()', false );
+      $appointment_mod->where( 'completed', '=', false );
       if( !is_null( $this->id ) ) $appointment_mod->where( 'id', '!=', $this->id );
 
       $callback_mod = lib::create( 'database\modifier' );
@@ -41,7 +41,7 @@ class appointment extends \cenozo\database\record
     }
 
     // if we changed certain columns then update the queue
-    $update_queue = $this->has_column_changed( array( 'assignment_id', 'datetime' ) );
+    $update_queue = $this->has_column_changed( array( 'completed', 'datetime' ) );
     parent::save();
     if( $update_queue ) $this->get_interview()->get_participant()->repopulate_queue( true );
   }

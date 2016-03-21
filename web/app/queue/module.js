@@ -142,7 +142,7 @@ define( function() {
           };
 
           // add additional columns to the model
-          self.participantModel.addColumn( 'qnaire', { title: 'Questionnaire', column: 'script.name' }, 0 );
+          self.participantModel.addColumn( 'qnaire', { title: 'Questionnaire', column: 'qnaire.name' }, 0 );
           self.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 1 );
 
           // make sure users can edit the queue restriction list despite the queue being read-only
@@ -237,7 +237,7 @@ define( function() {
             CnHttpFactory.instance( {
               path: 'qnaire',
               data: {
-                select: { column: [ 'id', { table: 'script', column: 'name' } ] },
+                select: { column: [ 'id', 'name' ] },
                 modifier: { order: 'rank' }
               }
             } ).query().then( function( response ) {

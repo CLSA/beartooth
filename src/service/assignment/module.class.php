@@ -62,16 +62,10 @@ class module extends \cenozo\service\site_restricted_module
       }
       else
       {
-        // check if the qnaire script is complete or not (used below)
+        // check if there is an appointment for the current interview
         $db_interview = $record->get_interview();
-        $db_participant = $db_interview->get_participant();
         $db_qnaire = $db_interview->get_qnaire();
-        $old_sid = $tokens_class_name::get_sid();
-        $tokens_class_name::set_sid( $db_qnaire->get_script()->sid );
-        $tokens_mod = lib::create( 'database\modifier' );
-        $tokens_class_name::where_token( $tokens_mod, $db_participant, false );
-        $tokens_mod->where( 'completed', '!=', 'N' );
-        $this->is_survey_complete = 0 < $tokens_class_name::count( $tokens_mod );
+        $this->is_survey_complete = 0 < $db_interview->get_appointment_count();
 
         $has_open_phone_call = $record->has_open_phone_call();
         if( 'advance' == $operation )
@@ -83,7 +77,8 @@ class module extends \cenozo\service\site_restricted_module
           }
           else if( !$this->is_survey_complete )
           {
-            $this->set_data( 'The assignment cannot be advanced as the questionnaire is not complete.' );
+            $this->set_data( 'The assignment cannot be advanced as there is no appointment scheduled for the '.
+                             'current interview.' );
             $this->get_status()->set_code( 409 );
           }
           else
@@ -165,16 +160,13 @@ class module extends \cenozo\service\site_restricted_module
       $modifier->left_join( 'site', 'assignment.site_id', 'site.id' );
 
     if( $select->has_table_columns( 'participant' ) ||
-        $select->has_table_columns( 'qnaire' ) ||
-        $select->has_table_columns( 'script' ) )
+        $select->has_table_columns( 'qnaire' ) )
     {
       $modifier->join( 'interview', 'assignment.interview_id', 'interview.id' );
       if( $select->has_table_columns( 'participant' ) )
         $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
-      if( $select->has_table_columns( 'qnaire' ) || $select->has_table_columns( 'script' ) )
+      if( $select->has_table_columns( 'qnaire' ) )
         $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
-      if( $select->has_table_columns( 'script' ) )
-        $modifier->join( 'script', 'qnaire.script_id', 'script.id' );
     }
 
     if( $select->has_column( 'phone_call_count' ) )

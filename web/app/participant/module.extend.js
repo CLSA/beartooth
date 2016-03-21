@@ -102,9 +102,9 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
                       column: 'name',
                       alias: 'site'
                     }, {
-                      table: 'script',
+                      table: 'qnaire',
                       column: 'name',
-                      alias: 'script'
+                      alias: 'qnaire'
                     }, {
                       table: 'queue',
                       column: 'name',
@@ -119,7 +119,7 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
                       datetime: item.start_datetime,
                       category: 'Assignment',
                       title: 'started by ' + item.user_first + ' ' + item.user_last,
-                      description: 'Started an assignment for the "' + item.script + '" questionnaire.\n' +
+                      description: 'Started an assignment for the "' + item.qnaire + '" questionnaire.\n' +
                                    'Assigned from the ' + item.site + ' site ' +
                                    'from the "' + item.queue + '" queue.'
                     } );
@@ -129,7 +129,7 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
                       datetime: item.end_datetime,
                       category: 'Assignment',
                       title: 'completed by ' + item.user_first + ' ' + item.user_last,
-                      description: 'Completed an assignment for the "' + item.script + '" questionnaire.\n' +
+                      description: 'Completed an assignment for the "' + item.qnaire + '" questionnaire.\n' +
                                    'Assigned from the ' + item.site + ' site ' +
                                    'from the "' + item.queue + '" queue.'
                     } );

@@ -12,4 +12,4 @@ use cenozo\lib, cenozo\log, beartooth\util;
 /**
  * phone_call: record
  */
-class phone_call extends record {}
+class phone_call extends \cenozo\database\record {}

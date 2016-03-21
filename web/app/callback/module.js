@@ -58,7 +58,7 @@ define( function() {
       constant: true
     },
     qnaire: {
-      column: 'script.name',
+      column: 'qnaire.name',
       title: 'Questionnaire',
       type: 'string',
       exclude: 'add',
