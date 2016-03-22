@@ -81,7 +81,7 @@ class module extends \cenozo\service\base_calendar_module
         {
           if( !$db_appointment->validate_date() )
           {
-            $this->set_data( 'There are no operators available over the requested appointment timespan.' );
+            $this->set_data( 'An appointment cannot currently be made for this participant.' );
             $this->get_status()->set_code( 406 );
           }
         }
@@ -105,12 +105,13 @@ class module extends \cenozo\service\base_calendar_module
       'formatted_user_id',
       false );
 
-    // include the participant uid and interview's qnaire rank as supplemental data
+    // include the participant uid and interviewer name as supplemental data
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
+    $modifier->left_join( 'user', 'appointment.user_id', 'user.id' );
     $select->add_table_column( 'participant', 'uid' );
-    $select->add_table_column( 'qnaire', 'rank', 'qnaire_rank' );
+    $select->add_table_column( 'user', 'name', 'username' );
 
     $participant_site_join_mod = lib::create( 'database\modifier' );
     $participant_site_join_mod->where(
@@ -118,6 +119,14 @@ class module extends \cenozo\service\base_calendar_module
     $participant_site_join_mod->where(
       'participant_site.application_id', '=', $session->get_application()->id );
     $modifier->join_modifier( 'participant_site', $participant_site_join_mod, 'left' );
+
+    // add the address "summary" column if needed
+    if( $select->has_column( 'address_summary' ) )
+    {
+      $modifier->left_join( 'address', 'appointment.address_id', 'address.id' );
+      $modifier->left_join( 'region', 'address.region_id', 'region.id' );
+      $select->add_column( 'CONCAT_WS( ", ", address1, address2, city, region.name )', 'address_summary', false );
+    }
 
     // restrict by site
     $db_restricted_site = $this->get_restricted_site();
