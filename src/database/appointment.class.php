@@ -57,11 +57,10 @@ class appointment extends \cenozo\database\record
   }
   
   /**
-   * Determines whether there are open slots available during this appointment's date/time.
-   * The result will depend on whether the appointment has an address or not.  If not then
-   * it is considered to be a site interview (and so it refers to openings to the site
-   * calendar), otherwise it is considered to be a home interview (and so it refers to
-   * openings to the home calendar).
+   * Determines whether an appointment's date is valid.
+   * 
+   * This function will make sure the participant's start qnaire date (from the queues) does
+   * not come after the current date.  It will also ensure the participant has a valid qnaire.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return boolean
    * @throws exception\runtime
@@ -76,8 +75,7 @@ class appointment extends \cenozo\database\record
 
     // check the qnaire start date
     $start_qnaire_date = $db_participant->get_start_qnaire_date();
-    if( !is_null( $start_qnaire_date ) && $start_qnaire_date > util::get_datetime_object() )
-      return false;
+    if( !is_null( $start_qnaire_date ) && $start_qnaire_date > util::get_datetime_object() ) return false;
 
     // check the qnaire
     $db_effective_qnaire = $db_participant->get_effective_qnaire();
