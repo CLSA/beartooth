@@ -3,7 +3,7 @@ define( function() {
 
   try { var module = cenozoApp.module( 'qnaire', true ); } catch( err ) { console.warn( err ); return; }
   angular.extend( module, {
-    identifier: { column: 'rank' },
+    identifier: { column: 'name' },
     name: {
       singular: 'questionnaire',
       plural: 'questionnaires',
