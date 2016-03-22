@@ -19,6 +19,10 @@ define( function() {
       name: {
         title: 'Name'
       },
+      color: {
+        title: 'Colour',
+        type: 'color'
+      },
       qnaire: {
         column: 'qnaire.name',
         title: 'Questionnaire'
@@ -34,6 +38,10 @@ define( function() {
     name: {
       title: 'Name',
       type: 'string'
+    },
+    color: {
+      title: 'Colour',
+      type: 'color'
     },
     qnaire_id: {
       title: 'Questionnaire',

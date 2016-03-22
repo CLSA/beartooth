@@ -26,6 +26,7 @@ SOURCE writelog.sql
 SOURCE interview_phone_call_status_count.sql
 SOURCE callback.sql
 SOURCE appointment.sql
+SOURCE appointment_type.sql
 SOURCE service.sql
 SOURCE role_has_operation.sql
 SOURCE role_has_service.sql
