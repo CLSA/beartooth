@@ -174,9 +174,11 @@ class queue extends \cenozo\database\record
       $queue_sel->add_column( 'participant_site_id', NULL, false );
       $queue_sel->add_column( 'effective_qnaire_id', NULL, false );
       $queue_sel->add_column( 'start_qnaire_date', NULL, false );
+      $queue_sel->add_column( 'first_address_id', NULL, false );
 
       static::db()->execute( sprintf(
-        'INSERT INTO queue_has_participant( participant_id, queue_id, site_id, qnaire_id, start_qnaire_date )'.
+        'INSERT INTO queue_has_participant( '.
+          'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id )'.
         "\n%s %s",
         $queue_sel->get_sql(), $queue_mod->get_sql() ) );
 
@@ -238,11 +240,13 @@ class queue extends \cenozo\database\record
       $select->add_column( 'site_id' );
       $select->add_column( 'qnaire_id' );
       $select->add_column( 'start_qnaire_date' );
+      $select->add_column( 'address_id' );
       $select->from( 'queue_has_participant' );
 
       // sql used by all insert statements below
       $base_sql = sprintf(
-        'INSERT INTO queue_has_participant( participant_id, queue_id, site_id, qnaire_id, start_qnaire_date )'.
+        'INSERT INTO queue_has_participant( '.
+          'participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id )'.
         "\n%s",
         $select->get_sql() );
 
@@ -720,7 +724,8 @@ class queue extends \cenozo\database\record
         'ADD INDEX fk_effective_qnaire_id ( effective_qnaire_id ), '.
         'ADD INDEX fk_last_participation_consent_accept ( last_participation_consent_accept ), '.
         'ADD INDEX fk_current_assignment_id ( current_assignment_id ), '.
-        'ADD INDEX dk_primary_region_id ( primary_region_id )' );
+        'ADD INDEX dk_primary_region_id ( primary_region_id ), '.
+        'ADD INDEX dk_first_address_id ( first_address_id )' );
     if( static::$debug ) log::debug( sprintf(
       '(Queue) Building temp_participant temp table%s: %0.2f',
       is_null( $db_participant ) ? '' : ' for '.$db_participant->uid,
@@ -879,6 +884,7 @@ participant.state_id AS participant_state_id,
 participant.override_quota AS participant_override_quota,
 source.override_quota AS source_override_quota,
 primary_region.id AS primary_region_id,
+first_address.id AS first_address_id,
 last_participation_consent.accept AS last_participation_consent_accept,
 current_interview.id AS current_interview_id,
 current_qnaire.id AS current_qnaire_id,
@@ -930,6 +936,11 @@ LEFT JOIN address AS primary_address
 ON participant_primary_address.address_id = primary_address.id
 LEFT JOIN region AS primary_region
 ON primary_address.region_id = primary_region.id
+
+LEFT JOIN participant_first_address
+ON participant.id = participant_first_address.participant_id
+LEFT JOIN address AS first_address
+ON participant_first_address.address_id = first_address.id
 
 JOIN participant_last_consent
 ON participant.id = participant_last_consent.participant_id
