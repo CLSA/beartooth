@@ -1,4 +1,4 @@
-define( function() {
+define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
   'use strict';
 
   try { var module = cenozoApp.module( 'appointment', true ); } catch( err ) { console.warn( err ); return; }
@@ -143,7 +143,8 @@ define( function() {
         title: ( appointment.uid ? appointment.uid : 'new appointment' ) +
                ( appointment.username ? ' (' + appointment.username + ')' : '' ),
         start: moment( appointment.datetime ).subtract( offset, 'minutes' ),
-        end: moment( appointment.datetime ).subtract( offset, 'minutes' ).add( duration, 'minute' )
+        end: moment( appointment.datetime ).subtract( offset, 'minutes' ).add( duration, 'minute' ),
+        color: appointment.color
       };
       return event;
     }
@@ -158,53 +159,88 @@ define( function() {
         restrict: 'E',
         scope: { model: '=?' },
         controller: function( $scope ) {
+          $scope.loading = true;
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
-
-          $scope.model.metadata.getPromise().then( function() {
-            $scope.model.metadata.columnList.address_id.required = true;
-            $scope.model.metadata.columnList.user_id.required = true;
-          } );
-
           $scope.model.addModel.afterNew( function() {
-            var cnRecordAddScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
-
-            // automatically fill in the current user as the interviewer
-            cnRecordAddScope.formattedRecord.user_id =
-              CnSession.user.firstName + ' ' + CnSession.user.lastName + ' (' + CnSession.user.name + ')';
-            cnRecordAddScope.record.user_id = CnSession.user.id;
-
             // get a home or site calendar, based on the appointment's parent
             var identifier = $scope.model.getParentIdentifier();
             CnHttpFactory.instance( {
               path: identifier.subject + '/' + identifier.identifier,
-              data: { select: { column: [ { table: 'qnaire', column: 'type' } ] } }
+              data: { select: { column: [ 'qnaire_id', { table: 'qnaire', column: 'type' } ] } }
             } ).get().then( function( response ) {
-              $scope.appointmentModel = CnAppointmentModelFactory.forSite( $scope.model.site, response.data.type );
+              var type = response.data.type;
+              var cnRecordAddScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
+              if( !cnRecordAddScope ) throw new Exception( 'Cannot find cnRecordAdd scope' );
 
-              // connect the calendar's day click callback to the appointment's datetime
-              $scope.appointmentModel.calendarModel.settings.dayClick = function( date, event, view ) {
-                if( cnRecordAddScope ) {
-                  // make sure date is no earlier than today
-                  var today = moment().hour( moment().hour() + 1 ).minute( 0 ).second( 0 );
+              cnRecordAddScope.heading =
+                cnRecordAddScope.heading.replace( 'Appointment', type.ucWords() + ' Appointment' );
+              // Create a reserved data array object to temporarily store the address and user columns
+              // for when we're adding a site-qnaire appointment
+              if( angular.isUndefined( cnRecordAddScope.reservedDataArray ) )
+                cnRecordAddScope.reservedDataArray = {};
+              var reservedDataArray = cnRecordAddScope;
+              var dataArray = cnRecordAddScope.dataArray;
+              var record = cnRecordAddScope.record;
+              var formattedRecord = cnRecordAddScope.formattedRecord;
 
-                  // set the timezone
-                  today.tz( CnSession.user.timezone );
-                  date.tz( CnSession.user.timezone );
-
-                  // full-calendar has a bug where it picks one day behind the actual day, so we adjust for it here
-                  if( !date.isBefore( today, 'day' ) ) {
-                    var datetime = date.isAfter( today )
-                                 ? moment( date ).hour( 12 ).minute( 0 ).second( 0 )
-                                 : today;
-                    if( 'month' == view.type ) datetime.add( 1, 'days' );
-
-                    cnRecordAddScope.record.datetime = datetime.format();
-                    cnRecordAddScope.formattedRecord.datetime =
-                      CnSession.formatValue( datetime, 'datetime', true );
-                    $scope.$apply(); // needed otherwise the new datetime takes seconds before it appears
+              // make sure the metadata has been created
+              $scope.model.metadata.getPromise().then( function() {
+                var datetimeIndex = dataArray.findIndexByProperty( 'key', 'datetime' );
+                if( 'home' == type ) {
+                  var userIndex = dataArray.findIndexByProperty( 'key', 'user_id' );
+                  if( null == userIndex )
+                    dataArray.splice( datetimeIndex + 1, 0, reservedDataArray.user_id );
+                  var addressIndex = dataArray.findIndexByProperty( 'key', 'address_id' );
+                  if( null == addressIndex )
+                    dataArray.splice( datetimeIndex + 1, 0, reservedDataArray.address_id );
+                } else { // 'site' == type
+                  var userIndex = dataArray.findIndexByProperty( 'key', 'user_id' );
+                  if( null != userIndex ) {
+                    reservedDataArray.user_id = dataArray[userIndex];
+                    dataArray.splice( userIndex, 1 );
+                  }
+                  var addressIndex = dataArray.findIndexByProperty( 'key', 'address_id' );
+                  if( null != addressIndex ) {
+                    reservedDataArray.address_id = dataArray[addressIndex];
+                    dataArray.splice( addressIndex, 1 );
                   }
                 }
+
+                // set the appointment type enum list based on the qnaire_id
+                var appointmentTypeIndex = dataArray.findIndexByProperty( 'key', 'appointment_type_id' );
+                dataArray[appointmentTypeIndex].enumList = 
+                  $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id];
+              } );
+
+              // automatically fill in the current user as the interviewer (or null if this is a site appointment)
+              formattedRecord.user_id = 'home' == type ?
+                CnSession.user.firstName + ' ' + CnSession.user.lastName + ' (' + CnSession.user.name + ')' : null;
+              record.user_id = 'home' == type ? CnSession.user.id : null;
+
+              // connect the calendar's day click callback to the appointment's datetime
+              $scope.appointmentModel = CnAppointmentModelFactory.forSite( $scope.model.site, type );
+              $scope.appointmentModel.calendarModel.settings.dayClick = function( date, event, view ) {
+                // make sure date is no earlier than today
+                var today = moment().hour( moment().hour() + 1 ).minute( 0 ).second( 0 );
+
+                // set the timezone
+                today.tz( CnSession.user.timezone );
+                date.tz( CnSession.user.timezone );
+
+                // full-calendar has a bug where it picks one day behind the actual day, so we adjust for it here
+                if( !date.isBefore( today, 'day' ) ) {
+                  var datetime = date.isAfter( today )
+                               ? moment( date ).hour( 12 ).minute( 0 ).second( 0 )
+                               : today;
+                  if( 'month' == view.type ) datetime.add( 1, 'days' );
+
+                  record.datetime = datetime.format();
+                  formattedRecord.datetime = CnSession.formatValue( datetime, 'datetime', true );
+                  $scope.$apply(); // needed otherwise the new datetime takes seconds before it appears
+                }
               };
+
+              $scope.loading = false;
             } );
           } );
         }
@@ -225,8 +261,10 @@ define( function() {
         },
         controller: function( $scope ) {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
-          $scope.heading = $scope.model.site.name.ucWords() + ' - ' + $scope.model.type.ucWords()
-                         + ' Appointment Calendar';
+          console.log( $scope.model.type );
+          $scope.heading = $scope.model.site.name.ucWords() + ' - '
+                         + ( 'home' == $scope.model.type && 1 == CnSession.role.tier ? 'Personal ' : '' )
+                         + $scope.model.type.ucWords() + ' Appointment Calendar';
         },
         link: function( scope, element ) {
           // synchronize appointment-based calendars
@@ -276,20 +314,74 @@ define( function() {
 
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentView', [
-    'CnAppointmentModelFactory', 'CnSession',
-    function( CnAppointmentModelFactory, CnSession ) {
+    'CnAppointmentModelFactory', 'CnSession', 'CnHttpFactory',
+    function( CnAppointmentModelFactory, CnSession, CnHttpFactory ) {
       return {
         templateUrl: module.getFileUrl( 'view.tpl.html' ),
         restrict: 'E',
         scope: { model: '=?' },
         controller: function( $scope ) {
+          $scope.loading = true;
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
-
           $scope.model.viewModel.afterView( function() {
-            // connect the calendar's day click callback to the appointment's datetime
-            $scope.model.calendarModel.settings.dayClick = function( date, event, view ) {
+            // get a home or site calendar, based on the appointment's parent
+            var identifier = $scope.model.getParentIdentifier();
+            CnHttpFactory.instance( {
+              path: identifier.subject + '/' + identifier.identifier,
+              data: { select: { column: [ 'qnaire_id', { table: 'qnaire', column: 'type' } ] } }
+            } ).get().then( function( response ) {
+              var type = response.data.type;
               var cnRecordViewScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordView' );
-              if( cnRecordViewScope ) {
+              if( !cnRecordViewScope ) throw new Exception( 'Cannot find cnRecordView scope' );
+
+              cnRecordViewScope.heading =
+                cnRecordViewScope.heading.replace( 'Appointment', type.ucWords() + ' Appointment' );
+              // Create a reserved data array object to temporarily store the address and user columns
+              // for when we're viewing a site-qnaire appointment
+              if( angular.isUndefined( cnRecordViewScope.reservedDataArray ) )
+                cnRecordViewScope.reservedDataArray = {};
+              var reservedDataArray = cnRecordViewScope;
+              var dataArray = cnRecordViewScope.dataArray[0].inputList;
+              var record = $scope.model.viewModel.record;
+              var formattedRecord = $scope.model.viewModel.formattedRecord;
+
+              // make sure the metadata has been created
+              $scope.model.metadata.getPromise().then( function() {
+                var datetimeIndex = dataArray.findIndexByProperty( 'key', 'datetime' );
+                if( 'home' == type ) {
+                  var userIndex = dataArray.findIndexByProperty( 'key', 'user_id' );
+                  if( null == userIndex )
+                    dataArray.splice( datetimeIndex + 1, 0, reservedDataArray.user_id );
+                  var addressIndex = dataArray.findIndexByProperty( 'key', 'address_id' );
+                  if( null == addressIndex )
+                    dataArray.splice( datetimeIndex + 1, 0, reservedDataArray.address_id );
+                } else { // 'site' == type
+                  var userIndex = dataArray.findIndexByProperty( 'key', 'user_id' );
+                  if( null != userIndex ) {
+                    reservedDataArray.user_id = dataArray[userIndex];
+                    dataArray.splice( userIndex, 1 );
+                  }
+                  var addressIndex = dataArray.findIndexByProperty( 'key', 'address_id' );
+                  if( null != addressIndex ) {
+                    reservedDataArray.address_id = dataArray[addressIndex];
+                    dataArray.splice( addressIndex, 1 );
+                  }
+                }
+
+                // set the appointment type enum list based on the qnaire_id
+                var appointmentTypeIndex = dataArray.findIndexByProperty( 'key', 'appointment_type_id' );
+                dataArray[appointmentTypeIndex].enumList = 
+                  $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id];
+              } );
+
+              // automatically fill in the current user as the interviewer (or null if this is a site appointment)
+              formattedRecord.user_id = 'home' == type ?
+                CnSession.user.firstName + ' ' + CnSession.user.lastName + ' (' + CnSession.user.name + ')' : null;
+              record.user_id = 'home' == type ? CnSession.user.id : null;
+
+              // connect the calendar's day click callback to the appointment's datetime
+              $scope.appointmentModel = CnAppointmentModelFactory.forSite( $scope.model.site, type );
+              $scope.appointmentModel.calendarModel.settings.dayClick = function( date, event, view ) {
                 // make sure date is no earlier than today
                 var today = moment().hour( moment().hour() + 1 ).minute( 0 ).second( 0 );
 
@@ -304,14 +396,14 @@ define( function() {
                                : today;
                   if( 'month' == view.type ) datetime.add( 1, 'days' );
 
-                  $scope.model.viewModel.record.datetime = datetime.format();
-                  $scope.model.viewModel.formattedRecord.datetime =
-                    CnSession.formatValue( datetime, 'datetime', true );
+                  record.datetime = datetime.format();
+                  formattedRecord.datetime = CnSession.formatValue( datetime, 'datetime', true );
                   $scope.$apply(); // needed otherwise the new datetime takes seconds before it appears
-                  cnRecordViewScope.patch( 'datetime' );
                 }
-              }
-            };
+              };
+
+              $scope.loading = false;
+            } );
           } );
         }
       };
@@ -476,6 +568,10 @@ define( function() {
           if( 'calendar' == type ) {
             data.restricted_site_id = self.site.id;
             data.type = self.type;
+            data.select = { column: [ 'datetime', {
+              table: 'appointment_type',
+              column: 'color'
+            } ] };
           }
           return data;
         };
@@ -487,14 +583,20 @@ define( function() {
             CnHttpFactory.instance( {
               path: 'appointment_type',
               data: {
-                select: { column: [ 'id', 'name' ] },
+                select: { column: [ 'id', 'name', 'qnaire_id' ] },
                 modifier: { order: 'name' }
               }
             } ).query().then( function success( response ) {
-              self.metadata.columnList.appointment_type_id.enumList = [];
+              // store the appointment types in a special array with qnaire_id as indeces:
+              var qnaireList = {};
               response.data.forEach( function( item ) {
-                self.metadata.columnList.appointment_type_id.enumList.push( { value: item.id, name: item.name } );
+                if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
+                qnaireList[item.qnaire_id].push( { value: item.id, name: item.name, } );
               } );
+              self.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
+
+              // and leave the enum list empty for now, it will be set by the view/add services
+              self.metadata.columnList.appointment_type_id.enumList = [];
             } )
           ];
 
@@ -532,6 +634,10 @@ define( function() {
         };
       };
 
+      // get the siteColumn to be used by a site's identifier
+      var siteModule = cenozoApp.module( 'site' );
+      var siteColumn = angular.isDefined( siteModule.identifier.column ) ? siteModule.identifier.column : 'id';
+
       return {
         siteInstanceList: {},
         forSite: function( site, type ) {
@@ -540,8 +646,11 @@ define( function() {
             throw new Error( 'Cannot find site matching identifier "' + site + '", redirecting to 404.' );
           }
           if( angular.isUndefined( this.siteInstanceList[site.id] ) ) this.siteInstanceList[site.id] = {};
-          if( angular.isUndefined( this.siteInstanceList[site.id][type] ) )
+          if( angular.isUndefined( this.siteInstanceList[site.id][type] ) ) {
+            if( angular.isUndefined( site.getIdentifier ) )
+              site.getIdentifier = function() { return siteColumn + '=' + this[siteColumn]; };
             this.siteInstanceList[site.id][type] = new object( site, type );
+          }
           return this.siteInstanceList[site.id][type];
         },
         instance: function() {

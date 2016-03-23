@@ -57,6 +57,8 @@ class module extends \cenozo\service\base_calendar_module
         if( is_null( $db_effective_site ) || $db_restrict_site->id != $db_effective_site->id )
           $this->get_status()->set_code( 403 );
       }
+
+      // we don't restrict by role here since tier-1 roles need to see other people's appointments
     }
 
     if( $service_class_name::is_write_method( $method ) )
@@ -132,6 +134,13 @@ class module extends \cenozo\service\base_calendar_module
     $db_restricted_site = $this->get_restricted_site();
     if( !is_null( $db_restricted_site ) )
       $modifier->where( 'participant_site.site_id', '=', $db_restricted_site->id );
+
+    // restrict by user
+    if( 1 == $session->get_role()->tier )
+    {
+      $db_user = $session->get_user();
+      $modifier->where( sprintf( 'IFNULL( appointment.user_id, %s )', $db_user->id ), '=', $db_user->id );
+    }
 
     if( $select->has_table_columns( 'appointment_type' ) )
       $modifier->left_join( 'appointment_type', 'appointment.appointment_type_id', 'appointment_type.id' );
