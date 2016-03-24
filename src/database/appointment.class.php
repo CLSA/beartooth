@@ -40,6 +40,26 @@ class appointment extends \cenozo\database\record
           'Cannot have more than one unassigned appointment or callback per interview.', __METHOD__ );
     }
 
+    // make sure home appointments have an address and user, and site appointments do not
+    if( 'home' == $this->get_interview()->get_qnaire()->type )
+    {
+      if( is_null( $this->address_id ) )
+        throw lib::create( 'exception\notice',
+          'You must specify an address for home appointments.', __METHOD__ );
+      if( is_null( $this->user_id ) )
+        throw lib::create( 'exception\notice',
+          'You must specify an interviewer for home appointments.', __METHOD__ );
+    }
+    else // site appointment
+    {
+      if( !is_null( $this->address_id ) )
+        throw lib::create( 'exception\notice',
+          'You cannot specify an address for site appointments.', __METHOD__ );
+      if( !is_null( $this->user_id ) )
+        throw lib::create( 'exception\notice',
+          'You cannot specify an interviewer for site appointments.', __METHOD__ );
+    }
+
     // if we changed certain columns then update the queue
     $update_queue = $this->has_column_changed( array( 'completed', 'datetime' ) );
     parent::save();

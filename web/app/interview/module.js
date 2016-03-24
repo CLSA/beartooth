@@ -108,6 +108,24 @@ define( function() {
         scope: { model: '=?' },
         controller: function( $scope ) {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnInterviewModelFactory.root;
+          $scope.model.viewModel.afterView( function() {
+            // hack to make sure the address and user columns don't show in the appointment list
+            // for site interviews
+            if( 'site' == $scope.model.viewModel.record.type ) {
+              var appointmentListScope = cenozo.findChildDirectiveScope(
+                cenozo.getScopeByQuerySelector( '[name="appointmentList"]').$$childHead,
+                'cnRecordList'
+              );
+
+              if( null != appointmentListScope ) {
+                var dataArray = appointmentListScope.dataArray;
+                var addressIndex = dataArray.findIndexByProperty( 'key', 'address_summary' );
+                if( null != addressIndex ) dataArray.splice( addressIndex, 1 );
+                var userIndex = dataArray.findIndexByProperty( 'key', 'formatted_user_id' );
+                if( null != userIndex ) dataArray.splice( userIndex, 1 );
+              }
+            }
+          } );
         }
       };
     }

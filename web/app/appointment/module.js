@@ -30,7 +30,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         title: 'Address'
       },
       appointment_type_id: {
-        type: 'enum',
+        column: 'appointment_type.name',
+        type: 'string',
         title: 'Special Type',
         help: 'Identified whether this is a special appointment type.  If blank then it is considered ' +
               'a "regular" appointment.'
@@ -185,6 +186,12 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
               // make sure the metadata has been created
               $scope.model.metadata.getPromise().then( function() {
+                // store the user and address data in the reserved data array
+                if( angular.isUndefined( reservedDataArray.user_id ) )
+                  reservedDataArray.user_id = dataArray[dataArray.findIndexByProperty( 'key', 'user_id' )];
+                if( angular.isUndefined( reservedDataArray.address_id ) )
+                  reservedDataArray.address_id = dataArray[dataArray.findIndexByProperty( 'key', 'address_id' )];
+
                 var datetimeIndex = dataArray.findIndexByProperty( 'key', 'datetime' );
                 if( 'home' == type ) {
                   var userIndex = dataArray.findIndexByProperty( 'key', 'user_id' );
@@ -195,21 +202,20 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                     dataArray.splice( datetimeIndex + 1, 0, reservedDataArray.address_id );
                 } else { // 'site' == type
                   var userIndex = dataArray.findIndexByProperty( 'key', 'user_id' );
-                  if( null != userIndex ) {
-                    reservedDataArray.user_id = dataArray[userIndex];
-                    dataArray.splice( userIndex, 1 );
-                  }
+                  if( null != userIndex ) dataArray.splice( userIndex, 1 );
                   var addressIndex = dataArray.findIndexByProperty( 'key', 'address_id' );
-                  if( null != addressIndex ) {
-                    reservedDataArray.address_id = dataArray[addressIndex];
-                    dataArray.splice( addressIndex, 1 );
-                  }
+                  if( null != addressIndex ) dataArray.splice( addressIndex, 1 );
                 }
 
                 // set the appointment type enum list based on the qnaire_id
                 var appointmentTypeIndex = dataArray.findIndexByProperty( 'key', 'appointment_type_id' );
-                dataArray[appointmentTypeIndex].enumList = 
-                  $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id];
+                dataArray[appointmentTypeIndex].enumList = angular.copy(
+                  $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
+                );
+
+                // we must also manually add the empty entry (if it doesn't already exist)
+                if( null == dataArray[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) )
+                  dataArray[appointmentTypeIndex].enumList.unshift( { value: undefined, name: '(empty)' } );
               } );
 
               // automatically fill in the current user as the interviewer (or null if this is a site appointment)
@@ -222,10 +228,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               $scope.appointmentModel.calendarModel.settings.dayClick = function( date, event, view ) {
                 // make sure date is no earlier than today
                 var today = moment().hour( moment().hour() + 1 ).minute( 0 ).second( 0 );
-
-                // set the timezone
-                today.tz( CnSession.user.timezone );
-                date.tz( CnSession.user.timezone );
 
                 // full-calendar has a bug where it picks one day behind the actual day, so we adjust for it here
                 if( !date.isBefore( today, 'day' ) ) {
@@ -261,7 +263,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         },
         controller: function( $scope ) {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
-          console.log( $scope.model.type );
           $scope.heading = $scope.model.site.name.ucWords() + ' - '
                          + ( 'home' == $scope.model.type && 1 == CnSession.role.tier ? 'Personal ' : '' )
                          + $scope.model.type.ucWords() + ' Appointment Calendar';
@@ -347,6 +348,12 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
               // make sure the metadata has been created
               $scope.model.metadata.getPromise().then( function() {
+                // store the user and address data in the reserved data array
+                if( angular.isUndefined( reservedDataArray.user_id ) )
+                  reservedDataArray.user_id = dataArray[dataArray.findIndexByProperty( 'key', 'user_id' )];
+                if( angular.isUndefined( reservedDataArray.address_id ) )
+                  reservedDataArray.address_id = dataArray[dataArray.findIndexByProperty( 'key', 'address_id' )];
+
                 var datetimeIndex = dataArray.findIndexByProperty( 'key', 'datetime' );
                 if( 'home' == type ) {
                   var userIndex = dataArray.findIndexByProperty( 'key', 'user_id' );
@@ -357,21 +364,20 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                     dataArray.splice( datetimeIndex + 1, 0, reservedDataArray.address_id );
                 } else { // 'site' == type
                   var userIndex = dataArray.findIndexByProperty( 'key', 'user_id' );
-                  if( null != userIndex ) {
-                    reservedDataArray.user_id = dataArray[userIndex];
-                    dataArray.splice( userIndex, 1 );
-                  }
+                  if( null != userIndex ) dataArray.splice( userIndex, 1 );
                   var addressIndex = dataArray.findIndexByProperty( 'key', 'address_id' );
-                  if( null != addressIndex ) {
-                    reservedDataArray.address_id = dataArray[addressIndex];
-                    dataArray.splice( addressIndex, 1 );
-                  }
+                  if( null != addressIndex ) dataArray.splice( addressIndex, 1 );
                 }
 
                 // set the appointment type enum list based on the qnaire_id
                 var appointmentTypeIndex = dataArray.findIndexByProperty( 'key', 'appointment_type_id' );
-                dataArray[appointmentTypeIndex].enumList = 
-                  $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id];
+                dataArray[appointmentTypeIndex].enumList = angular.copy(
+                  $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
+                );
+
+                // we must also manually add the empty entry
+                if( null == dataArray[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) )
+                  dataArray[appointmentTypeIndex].enumList.unshift( { value: '', name: '(empty)' } );
               } );
 
               // automatically fill in the current user as the interviewer (or null if this is a site appointment)
@@ -384,10 +390,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               $scope.appointmentModel.calendarModel.settings.dayClick = function( date, event, view ) {
                 // make sure date is no earlier than today
                 var today = moment().hour( moment().hour() + 1 ).minute( 0 ).second( 0 );
-
-                // set the timezone
-                today.tz( CnSession.user.timezone );
-                date.tz( CnSession.user.timezone );
 
                 // full-calendar has a bug where it picks one day behind the actual day, so we adjust for it here
                 if( !date.isBefore( today, 'day' ) ) {
@@ -421,6 +423,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
         // add the new appointment's events to the calendar cache
         this.onAdd = function( record ) {
+          // if the user_id is null then make the interview_id null as well
+          // this is a cheat for knowing it's a site appointment
+          if( null == record.user_id ) record.address_id = null;
+
           return this.$$onAdd( record ).then( function() {
             var duration = 'long' == record.type
                          ? CnSession.setting.longAppointment
@@ -579,7 +585,11 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         // extend getMetadata
         this.getMetadata = function() {
           var promiseList = [
-            this.$$getMetadata(),
+            this.$$getMetadata().then( function() {
+              // Force the user and address columns to be mandatory (this will only affect home appointments)
+              self.metadata.columnList.user_id.required = true;
+              self.metadata.columnList.address_id.required = true;
+            } ),
             CnHttpFactory.instance( {
               path: 'appointment_type',
               data: {

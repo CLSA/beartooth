@@ -72,8 +72,9 @@ class module extends \cenozo\service\site_restricted_module
     if( $select->has_table_columns( 'site' ) )
       $modifier->left_join( 'site', 'interview.site_id', 'site.id' );
 
-    if( $select->has_table_columns( 'qnaire' ) )
-      $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
+    // always add the qnaire type
+    $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
+    $select->add_table_column( 'qnaire', 'type' );
 
     if( $select->has_column( 'open_appointment_count' ) )
     {
