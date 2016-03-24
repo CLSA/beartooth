@@ -20,8 +20,7 @@ define( function() {
         title: 'Name'
       },
       color: {
-        title: 'Colour',
-        type: 'color'
+        title: 'Colour'
       },
       qnaire: {
         column: 'qnaire.name',
