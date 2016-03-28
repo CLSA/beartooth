@@ -27,6 +27,28 @@ class module extends \cenozo\service\base_calendar_module
   /**
    * Extend parent method
    */
+  protected function get_argument( $name, $default = NULL )
+  {
+    $session = lib::create( 'business\session' );
+    // return specific values for min_date and max_date for the onyx role
+    if( 'min_date' == $name && 'onyx' == $session->get_role()->name )
+    {
+      return util::get_datetime_object()->format( 'Y-m-d' );
+    }
+    else if( 'max_date' == $name && 'onyx' == $session->get_role()->name )
+    {
+      $db_setting = $session->get_site()->get_setting();
+      $date_obj = util::get_datetime_object();
+      $date_obj->add( new \DateInterval( sprintf( 'P%dD', $db_setting->appointment_update_span ) ) );
+      return $date_obj->format( 'Y-m-d' );
+    }
+
+    return parent::get_argument( $name, $default );
+  }
+
+  /**
+   * Extend parent method
+   */
   public function validate()
   {
     parent::validate();
@@ -100,21 +122,9 @@ class module extends \cenozo\service\base_calendar_module
 
     $session = lib::create( 'business\session' );
 
-    // include the user first/last/name as supplemental data
-    $modifier->left_join( 'user', 'appointment.user_id', 'user.id' );
-    $select->add_column(
-      'CONCAT( user.first_name, " ", user.last_name, " (", user.name, ")" )',
-      'formatted_user_id',
-      false );
-
-    // include the participant uid and interviewer name as supplemental data
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
-    $modifier->left_join( 'user', 'appointment.user_id', 'user.id' );
-    $select->add_table_column( 'participant', 'uid' );
-    $select->add_table_column( 'user', 'name', 'username' );
-
     $participant_site_join_mod = lib::create( 'database\modifier' );
     $participant_site_join_mod->where(
       'interview.participant_id', '=', 'participant_site.participant_id', false );
@@ -122,45 +132,208 @@ class module extends \cenozo\service\base_calendar_module
       'participant_site.application_id', '=', $session->get_application()->id );
     $modifier->join_modifier( 'participant_site', $participant_site_join_mod, 'left' );
 
-    // add the address "summary" column if needed
-    if( $select->has_column( 'address_summary' ) )
+    // onyx roles need to be treated specially
+    if( 'onyx' == $session->get_role()->name )
     {
-      $modifier->left_join( 'address', 'appointment.address_id', 'address.id' );
+      $onyx_instance_class_name = lib::create( 'database\onyx_instance' );
+      $appointment_type_class_name = lib::create( 'database\appointment_type' );
+
+      // add specific columns
+      $select->remove_column();
+      $select->add_table_column( 'participant', 'uid' );
+      $select->add_table_column( 'participant', 'honorific' );
+      $select->add_table_column( 'participant', 'first_name' );
+      $select->add_column( 'IFNULL( participant.other_name, "" )', 'otherName', false );
+      $select->add_table_column( 'participant', 'last_name' );
+      $select->add_column( 'IFNULL( participant.date_of_birth, "" )', 'dob', false );
+      $select->add_table_column( 'participant', 'sex', 'gender' );
+      $select->add_column( 'datetime' );
+      $select->add_table_column( 'address', 'address1' );
+      $select->add_table_column( 'address', 'city' );
+      $select->add_table_column( 'region', 'name' );
+      $select->add_table_column( 'address', 'postcode' );
+      $select->add_table_column( 'participant', 'email' );
+
+      $modifier->join(
+        'participant_primary_address', 'participant.id', 'participant_primary_address.participant_id' );
+      $modifier->left_join( 'address', 'participant_primary_address.address_id', 'address.id' );
       $modifier->left_join( 'region', 'address.region_id', 'region.id' );
-      $select->add_column( 'CONCAT_WS( ", ", address1, address2, city, region.name )', 'address_summary', false );
-    }
 
-    // restrict by site
-    $db_restricted_site = $this->get_restricted_site();
-    if( !is_null( $db_restricted_site ) )
-      $modifier->where( 'participant_site.site_id', '=', $db_restricted_site->id );
-
-    // restrict by user
-    if( 1 == $session->get_role()->tier )
-    {
+      // restrict by onyx instance
       $db_user = $session->get_user();
-      $modifier->where( sprintf( 'IFNULL( appointment.user_id, %s )', $db_user->id ), '=', $db_user->id );
+      $db_onyx_instance = $onyx_instance_class_name::get_unique_record( 'user_id', $db_user->id );
+      if( is_null( $db_onyx_instance ) )
+        throw lib::create( 'exception\runtime',
+          sprintf( 'Tried to get appointment list for onyx user "%s" that has no onyx instance record.',
+                   $db_user->name ),
+          __METHOD__ );
+
+      $db_interviewer_user = $db_onyx_instance->get_interviewer_user();
+      if( is_null( $db_interviewer_user ) )
+      {
+        $modifier->where( 'appointment.user_id', '=', NULL );
+        $select->add_column(
+          'IF( IFNULL( blood_consent.accept, true ), "Yes", "No" )',
+          'consentToDrawBlood',
+          false );
+        $select->add_column(
+          'IF( IFNULL( urine_consent.accept, true ), "Yes", "No" )',
+          'consentToTakeUrine',
+          false );
+
+        $modifier->join(
+          'participant_last_consent',
+          'participant.id',
+          'participant_last_blood_consent.participant_id',
+          '', // regular join type
+          'participant_last_blood_consent' );
+        $modifier->join(
+          'consent_type',
+          'participant_last_blood_consent.consent_type_id',
+          'blood_consent_type.id',
+          '', // regular join type
+          'blood_consent_type' );
+        $modifier->left_join(
+          'consent',
+          'participant_last_blood_consent.consent_id',
+          'blood_consent.id',
+          'blood_consent' );
+        $modifier->where( 'blood_consent_type.name', '=', 'draw blood' );
+
+        $modifier->join(
+          'participant_last_consent',
+          'participant.id',
+          'participant_last_urine_consent.participant_id',
+          '', // regular join type
+          'participant_last_urine_consent' );
+        $modifier->join(
+          'consent_type',
+          'participant_last_urine_consent.consent_type_id',
+          'urine_consent_type.id',
+          '', // regular join type
+          'urine_consent_type' );
+        $modifier->left_join(
+          'consent',
+          'participant_last_urine_consent.consent_id',
+          'urine_consent.id',
+          'urine_consent' );
+        $modifier->where( 'urine_consent_type.name', '=', 'take urine' );
+      }
+      else
+      {
+        $modifier->where( 'appointment.user_id', '=', $db_interviewer_user->id );
+      }
+
+      // restrict by site
+      $db_restricted_site = $this->get_restricted_site();
+      if( !is_null( $db_restricted_site ) )
+        $modifier->where( 'participant_site.site_id', '=', $db_restricted_site->id );
+
+      // restrict by appointment type
+      $appointment_type = $this->get_argument( 'type', false );
+      if( !$appointment_type )
+      {
+        $modifier->where( 'appointment_type_id', '=', NULL );
+      }
+      else
+      {
+        $default = false;
+        $appointment_type_id_list = array();
+
+        foreach( explode( ';', $appointment_type ) as $type )
+        {
+          $type = trim( $type );
+          if( 'default' == $type )
+          {
+            $default = true;
+          }
+          else
+          {
+            $db_appointment_type = $appointment_type_class_name::get_unique_record( 'name', $type );
+            if( is_null( $db_appointment_type ) )
+            {
+              log::warning( sprintf(
+                'Tried to get onyx appointment list by undefined appointment type "%s".', $type ) );
+            }
+            else
+            {
+              $appointment_type_id_list[] = $db_appointment_type->id;
+            }
+          }
+        }
+
+        if( $default && 0 < count( $appointment_type_id_list ) ) 
+        {   
+          $modifier->where_bracket( true );
+          $modifier->where( 'appointment_type_id', '=', NULL );
+          $modifier->or_where( 'appointment_type_id', 'IN', $appointment_type_id_list );
+          $modifier->where_bracket( false );
+        }   
+        else if( $default )
+        {
+          $modifier->where( 'appointment_type_id', '=', NULL );
+        }
+        else if( 0 < count( $appointment_type_id_list ) ) 
+        {
+          $modifier->where( 'appointment_type_id', 'IN', $appointment_type_id_list );
+        }
+      }
     }
-
-    if( $select->has_table_columns( 'appointment_type' ) )
-      $modifier->left_join( 'appointment_type', 'appointment.appointment_type_id', 'appointment_type.id' );
-
-    if( $select->has_column( 'state' ) )
+    else
     {
-      $modifier->left_join( 'setting', 'participant_site.site_id', 'setting.site_id' );
+      // include the user first/last/name as supplemental data
+      $modifier->left_join( 'user', 'appointment.user_id', 'user.id' );
+      $select->add_column(
+        'CONCAT( user.first_name, " ", user.last_name, " (", user.name, ")" )',
+        'formatted_user_id',
+        false );
 
-      // specialized sql used to determine the appointment's current state
-      $sql =
-        'IF( appointment.completed, '.
-          '"completed", '.
-          'IF( UTC_TIMESTAMP() < appointment.datetime, "upcoming", "passed" ) '.
-        ')';
+      // include the participant uid and interviewer name as supplemental data
+      $modifier->left_join( 'user', 'appointment.user_id', 'user.id' );
+      $select->add_table_column( 'participant', 'uid' );
+      $select->add_table_column( 'user', 'name', 'username' );
 
-      $select->add_column( $sql, 'state', false );
+      // add the address "summary" column if needed
+      if( $select->has_column( 'address_summary' ) )
+      {
+        $modifier->left_join( 'address', 'appointment.address_id', 'address.id' );
+        $modifier->left_join( 'region', 'address.region_id', 'region.id' );
+        $select->add_column(
+          'CONCAT_WS( ", ", address1, address2, city, region.name )', 'address_summary', false );
+      }
+
+      // restrict by site
+      $db_restricted_site = $this->get_restricted_site();
+      if( !is_null( $db_restricted_site ) )
+        $modifier->where( 'participant_site.site_id', '=', $db_restricted_site->id );
+
+      // restrict by user
+      if( 1 == $session->get_role()->tier )
+      {
+        $db_user = $session->get_user();
+        $modifier->where( sprintf( 'IFNULL( appointment.user_id, %s )', $db_user->id ), '=', $db_user->id );
+      }
+
+      if( $select->has_table_columns( 'appointment_type' ) )
+        $modifier->left_join( 'appointment_type', 'appointment.appointment_type_id', 'appointment_type.id' );
+
+      if( $select->has_column( 'state' ) )
+      {
+        $modifier->left_join( 'setting', 'participant_site.site_id', 'setting.site_id' );
+
+        // specialized sql used to determine the appointment's current state
+        $sql =
+          'IF( appointment.completed, '.
+            '"completed", '.
+            'IF( UTC_TIMESTAMP() < appointment.datetime, "upcoming", "passed" ) '.
+          ')';
+
+        $select->add_column( $sql, 'state', false );
+      }
+
+      // restrict by type
+      $type = $this->get_argument( 'type', NULL );
+      if( !is_null( $type ) ) $modifier->where( 'qnaire.type', '=', $type );
     }
-
-    // restrict by type
-    $type = $this->get_argument( 'type', NULL );
-    if( !is_null( $type ) ) $modifier->where( 'qnaire.type', '=', $type );
   }
 }
