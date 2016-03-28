@@ -36,6 +36,13 @@ class module extends \cenozo\service\participant\module
       $modifier->join_modifier( 'queue_state', $join_mod, 'left' );
       $modifier->where( 'queue_state.id', '=', NULL );
 
+      $modifier->left_join( 'address', 'queue_has_participant.address_id', 'address.id' );
+      $select->add_table_column(
+        'address',
+        'CONCAT_WS( ", ", address.address1, address.address2, address.city, address.postcode )',
+        'address_summary',
+        false );
+
       // repopulate queue if it is out of date
       $queue_class_name = lib::get_class_name( 'database\queue' );
       $interval = $queue_class_name::get_interval_since_last_repopulate();
