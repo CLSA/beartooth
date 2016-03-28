@@ -107,7 +107,7 @@ CREATE PROCEDURE patch_role_has_service()
         "SELECT id FROM service ",
         "WHERE subject IN( ",
           "'address', 'alternate', 'application', 'appointment_type', 'collection', 'consent', 'event', ",
-          "'interview', 'jurisdiction', 'language', 'onyx_instance', 'phase', 'phone', 'qnaire', 'quota', ",
+          "'interview', 'jurisdiction', 'language', 'phase', 'phone', 'qnaire', 'quota', ",
           "'jurisdiction', 'recording', 'recording_list', 'script', 'source', 'state' ) ",
         "OR ( subject = 'setting' AND method = 'GET' ) ",
         "OR ( subject = 'site' AND method IN ( 'DELETE', 'POST' ) ) ",

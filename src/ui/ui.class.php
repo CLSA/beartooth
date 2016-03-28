@@ -58,7 +58,7 @@ class ui extends \cenozo\ui\ui
     if( array_key_exists( 'interview', $module_list ) && $module_list['interview']['list_menu'] )
       $list['Interviews'] = 'interview';
     if( array_key_exists( 'onyx_instance', $module_list ) && $module_list['onyx_instance']['list_menu'] )
-      $list['Opal Instances'] = 'onyx_instance';
+      $list['Onyx Instances'] = 'onyx_instance';
     if( array_key_exists( 'qnaire', $module_list ) && $module_list['qnaire']['list_menu'] )
       $list['Questionnaires'] = 'qnaire';
     if( array_key_exists( 'queue', $module_list ) && $module_list['queue']['list_menu'] )

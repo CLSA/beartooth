@@ -39,6 +39,13 @@ class module extends \cenozo\service\site_restricted_module
       if( $select->has_alias( 'username' ) ) $select->add_table_column( 'user', 'name', 'username' );
     }
 
+    // include the interview's first/last/name as supplemental data
+    $modifier->left_join( 'user', 'onyx_instance.interviewer_user_id', 'interviewer.id', 'interviewer' );
+    $select->add_column(
+      'CONCAT( interviewer.first_name, " ", interviewer.last_name, " (", interviewer.name, ")" )',
+      'formatted_interviewer_user_id',
+      false );
+
     // add the onyx_instance's last access column
     if( $select->has_alias( 'last_access_datetime' ) )
     {

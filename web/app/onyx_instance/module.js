@@ -16,6 +16,11 @@ define( function() {
         column: 'user.name',
         title: 'Name'
       },
+      interviewer: {
+        column: 'interviewer.name',
+        title: 'Interviewer',
+        help: 'Blank for site onyx-instances.'
+      },
       active: {
         column: 'user.active',
         title: 'Active',
@@ -45,8 +50,18 @@ define( function() {
       title: 'Password',
       type: 'string',
       regex: '^((?!(password)).){8,}$', // length >= 8 and can't have "password"
-      constant: 'view',
+      exclude: 'view',
       help: 'Passwords must be at least 8 characters long and cannot contain the word "password"'
+    },
+    interviewer_user_id: {
+      title: 'Instance',
+      type: 'lookup-typeahead',
+      typeahead: {
+        table: 'user',
+        select: 'CONCAT( first_name, " ", last_name, " (", name, ")" )',
+        where: [ 'first_name', 'last_name', 'name' ]
+      },
+      help: 'Determines which interviewer this instance belongs to, or blank if this is a site instance.'
     }
   } );
 
@@ -128,8 +143,10 @@ define( function() {
   cenozo.providers.factory( 'CnOnyxInstanceModelFactory', [
     'CnBaseModelFactory',
     'CnOnyxInstanceAddFactory', 'CnOnyxInstanceListFactory', 'CnOnyxInstanceViewFactory',
+    'CnHttpFactory',
     function( CnBaseModelFactory,
-              CnOnyxInstanceAddFactory, CnOnyxInstanceListFactory, CnOnyxInstanceViewFactory ) {
+              CnOnyxInstanceAddFactory, CnOnyxInstanceListFactory, CnOnyxInstanceViewFactory,
+              CnHttpFactory ) {
       var object = function( root ) {
         var self = this;
         CnBaseModelFactory.construct( this, module );
