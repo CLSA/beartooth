@@ -56,3 +56,29 @@ DELIMITER ;
 -- now call the procedure and remove the procedure
 CALL patch_appointment();
 DROP PROCEDURE IF EXISTS patch_appointment;
+
+SELECT "Adding new triggers to appointment table" AS "";
+
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS appointment_AFTER_INSERT $$
+CREATE DEFINER = CURRENT_USER TRIGGER appointment_AFTER_INSERT AFTER INSERT ON appointment FOR EACH ROW
+BEGIN
+  CALL update_interview_last_appointment( NEW.interview_id );
+END;$$
+
+
+DROP TRIGGER IF EXISTS appointment_AFTER_UPDATE $$
+CREATE DEFINER = CURRENT_USER TRIGGER appointment_AFTER_UPDATE AFTER UPDATE ON appointment FOR EACH ROW
+BEGIN
+  CALL update_interview_last_appointment( NEW.interview_id );
+END;$$
+
+
+DROP TRIGGER IF EXISTS appointment_AFTER_DELETE $$
+CREATE DEFINER = CURRENT_USER TRIGGER appointment_AFTER_DELETE AFTER DELETE ON appointment FOR EACH ROW
+BEGIN
+  CALL update_interview_last_appointment( OLD.interview_id );
+END;$$
+
+DELIMITER ;

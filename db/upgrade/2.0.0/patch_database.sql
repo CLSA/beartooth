@@ -6,6 +6,8 @@ SOURCE access.sql;
 SOURCE interview.sql
 SOURCE participant_last_interview.sql
 SOURCE update_participant_last_interview.sql
+SOURCE interview_last_appointment.sql
+SOURCE update_interview_last_appointment.sql
 SOURCE interview_last_assignment.sql
 SOURCE update_interview_last_assignment.sql
 SOURCE assignment_last_phone_call.sql
