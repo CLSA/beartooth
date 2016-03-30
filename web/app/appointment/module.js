@@ -214,6 +214,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 );
 
                 // we must also manually add the empty entry (if it doesn't already exist)
+                if( angular.isUndefined( dataArray[appointmentTypeIndex].enumList ) )
+                  dataArray[appointmentTypeIndex].enumList = [];
                 if( null == dataArray[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) )
                   dataArray[appointmentTypeIndex].enumList.unshift( { value: undefined, name: '(empty)' } );
               } );
@@ -376,6 +378,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 );
 
                 // we must also manually add the empty entry
+                if( angular.isUndefined( dataArray[appointmentTypeIndex].enumList ) )
+                  dataArray[appointmentTypeIndex].enumList = [];
                 if( null == dataArray[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) )
                   dataArray[appointmentTypeIndex].enumList.unshift( { value: '', name: '(empty)' } );
               } );

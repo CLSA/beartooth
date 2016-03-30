@@ -89,8 +89,7 @@ class appointment extends \cenozo\database\record
   public function validate_date()
   {
     // make sure the interview is ready for the appointment type (home/site)
-    // (don't use $this->get_interview(), the record may not have been created yet)
-    $db_interview = lib::create( 'database\interview', $this->interview_id );
+    $db_interview = $this->get_interview();
     $db_participant = $db_interview->get_participant();
 
     // check the qnaire start date
