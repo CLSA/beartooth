@@ -13,6 +13,8 @@ SOURCE update_interview_last_assignment.sql
 SOURCE assignment_last_phone_call.sql
 SOURCE update_assignment_last_phone_call.sql
 SOURCE participant_last_appointment.sql
+SOURCE participant_last_home_appointment.sql
+SOURCE participant_last_site_appointment.sql
 
 SOURCE event_type.sql
 SOURCE qnaire.sql
