@@ -36,7 +36,7 @@ define( function() {
       type: 'rank'
     },
     name: {
-      title: 'Script',
+      title: 'Name',
       type: 'string'
     },
     delay: {
