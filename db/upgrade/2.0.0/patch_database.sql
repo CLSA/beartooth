@@ -6,8 +6,6 @@ SOURCE access.sql;
 SOURCE interview.sql
 SOURCE participant_last_interview.sql
 SOURCE update_participant_last_interview.sql
-SOURCE interview_last_appointment.sql
-SOURCE update_interview_last_appointment.sql
 SOURCE interview_last_assignment.sql
 SOURCE update_interview_last_assignment.sql
 SOURCE assignment_last_phone_call.sql
@@ -42,6 +40,9 @@ SOURCE user.sql
 SOURCE recording.sql
 SOURCE recording_file.sql
 SOURCE site.sql
+
+SOURCE interview_last_appointment.sql
+SOURCE update_interview_last_appointment.sql
 
 SOURCE table_character_sets.sql
 SOURCE column_character_sets.sql
