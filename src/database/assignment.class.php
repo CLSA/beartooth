@@ -109,7 +109,7 @@ class assignment extends \cenozo\database\record
         $modifier = lib::create( 'database\modifier' );
         $modifier->where( 'status', '=', 'contacted' );
         $db_callback->reached = 0 < $this->get_phone_call_count( $modifier );
-        $db_callback->assignment_id = $db_assignment->id;
+        $db_callback->assignment_id = $this->id;
         $db_callback->save();
       }
     }
