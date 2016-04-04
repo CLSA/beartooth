@@ -40,6 +40,11 @@ DROP PROCEDURE IF EXISTS patch_interview;
         LIMIT 1
       );
 
+      -- use the create timestamp for interviews with no assignments
+      UPDATE interview
+      SET start_datetime = CONVERT_TZ( interview.create_timestamp, 'Canada/Eastern', 'UTC' )
+      WHERE start_datetime IS NULL;
+
       UPDATE interview 
       LEFT JOIN assignment ON interview.id = assignment.interview_id
       SET interview.end_datetime = IF( interview.completed, assignment.end_datetime, NULL )
