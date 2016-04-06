@@ -238,18 +238,15 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
                     } ).show().then( self.onLoad );
                   } else { CnModalMessageFactory.httpError( response ); }
                 }
-              } ).post().then( function( response ) {
-                self.onLoad();
-              } );
+              } ).post().then( self.onLoad );
             }
           } );
         };
 
-        this.onLoad = function( showLoading ) {
+        this.onLoad = function() {
           self.reset();
-          if( angular.isUndefined( showLoading ) ) showLoading = true;
-          self.isAssignmentLoading = showLoading;
-          self.isPrevAssignmentLoading = showLoading;
+          self.isAssignmentLoading = true;
+          self.isPrevAssignmentLoading = true;
           return CnHttpFactory.instance( {
             path: 'assignment/0',
             data: { select: { column: [ 'id', 'interview_id', 'start_datetime',
@@ -481,7 +478,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
             CnHttpFactory.instance( {
               path: 'phone_call?operation=open',
               data: { phone_id: phone.id }
-            } ).post().then( function() { self.onLoad( false ); } );
+            } ).post().then( self.onLoad );
           }
 
           // start by updating the voip status
@@ -559,7 +556,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
           CnHttpFactory.instance( {
             path: 'phone_call/0?operation=close',
             data: { status: status }
-          } ).patch().then( function() { self.onLoad( false ); } );
+          } ).patch().then( self.onLoad );
         };
 
         this.endAssignment = function() {
