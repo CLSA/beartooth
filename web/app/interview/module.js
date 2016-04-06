@@ -118,11 +118,11 @@ define( function() {
               );
 
               if( null != appointmentListScope ) {
-                var dataArray = appointmentListScope.dataArray;
-                var addressIndex = dataArray.findIndexByProperty( 'key', 'address_summary' );
-                if( null != addressIndex ) dataArray.splice( addressIndex, 1 );
-                var userIndex = dataArray.findIndexByProperty( 'key', 'formatted_user_id' );
-                if( null != userIndex ) dataArray.splice( userIndex, 1 );
+                var inputList = appointmentListScope.dataArray[0].inputList;
+                var addressIndex = inputList.findIndexByProperty( 'key', 'address_summary' );
+                if( null != addressIndex ) inputList.splice( addressIndex, 1 );
+                var userIndex = inputList.findIndexByProperty( 'key', 'formatted_user_id' );
+                if( null != userIndex ) inputList.splice( userIndex, 1 );
               }
             }
           } );
