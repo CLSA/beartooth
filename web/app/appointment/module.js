@@ -134,10 +134,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       var date = moment( appointment.datetime );
       var offset = moment.tz.zone( timezone ).offset( date.unix() );
 
-      // adjust to/from daylight saving time
-      var isNowDST = moment().tz( timezone ).isDST();
-      var isDST = date.tz( timezone ).isDST();
-      if( isNowDST != isDST ) offset += ( isNowDST ? 1 : -1 ) * 60;
+      // adjust the appointment for daylight savings time
+      if( date.tz( timezone ).isDST() ) offset += -60;
       
       var event = {
         getIdentifier: function() { return appointment.getIdentifier() },
