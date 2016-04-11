@@ -205,9 +205,8 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
 
         // add additional columns to the model
         this.participantModel.addColumn( 'rank', { title: 'Rank', column: 'queue.rank', type: 'rank' }, 0 );
-        this.participantModel.addColumn( 'queue', { title: 'Queue', column: 'queue.name' }, 1 );
-        this.participantModel.addColumn( 'qnaire', { title: 'Questionnaire', column: 'qnaire.name' }, 2 );
-        this.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 3 );
+        this.participantModel.addColumn( 'qnaire', { title: 'Questionnaire', column: 'qnaire.name' }, 1 );
+        this.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 2 );
         this.participantModel.addColumn( 'address_summary', { title: 'Address' } );
 
         // override the default order

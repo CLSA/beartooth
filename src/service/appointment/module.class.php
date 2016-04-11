@@ -281,6 +281,13 @@ class module extends \cenozo\service\base_calendar_module
     }
     else
     {
+      // add the appointment's duration
+      $modifier->join( 'setting', 'participant_site.site_id', 'setting.site_id' );
+      $select->add_column(
+        'IF( appointment.user_id IS NULL, setting.appointment_site_duration, setting.appointment_home_duration )',
+        'duration',
+        false );
+
       // include the user first/last/name as supplemental data
       $modifier->left_join( 'user', 'appointment.user_id', 'user.id' );
       $select->add_column(
@@ -319,8 +326,6 @@ class module extends \cenozo\service\base_calendar_module
 
       if( $select->has_column( 'state' ) )
       {
-        $modifier->left_join( 'setting', 'participant_site.site_id', 'setting.site_id' );
-
         // specialized sql used to determine the appointment's current state
         $sql =
           'IF( appointment.completed, '.
