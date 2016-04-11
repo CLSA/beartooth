@@ -171,8 +171,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               var cnRecordAddScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
               if( !cnRecordAddScope ) throw new Exception( 'Cannot find cnRecordAdd scope' );
 
-              cnRecordAddScope.heading =
+              $scope.model.heading =
                 cnRecordAddScope.heading.replace( 'Appointment', type.ucWords() + ' Appointment' );
+
               // Create a reserved data array object to temporarily store the address and user columns
               // for when we're adding a site-qnaire appointment
               if( angular.isUndefined( cnRecordAddScope.reservedDataArray ) )
@@ -263,9 +264,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         },
         controller: function( $scope ) {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
-          $scope.heading = $scope.model.site.name.ucWords() + ' - '
-                         + ( 'home' == $scope.model.type && 1 == CnSession.role.tier ? 'Personal ' : '' )
-                         + $scope.model.type.ucWords() + ' Appointment Calendar';
+          $scope.model.heading = $scope.model.site.name.ucWords() + ' - '
+                               + ( 'home' == $scope.model.type && 1 == CnSession.role.tier ? 'Personal ' : '' )
+                               + $scope.model.type.ucWords() + ' Appointment Calendar';
         },
         link: function( scope, element ) {
           // synchronize appointment-based calendars
@@ -335,8 +336,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               var cnRecordViewScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordView' );
               if( !cnRecordViewScope ) throw new Exception( 'Cannot find cnRecordView scope' );
 
-              cnRecordViewScope.heading =
+              $scope.model.heading =
                 cnRecordViewScope.heading.replace( 'Appointment', type.ucWords() + ' Appointment' );
+
               // Create a reserved data array object to temporarily store the address and user columns
               // for when we're viewing a site-qnaire appointment
               if( angular.isUndefined( cnRecordViewScope.reservedDataArray ) )

@@ -127,8 +127,11 @@ define( function() {
       var object = function( parentModel, root ) {
         var self = this;
         CnBaseViewFactory.construct( this, parentModel, root );
-        if( angular.isDefined( this.queueStateModel ) )
-          this.queueStateModel.heading = 'Disabled Questionnaire List';
+
+        this.deferred.promise.then( function() {
+          if( angular.isDefined( self.queueStateModel ) )
+            self.queueStateModel.heading = 'Disabled Questionnaire List';
+        } );
 
         // only ranked queues have queue states
         this.afterView( function() { self.queueStateModel.show = null != self.record.rank; } );
