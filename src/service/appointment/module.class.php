@@ -99,6 +99,14 @@ class module extends \cenozo\service\base_calendar_module
       }
       else
       {
+        // make sure mandatory scripts have been submitted before allowing a new appointment
+        if( 'POST' == $method && !$db_appointment->are_scripts_complete() )
+        {
+          $this->set_data(
+            'An appointment cannot be made for this participant until '.
+            'all mandatory scripts have been submitted.' );
+          $this->get_status()->set_code( 406 );
+        }
         // validate if we are changing the datetime
         if( 'POST' == $method ||
             ( 'PATCH' == $method && array_key_exists( 'datetime', $this->get_file_as_array() ) ) )

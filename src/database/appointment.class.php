@@ -77,13 +77,51 @@ class appointment extends \cenozo\database\record
   }
   
   /**
+   * Determines whether all mandatory scripts required by this appointment have been completed
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return boolean
+   * @access public
+   */
+  public function are_scripts_complete()
+  {
+    $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
+    $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
+
+    $old_survey_sid = $survey_class_name::get_sid();
+    $old_token_sid = $tokens_class_name::get_sid();
+
+    $db_interview = $this->get_interview();
+
+    $script_sel = lib::create( 'database\select' );
+    $script_sel->add_column( 'sid' );
+    $script_sel->add_column( 'repeated' );
+    $completed = true;
+    foreach( $db_interview->get_qnaire()->get_script_list( $script_sel ) as $row )
+    {
+      $survey_class_name::set_sid( $row['sid'] );
+      $survey_mod = lib::create( 'database\modifier' );
+      $tokens_class_name::where_token( $survey_mod, $db_interview->get_participant(), $row['repeated'] );
+      if( 0 == $survey_class_name::count( $survey_mod ) )
+      {
+        $completed = false;
+        break;
+      }
+    }
+
+    $survey_class_name::set_sid( $old_survey_sid );
+    $tokens_class_name::set_sid( $old_token_sid );
+
+    return $completed;
+  }
+
+  /**
    * Determines whether an appointment's date is valid.
    * 
    * This function will make sure the participant's start qnaire date (from the queues) does
    * not come after the current date.  It will also ensure the participant has a valid qnaire.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return boolean
-   * @throws exception\runtime
    * @access public
    */
   public function validate_date()
@@ -99,7 +137,7 @@ class appointment extends \cenozo\database\record
     // check the qnaire
     $db_effective_qnaire = $db_participant->get_effective_qnaire();
     if( is_null( $db_effective_qnaire ) ||
-       $db_effective_qnaire->id != $db_interview->get_qnaire()->id ) return false;
+       $db_effective_qnaire->id != $db_interview->qnaire_id ) return false;
     
     return true;
   }

@@ -17,6 +17,7 @@ SOURCE participant_last_site_appointment.sql
 SOURCE event_type.sql
 SOURCE qnaire.sql
 SOURCE qnaire_has_event_type.sql
+SOURCE qnaire_has_script.sql
 SOURCE phase.sql
 SOURCE queue_has_participant.sql
 SOURCE assignment.sql

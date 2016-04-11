@@ -33,7 +33,7 @@ class ui extends \cenozo\ui\ui
     if( array_key_exists( 'qnaire', $module_list ) )
     {
       $module_list['qnaire']['children'] = array( 'appointment_type', 'queue_state' );
-      $module_list['qnaire']['choosing'] = array( 'event_type', 'quota' );
+      $module_list['qnaire']['choosing'] = array( 'script', 'event_type', 'quota' );
     }
     if( array_key_exists( 'queue', $module_list ) )
     {
