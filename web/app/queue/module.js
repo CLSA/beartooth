@@ -130,7 +130,7 @@ define( function() {
 
         this.deferred.promise.then( function() {
           if( angular.isDefined( self.queueStateModel ) )
-            self.queueStateModel.heading = 'Disabled Questionnaire List';
+            self.queueStateModel.listModel.heading = 'Disabled Questionnaire List';
         } );
 
         // only ranked queues have queue states

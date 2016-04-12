@@ -171,7 +171,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               var cnRecordAddScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
               if( !cnRecordAddScope ) throw new Exception( 'Cannot find cnRecordAdd scope' );
 
-              $scope.model.heading =
+              $scope.model.addModel.heading =
                 cnRecordAddScope.heading.replace( 'Appointment', type.ucWords() + ' Appointment' );
 
               // Create a reserved data array object to temporarily store the address and user columns
@@ -264,9 +264,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         },
         controller: function( $scope ) {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
-          $scope.model.heading = $scope.model.site.name.ucWords() + ' - '
-                               + ( 'home' == $scope.model.type && 1 == CnSession.role.tier ? 'Personal ' : '' )
-                               + $scope.model.type.ucWords() + ' Appointment Calendar';
+          $scope.model.calendarModel.heading = $scope.model.site.name.ucWords() + ' - '
+            + ( 'home' == $scope.model.type && 1 == CnSession.role.tier ? 'Personal ' : '' )
+            + $scope.model.type.ucWords() + ' Appointment Calendar';
         },
         link: function( scope, element ) {
           // synchronize appointment-based calendars
@@ -336,7 +336,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               var cnRecordViewScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordView' );
               if( !cnRecordViewScope ) throw new Exception( 'Cannot find cnRecordView scope' );
 
-              $scope.model.heading =
+              $scope.model.viewModel.heading =
                 cnRecordViewScope.heading.replace( 'Appointment', type.ucWords() + ' Appointment' );
 
               // Create a reserved data array object to temporarily store the address and user columns
