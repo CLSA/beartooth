@@ -168,31 +168,6 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
       ALTER TABLE qnaire DROP COLUMN default_interview_method_id;
     END IF;
 
-    SELECT "Dropping completed_event_type_id column from qnaire table" AS "";
-
-    SET @test = (
-      SELECT COUNT(*)
-      FROM information_schema.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = "qnaire"
-      AND COLUMN_NAME = "completed_event_type_id" );
-    IF @test = 1 THEN
-      ALTER TABLE qnaire DROP FOREIGN KEY fk_qnaire_completed_event_type_id;
-
-      SET @sql = CONCAT(
-        "DELETE FROM ", @cenozo, ".event_type ",
-        "WHERE id IN ( ",
-          "SELECT completed_event_type_id FROM qnaire ",
-        ")" );
-      PREPARE statement FROM @sql;
-      EXECUTE statement;
-      DEALLOCATE PREPARE statement;
-
-      ALTER TABLE qnaire DROP INDEX fk_completed_event_type_id;
-
-      ALTER TABLE qnaire DROP COLUMN completed_event_type_id;
-    END IF;
-
     SELECT "Dropping withdraw_sid column from qnaire table" AS "";
 
     SET @test = (
