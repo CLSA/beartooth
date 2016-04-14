@@ -77,8 +77,6 @@ class ui extends \cenozo\ui\ui
     $db_role = lib::create( 'business\session' )->get_role();
 
     // add application-specific states to the base list
-    if( in_array( $db_role->name, array( 'helpline', 'coordinator', 'interviewer' ) ) )
-      $list['Assignment Home'] = array( 'subject' => 'assignment', 'action' => 'home' );
     if( 2 <= $db_role->tier )
       $list['Queue Tree'] = array( 'subject' => 'queue', 'action' => 'tree' );
     if( !$db_role->all_sites && 1 < $db_role->tier )
@@ -86,18 +84,27 @@ class ui extends \cenozo\ui\ui
       $list['Site Details'] = array(
         'subject' => 'site',
         'action' => 'view',
-        'identifier' => sprintf( 'name=%s', $db_site->name ) );
+        'query' => '/{identifier}',
+        'values' => sprintf( '{identifier:"name=%s"}', $db_site->name ) );
     }
-    if( !$db_role->all_sites || 'helpline' == $db_role->name )
+    foreach( array( 'home', 'site' ) as $type )
     {
-      $list['Home Appointment Calendar'] = array(
-        'subject' => 'appointment',
-        'action' => 'calendar',
-        'identifier' => sprintf( 'name=%s;type=home', $db_site->name ) );
-      $list['Site Appointment Calendar'] = array(
-        'subject' => 'appointment',
-        'action' => 'calendar',
-        'identifier' => sprintf( 'name=%s;type=site', $db_site->name ) );
+      if( in_array( $db_role->name, array( 'helpline', 'coordinator', 'interviewer' ) ) )
+      {
+        $list[ucwords( $type ).' Assignment Control'] = array(
+          'subject' => 'assignment',
+          'action' => 'control',
+          'query' => '/{type}',
+          'values' => sprintf( '{type:"%s"}', $type ) );
+      }
+      if( !$db_role->all_sites || 'helpline' == $db_role->name )
+      {
+        $list[ucwords( $type ).' Appointment Calendar'] = array(
+          'subject' => 'appointment',
+          'action' => 'calendar',
+          'query' => '/{type}/{identifier}',
+          'values' => sprintf( '{type:"%s",identifier:"name=%s"}', $type, $db_site->name ) );
+      }
     }
 
     return $list;

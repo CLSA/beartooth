@@ -36,12 +36,25 @@ class module extends \cenozo\service\participant\module
       $modifier->join_modifier( 'queue_state', $join_mod, 'left' );
       $modifier->where( 'queue_state.id', '=', NULL );
 
-      $modifier->left_join( 'address', 'queue_has_participant.address_id', 'address.id' );
-      $select->add_table_column(
-        'address',
-        'CONCAT_WS( ", ", address.address1, address.address2, address.city, address.postcode )',
-        'address_summary',
-        false );
+      if( $select->has_column( 'address_summary' ) )
+      {
+        $modifier->left_join( 'address', 'queue_has_participant.address_id', 'address.id' );
+        $select->add_table_column(
+          'address',
+          'CONCAT_WS( ", ", address.address1, address.address2, address.city, address.postcode )',
+          'address_summary',
+          false );
+      }
+
+      if( $select->has_column( 'last_completed_datetime' ) )
+      {
+        $modifier->left_join( 'qnaire', 'qnaire.rank', 'last_qnaire.rank + 1', 'last_qnaire' );
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where( 'last_qnaire.completed_event_type_id', '=', 'event.event_type_id', false );
+        $join_mod->where( 'participant.id', '=', 'event.participant_id', false );
+        $modifier->join_modifier( 'event', $join_mod, 'left' );
+        $select->add_table_column( 'event', 'datetime', 'last_completed_datetime' );
+      }
 
       // repopulate queue if it is out of date
       $queue_class_name = lib::get_class_name( 'database\queue' );

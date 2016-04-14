@@ -665,20 +665,13 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           var site = null;
           var type = null;
           if( 'calendar' == $state.current.name.split( '.' )[1] ) {
-            $state.params.identifier.split( ';' ).forEach( function( identifier ) {
-              var parts = identifier.split( '=' );
-              if( 1 == parts.length && parseInt( parts[0] ) == parts[0] ) {
-                // int site identifier
-                site = CnSession.siteList.findByProperty( 'id', parseInt( parts[0] ) );
-              } else if( 2 == parts.length ) {
-                // key=val identifier
-                if( 'name' == parts[0] ) {
-                  site = CnSession.siteList.findByProperty( parts[0], parts[1] );
-                } else if( 'type' == parts[0] ) {
-                  type = parts[1];
-                }
-              }
-            } );
+            if( angular.isDefined( $state.params.type ) )
+              type = $state.params.type;
+            if( angular.isDefined( $state.params.identifier ) ) {
+              var identifier = $state.params.identifier.split( '=' );
+              if( 2 == identifier.length )
+                site = CnSession.siteList.findByProperty( identifier[0], identifier[1] );
+            }
           } else {
             site = CnSession.site;
             type = 'site';

@@ -1,4 +1,4 @@
-// we need the participant module for the special CnAssignmentHomeFactory
+// we need the participant module for the special CnAssignmentControlFactory
 define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
   'use strict';
 
@@ -90,14 +90,14 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
   } );
 
   /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnAssignmentHome', [
-    'CnAssignmentHomeFactory',
-    function( CnAssignmentHomeFactory ) {
+  cenozo.providers.directive( 'cnAssignmentControl', [
+    'CnAssignmentControlFactory',
+    function( CnAssignmentControlFactory ) {
       return {
-        templateUrl: module.getFileUrl( 'home.tpl.html' ),
+        templateUrl: module.getFileUrl( 'control.tpl.html' ),
         restrict: 'E',
         controller: function( $scope ) {
-          $scope.model = CnAssignmentHomeFactory.instance();
+          $scope.model = CnAssignmentControlFactory.instance();
           $scope.model.onLoad(); // breadcrumbs are handled by the service
         }
       };
@@ -173,7 +173,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
   ] );
 
   /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnAssignmentHomeFactory', [
+  cenozo.providers.factory( 'CnAssignmentControlFactory', [
     '$state', '$window', 'CnSession', 'CnHttpFactory',
     'CnParticipantModelFactory', 'CnModalMessageFactory', 'CnModalConfirmFactory',
     function( $state, $window, CnSession, CnHttpFactory,
@@ -181,6 +181,9 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
       var object = function( root ) {
         var self = this;
 
+        // need to 404 if state is undefined or not home/site
+        if( 'home' != $state.params.type && 'site' != $state.params.type ) $state.go( 'error.404' );
+        
         this.reset = function() {
           self.assignment = null;
           self.prevAssignment = null;
@@ -201,19 +204,40 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
 
         this.application = CnSession.application.title;
         this.participantModel = CnParticipantModelFactory.instance();
+        this.type = $state.params.type;
         this.reset();
 
         // add additional columns to the model
         this.participantModel.addColumn( 'rank', { title: 'Rank', column: 'queue.rank', type: 'rank' }, 0 );
-        this.participantModel.addColumn( 'qnaire', { title: 'Questionnaire', column: 'qnaire.name' }, 1 );
-        this.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 2 );
-        this.participantModel.addColumn( 'address_summary', { title: 'Address' } );
+        this.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 1 );
+        if( 'home' == this.type ) {
+          this.participantModel.addColumn( 'address_summary', { title: 'Address' } );
+        } else { // 'site' == this.type
+          this.participantModel.addColumn( 'last_completed_datetime', {
+            title: 'Home Completed',
+            type: 'datetime'
+          } );
+        }
 
-        // override the default order
+        // override the default order and set the heading
         this.participantModel.listModel.orderBy( 'rank', true );
+        this.participantModel.listModel.heading = 'Participant Selection List';
 
         // override model functions
-        this.participantModel.getServiceCollectionPath = function() { return 'participant?assignment=true'; }
+        this.participantModel.getServiceCollectionPath = function() {
+          return 'participant?assignment=true';
+        }
+
+        this.participantModel.getServiceData = function( type, columnRestrictLists ) {
+          var data = self.participantModel.$$getServiceData( type, columnRestrictLists );
+          if( angular.isUndefined( data.modifier.where ) ) data.modifier.where = [];
+          data.modifier.where.push( {
+            column: 'qnaire.type',
+            operator: '=',
+            value: self.type
+          } );
+          return data;
+        };
 
         // override the onChoose function
         this.participantModel.listModel.onSelect = function( record ) {
