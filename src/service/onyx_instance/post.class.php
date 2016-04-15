@@ -62,26 +62,38 @@ class post extends \cenozo\service\post
   /**
    * Extends parent method
    */
-  protected function finish()
+  protected function execute()
   {
-    parent::finish();
+    parent::execute();
 
-    $db_user = $this->get_leaf_record()->get_user();
+    $role_class_name = lib::get_class_name( 'database\role' );
 
-    // add the user to ldap
-    $ldap_manager = lib::create( 'business\ldap_manager' );
-    try
+    if( 300 > $this->status->get_code() )
     {
-      $ldap_manager->new_user(
-        $db_user->name,
-        $db_user->first_name,
-        $db_user->last_name,
-        $this->get_file_as_object()->password );
-    }
-    catch( \cenozo\exception\ldap $e )
-    {
-      // catch already exists exceptions, no need to report them
-      if( !$e->is_already_exists() ) throw $e;
+      $db_user = $this->get_leaf_record()->get_user();
+
+      // add the onyx role to the onyx instance's user
+      $db_access = lib::create( 'database\access' );
+      $db_access->user_id = $db_user->id;
+      $db_access->site_id = lib::create( 'business\session' )->get_site()->id;
+      $db_access->role_id = $role_class_name::get_unique_record( 'name', 'onyx' )->id;
+      $db_access->save();
+
+      // add the user to ldap
+      $ldap_manager = lib::create( 'business\ldap_manager' );
+      try
+      {
+        $ldap_manager->new_user(
+          $db_user->name,
+          $db_user->first_name,
+          $db_user->last_name,
+          $this->get_file_as_object()->password );
+      }
+      catch( \cenozo\exception\ldap $e )
+      {
+        // catch already exists exceptions, no need to report them
+        if( !$e->is_already_exists() ) throw $e;
+      }
     }
   }
 }
