@@ -14,6 +14,17 @@ class post extends \cenozo\service\post
   /**
    * Extends parent method
    */
+  protected function prepare()
+  {
+    parent::prepare();
+
+    // force site_id
+    $this->get_leaf_record()->site_id = lib::create( 'business\session' )->get_site()->id;
+  }
+
+  /**
+   * Extends parent method
+   */
   protected function setup()
   {
     parent::setup();
