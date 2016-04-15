@@ -152,6 +152,34 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
       ALTER TABLE qnaire DROP COLUMN reached_event_type_id;
     END IF;
 
+    SELECT "Adding new prev_event_type_id column to qnaire table" AS "";
+
+    SET @test = (
+      SELECT COUNT(*)
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = "qnaire"
+      AND COLUMN_NAME = "prev_event_type_id" );
+    IF @test = 0 THEN
+      ALTER TABLE qnaire
+      ADD COLUMN prev_event_type_id INT UNSIGNED NULL
+      AFTER completed_event_type_id;
+
+      ALTER TABLE qnaire
+      ADD INDEX fk_prev_event_type_id (prev_event_type_id ASC);
+
+      SET @sql = CONCAT(
+        "ALTER TABLE qnaire ",
+        "ADD CONSTRAINT fk_qnaire_prev_event_type_id ",
+          "FOREIGN KEY (prev_event_type_id) ",
+          "REFERENCES ", @cenozo, ".event_type (id) ",
+          "ON DELETE SET NULL ",
+          "ON UPDATE CASCADE" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+    END IF;
+
     SELECT "Dropping default_interview_method_id column from qnaire table" AS "";
 
     SET @test = (
@@ -181,6 +209,16 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
     END IF;
 
     SELECT "Dropping description column from qnaire table" AS "";
+
+    SET @test = (
+      SELECT COUNT(*)
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = "qnaire"
+      AND COLUMN_NAME = "description" );
+    IF @test = 1 THEN
+      ALTER TABLE qnaire DROP COLUMN description;
+    END IF;
 
     SET @test = (
       SELECT COUNT(*)
@@ -252,16 +290,6 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
       DEALLOCATE PREPARE statement;
 
       CALL create_events();
-    END IF;
-
-    SET @test = (
-      SELECT COUNT(*)
-      FROM information_schema.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = "qnaire"
-      AND COLUMN_NAME = "description" );
-    IF @test = 1 THEN
-      ALTER TABLE qnaire DROP COLUMN description;
     END IF;
 
   END //

@@ -211,8 +211,10 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
         this.participantModel.addColumn( 'rank', { title: 'Rank', column: 'queue.rank', type: 'rank' }, 0 );
         this.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 1 );
         if( 'home' == this.type ) {
+          this.participantModel.addColumn( 'prev_event_user', { title: 'Previous Interviewer' } );
           this.participantModel.addColumn( 'address_summary', { title: 'Address' } );
         } else { // 'site' == this.type
+          this.participantModel.addColumn( 'prev_event_site', { title: 'Previous Site' } );
           this.participantModel.addColumn( 'last_completed_datetime', {
             title: 'Home Completed',
             type: 'datetime'

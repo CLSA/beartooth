@@ -44,6 +44,18 @@ define( function() {
       type: 'string',
       format: 'integer',
       minValue: 0
+    },
+    completed_event_type_id: {
+      title: 'Completed Event Type',
+      type: 'enum',
+      constant: true,
+      help: 'The event type which is added to a participant\'s event list when this questionnaire is completed'
+    },
+    prev_event_type_id: {
+      title: 'Previous Event Type',
+      type: 'enum',
+      help: 'The event type which was added when the coinciding questionnaire of the same type (home or site) ' +
+            'during the last phase was completed.'  
     }
   } );
 
@@ -147,6 +159,34 @@ define( function() {
         this.addModel = CnQnaireAddFactory.instance( this );
         this.listModel = CnQnaireListFactory.instance( this );
         this.viewModel = CnQnaireViewFactory.instance( this, root );
+
+        // extend getMetadata
+        this.getMetadata = function() {
+          return $q.all( [
+            this.$$getMetadata(),
+
+            CnHttpFactory.instance( {
+              path: 'event_type',
+              data: {
+                select: { column: [ 'id', 'name' ] },
+                modifier: { order: { name: false } }
+              }
+            } ).query().then( function success( response ) {
+              self.metadata.columnList.completed_event_type_id.enumList = [];
+              self.metadata.columnList.prev_event_type_id.enumList = [];
+              response.data.forEach( function( item ) {
+                self.metadata.columnList.completed_event_type_id.enumList.push( {
+                  value: item.id,
+                  name: item.name
+                } );
+                self.metadata.columnList.prev_event_type_id.enumList.push( {
+                  value: item.id,
+                  name: item.name
+                } );
+              } );
+            } )
+          ] );
+        };
       };
 
       return {

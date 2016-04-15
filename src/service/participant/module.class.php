@@ -50,10 +50,31 @@ class module extends \cenozo\service\participant\module
       {
         $modifier->left_join( 'qnaire', 'qnaire.rank', 'last_qnaire.rank + 1', 'last_qnaire' );
         $join_mod = lib::create( 'database\modifier' );
-        $join_mod->where( 'last_qnaire.completed_event_type_id', '=', 'event.event_type_id', false );
-        $join_mod->where( 'participant.id', '=', 'event.participant_id', false );
-        $modifier->join_modifier( 'event', $join_mod, 'left' );
-        $select->add_table_column( 'event', 'datetime', 'last_completed_datetime' );
+        $join_mod->where( 'last_qnaire.completed_event_type_id', '=', 'completed_event.event_type_id', false );
+        $join_mod->where( 'participant.id', '=', 'completed_event.participant_id', false );
+        $modifier->join_modifier( 'event', $join_mod, 'left', 'completed_event' );
+        $select->add_table_column( 'completed_event', 'datetime', 'last_completed_datetime' );
+      }
+
+      if( $select->has_column( 'prev_event_user' ) )
+      {
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where( 'qnaire.prev_event_type_id', '=', 'prev_event.event_type_id', false );
+        $join_mod->where( 'participant.id', '=', 'prev_event.participant_id', false );
+        $modifier->join_modifier( 'event', $join_mod, 'left', 'prev_event' );
+        $modifier->left_join( 'user', 'prev_event.user_id', 'prev_user.id', 'prev_user' );
+        $select->add_table_column(
+          'prev_user', 'CONCAT( prev_user.first_name, " ", prev_user.last_name )', 'prev_event_user', false );
+      }
+
+      if( $select->has_column( 'prev_event_site' ) )
+      {
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where( 'qnaire.prev_event_type_id', '=', 'prev_event.event_type_id', false );
+        $join_mod->where( 'participant.id', '=', 'prev_event.participant_id', false );
+        $modifier->join_modifier( 'event', $join_mod, 'left', 'prev_event' );
+        $modifier->left_join( 'site', 'prev_event.site_id', 'prev_site.id', 'prev_site' );
+        $select->add_table_column( 'prev_site', 'name', 'prev_event_site' );
       }
 
       // repopulate queue if it is out of date
