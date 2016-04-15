@@ -27,7 +27,10 @@ class get extends \cenozo\service\self\get
     $setting_sel->add_all_table_columns();
     $resource['setting'] = $session->get_setting()->get_column_values( $setting_sel );
 
-    $resource['user']['has_assignment'] = $session->get_user()->has_open_assignment();
+    $db_assignment = $session->get_user()->get_open_assignment();
+    $resource['user']['assignment_type'] = !is_null( $db_assignment )
+                                         ? $db_assignment->get_interview()->get_qnaire()->type
+                                         : 'none';
 
     return $resource;
   }

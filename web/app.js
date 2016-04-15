@@ -11,38 +11,58 @@ cenozo.controller( 'HeaderCtrl', [
     // add custom operations here by adding a new property to $scope.operationList
 
     CnSession.promise.then( function() {
-      CnSession.alertHeader = CnSession.user.hasAssignment
-                            ? 'You are currently in an assignment'
-                            : undefined;
-      CnSession.onAlertHeader = function() { $state.go( 'assignment.home' ); };
+      var assignmentType = CnSession.user.assignmentType;
+      CnSession.alertHeader = 'none' == assignmentType
+                            ? undefined
+                            : 'You are currently in a ' + assignmentType + ' assignment';
+      CnSession.onAlertHeader = function() {
+        if( angular.isDefined( cenozoApp.module( 'assignment' ).actions.control ) ) {
+          $state.go( 'assignment.control', { type: assignmentType } );
+        } else {
+          CnModalMessageFactory.instance( {
+            title: 'Switch Roles For ' + assignmentType.ucWords() + ' Assignment',
+            message:
+              'You cannot access your assignment under your current site and role. ' +
+              'The site and role selection dialog will now be opened, please use it to switch to the site and ' +
+              'role under which you started the assignment.\n\n' +
+              'Once you have switched you will be able to access your assignment.',
+            error: true
+          } ).show().then( function() {
+            CnSession.showSiteRoleModal();
+          } );
+        }
+      };
     } );
 
     // don't allow users to log out if they have an active assignment
     var logoutFunction = $scope.operationList.logout.execute;
     $scope.operationList.logout.execute = function() {
-      // private function to redirect the user to the assignment view
-      function showAssignmentExists() {
-        var hasAccess = -1 < cenozoApp.module( 'assignment' ).actions.indexOf( 'home' );
+      // private function to redirect the user to the assignment control
+      function showAssignmentExists( assignmentType ) {
+        var hasAccess = angular.isDefined( cenozoApp.module( 'assignment' ).actions.control );
 
         CnModalMessageFactory.instance( {
-          title: 'Active Assignment Detected',
-          message: hasAccess
-                 ? 'You appear to have an open assignment.  You will now be redirected to this assignment ' +
-                   'so that you can close it.  Once you have you will be able to log out.'
-                 : 'You appear to have an open assignment which cannot be access from your current site and ' +
-                   'role.  The site and role selection dialog will now be opened so that you can switch to ' +
-                   'the site and role under which you started the assignment.  You will then need to view ' +
-                   'the assignment and close it in order to log out.',
+          title: 'Active ' + assignmentType.ucWords() + ' Assignment Detected',
+          message: 'You cannot log out while in an open assignment!\n\n' + ( hasAccess
+            ? 'In order to log out you will need to close your open assignment. ' +
+              'You will now be redirected to your assignment.'
+            : 'In order to log out you will need to close your open assignment, however, you cannot access ' +
+              'your assignment from your current site and role. ' +
+              'The site and role selection dialog will now be opened, please use it to switch to the site and ' +
+              'role under which you started the assignment.\n\n' +
+              'Once you have switched you will be able to access your assignment.'
+          ),
           error: true
         } ).show().then( function() {
           // check if the role has access to the assignment module
-          if( hasAccess ) $state.go( 'assignment.home' );
+          if( hasAccess ) $state.go( 'assignment.control', { type: assignmentType } );
           else CnSession.showSiteRoleModal();
         } );
       }
 
       CnHttpFactory.instance( {
         path: 'assignment/0',
+        data: { select: { column: [ { table: 'qnaire', column: 'type' } ] } },
         onError: function( response ) {
           if( 307 == response.status ) {
             // 307 means the user has no active assignment
@@ -52,9 +72,9 @@ cenozo.controller( 'HeaderCtrl', [
             showAssignmentExists();
           } else { CnModalMessageFactory.httpError( response ); }
         }
-      } ).get().then( function() {
+      } ).get().then( function( response ) {
         // active assignment detected
-        showAssignmentExists();
+        showAssignmentExists( response.data.type );
       } );
     };
   }
