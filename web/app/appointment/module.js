@@ -105,7 +105,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     id: 'home-appointment-button',
     title: 'Home Appointment',
     operation: function( $state, model ) {
-      $state.go( 'appointment.calendar', { identifier: model.site.getIdentifier() + ';type=home' } );
+      $state.go( 'appointment.calendar', { type: 'home', identifier: model.site.getIdentifier() } );
     },
     classes: 'home-appointment-button'
   } );
@@ -114,7 +114,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     id: 'site-appointment-button',
     title: 'Site Appointment',
     operation: function( $state, model ) {
-      $state.go( 'appointment.calendar', { identifier: model.site.getIdentifier() + ';type=site' } );
+      $state.go( 'appointment.calendar', { type: 'site', identifier: model.site.getIdentifier() } );
     },
     classes: 'site-appointment-button'
   } );
@@ -122,7 +122,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
   module.addExtraOperation( 'view', {
     title: 'Appointment Calendar',
     operation: function( $state, model ) {
-      $state.go( 'appointment.calendar', { identifier: model.site.getIdentifier() + ';type=' + model.type } );
+      $state.go( 'appointment.calendar', { type: model.type, identifier: model.site.getIdentifier() } );
     }
   } );
 
@@ -171,8 +171,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               var cnRecordAddScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
               if( !cnRecordAddScope ) throw new Exception( 'Cannot find cnRecordAdd scope' );
 
-              $scope.model.addModel.heading =
-                cnRecordAddScope.heading.replace( 'Appointment', type.ucWords() + ' Appointment' );
+              $scope.model.addModel.heading = type.ucWords() + ' Appointment Details';
 
               // Create a reserved data array object to temporarily store the address and user columns
               // for when we're adding a site-qnaire appointment
@@ -336,8 +335,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               var cnRecordViewScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordView' );
               if( !cnRecordViewScope ) throw new Exception( 'Cannot find cnRecordView scope' );
 
-              $scope.model.viewModel.heading =
-                cnRecordViewScope.heading.replace( 'Appointment', type.ucWords() + ' Appointment' );
+              $scope.model.viewModel.heading = type.ucWords() + ' Appointment Details';
 
               // Create a reserved data array object to temporarily store the address and user columns
               // for when we're viewing a site-qnaire appointment
@@ -384,11 +382,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                   inputList[appointmentTypeIndex].enumList.unshift( { value: '', name: '(empty)' } );
               } );
 
-              // automatically fill in the current user as the interviewer (or null if this is a site appointment)
-              formattedRecord.user_id = 'home' == type ?
-                CnSession.user.firstName + ' ' + CnSession.user.lastName + ' (' + CnSession.user.name + ')' : null;
-              record.user_id = 'home' == type ? CnSession.user.id : null;
-
               // connect the calendar's day click callback to the appointment's datetime
               $scope.appointmentModel = CnAppointmentModelFactory.forSite( $scope.model.site, type );
               $scope.appointmentModel.calendarModel.settings.dayClick = function( date, event, view ) {
@@ -418,8 +411,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAppointmentAddFactory', [
-    'CnBaseAddFactory', 'CnSession',
-    function( CnBaseAddFactory, CnSession ) {
+    'CnBaseAddFactory', 'CnSession', 'CnHttpFactory',
+    function( CnBaseAddFactory, CnSession, CnHttpFactory ) {
       var object = function( parentModel ) {
         var self = this;
 
@@ -432,12 +425,19 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           if( null == record.user_id ) record.address_id = null;
 
           return this.$$onAdd( record ).then( function() {
-            record.getIdentifier = function() { return parentModel.getIdentifierFromRecord( record ); };
-            var minDate = parentModel.calendarModel.cacheMinDate;
-            var maxDate = parentModel.calendarModel.cacheMaxDate;
-            parentModel.calendarModel.cache.push(
-              getEventFromAppointment( record, CnSession.user.timezone )
-            );
+            CnHttpFactory.instance( {
+              path: 'appointment/' + record.id
+            } ).get().then( function( response ) {
+              record.uid = response.data.uid;
+              record.username = response.data.username;
+              record.duration = response.data.duration;
+              record.getIdentifier = function() { return parentModel.getIdentifierFromRecord( record ); };
+              var minDate = parentModel.calendarModel.cacheMinDate;
+              var maxDate = parentModel.calendarModel.cacheMaxDate;
+              parentModel.calendarModel.cache.push(
+                getEventFromAppointment( record, CnSession.user.timezone )
+              );
+            } );
           } );
         };
       };
@@ -458,6 +458,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
         // extend onCalendar to transform templates into events
         this.onCalendar = function( replace, minDate, maxDate, ignoreParent ) {
+          // due to a design flaw (home vs site instances which cannot be determined in the base model's instance
+          // method) we have to always replace events
+          replace = true;
+
           // we must get the load dates before calling $$onCalendar
           var loadMinDate = self.getLoadMinDate( replace, minDate );
           var loadMaxDate = self.getLoadMaxDate( replace, maxDate );

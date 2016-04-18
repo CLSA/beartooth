@@ -492,12 +492,6 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
           } );
         };
 
-        this.advanceQnaire = function() {
-          return CnHttpFactory.instance( {
-            path: 'assignment/0?operation=advance', data: {}
-          } ).patch().then( self.onLoad );
-        };
-
         this.startCall = function( phone ) {
           function postCall() {
             CnHttpFactory.instance( {

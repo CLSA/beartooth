@@ -92,7 +92,8 @@ class assignment extends \cenozo\database\record
   }
 
   // TODO: document
-  function process_callbacks()
+  // @param boolean $completed Whether the assignment is being closed
+  function process_callbacks( $completed )
   {
     $db_queue = $this->get_queue();
 
@@ -101,15 +102,26 @@ class assignment extends \cenozo\database\record
     {
       $db_interview = $this->get_interview();
       $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'assignment_id', '=', NULL );
+
+      // if the assignment is complete then the appointment/callback is already associated with it
+      if( $completed ) $modifier->where( 'assignment_id', '=', $this->id );
+      // if the assignmetn is not complete then we have to find the unassigned appointment/callback
+      else $modifier->where( 'assignment_id', '=', NULL );
+
       $callback_list = $db_interview->get_callback_object_list( $modifier );
       if( count( $callback_list ) )
       {
         $db_callback = current( $callback_list );
-        $modifier = lib::create( 'database\modifier' );
-        $modifier->where( 'status', '=', 'contacted' );
-        $db_callback->reached = 0 < $this->get_phone_call_count( $modifier );
-        $db_callback->assignment_id = $this->id;
+
+        // if the assignment is complete then set the appointment/callback's reached property
+        if( $completed )
+        {
+          $modifier = lib::create( 'database\modifier' );
+          $modifier->where( 'status', '=', 'contacted' );
+          $db_callback->reached = 0 < $this->get_phone_call_count( $modifier );
+        }
+        // if the assignment is not complete then just set the appointment/callback's assignment
+        else $db_callback->assignment_id = $this->id;
         $db_callback->save();
       }
     }
