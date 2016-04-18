@@ -293,14 +293,14 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
                   CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: 'Select' } ] );
                 } );
               } else if( 403 == response.status ) {
-                CnSession.alertHeader = 'You are currently in an assignment';
+                CnSession.alertHeader = 'You are currently in a ' + self.type + ' assignment';
                 CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: 'Wrong Site' } ] );
                 self.isForbidden = true;
               } else { CnModalMessageFactory.httpError( response ); }
             }
           } ).get().then( function( response ) {
             self.assignment = response.data;
-            CnSession.alertHeader = 'You are currently in an assignment';
+            CnSession.alertHeader = 'You are currently in a ' + self.type + ' assignment';
 
             // get the assigned participant's details
             CnHttpFactory.instance( {

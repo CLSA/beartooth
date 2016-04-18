@@ -423,22 +423,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           // if the user_id is null then make the interview_id null as well
           // this is a cheat for knowing it's a site appointment
           if( null == record.user_id ) record.address_id = null;
-
-          return this.$$onAdd( record ).then( function() {
-            CnHttpFactory.instance( {
-              path: 'appointment/' + record.id
-            } ).get().then( function( response ) {
-              record.uid = response.data.uid;
-              record.username = response.data.username;
-              record.duration = response.data.duration;
-              record.getIdentifier = function() { return parentModel.getIdentifierFromRecord( record ); };
-              var minDate = parentModel.calendarModel.cacheMinDate;
-              var maxDate = parentModel.calendarModel.cacheMaxDate;
-              parentModel.calendarModel.cache.push(
-                getEventFromAppointment( record, CnSession.user.timezone )
-              );
-            } );
-          } );
+          return this.$$onAdd( record );
         };
       };
       return { instance: function( parentModel ) { return new object( parentModel ); } };
@@ -508,29 +493,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       var object = function( parentModel, root ) {
         var self = this;
         CnBaseViewFactory.construct( this, parentModel, root );
-
-        // remove the deleted appointment's events from the calendar cache
-        this.onDelete = function() {
-          return this.$$onDelete().then( function() {
-            parentModel.calendarModel.cache = parentModel.calendarModel.cache.filter( function( e ) {
-              return e.getIdentifier() != self.record.getIdentifier();
-            } );
-          } );
-        };
-
-        // remove and re-add the appointment's events from the calendar cache
-        this.onPatch = function( data ) {
-          return this.$$onPatch( data ).then( function() {
-            var minDate = parentModel.calendarModel.cacheMinDate;
-            var maxDate = parentModel.calendarModel.cacheMaxDate;
-            parentModel.calendarModel.cache = parentModel.calendarModel.cache.filter( function( e ) {
-              return e.getIdentifier() != self.record.getIdentifier();
-            } );
-            parentModel.calendarModel.cache.push(
-              getEventFromAppointment( self.record, CnSession.user.timezone )
-            );
-          } );
-        };
 
         this.onView = function() {
           return this.$$onView().then( function() {
