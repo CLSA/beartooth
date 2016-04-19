@@ -132,8 +132,6 @@ define( function() {
   cenozo.providers.factory( 'CnOnyxInstanceViewFactory', [
     'CnBaseViewFactory',
     function( CnBaseViewFactory ) {
-      var args = arguments;
-      var CnBaseViewFactory = args[0];
       var object = function( parentModel, root ) { CnBaseViewFactory.construct( this, parentModel, root ); }
       return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
     }
