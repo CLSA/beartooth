@@ -43,7 +43,7 @@ define( function() {
     }
   } );
 
-  module.addInputGroup( null, {
+  module.addInputGroup( '', {
     datetime: {
       title: 'Date & Time',
       type: 'datetime',

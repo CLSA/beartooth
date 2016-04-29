@@ -48,7 +48,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     }
   } );
 
-  module.addInputGroup( null, {
+  module.addInputGroup( '', {
     datetime: {
       title: 'Date & Time',
       type: 'datetime',

@@ -37,7 +37,7 @@ define( function() {
     }
   } );
 
-  module.addInputGroup( null, {
+  module.addInputGroup( '', {
     active: {
       title: 'Active',
       type: 'boolean'

@@ -29,7 +29,7 @@ define( function() {
     }
   } );
 
-  module.addInputGroup( null, {
+  module.addInputGroup( '', {
     rank: {
       column: 'qnaire.rank',
       title: 'Rank',
