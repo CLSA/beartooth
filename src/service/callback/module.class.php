@@ -18,29 +18,32 @@ class module extends \cenozo\service\module
   {
     parent::validate();
 
-    $service_class_name = lib::get_class_name( 'service\service' );
-    $db_callback = $this->get_resource();
-    $db_interview = is_null( $db_callback ) ? $this->get_parent_resource() : $db_callback->get_interview();
-
-    if( $service_class_name::is_write_method( $this->get_method() ) )
+    if( 300 > $this->get_status()->get_code() )
     {
-      // no writing of callbacks if interview is completed
-      if( !is_null( $db_interview ) && null !== $db_interview->end_datetime )
+      $service_class_name = lib::get_class_name( 'service\service' );
+      $db_callback = $this->get_resource();
+      $db_interview = is_null( $db_callback ) ? $this->get_parent_resource() : $db_callback->get_interview();
+
+      if( $service_class_name::is_write_method( $this->get_method() ) )
       {
-        $this->set_data( 'Callbacks cannot be changed after an interview is complete.' );
-        $this->get_status()->set_code( 406 );
-      }
-      // no writing of callbacks if it is assigned
-      else if( !is_null( $db_callback ) && !is_null( $db_callback->assignment_id ) )
-      {
-        $this->set_data( 'Callbacks cannot be changed after they have been assigned.' );
-        $this->get_status()->set_code( 406 );
-      }
-      // no deleting of callbacks if it has passed
-      else if( 'DELETE' == $method && $db_callback->datetime < util::get_datetime_object() )
-      {
-        $this->set_data( 'Callbacks cannot be deleted once they have passed.' );
-        $this->get_status()->set_code( 406 );
+        // no writing of callbacks if interview is completed
+        if( !is_null( $db_interview ) && null !== $db_interview->end_datetime )
+        {
+          $this->set_data( 'Callbacks cannot be changed after an interview is complete.' );
+          $this->get_status()->set_code( 406 );
+        }
+        // no writing of callbacks if it is assigned
+        else if( !is_null( $db_callback ) && !is_null( $db_callback->assignment_id ) )
+        {
+          $this->set_data( 'Callbacks cannot be changed after they have been assigned.' );
+          $this->get_status()->set_code( 406 );
+        }
+        // no deleting of callbacks if it has passed
+        else if( 'DELETE' == $method && $db_callback->datetime < util::get_datetime_object() )
+        {
+          $this->set_data( 'Callbacks cannot be deleted once they have passed.' );
+          $this->get_status()->set_code( 406 );
+        }
       }
     }
   }
