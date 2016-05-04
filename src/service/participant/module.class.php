@@ -36,6 +36,15 @@ class module extends \cenozo\service\participant\module
       $modifier->join_modifier( 'queue_state', $join_mod, 'left' );
       $modifier->where( 'queue_state.id', '=', NULL );
 
+      if( $select->has_column( 'blood' ) )
+      {
+        $modifier->join( 'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );
+        $modifier->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
+        $modifier->left_join(
+          'consent', 'participant_last_consent.consent_id', 'blood_consent.id', 'blood_consent' );
+        $select->add_table_column( 'blood_consent', 'accept', 'blood', true, 'boolean' );
+      }
+
       if( $select->has_column( 'address_summary' ) )
       {
         $modifier->left_join( 'address', 'queue_has_participant.address_id', 'address.id' );
