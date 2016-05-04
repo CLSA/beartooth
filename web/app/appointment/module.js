@@ -178,7 +178,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               if( angular.isUndefined( cnRecordAddScope.reservedDataArray ) )
                 cnRecordAddScope.reservedDataArray = {};
               var reservedDataArray = cnRecordAddScope;
-              var inputList = cnRecordAddScope.dataArray[0].inputList;
+              var inputArray = cnRecordAddScope.dataArray[0].inputArray;
               var record = cnRecordAddScope.record;
               var formattedRecord = cnRecordAddScope.formattedRecord;
 
@@ -186,36 +186,36 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               $scope.model.metadata.getPromise().then( function() {
                 // store the user and address data in the reserved data array
                 if( angular.isUndefined( reservedDataArray.user_id ) )
-                  reservedDataArray.user_id = inputList[inputList.findIndexByProperty( 'key', 'user_id' )];
+                  reservedDataArray.user_id = inputArray[inputArray.findIndexByProperty( 'key', 'user_id' )];
                 if( angular.isUndefined( reservedDataArray.address_id ) )
-                  reservedDataArray.address_id = inputList[inputList.findIndexByProperty( 'key', 'address_id' )];
+                  reservedDataArray.address_id = inputArray[inputArray.findIndexByProperty( 'key', 'address_id' )];
 
-                var datetimeIndex = inputList.findIndexByProperty( 'key', 'datetime' );
+                var datetimeIndex = inputArray.findIndexByProperty( 'key', 'datetime' );
                 if( 'home' == type ) {
-                  var userIndex = inputList.findIndexByProperty( 'key', 'user_id' );
+                  var userIndex = inputArray.findIndexByProperty( 'key', 'user_id' );
                   if( null == userIndex )
-                    inputList.splice( datetimeIndex + 1, 0, reservedDataArray.user_id );
-                  var addressIndex = inputList.findIndexByProperty( 'key', 'address_id' );
+                    inputArray.splice( datetimeIndex + 1, 0, reservedDataArray.user_id );
+                  var addressIndex = inputArray.findIndexByProperty( 'key', 'address_id' );
                   if( null == addressIndex )
-                    inputList.splice( datetimeIndex + 1, 0, reservedDataArray.address_id );
+                    inputArray.splice( datetimeIndex + 1, 0, reservedDataArray.address_id );
                 } else { // 'site' == type
-                  var userIndex = inputList.findIndexByProperty( 'key', 'user_id' );
-                  if( null != userIndex ) inputList.splice( userIndex, 1 );
-                  var addressIndex = inputList.findIndexByProperty( 'key', 'address_id' );
-                  if( null != addressIndex ) inputList.splice( addressIndex, 1 );
+                  var userIndex = inputArray.findIndexByProperty( 'key', 'user_id' );
+                  if( null != userIndex ) inputArray.splice( userIndex, 1 );
+                  var addressIndex = inputArray.findIndexByProperty( 'key', 'address_id' );
+                  if( null != addressIndex ) inputArray.splice( addressIndex, 1 );
                 }
 
                 // set the appointment type enum list based on the qnaire_id
-                var appointmentTypeIndex = inputList.findIndexByProperty( 'key', 'appointment_type_id' );
-                inputList[appointmentTypeIndex].enumList = angular.copy(
+                var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
+                inputArray[appointmentTypeIndex].enumList = angular.copy(
                   $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
                 );
 
                 // we must also manually add the empty entry (if it doesn't already exist)
-                if( angular.isUndefined( inputList[appointmentTypeIndex].enumList ) )
-                  inputList[appointmentTypeIndex].enumList = [];
-                if( null == inputList[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) )
-                  inputList[appointmentTypeIndex].enumList.unshift( { value: undefined, name: '(empty)' } );
+                if( angular.isUndefined( inputArray[appointmentTypeIndex].enumList ) )
+                  inputArray[appointmentTypeIndex].enumList = [];
+                if( null == inputArray[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) )
+                  inputArray[appointmentTypeIndex].enumList.unshift( { value: undefined, name: '(empty)' } );
               } );
 
               // automatically fill in the current user as the interviewer (or null if this is a site appointment)
@@ -342,7 +342,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               if( angular.isUndefined( cnRecordViewScope.reservedDataArray ) )
                 cnRecordViewScope.reservedDataArray = {};
               var reservedDataArray = cnRecordViewScope;
-              var inputList = cnRecordViewScope.dataArray[0].inputList;
+              var inputArray = cnRecordViewScope.dataArray[0].inputArray;
               var record = $scope.model.viewModel.record;
               var formattedRecord = $scope.model.viewModel.formattedRecord;
 
@@ -350,36 +350,36 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               $scope.model.metadata.getPromise().then( function() {
                 // store the user and address data in the reserved data array
                 if( angular.isUndefined( reservedDataArray.user_id ) )
-                  reservedDataArray.user_id = inputList[inputList.findIndexByProperty( 'key', 'user_id' )];
+                  reservedDataArray.user_id = inputArray[inputArray.findIndexByProperty( 'key', 'user_id' )];
                 if( angular.isUndefined( reservedDataArray.address_id ) )
-                  reservedDataArray.address_id = inputList[inputList.findIndexByProperty( 'key', 'address_id' )];
+                  reservedDataArray.address_id = inputArray[inputArray.findIndexByProperty( 'key', 'address_id' )];
 
-                var datetimeIndex = inputList.findIndexByProperty( 'key', 'datetime' );
+                var datetimeIndex = inputArray.findIndexByProperty( 'key', 'datetime' );
                 if( 'home' == type ) {
-                  var userIndex = inputList.findIndexByProperty( 'key', 'user_id' );
+                  var userIndex = inputArray.findIndexByProperty( 'key', 'user_id' );
                   if( null == userIndex )
-                    inputList.splice( datetimeIndex + 1, 0, reservedDataArray.user_id );
-                  var addressIndex = inputList.findIndexByProperty( 'key', 'address_id' );
+                    inputArray.splice( datetimeIndex + 1, 0, reservedDataArray.user_id );
+                  var addressIndex = inputArray.findIndexByProperty( 'key', 'address_id' );
                   if( null == addressIndex )
-                    inputList.splice( datetimeIndex + 1, 0, reservedDataArray.address_id );
+                    inputArray.splice( datetimeIndex + 1, 0, reservedDataArray.address_id );
                 } else { // 'site' == type
-                  var userIndex = inputList.findIndexByProperty( 'key', 'user_id' );
-                  if( null != userIndex ) inputList.splice( userIndex, 1 );
-                  var addressIndex = inputList.findIndexByProperty( 'key', 'address_id' );
-                  if( null != addressIndex ) inputList.splice( addressIndex, 1 );
+                  var userIndex = inputArray.findIndexByProperty( 'key', 'user_id' );
+                  if( null != userIndex ) inputArray.splice( userIndex, 1 );
+                  var addressIndex = inputArray.findIndexByProperty( 'key', 'address_id' );
+                  if( null != addressIndex ) inputArray.splice( addressIndex, 1 );
                 }
 
                 // set the appointment type enum list based on the qnaire_id
-                var appointmentTypeIndex = inputList.findIndexByProperty( 'key', 'appointment_type_id' );
-                inputList[appointmentTypeIndex].enumList = angular.copy(
+                var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
+                inputArray[appointmentTypeIndex].enumList = angular.copy(
                   $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
                 );
 
                 // we must also manually add the empty entry
-                if( angular.isUndefined( inputList[appointmentTypeIndex].enumList ) )
-                  inputList[appointmentTypeIndex].enumList = [];
-                if( null == inputList[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) )
-                  inputList[appointmentTypeIndex].enumList.unshift( { value: '', name: '(empty)' } );
+                if( angular.isUndefined( inputArray[appointmentTypeIndex].enumList ) )
+                  inputArray[appointmentTypeIndex].enumList = [];
+                if( null == inputArray[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) )
+                  inputArray[appointmentTypeIndex].enumList.unshift( { value: '', name: '(empty)' } );
               } );
 
               // connect the calendar's day click callback to the appointment's datetime
