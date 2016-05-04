@@ -208,6 +208,8 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
         // add additional columns to the model
         this.participantModel.addColumn( 'rank', { title: 'Rank', column: 'queue.rank', type: 'rank' }, 0 );
         this.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 1 );
+        this.participantModel.addColumn(
+          'availability', { title: 'Availability', column: 'availability_type.name' } );
         if( 'home' == this.type ) {
           this.participantModel.addColumn( 'prev_event_user', { title: 'Previous Interviewer' } );
           this.participantModel.addColumn( 'address_summary', { title: 'Address' } );

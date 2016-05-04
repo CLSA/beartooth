@@ -106,9 +106,9 @@ CREATE PROCEDURE patch_role_has_service()
       "AND service.id NOT IN ( ",
         "SELECT id FROM service ",
         "WHERE subject IN( ",
-          "'address', 'alternate', 'application', 'appointment_type', 'collection', 'consent', 'event', ",
-          "'hin', 'interview', 'jurisdiction', 'language', 'phase', 'phone', 'qnaire', 'quota', ",
-          "'jurisdiction', 'recording', 'recording_list', 'script', 'source', 'state' ) ",
+          "'address', 'alternate', 'application', 'appointment_type', 'availability_type', 'collection', ",
+          "'consent', 'event', 'hin', 'interview', 'jurisdiction', 'language', 'phase', 'phone', 'qnaire', ",
+          "'quota', 'jurisdiction', 'recording', 'recording_list', 'script', 'source', 'state' ) ",
         "OR ( subject = 'setting' AND method = 'GET' ) ",
         "OR ( subject = 'site' AND method IN ( 'DELETE', 'POST' ) ) ",
       ")" );
