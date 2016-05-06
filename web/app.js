@@ -35,8 +35,9 @@ cenozo.controller( 'HeaderCtrl', [
     } );
 
     // don't allow users to log out if they have an active assignment
-    var logoutFunction = $scope.operationList.logout.execute;
-    $scope.operationList.logout.execute = function() {
+    var logoutOperation = $scope.operationList.findByProperty( 'title', 'Logout' );
+    var logoutFunction = logoutOperation.execute;
+    logoutOperation.execute = function() {
       // private function to redirect the user to the assignment control
       function showAssignmentExists( assignmentType ) {
         var hasAccess = angular.isDefined( cenozoApp.module( 'assignment' ).actions.control );
