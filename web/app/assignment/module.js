@@ -227,10 +227,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
         this.participantModel.listModel.heading = 'Participant Selection List';
 
         // override model functions
-        this.participantModel.getServiceCollectionPath = function() {
-          return 'participant?assignment=true';
-        }
-
+        this.participantModel.getServiceCollectionPath = function() { return 'participant'; }
         this.participantModel.getServiceData = function( type, columnRestrictLists ) {
           var data = self.participantModel.$$getServiceData( type, columnRestrictLists );
           if( angular.isUndefined( data.modifier.where ) ) data.modifier.where = [];
@@ -239,6 +236,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
             operator: '=',
             value: self.type
           } );
+          data.assignment = true;
           return data;
         };
 
