@@ -42,6 +42,7 @@ class module extends \cenozo\service\participant\module
         $modifier->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
         $modifier->left_join(
           'consent', 'participant_last_consent.consent_id', 'blood_consent.id', 'blood_consent' );
+        $modifier->where( 'consent_type.name', '=', 'draw blood' );
         $select->add_table_column( 'blood_consent', 'accept', 'blood', true, 'boolean' );
       }
 
