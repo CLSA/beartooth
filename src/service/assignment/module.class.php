@@ -26,8 +26,8 @@ class module extends \cenozo\service\site_restricted_module
       $service_class_name = lib::get_class_name( 'service\service' );
       $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
 
-      $db_user = lib::create( 'business\session' )->get_user();
-      $db_role = lib::create( 'business\session' )->get_role();
+      $session = lib::create( 'business\session' );
+      $db_user = $session->get_user();
       $method = $this->get_method();
       $operation = $this->get_argument( 'operation', false );
 
@@ -44,7 +44,7 @@ class module extends \cenozo\service\site_restricted_module
       }
 
       if( ( 'DELETE' == $method || 'PATCH' == $method ) &&
-          3 > $db_role->tier &&
+          3 > $session->get_role()->tier &&
           $this->get_resource()->user_id != $db_user->id )
       {
         // only admins can delete or modify assignments other than their own
@@ -187,8 +187,6 @@ class module extends \cenozo\service\site_restricted_module
     if( 'POST' == $this->get_method() && 'open' == $operation )
     {
       $session = lib::create( 'business\session' );
-      $db_user = $session->get_user();
-      $db_site = $session->get_site();
 
       // use the post object to fill in the record columns
       $post_object = $this->get_file_as_object();
@@ -197,8 +195,9 @@ class module extends \cenozo\service\site_restricted_module
       $db_interview->start_datetime = $now;
       $db_interview->save();
 
-      $record->user_id = $db_user->id;
-      $record->site_id = $db_site->id;
+      $record->user_id = $session->get_user()->id;
+      $record->role_id = $session->get_role()->id;
+      $record->site_id = $session->get_site()->id;
       $record->interview_id = $db_interview->id;
       $record->queue_id = $db_participant->current_queue_id;
       $record->start_datetime = $now;

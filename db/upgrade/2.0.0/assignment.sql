@@ -19,12 +19,11 @@ DROP PROCEDURE IF EXISTS patch_assignment;
       AND TABLE_NAME = "assignment"
       AND COLUMN_NAME = "queue_id" );
     IF @test = 0 THEN
-
       ALTER TABLE assignment
       ADD COLUMN queue_id INT UNSIGNED NOT NULL
       AFTER interview_id;
       UPDATE assignment SET queue_id = ( SELECT id FROM queue WHERE name = "qnaire" );
-      
+
       ALTER TABLE assignment
       ADD INDEX fk_queue_id (queue_id ASC);
 
@@ -34,7 +33,37 @@ DROP PROCEDURE IF EXISTS patch_assignment;
       REFERENCES queue (id)
       ON DELETE NO ACTION
       ON UPDATE NO ACTION;
+    END IF;
 
+    SELECT "Adding role_id column in assignment table" AS "";
+
+    SET @test = (
+      SELECT COUNT(*)
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = "assignment"
+      AND COLUMN_NAME = "role_id" );
+    IF @test = 0 THEN
+      ALTER TABLE assignment ADD COLUMN role_id INT UNSIGNED NOT NULL AFTER user_id;
+
+      SET @sql = CONCAT(
+        "UPDATE assignment ",
+        "SET assignment.role_id = ( SELECT id FROM ", @cenozo, ".role WHERE name = 'interviewer' )" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
+      SET @sql = CONCAT(
+        "ALTER TABLE assignment ",
+        "ADD INDEX fk_role_id (role_id ASC), ",
+        "ADD CONSTRAINT fk_assignment_role_id ",
+            "FOREIGN KEY (role_id) ",
+            "REFERENCES ", @cenozo, ".role (id) ",
+            "ON DELETE NO ACTION ",
+            "ON UPDATE NO ACTION" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
     END IF;
 
   END //
