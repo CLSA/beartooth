@@ -551,24 +551,25 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               // Force the user and address columns to be mandatory (this will only affect home appointments)
               self.metadata.columnList.user_id.required = true;
               self.metadata.columnList.address_id.required = true;
-            } ),
-            CnHttpFactory.instance( {
-              path: 'appointment_type',
-              data: {
-                select: { column: [ 'id', 'name', 'qnaire_id' ] },
-                modifier: { order: 'name' }
-              }
-            } ).query().then( function success( response ) {
-              // store the appointment types in a special array with qnaire_id as indeces:
-              var qnaireList = {};
-              response.data.forEach( function( item ) {
-                if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
-                qnaireList[item.qnaire_id].push( { value: item.id, name: item.name, } );
-              } );
-              self.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
 
-              // and leave the enum list empty for now, it will be set by the view/add services
-              self.metadata.columnList.appointment_type_id.enumList = [];
+              return CnHttpFactory.instance( {
+                path: 'appointment_type',
+                data: {
+                  select: { column: [ 'id', 'name', 'qnaire_id' ] },
+                  modifier: { order: 'name' }
+                }
+              } ).query().then( function success( response ) {
+                // store the appointment types in a special array with qnaire_id as indeces:
+                var qnaireList = {};
+                response.data.forEach( function( item ) {
+                  if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
+                  qnaireList[item.qnaire_id].push( { value: item.id, name: item.name, } );
+                } );
+                self.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
+
+                // and leave the enum list empty for now, it will be set by the view/add services
+                self.metadata.columnList.appointment_type_id.enumList = [];
+              } );
             } )
           ];
 

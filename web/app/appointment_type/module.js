@@ -129,10 +129,10 @@ define( function() {
   cenozo.providers.factory( 'CnAppointmentTypeModelFactory', [
     'CnBaseModelFactory',
     'CnAppointmentTypeListFactory', 'CnAppointmentTypeAddFactory', 'CnAppointmentTypeViewFactory',
-    'CnSession', 'CnHttpFactory', '$q',
+    'CnSession', 'CnHttpFactory',
     function( CnBaseModelFactory,
               CnAppointmentTypeListFactory, CnAppointmentTypeAddFactory, CnAppointmentTypeViewFactory,
-              CnSession, CnHttpFactory, $q ) {
+              CnSession, CnHttpFactory ) {
       var object = function( root ) {
         var self = this;
         CnBaseModelFactory.construct( this, module );
@@ -142,12 +142,8 @@ define( function() {
 
         // extend getMetadata
         this.getMetadata = function() {
-
-          var promiseList = [
-
-            this.$$getMetadata(),
-
-            CnHttpFactory.instance( {
+          return this.$$getMetadata().then( function() {
+            return CnHttpFactory.instance( {
               path: 'qnaire',
               data: {
                 select: { column: [ 'id', 'name' ] },
@@ -158,11 +154,8 @@ define( function() {
               response.data.forEach( function( item ) {
                 self.metadata.columnList.qnaire_id.enumList.push( { value: item.id, name: item.name } );
               } );
-            } )
-
-          ];
-
-          return $q.all( promiseList );
+            } );
+          } );
         };
       };
 

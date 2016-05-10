@@ -148,9 +148,9 @@ define( function() {
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnQnaireModelFactory', [
     'CnBaseModelFactory', 'CnQnaireAddFactory', 'CnQnaireListFactory', 'CnQnaireViewFactory',
-    'CnSession', 'CnHttpFactory', '$q',
+    'CnSession', 'CnHttpFactory',
     function( CnBaseModelFactory, CnQnaireAddFactory, CnQnaireListFactory, CnQnaireViewFactory,
-              CnSession, CnHttpFactory, $q ) {
+              CnSession, CnHttpFactory ) {
       var object = function( root ) {
         var self = this;
         CnBaseModelFactory.construct( this, module );
@@ -160,10 +160,8 @@ define( function() {
 
         // extend getMetadata
         this.getMetadata = function() {
-          return $q.all( [
-            this.$$getMetadata(),
-
-            CnHttpFactory.instance( {
+          return this.$$getMetadata().then( function() {
+            return CnHttpFactory.instance( {
               path: 'event_type',
               data: {
                 select: { column: [ 'id', 'name' ] },
@@ -182,8 +180,8 @@ define( function() {
                   name: item.name
                 } );
               } );
-            } )
-          ] );
+            } );
+          } );
         };
       };
 
