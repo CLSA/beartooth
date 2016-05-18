@@ -29,7 +29,12 @@ class ui extends \cenozo\ui\ui
     if( array_key_exists( 'onyx_instance', $module_list ) )
       $module_list['onyx_instance']['children'] = array( 'activity' );
     if( array_key_exists( 'participant', $module_list ) )
+    {
       array_unshift( $module_list['participant']['children'], 'interview' );
+
+      // add extra types to history
+      $module_list['participant']['actions']['history'] .= '&{appointment}&{assignment}&{callback}';
+    }
     if( array_key_exists( 'qnaire', $module_list ) )
     {
       $module_list['qnaire']['children'] = array( 'appointment_type', 'queue_state' );
