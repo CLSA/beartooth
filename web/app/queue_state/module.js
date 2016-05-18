@@ -159,7 +159,7 @@ define( function() {
             } ];
           } else {
             promiseList.push(
-              return CnHttpFactory.instance( {
+              CnHttpFactory.instance( {
                 path: 'site',
                 data: {
                   select: { column: [ 'id', 'name' ] },
