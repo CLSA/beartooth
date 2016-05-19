@@ -48,7 +48,7 @@ class ui extends \cenozo\ui\ui
 
       // add special query parameters to queue-view
       if( array_key_exists( 'view', $module_list['queue']['actions'] ) )
-        $module_list['queue']['actions']['view'] .= '?{order}&{reverse}';
+        $module_list['queue']['actions']['view'] .= '?{restrict}&{order}&{reverse}';
     }
     if( array_key_exists( 'site', $module_list ) )
       array_unshift( $module_list['site']['children'], 'queue_state' );
@@ -104,7 +104,7 @@ class ui extends \cenozo\ui\ui
         $list[ucwords( $type ).' Assignment Control'] = array(
           'subject' => 'assignment',
           'action' => 'control',
-          'query' => '/{type}?{order}&{reverse}',
+          'query' => '/{type}?{restrict&{order}&{reverse}',
           'values' => sprintf( '{type:"%s"}', $type ) );
       }
       if( !$db_role->all_sites || 'helpline' == $db_role->name )
