@@ -9,7 +9,7 @@
  * Make sure to fill in the following
  */
 
-define( 'URL', 'https://localhost/<PATH-TO-SABRETOOTH>/api/' );
+define( 'URL', 'https://localhost/<PATH-TO-BEARTOOTH>/api/' );
 define( 'USER', '<ADMIN_USERNAME>' );
 define( 'PASS', '<ADMIN_PASSWORD>' );
 
