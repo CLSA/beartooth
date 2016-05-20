@@ -19,10 +19,11 @@ DROP PROCEDURE IF EXISTS patch_consent;
       AND TABLE_NAME = "data_collection" );
     IF @test = 1 THEN
       SET @sql = CONCAT(
-        "INSERT IGNORE INTO ", @cenozo, ".consent( participant_id, consent_type_id, accept, written, date, note ) ",
+        "INSERT IGNORE INTO ", @cenozo, ".consent( ",
+          "participant_id, consent_type_id, accept, written, datetime, note ) ",
         "SELECT data_collection.participant_id, consent_type.id, draw_blood, false, ",
-               "DATE( IFNULL( event.datetime, NOW() ) ), ",
-               "'Transferred from old data collection information. Note that the date is approximate.' ",
+               "IFNULL( event.datetime, NOW() ), ",
+               "'Transferred from old data collection information. Note that the datetime is approximate.' ",
         "FROM ", @cenozo, ".consent_type, data_collection ",
         "LEFT JOIN ", @cenozo, ".event ON data_collection.participant_id = event.participant_id ",
         "LEFT JOIN ", @cenozo, ".event_type ON event.event_type_id = event_type.id ",
@@ -34,10 +35,11 @@ DROP PROCEDURE IF EXISTS patch_consent;
       DEALLOCATE PREPARE statement;
 
       SET @sql = CONCAT(
-        "INSERT IGNORE INTO ", @cenozo, ".consent( participant_id, consent_type_id, accept, written, date, note ) ",
+        "INSERT IGNORE INTO ", @cenozo, ".consent( ",
+          "participant_id, consent_type_id, accept, written, datetime, note ) ",
         "SELECT data_collection.participant_id, consent_type.id, take_urine, false, ",
-               "DATE( IFNULL( event.datetime, NOW() ) ), ",
-               "'Transferred from old data collection information. Note that the date is approximate.' ",
+               "IFNULL( event.datetime, NOW() ), ",
+               "'Transferred from old data collection information. Note that the datetime is approximate.' ",
         "FROM ", @cenozo, ".consent_type, data_collection ",
         "LEFT JOIN ", @cenozo, ".event ON data_collection.participant_id = event.participant_id ",
         "LEFT JOIN ", @cenozo, ".event_type ON event.event_type_id = event_type.id ",
@@ -49,10 +51,11 @@ DROP PROCEDURE IF EXISTS patch_consent;
       DEALLOCATE PREPARE statement;
 
       SET @sql = CONCAT(
-        "INSERT IGNORE INTO ", @cenozo, ".consent( participant_id, consent_type_id, accept, written, date, note ) ",
+        "INSERT IGNORE INTO ", @cenozo, ".consent( ",
+          "participant_id, consent_type_id, accept, written, datetime, note ) ",
         "SELECT data_collection.participant_id, consent_type.id, draw_blood_continue, false, ",
-               "DATE( IFNULL( event.datetime, NOW() ) ), ",
-               "'Transferred from old data collection information. Note that the date is approximate.' ",
+               "IFNULL( event.datetime, NOW() ), ",
+               "'Transferred from old data collection information. Note that the datetime is approximate.' ",
         "FROM ", @cenozo, ".consent_type, data_collection ",
         "LEFT JOIN ", @cenozo, ".event ON data_collection.participant_id = event.participant_id ",
         "LEFT JOIN ", @cenozo, ".event_type ON event.event_type_id = event_type.id ",
@@ -65,10 +68,11 @@ DROP PROCEDURE IF EXISTS patch_consent;
 
       SET @sql = CONCAT(
 
-        "INSERT IGNORE INTO ", @cenozo, ".consent( participant_id, consent_type_id, accept, written, date, note ) ",
+        "INSERT IGNORE INTO ", @cenozo, ".consent( ",
+          "participant_id, consent_type_id, accept, written, datetime, note ) ",
         "SELECT data_collection.participant_id, consent_type.id, physical_tests_continue, false, ",
-               "DATE( IFNULL( event.datetime, NOW() ) ), ",
-               "'Transferred from old data collection information. Note that the date is approximate.' ",
+               "IFNULL( event.datetime, NOW() ), ",
+               "'Transferred from old data collection information. Note that the datetime is approximate.' ",
         "FROM ", @cenozo, ".consent_type, data_collection ",
         "LEFT JOIN ", @cenozo, ".event ON data_collection.participant_id = event.participant_id ",
         "LEFT JOIN ", @cenozo, ".event_type ON event.event_type_id = event_type.id ",

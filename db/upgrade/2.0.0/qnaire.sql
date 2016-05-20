@@ -208,18 +208,6 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
       ALTER TABLE qnaire DROP COLUMN withdraw_sid;
     END IF;
 
-    SELECT "Dropping description column from qnaire table" AS "";
-
-    SET @test = (
-      SELECT COUNT(*)
-      FROM information_schema.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = "qnaire"
-      AND COLUMN_NAME = "description" );
-    IF @test = 1 THEN
-      ALTER TABLE qnaire DROP COLUMN description;
-    END IF;
-
     SET @test = (
       SELECT COUNT(*)
       FROM information_schema.TABLES
@@ -290,6 +278,18 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
       DEALLOCATE PREPARE statement;
 
       CALL create_events();
+    END IF;
+
+    SELECT "Dropping description column from qnaire table" AS "";
+
+    SET @test = (
+      SELECT COUNT(*)
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = "qnaire"
+      AND COLUMN_NAME = "description" );
+    IF @test = 1 THEN
+      ALTER TABLE qnaire DROP COLUMN description;
     END IF;
 
   END //
