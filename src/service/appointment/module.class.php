@@ -168,7 +168,7 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_column( 'datetime' );
       $select->add_table_column( 'address', 'address1' );
       $select->add_table_column( 'address', 'city' );
-      $select->add_table_column( 'region', 'name' );
+      $select->add_table_column( 'region', 'name', 'region' );
       $select->add_table_column( 'address', 'postcode' );
       $select->add_table_column( 'participant', 'email' );
 
