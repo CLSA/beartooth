@@ -11,26 +11,29 @@ cenozo.controller( 'HeaderCtrl', [
     // add custom operations here by adding a new property to $scope.operationList
 
     CnSession.promise.then( function() {
-      var assignmentType = CnSession.user.assignmentType;
-      CnSession.alertHeader = 'none' == assignmentType
+      CnSession.alertHeader = 'none' == CnSession.user.assignmentType
                             ? undefined
-                            : 'You are currently in a ' + assignmentType + ' assignment';
+                            : 'You are currently in a ' + CnSession.user.assignmentType + ' assignment';
       CnSession.onAlertHeader = function() {
-        if( angular.isDefined( cenozoApp.module( 'assignment' ).actions.control ) ) {
-          $state.go( 'assignment.control', { type: assignmentType } );
-        } else {
-          CnModalMessageFactory.instance( {
-            title: 'Switch Roles For ' + assignmentType.ucWords() + ' Assignment',
-            message:
-              'You cannot access your assignment under your current site and role. ' +
-              'The site and role selection dialog will now be opened, please use it to switch to the site and ' +
-              'role under which you started the assignment.\n\n' +
-              'Once you have switched you will be able to access your assignment.',
-            error: true
-          } ).show().then( function() {
-            CnSession.showSiteRoleModal();
-          } );
-        }
+        // we need to re-update the session data to make sure that assignmentType is up to date
+        CnSession.updateData();
+        CnSession.promise.then( function() {
+          if( angular.isDefined( cenozoApp.module( 'assignment' ).actions.control ) ) {
+            $state.go( 'assignment.control', { type: CnSession.user.assignmentType } );
+          } else {
+            CnModalMessageFactory.instance( {
+              title: 'Switch Roles For ' + CnSession.user.assignmentType.ucWords() + ' Assignment',
+              message:
+                'You cannot access your assignment under your current site and role. ' +
+                'The site and role selection dialog will now be opened, please use it to switch to the site and ' +
+                'role under which you started the assignment.\n\n' +
+                'Once you have switched you will be able to access your assignment.',
+              error: true
+            } ).show().then( function() {
+              CnSession.showSiteRoleModal();
+            } );
+          }
+        } );
       };
     } );
 
@@ -43,7 +46,7 @@ cenozo.controller( 'HeaderCtrl', [
         var hasAccess = angular.isDefined( cenozoApp.module( 'assignment' ).actions.control );
 
         CnModalMessageFactory.instance( {
-          title: 'Active ' + assignmentType.ucWords() + ' Assignment Detected',
+          title: 'Active ' + ( assignmentType ? assignmentType.ucWords()+' ' : '' ) + 'Assignment Detected',
           message: 'You cannot log out while in an open assignment!\n\n' + ( hasAccess
             ? 'In order to log out you will need to close your open assignment. ' +
               'You will now be redirected to your assignment.'
