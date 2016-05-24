@@ -286,6 +286,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
         this.onLoad = function() {
           self.reset();
           self.isAssignmentLoading = true;
+          self.isWrongType = false;
           self.isPrevAssignmentLoading = true;
           return CnHttpFactory.instance( {
             path: 'assignment/0',
@@ -293,12 +294,14 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
               { table: 'participant', column: 'id', alias: 'participant_id' },
               { table: 'qnaire', column: 'id', alias: 'qnaire_id' },
               { table: 'qnaire', column: 'name', alias: 'qnaire' },
+              { table: 'qnaire', column: 'type', alias: 'type' },
               { table: 'queue', column: 'title', alias: 'queue' }
             ] } },
             onError: function( response ) {
               self.assignment = null;
               self.participant = null;
               self.isAssignmentLoading = false;
+              self.isWrongType = false;
               self.isPrevAssignmentLoading = false;
               self.isForbidden = false;
               if( 307 == response.status ) {
@@ -317,98 +320,107 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
             self.assignment = response.data;
             CnSession.alertHeader = 'You are currently in a ' + self.type + ' assignment';
 
-            // get the assigned participant's details
-            CnHttpFactory.instance( {
-              path: 'participant/' + self.assignment.participant_id,
-              data: { select: { column: [
-                'id', 'uid', 'honorific', 'first_name', 'other_name', 'last_name', 'note',
-                { table: 'language', column: 'code', alias: 'language_code' },
-                { table: 'language', column: 'name', alias: 'language' }
-              ] } }
-            } ).get().then( function( response ) {
-              self.participant = response.data;
-              self.participant.getIdentifier = function() {
-                return self.participantModel.getIdentifierFromRecord( self.participant );
-              };
-              CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: self.participant.uid } ] );
+            // first make sure that we're looking at the right assignment type
+            if( self.assignment.type != self.type ) {
+              self.isWrongType = self.type;
               self.isAssignmentLoading = false;
-            } ).then( function() {
+              CnSession.setBreadcrumbTrail( [ { title: 'Assignment' } ] );
+            } else {
+              self.isWrongType = false;
+
+              // get the assigned participant's details
               CnHttpFactory.instance( {
-                path: 'assignment/0/phone_call',
-                data: { select: { column: [ 'end_datetime', 'status',
-                  { table: 'phone', column: 'rank' },
-                  { table: 'phone', column: 'type' },
-                  { table: 'phone', column: 'number' }
+                path: 'participant/' + self.assignment.participant_id,
+                data: { select: { column: [
+                  'id', 'uid', 'honorific', 'first_name', 'other_name', 'last_name', 'note',
+                  { table: 'language', column: 'code', alias: 'language_code' },
+                  { table: 'language', column: 'name', alias: 'language' }
                 ] } }
-              } ).query().then( function( response ) {
-                self.phoneCallList = response.data;
-                var len = self.phoneCallList.length
-                self.activePhoneCall = 0 < len && null === self.phoneCallList[len-1].end_datetime
-                                     ? self.phoneCallList[len-1]
-                                     : null;
-              } );
-            } ).then( function() {
-              if( null === self.qnaireList ) {
-                // get the qnaire list and store the current and last qnaires
+              } ).get().then( function( response ) {
+                self.participant = response.data;
+                self.participant.getIdentifier = function() {
+                  return self.participantModel.getIdentifierFromRecord( self.participant );
+                };
+                CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: self.participant.uid } ] );
+                self.isAssignmentLoading = false;
+              } ).then( function() {
                 CnHttpFactory.instance( {
-                  path: 'qnaire',
+                  path: 'assignment/0/phone_call',
+                  data: { select: { column: [ 'end_datetime', 'status',
+                    { table: 'phone', column: 'rank' },
+                    { table: 'phone', column: 'type' },
+                    { table: 'phone', column: 'number' }
+                  ] } }
+                } ).query().then( function( response ) {
+                  self.phoneCallList = response.data;
+                  var len = self.phoneCallList.length
+                  self.activePhoneCall = 0 < len && null === self.phoneCallList[len-1].end_datetime
+                                       ? self.phoneCallList[len-1]
+                                       : null;
+                } );
+              } ).then( function() {
+                if( null === self.qnaireList ) {
+                  // get the qnaire list and store the current and last qnaires
+                  CnHttpFactory.instance( {
+                    path: 'qnaire',
+                    data: {
+                      select: { column: ['id', 'rank', 'delay'] },
+                      modifier: { order: 'rank' }
+                    }
+                  } ).query().then( function( response ) {
+                    self.qnaireList = response.data;
+                    var len = self.qnaireList.length;
+                    if( 0 < len ) {
+                      self.activeQnaire = self.qnaireList.findByProperty( 'id', self.assignment.qnaire_id );
+                      self.lastQnaire = self.qnaireList[len-1];
+                    }
+                    self.loadScriptList(); // now load the script list
+                  } );
+                }
+              } ).then( function() {
+                CnHttpFactory.instance( {
+                  path: 'participant/' + self.assignment.participant_id +
+                        '/interview/' + self.assignment.interview_id + '/assignment',
                   data: {
-                    select: { column: ['id', 'rank', 'delay'] },
-                    modifier: { order: 'rank' }
+                    select: {
+                      column: [
+                        'start_datetime',
+                        'end_datetime',
+                        'phone_call_count',
+                        { table: 'last_phone_call', column: 'status' },
+                        { table: 'user', column: 'first_name' },
+                        { table: 'user', column: 'last_name' },
+                        { table: 'user', column: 'name' }
+                      ]
+                    },
+                    modifier: { order: { start_datetime: true }, offset: 1, limit: 1 }
                   }
                 } ).query().then( function( response ) {
-                  self.qnaireList = response.data;
-                  var len = self.qnaireList.length;
-                  if( 0 < len ) {
-                    self.activeQnaire = self.qnaireList.findByProperty( 'id', self.assignment.qnaire_id );
-                    self.lastQnaire = self.qnaireList[len-1];
-                  }
-                  self.loadScriptList(); // now load the script list
+                  self.prevAssignment = 1 == response.data.length ? response.data[0] : null;
+                  self.isPrevAssignmentLoading = false;
                 } );
-              }
-            } ).then( function() {
-              CnHttpFactory.instance( {
-                path: 'participant/' + self.assignment.participant_id +
-                      '/interview/' + self.assignment.interview_id + '/assignment',
-                data: {
-                  select: {
-                    column: [
-                      'start_datetime',
-                      'end_datetime',
-                      'phone_call_count',
-                      { table: 'last_phone_call', column: 'status' },
-                      { table: 'user', column: 'first_name' },
-                      { table: 'user', column: 'last_name' },
-                      { table: 'user', column: 'name' }
-                    ]
-                  },
-                  modifier: { order: { start_datetime: true }, offset: 1, limit: 1 }
-                }
-              } ).query().then( function( response ) {
-                self.prevAssignment = 1 == response.data.length ? response.data[0] : null;
-                self.isPrevAssignmentLoading = false;
-              } );
-            } ).then( function() {
-              CnHttpFactory.instance( {
-                path: 'participant/' + self.assignment.participant_id + '/phone',
-                data: {
-                  select: { column: [ 'id', 'rank', 'type', 'number', 'international' ] },
-                  modifier: {
-                    where: { column: 'phone.active', operator: '=', value: true },
-                    order: 'rank'
+              } ).then( function() {
+                CnHttpFactory.instance( {
+                  path: 'participant/' + self.assignment.participant_id + '/phone',
+                  data: {
+                    select: { column: [ 'id', 'rank', 'type', 'number', 'international' ] },
+                    modifier: {
+                      where: { column: 'phone.active', operator: '=', value: true },
+                      order: 'rank'
+                    }
                   }
-                }
-              } ).query().then( function( response ) {
-                self.phoneList = response.data;
+                } ).query().then( function( response ) {
+                  self.phoneList = response.data;
+                } );
+              } ).then( function() {
+                CnHttpFactory.instance( {
+                  path: 'phone_call'
+                } ).head().then( function( response ) {
+                  self.phoneCallStatusList =
+                    cenozo.parseEnumList( angular.fromJson( response.headers( 'Columns' ) ).status );
+                } );
               } );
-            } ).then( function() {
-              CnHttpFactory.instance( {
-                path: 'phone_call'
-              } ).head().then( function( response ) {
-                self.phoneCallStatusList =
-                  cenozo.parseEnumList( angular.fromJson( response.headers( 'Columns' ) ).status );
-              } );
-            } );
+            }
           } );
         };
 

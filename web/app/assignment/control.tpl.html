@@ -1,5 +1,21 @@
 <cn-loading ng-if="model.isAssignmentLoading" message="Loading assignment details"></cn-loading>
 <div ng-if="!model.isAssignmentLoading">
+  <div ng-if="model.isWrongType" class="container-fluid">
+    <div class="record-view rounded">
+      <div class="container-fluid bg-primary rounded-top">
+        <h4>Current Assignment</h4>
+      </div>
+      <div class="container-fluid">
+        <blockquote class="spacer">
+          You are currently in a {{ model.isWrongType }} assignment.<br>
+          Before you can start a {{ 'site' == model.isWrongType ? 'home' : 'site' }} assignment you must first
+          complete your active assignment.
+          You may <a style="cursor:pointer;" ui-sref="assignment.control({type:'site' == model.isWrongType ? 'home' : 'site'})">click here</a>
+          to view the assignment.
+        </blockquote>
+      </div>
+    </div>
+  </div>
   <div ng-if="model.isForbidden" class="container-fluid">
     <div class="record-view rounded">
       <div class="container-fluid bg-primary rounded-top">
@@ -16,7 +32,7 @@
       </div>
     </div>
   </div>
-  <div ng-if="!model.isForbidden">
+  <div ng-if="!model.isWrongType && !model.isForbidden">
     <div ng-if="!model.assignment">
       <cn-record-list model="model.participantModel" remove-columns="active cohort source"></cn-record-list>
     </div>
