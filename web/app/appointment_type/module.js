@@ -42,11 +42,6 @@ define( function() {
       title: 'Colour',
       type: 'color'
     },
-    qnaire_id: {
-      title: 'Questionnaire',
-      type: 'enum',
-      constant: 'view'
-    },
     description: {
       title: 'Description',
       type: 'text'
