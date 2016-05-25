@@ -18,6 +18,10 @@ define( function() {
         title: 'Rank',
         type: 'rank'
       },
+      type: {
+        title: 'Type',
+        type: 'string'
+      },
       delay: {
         title: 'Delay',
         type: 'number'
@@ -33,11 +37,17 @@ define( function() {
     rank: {
       column: 'qnaire.rank',
       title: 'Rank',
-      type: 'rank'
+      type: 'rank',
+      constant: 'view'
     },
     name: {
       title: 'Name',
       type: 'string'
+    },
+    type: {
+      title: 'Type',
+      type: 'enum',
+      constant: 'view'
     },
     delay: {
       title: 'Delay (weeks)',
