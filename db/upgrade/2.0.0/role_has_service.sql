@@ -73,9 +73,12 @@ CREATE PROCEDURE patch_role_has_service()
       "FROM ", @cenozo, ".role, service ",
       "WHERE role.name = 'curator' ",
       "AND service.restricted = 1 ",
-      "AND service.subject IN ( ",
-        "'address', 'alternate', 'consent', 'event', 'language', 'note', ",
-        "'participant', 'phone', 'jurisdiction', 'source', 'state' ",
+      "AND ( ",
+        "service.subject IN ( ",
+          "'address', 'alternate', 'consent', 'event', 'jurisdiction', 'language', 'note', ",
+          "'participant', 'phone', 'region_site', 'report', 'report_type', 'source', 'state' ",
+        ") ",
+        "OR ( subject = 'report_restriction' AND method = 'GET' ) ",
       ")" );
     PREPARE statement FROM @sql;
     EXECUTE statement;
@@ -108,7 +111,10 @@ CREATE PROCEDURE patch_role_has_service()
         "WHERE subject IN( ",
           "'address', 'alternate', 'application', 'appointment_type', 'availability_type', 'collection', ",
           "'consent', 'event', 'hin', 'interview', 'jurisdiction', 'language', 'phase', 'phone', 'qnaire', ",
-          "'quota', 'jurisdiction', 'recording', 'recording_list', 'script', 'source', 'state' ) ",
+          "'quota', 'region_site', 'recording', 'recording_list', 'report_schedule', 'script', 'source', ",
+          "'state' ) ",
+        "OR ( subject = 'report_restriction' AND method IN( 'DELETE', 'POST' ) ) ",
+        "OR ( subject = 'report_type' AND method IN( 'DELETE', 'PATCH', 'POST' ) ) ",
         "OR ( subject = 'setting' AND method = 'GET' ) ",
         "OR ( subject = 'site' AND method IN ( 'DELETE', 'POST' ) ) ",
       ")" );
