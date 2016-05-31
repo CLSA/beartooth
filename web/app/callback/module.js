@@ -187,9 +187,9 @@ define( function() {
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnCallbackModelFactory', [
     'CnBaseModelFactory', 'CnCallbackAddFactory', 'CnCallbackListFactory', 'CnCallbackViewFactory',
-    'CnHttpFactory',
+    'CnHttpFactory', '$q',
     function( CnBaseModelFactory, CnCallbackAddFactory, CnCallbackListFactory, CnCallbackViewFactory,
-              CnHttpFactory ) {
+              CnHttpFactory, $q ) {
       var object = function( root ) {
         var self = this;
         CnBaseModelFactory.construct( this, module );
