@@ -40,7 +40,7 @@ DROP PROCEDURE IF EXISTS patch_interview;
         LIMIT 1
       );
 
-      -- use the create timestamp for interviews with no assignments
+      -- use the create timestamp to set start_datetime for interviews with no assignments
       UPDATE interview
       SET start_datetime = CONVERT_TZ( interview.create_timestamp, 'Canada/Eastern', 'UTC' )
       WHERE start_datetime IS NULL;
@@ -64,6 +64,22 @@ DROP PROCEDURE IF EXISTS patch_interview;
       SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
       SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
     END IF;
+
+    SELECT "Adding end datetimes to completed interviews with no assignments" AS "";
+
+    -- use the completed event to set end_datetime for interviews with no assignments
+    SET @sql = CONCAT(
+      "UPDATE interview ",
+      "JOIN qnaire ON interview.qnaire_id = qnaire.id ",
+      "JOIN ", @cenozo, ".event ON interview.participant_id = event.participant_id ",
+      "AND qnaire.completed_event_type_id = event.event_type_id ",
+      "LEFT JOIN assignment ON interview.id = assignment.interview_id ",
+      "SET interview.end_datetime = event.datetime ",
+      "WHERE interview.end_datetime IS NULL ",
+      "AND assignment.id IS NULL" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
 
     SELECT "Adding new site_id column to interview table" AS "";
 
