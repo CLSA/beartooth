@@ -229,12 +229,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 // make sure date is no earlier than today
                 var today = moment().hour( moment().hour() + 1 ).minute( 0 ).second( 0 );
 
-                // full-calendar has a bug where it picks one day behind the actual day, so we adjust for it here
                 if( !date.isBefore( today, 'day' ) ) {
                   var datetime = date.isAfter( today )
                                ? moment( date ).hour( 12 ).minute( 0 ).second( 0 )
                                : today;
-                  if( 'month' == view.type ) datetime.add( 1, 'days' );
 
                   record.datetime = datetime.format();
                   formattedRecord.datetime = CnSession.formatValue( datetime, 'datetime', true );
