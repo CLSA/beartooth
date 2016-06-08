@@ -300,9 +300,21 @@ class module extends \cenozo\service\base_calendar_module
     else
     {
       // add the appointment's duration
-      $modifier->join( 'setting', 'participant_site.site_id', 'setting.site_id' );
+      $modifier->left_join( 'setting', 'participant_site.site_id', 'setting.site_id' );
       $select->add_column(
-        'IF( appointment.user_id IS NULL, setting.appointment_site_duration, setting.appointment_home_duration )',
+        "IF(\n".
+        "    appointment.user_id IS NULL,\n".
+        "    IF(\n".
+        "      setting.id IS NOT NULL,\n".
+        "      setting.appointment_site_duration,\n".
+        "      ( SELECT DEFAULT( appointment_site_duration ) FROM setting LIMIT 1 )\n".
+        "    ),\n".
+        "    IF(\n".
+        "      setting.id IS NOT NULL,\n".
+        "      setting.appointment_home_duration,\n".
+        "      ( SELECT DEFAULT( appointment_home_duration ) FROM setting LIMIT 1 )\n".
+        "    )\n".
+        "  )",
         'duration',
         false );
 
