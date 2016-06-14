@@ -685,10 +685,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               if( 2 == identifier.length )
                 site = CnSession.siteList.findByProperty( identifier[0], identifier[1] );
             }
-          } else {
-            site = CnSession.site;
-            type = 'site';
           }
+          
+          if( null == site ) site = CnSession.site;
+          if( null == type ) type = 'site';
           return this.forSite( site, type );
         }
       };
