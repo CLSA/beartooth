@@ -38,12 +38,6 @@ class module extends \cenozo\service\module
           $this->set_data( 'Callbacks cannot be changed after they have been assigned.' );
           $this->get_status()->set_code( 306 );
         }
-        // no deleting of callbacks if it has passed
-        else if( 'DELETE' == $this->get_method() && $db_callback->datetime < util::get_datetime_object() )
-        {
-          $this->set_data( 'Callbacks cannot be deleted once they have passed.' );
-          $this->get_status()->set_code( 306 );
-        }
       }
     }
   }
