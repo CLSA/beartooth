@@ -75,7 +75,7 @@ class patch extends \cenozo\service\patch
           catch( \cenozo\exception\notice $e )
           {
             $this->set_data( $e->get_notice() );
-            $this->status->set_code( 406 );
+            $this->status->set_code( 306 );
           }
           catch( \cenozo\exception\database $e )
           {

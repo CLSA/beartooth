@@ -51,7 +51,7 @@ class delete extends \cenozo\service\delete
     catch( \cenozo\exception\notice $e )
     {
       $this->set_data( $e->get_notice() );
-      $this->status->set_code( 406 );
+      $this->status->set_code( 306 );
     }
     catch( \cenozo\exception\database $e )
     {

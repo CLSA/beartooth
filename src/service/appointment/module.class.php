@@ -98,13 +98,13 @@ class module extends \cenozo\service\base_calendar_module
         if( !is_null( $db_interview ) && null !== $db_interview->end_datetime )
         {
           $this->set_data( 'Appointments cannot be changed after an interview is complete.' );
-          $this->get_status()->set_code( 406 );
+          $this->get_status()->set_code( 306 );
         }
         // no writing of appointments if it has passed
         else if( !is_null( $db_appointment ) && $db_appointment->datetime < util::get_datetime_object() )
         {
           $this->set_data( 'Appointments cannot be changed after they have passed.' );
-          $this->get_status()->set_code( 406 );
+          $this->get_status()->set_code( 306 );
         }
         else
         {
@@ -114,7 +114,7 @@ class module extends \cenozo\service\base_calendar_module
             $this->set_data(
               'An appointment cannot be made for this participant until '.
               'all mandatory scripts have been submitted.' );
-            $this->get_status()->set_code( 406 );
+            $this->get_status()->set_code( 306 );
           }
           // validate if we are changing the datetime
           if( 'POST' == $method ||
@@ -123,7 +123,7 @@ class module extends \cenozo\service\base_calendar_module
             if( !$db_appointment->validate_date() )
             {
               $this->set_data( 'An appointment cannot currently be made for this participant.' );
-              $this->get_status()->set_code( 406 );
+              $this->get_status()->set_code( 306 );
             }
           }
         }
