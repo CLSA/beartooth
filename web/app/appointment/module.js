@@ -436,6 +436,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         var self = this;
         CnBaseCalendarFactory.construct( this, parentModel );
 
+        // default to month view
+        this.currentView = 'month';
+
         // remove day click callback
         delete this.settings.dayClick;
 
