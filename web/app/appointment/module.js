@@ -603,6 +603,23 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
           return $q.all( promiseList );
         };
+
+        // extend getTypeaheadData
+        this.getTypeaheadData = function( input, viewValue ) {
+          var data = this.$$getTypeaheadData( input, viewValue );
+
+          // only include active users
+          if( 'user' == input.typeahead.table ) {
+            data.modifier.where.unshift( { bracket: true, open: true } );
+            data.modifier.where.push( { bracket: true, open: false } );
+            data.modifier.where.push( { column: 'active', operator: '=', value: true } );
+
+            // restrict to the current site
+            if( this.site ) data.restricted_site_id = this.site.id;
+          }
+
+          return data;
+        };
       };
 
       // get the siteColumn to be used by a site's identifier
