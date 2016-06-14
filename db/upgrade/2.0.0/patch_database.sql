@@ -44,6 +44,9 @@ SOURCE site.sql
 SOURCE consent.sql
 SOURCE data_collection.sql
 SOURCE next_of_kin.sql
+SOURCE report_type.sql
+SOURCE application_type_has_report_type.sql
+SOURCE role_has_report_type.sql
 
 SOURCE interview_last_appointment.sql
 SOURCE update_interview_last_appointment.sql
