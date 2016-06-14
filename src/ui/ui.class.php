@@ -24,6 +24,9 @@ class ui extends \cenozo\ui\ui
     // add child actions to certain modules
     if( array_key_exists( 'assignment', $module_list ) )
       $module_list['assignment']['children'] = array( 'phone_call' );
+    if( array_key_exists( 'appointment', $module_list ) )
+      $module_list['appointment']['actions']['list'] =
+        '/{type}/{identifier}'.$module_list['appointment']['actions']['list'];
     if( array_key_exists( 'interview', $module_list ) )
       $module_list['interview']['children'] = array( 'assignment', 'appointment', 'callback' );
     if( array_key_exists( 'onyx_instance', $module_list ) )
@@ -111,7 +114,7 @@ class ui extends \cenozo\ui\ui
         $list[ucwords( $type ).' Assignment Control'] = array(
           'subject' => 'assignment',
           'action' => 'control',
-          'query' => '/{type}?{restrict&{order}&{reverse}',
+          'query' => '/{type}?{restrict}&{order}&{reverse}',
           'values' => sprintf( '{type:"%s"}', $type ) );
       }
       if( !$db_role->all_sites || 'helpline' == $db_role->name )

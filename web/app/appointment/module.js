@@ -534,15 +534,45 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         // customize service data
         this.getServiceData = function( type, columnRestrictLists ) {
           var data = this.$$getServiceData( type, columnRestrictLists );
-          if( 'calendar' == type ) {
+          if( 'calendar' == type || 'list' == type ) {
             data.restricted_site_id = self.site.id;
             data.type = self.type;
-            data.select = { column: [ 'datetime', {
-              table: 'appointment_type',
-              column: 'color'
-            } ] };
+            if( 'calendar' == type ) {
+              data.select = { column: [ 'datetime', {
+                table: 'appointment_type',
+                column: 'color'
+              } ] };
+            }
           }
           return data;
+        };
+
+        // pass type/site when transitioning to list state
+        this.transitionToParentListState = function( subject ) {
+          if( angular.isUndefined( subject ) ) subject = '^';
+          return $state.go( subject + '.list', {
+            type: this.type,
+            identifier: this.site.getIdentifier() }
+          );
+        };
+
+        // pass type/site when transitioning to list state
+        this.transitionToListState = function( record ) {
+          return $state.go(
+            this.module.subject.snake + '.list',
+            { type: this.type, identifier: this.site.getIdentifier() }
+          );
+        };
+
+        // extend getBreadcrumbTitle
+        this.setupBreadcrumbTrail = function() {
+          this.$$setupBreadcrumbTrail();
+          // add the type to the "appointment" crumb
+          if( this.type ) {
+            var crumb = CnSession.breadcrumbTrail.findByProperty( 'title', 'Appointment' );
+            if( !crumb ) var crumb = CnSession.breadcrumbTrail.findByProperty( 'title', 'Appointments' );
+            if( crumb ) crumb.title = this.type[0].toUpperCase() + this.type.substring( 1 ) + ' ' + crumb.title;
+          }
         };
 
         // extend getMetadata
@@ -647,9 +677,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         instance: function() {
           var site = null;
           var type = null;
-          if( 'calendar' == $state.current.name.split( '.' )[1] ) {
-            if( angular.isDefined( $state.params.type ) )
-              type = $state.params.type;
+          if( 'calendar' == $state.current.name.split( '.' )[1] ||
+              'list' == $state.current.name.split( '.' )[1] ) {
+            if( angular.isDefined( $state.params.type ) ) type = $state.params.type;
             if( angular.isDefined( $state.params.identifier ) ) {
               var identifier = $state.params.identifier.split( '=' );
               if( 2 == identifier.length )
