@@ -238,6 +238,14 @@ define( function() {
             var existing = 0 < self.record.open_appointment_count || 0 < self.record.open_callback_count;
             if( angular.isDefined( self.appointmentModel ) ) {
               var appointmentModule = cenozoApp.module( 'appointment' );
+
+              // set the correct type and refresh the list
+              if( self.appointmentModel.type != self.record.type ) {
+                self.appointmentModel.type = self.record.type;
+                self.appointmentModel.listModel.onList( true );
+              }
+
+              // define permissions
               self.appointmentModel.enableAdd(
                 !completed && !existing && angular.isDefined( appointmentModule.actions.add ) );
               self.appointmentModel.enableDelete(
@@ -249,6 +257,8 @@ define( function() {
             }
             if( angular.isDefined( self.callbackModel ) ) {
               var callbackModule = cenozoApp.module( 'callback' );
+
+              // define permissions
               self.callbackModel.enableAdd(
                 !completed && !existing && angular.isDefined( callbackModule.actions.add ) );
               self.callbackModel.enableDelete(
