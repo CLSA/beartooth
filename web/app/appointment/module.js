@@ -101,30 +101,36 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
   } );
 
   // add an extra operation for home and site appointment types
-  module.addExtraOperation( 'calendar', {
-    id: 'home-appointment-button',
-    title: 'Home Appointment',
-    operation: function( $state, model ) {
-      $state.go( 'appointment.calendar', { type: 'home', identifier: model.site.getIdentifier() } );
-    },
-    classes: 'home-appointment-button'
-  } );
+  if( angular.isDefined( module.actions.calendar ) ) {
+    module.addExtraOperation( 'calendar', {
+      id: 'home-appointment-button',
+      title: 'Home Appointment',
+      operation: function( $state, model ) {
+        $state.go( 'appointment.calendar', { type: 'home', identifier: model.site.getIdentifier() } );
+      },
+      classes: 'home-appointment-button'
+    } );
+  }
 
-  module.addExtraOperation( 'calendar', {
-    id: 'site-appointment-button',
-    title: 'Site Appointment',
-    operation: function( $state, model ) {
-      $state.go( 'appointment.calendar', { type: 'site', identifier: model.site.getIdentifier() } );
-    },
-    classes: 'site-appointment-button'
-  } );
+  if( angular.isDefined( module.actions.calendar ) ) {
+    module.addExtraOperation( 'calendar', {
+      id: 'site-appointment-button',
+      title: 'Site Appointment',
+      operation: function( $state, model ) {
+        $state.go( 'appointment.calendar', { type: 'site', identifier: model.site.getIdentifier() } );
+      },
+      classes: 'site-appointment-button'
+    } );
+  }
 
-  module.addExtraOperation( 'view', {
-    title: 'Appointment Calendar',
-    operation: function( $state, model ) {
-      $state.go( 'appointment.calendar', { type: model.type, identifier: model.site.getIdentifier() } );
-    }
-  } );
+  if( angular.isDefined( module.actions.calendar ) ) {
+    module.addExtraOperation( 'view', {
+      title: 'Appointment Calendar',
+      operation: function( $state, model ) {
+        $state.go( 'appointment.calendar', { type: model.type, identifier: model.site.getIdentifier() } );
+      }
+    } );
+  }
 
   // converts appointments into events
   function getEventFromAppointment( appointment, timezone ) {
