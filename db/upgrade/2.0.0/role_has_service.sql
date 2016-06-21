@@ -113,7 +113,7 @@ CREATE PROCEDURE patch_role_has_service()
           "'consent', 'event', 'hin', 'interview', 'jurisdiction', 'language', 'phase', 'phone', 'qnaire', ",
           "'quota', 'region_site', 'recording', 'recording_list', 'report_schedule', 'script', 'source', ",
           "'state' ) ",
-        "OR ( subject = 'report_restriction' AND method IN( 'DELETE', 'POST' ) ) ",
+        "OR ( subject = 'report_restriction' AND method IN( 'DELETE', 'PATCH', 'POST' ) ) ",
         "OR ( subject = 'report_type' AND method IN( 'DELETE', 'PATCH', 'POST' ) ) ",
         "OR ( subject = 'setting' AND method = 'GET' ) ",
         "OR ( subject = 'site' AND method IN ( 'DELETE', 'POST' ) ) ",
