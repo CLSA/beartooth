@@ -27,8 +27,6 @@ class ui extends \cenozo\ui\ui
     if( array_key_exists( 'appointment', $module_list ) )
       $module_list['appointment']['actions']['list'] =
         '/{type}/{identifier}'.$module_list['appointment']['actions']['list'];
-    if( array_key_exists( 'event_type', $module_list ) )
-      $module_list['event_type']['choosing'] = array( 'qnaire' );
     if( array_key_exists( 'interview', $module_list ) )
       $module_list['interview']['children'] = array( 'assignment', 'appointment', 'callback' );
     if( array_key_exists( 'onyx_instance', $module_list ) )
@@ -43,7 +41,7 @@ class ui extends \cenozo\ui\ui
     if( array_key_exists( 'qnaire', $module_list ) )
     {
       $module_list['qnaire']['children'] = array( 'appointment_type' );
-      $module_list['qnaire']['choosing'] = array( 'script', 'event_type', 'site', 'quota' );
+      $module_list['qnaire']['choosing'] = array( 'script', 'site', 'quota' );
     }
     if( array_key_exists( 'queue', $module_list ) )
     {
