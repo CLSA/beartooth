@@ -32,12 +32,13 @@ DROP PROCEDURE IF EXISTS patch_queue_has_participant;
     SELECT "Modifying constraint delete rules in queue_has_participant table" AS "";
 
     SET @test = (
-      SELECT DELETE_RULE
+      SELECT COUNT(*)
       FROM information_schema.REFERENTIAL_CONSTRAINTS
       WHERE CONSTRAINT_SCHEMA = DATABASE()
       AND TABLE_NAME = "queue_has_participant"
-      AND REFERENCED_TABLE_NAME = "participant" );
-    IF @test = "NO ACTION" THEN
+      AND REFERENCED_TABLE_NAME = "participant"
+      AND ( UPDATE_RULE = "NO ACTION" OR DELETE_RULE = "NO ACTION" ) );
+    IF @test > 0 THEN
       ALTER TABLE queue_has_participant
       DROP FOREIGN KEY fk_queue_has_participant_participant_id;
 
@@ -54,12 +55,13 @@ DROP PROCEDURE IF EXISTS patch_queue_has_participant;
     END IF;
 
     SET @test = (
-      SELECT DELETE_RULE
+      SELECT COUNT(*)
       FROM information_schema.REFERENTIAL_CONSTRAINTS
       WHERE CONSTRAINT_SCHEMA = DATABASE()
       AND TABLE_NAME = "queue_has_participant"
-      AND REFERENCED_TABLE_NAME = "queue" );
-    IF @test = "NO ACTION" THEN
+      AND REFERENCED_TABLE_NAME = "queue"
+      AND ( UPDATE_RULE = "NO ACTION" OR DELETE_RULE = "NO ACTION" ) );
+    IF @test > 0 THEN
       ALTER TABLE queue_has_participant
       DROP FOREIGN KEY fk_queue_has_participant_queue_id;
 
@@ -72,12 +74,13 @@ DROP PROCEDURE IF EXISTS patch_queue_has_participant;
     END IF;
 
     SET @test = (
-      SELECT DELETE_RULE
+      SELECT COUNT(*)
       FROM information_schema.REFERENTIAL_CONSTRAINTS
       WHERE CONSTRAINT_SCHEMA = DATABASE()
       AND TABLE_NAME = "queue_has_participant"
-      AND REFERENCED_TABLE_NAME = "qnaire" );
-    IF @test = "NO ACTION" THEN
+      AND REFERENCED_TABLE_NAME = "qnaire"
+      AND ( UPDATE_RULE = "NO ACTION" OR DELETE_RULE = "NO ACTION" ) );
+    IF @test > 0 THEN
       ALTER TABLE queue_has_participant
       DROP FOREIGN KEY fk_queue_has_participant_qnaire_id;
 
@@ -90,12 +93,13 @@ DROP PROCEDURE IF EXISTS patch_queue_has_participant;
     END IF;
 
     SET @test = (
-      SELECT DELETE_RULE
+      SELECT COUNT(*)
       FROM information_schema.REFERENTIAL_CONSTRAINTS
       WHERE CONSTRAINT_SCHEMA = DATABASE()
       AND TABLE_NAME = "queue_has_participant"
-      AND REFERENCED_TABLE_NAME = "site" );
-    IF @test = "NO ACTION" THEN
+      AND REFERENCED_TABLE_NAME = "site"
+      AND ( UPDATE_RULE = "NO ACTION" OR DELETE_RULE = "NO ACTION" ) );
+    IF @test > 0 THEN
       ALTER TABLE queue_has_participant
       DROP FOREIGN KEY fk_queue_has_participant_site_id;
 

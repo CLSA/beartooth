@@ -24,13 +24,13 @@ CREATE PROCEDURE patch_qnaire_has_event_type()
         "CONSTRAINT fk_qnaire_has_event_type_qnaire_id ",
           "FOREIGN KEY (qnaire_id) ",
           "REFERENCES qnaire (id) ",
-          "ON DELETE NO ACTION ",
-          "ON UPDATE NO ACTION, ",
+          "ON DELETE CASCADE ",
+          "ON UPDATE CASCADE, ",
         "CONSTRAINT fk_qnaire_has_event_type_event_type_id ",
           "FOREIGN KEY (event_type_id) ",
           "REFERENCES ", @cenozo, ".event_type (id) ",
-          "ON DELETE NO ACTION ",
-          "ON UPDATE NO ACTION) ",
+          "ON DELETE CASCADE ",
+          "ON UPDATE CASCADE) ",
       "ENGINE = InnoDB" );
     PREPARE statement FROM @sql;
     EXECUTE statement;

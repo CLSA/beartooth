@@ -27,6 +27,8 @@ class ui extends \cenozo\ui\ui
     if( array_key_exists( 'appointment', $module_list ) )
       $module_list['appointment']['actions']['list'] =
         '/{type}/{identifier}'.$module_list['appointment']['actions']['list'];
+    if( array_key_exists( 'event_type', $module_list ) )
+      $module_list['event_type']['choosing'] = array( 'qnaire' );
     if( array_key_exists( 'interview', $module_list ) )
       $module_list['interview']['children'] = array( 'assignment', 'appointment', 'callback' );
     if( array_key_exists( 'onyx_instance', $module_list ) )
@@ -40,21 +42,22 @@ class ui extends \cenozo\ui\ui
     }
     if( array_key_exists( 'qnaire', $module_list ) )
     {
-      $module_list['qnaire']['children'] = array( 'appointment_type', 'queue_state' );
-      $module_list['qnaire']['choosing'] = array( 'script', 'event_type', 'quota' );
+      $module_list['qnaire']['children'] = array( 'appointment_type' );
+      $module_list['qnaire']['choosing'] = array( 'script', 'event_type', 'site', 'quota' );
     }
     if( array_key_exists( 'queue', $module_list ) )
     {
       $module_list['queue']['list_menu'] = true; // always show the queue list
-      $module_list['queue']['children'] = array( 'queue_state' );
       $module_list['queue']['choosing'] = array( 'participant' );
 
       // add special query parameters to queue-view
       if( array_key_exists( 'view', $module_list['queue']['actions'] ) )
         $module_list['queue']['actions']['view'] .= '?{restrict}&{order}&{reverse}';
     }
+    if( array_key_exists( 'quota', $module_list ) )
+      $module_list['quota']['choosing'] = array( 'qnaire' );
     if( array_key_exists( 'site', $module_list ) )
-      array_unshift( $module_list['site']['children'], 'queue_state' );
+      $module_list['site']['choosing'] = array( 'qnaire' );
 
     return $module_list;
   }

@@ -29,13 +29,6 @@ class module extends \cenozo\service\participant\module
       $modifier->where( 'participant.active', '=', true );
       $modifier->where( 'queue.rank', '!=', NULL );
 
-      $join_mod = lib::create( 'database\modifier' );
-      $join_mod->where( 'queue_has_participant.queue_id', '=', 'queue_state.queue_id', false );
-      $join_mod->where( 'queue_has_participant.site_id', '=', 'queue_state.site_id', false );
-      $join_mod->where( 'queue_has_participant.qnaire_id', '=', 'queue_state.qnaire_id', false );
-      $modifier->join_modifier( 'queue_state', $join_mod, 'left' );
-      $modifier->where( 'queue_state.id', '=', NULL );
-
       if( $select->has_column( 'blood' ) )
       {
         $modifier->join( 'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );

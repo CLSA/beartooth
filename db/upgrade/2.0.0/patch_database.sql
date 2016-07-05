@@ -16,13 +16,15 @@ SOURCE participant_last_site_appointment.sql
 
 SOURCE event_type.sql
 SOURCE qnaire.sql
+SOURCE queue_state.sql
 SOURCE qnaire_has_event_type.sql
+SOURCE qnaire_has_quota.sql
+SOURCE qnaire_has_site.sql
 SOURCE qnaire_has_script.sql
 SOURCE phase.sql
 SOURCE queue_has_participant.sql
 SOURCE assignment.sql
 SOURCE queue.sql
-SOURCE queue_state.sql
 SOURCE phone_call.sql
 SOURCE activity.sql
 SOURCE writelog.sql

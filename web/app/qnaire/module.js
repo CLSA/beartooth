@@ -147,6 +147,8 @@ define( function() {
             self.eventTypeModel.listModel.heading = 'Required To Begin Event List';
           if( angular.isDefined( self.queueStateModel ) )
             self.queueStateModel.listModel.heading = 'Disabled Queue List';
+          if( angular.isDefined( self.siteModel ) )
+            self.siteModel.listModel.heading = 'Disabled Site List';
           if( angular.isDefined( self.quotaModel ) )
             self.quotaModel.listModel.heading = 'Disabled Quota List';
         } );
