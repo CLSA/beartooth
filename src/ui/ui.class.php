@@ -28,7 +28,7 @@ class ui extends \cenozo\ui\ui
       $module_list['appointment']['actions']['list'] =
         '/{type}/{identifier}'.$module_list['appointment']['actions']['list'];
     if( array_key_exists( 'interview', $module_list ) )
-      $module_list['interview']['children'] = array( 'assignment', 'appointment', 'callback' );
+      $module_list['interview']['children'] = array( 'assignment', 'appointment' );
     if( array_key_exists( 'onyx_instance', $module_list ) )
       $module_list['onyx_instance']['children'] = array( 'activity' );
     if( array_key_exists( 'participant', $module_list ) )
@@ -36,7 +36,7 @@ class ui extends \cenozo\ui\ui
       array_unshift( $module_list['participant']['children'], 'interview' );
 
       // add extra types to history
-      $module_list['participant']['actions']['history'] .= '&{appointment}&{assignment}&{callback}';
+      $module_list['participant']['actions']['history'] .= '&{appointment}&{assignment}';
     }
     if( array_key_exists( 'qnaire', $module_list ) )
     {

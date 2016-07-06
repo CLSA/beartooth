@@ -50,11 +50,6 @@ define( function() {
         title: 'Site Ap.',
         type: 'number',
         help: 'The length of time, in minutes, that a site appointment is estimated to take'
-      },
-      pre_call_window: {
-        title: 'Pre-Call',
-        type: 'number',
-        help: 'How many minutes before an appointment or callback that a participant can be assigned'
       }
     },
     defaultOrder: {
@@ -105,13 +100,6 @@ define( function() {
       format: 'integer',
       minValue: 0,
       help: 'The length of time, in minutes, that a site appointment is estimated to take'
-    },
-    pre_call_window: {
-      title: 'Pre-Appointment Window',
-      type: 'string',
-      format: 'integer',
-      minValue: 0,
-      help: 'How many minutes before an appointment or callback that a participant can be assigned'
     }
   } );
 

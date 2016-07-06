@@ -21,9 +21,7 @@ class appointment extends \cenozo\database\record
    */
   public function save()
   {
-    $callback_class_name = lib::get_class_name( 'database\callback' );
-
-    // make sure there is a maximum of 1 incomplete appointment or callback per interview
+    // make sure there is a maximum of 1 incomplete appointment per interview
     if( is_null( $this->id ) && !$this->completed )
     {
       $appointment_mod = lib::create( 'database\modifier' );
@@ -31,13 +29,9 @@ class appointment extends \cenozo\database\record
       $appointment_mod->where( 'completed', '=', false );
       if( !is_null( $this->id ) ) $appointment_mod->where( 'id', '!=', $this->id );
 
-      $callback_mod = lib::create( 'database\modifier' );
-      $callback_mod->where( 'interview_id', '=', $this->interview_id );
-      $callback_mod->where( 'assignment_id', '=', NULL );
-
-      if( 0 < static::count( $appointment_mod ) || 0 < $callback_class_name::count( $callback_mod ) )
+      if( 0 < static::count( $appointment_mod ) )
         throw lib::create( 'exception\notice',
-          'Cannot have more than one unassigned appointment or callback per interview.', __METHOD__ );
+          'Cannot have more than one incomplete appointment per interview.', __METHOD__ );
     }
 
     // make sure home appointments have an address and user, and site appointments do not

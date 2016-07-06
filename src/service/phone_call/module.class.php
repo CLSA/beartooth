@@ -146,7 +146,7 @@ class module extends \cenozo\service\site_restricted_module
     $operation = $this->get_argument( 'operation', false );
     if( 'POST' == $this->get_method() && 'open' == $operation )
     {
-      // update this assignment's appointments or callbacks (pre-complete)
+      // update this assignment's callbacks
       $record->get_assignment()->process_callbacks( false );
     }
     else if( 'PATCH' == $this->get_method() && 'close' == $operation )

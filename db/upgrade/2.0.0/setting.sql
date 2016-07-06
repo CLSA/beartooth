@@ -33,7 +33,6 @@ DROP PROCEDURE IF EXISTS patch_setting;
           "appointment_update_span INT UNSIGNED NOT NULL DEFAULT 30, ",
           "appointment_home_duration INT UNSIGNED NOT NULL DEFAULT 120, ",
           "appointment_site_duration INT UNSIGNED NOT NULL DEFAULT 120, ",
-          "pre_call_window INT UNSIGNED NOT NULL DEFAULT 5, ",
           "contacted_wait INT UNSIGNED NOT NULL DEFAULT 10080, ",
           "busy_wait INT UNSIGNED NOT NULL DEFAULT 15, ",
           "fax_wait INT UNSIGNED NOT NULL DEFAULT 15, ",
@@ -86,11 +85,6 @@ DROP PROCEDURE IF EXISTS patch_setting;
       SET appointment_site_duration = value
       WHERE category = "appointment"
       AND name = "site duration";
-
-      UPDATE setting JOIN old_setting_value USING( site_id )
-      SET pre_call_window = value
-      WHERE category = "callback"
-      AND name = "call pre-window";
 
       UPDATE setting JOIN old_setting_value USING( site_id )
       SET contacted_wait = value
