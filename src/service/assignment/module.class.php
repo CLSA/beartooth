@@ -28,6 +28,7 @@ class module extends \cenozo\service\site_restricted_module
 
       $session = lib::create( 'business\session' );
       $db_user = $session->get_user();
+      $db_role = $session->get_role();
       $method = $this->get_method();
       $operation = $this->get_argument( 'operation', false );
 
@@ -44,13 +45,13 @@ class module extends \cenozo\service\site_restricted_module
       }
 
       if( ( 'DELETE' == $method || 'PATCH' == $method ) &&
-          3 > $session->get_role()->tier &&
+          3 > $db_role->tier &&
           $this->get_resource()->user_id != $db_user->id )
       {
         // only admins can delete or modify assignments other than their own
           $this->get_status()->set_code( 403 );
       }
-      else if( 'PATCH' == $method && 'close' == $operation )
+      else if( 'PATCH' == $method && ( 'close' == $operation || 'force_close' == $operation ) )
       {
         $record = $this->get_resource();
 
@@ -77,6 +78,10 @@ class module extends \cenozo\service\site_restricted_module
               $this->set_data( 'An assignment cannot be closed during an open call.' );
               $this->get_status()->set_code( 409 );
             }
+          }
+          else if( 'force_close' == $operation )
+          {
+            if( 2 > $db_role->tier ) $this->get_status()->set_code( 403 );
           }
         }
       }
@@ -202,7 +207,7 @@ class module extends \cenozo\service\site_restricted_module
       $record->queue_id = $db_participant->current_queue_id;
       $record->start_datetime = $now;
     }
-    else if( 'PATCH' == $this->get_method() && 'close' == $operation )
+    else if( 'PATCH' == $this->get_method() && ( 'close' == $operation || 'force_close' == $operation ) )
     {
       $record->end_datetime = $now;
     }
@@ -218,8 +223,22 @@ class module extends \cenozo\service\site_restricted_module
     if( 'PATCH' == $this->get_method() )
     {
       $operation = $this->get_argument( 'operation', false );
-      if( 'close' == $operation )
+      if( 'close' == $operation || 'force_close' == $operation )
       {
+        if( 'force_close' == $operation )
+        {
+          // end any active phone calls
+          $phone_call_mod = lib::create( 'database\modifier' );
+          $phone_call_mod->where( 'phone_call.end_datetime', '=', NULL );
+          foreach( $record->get_phone_call_object_list( $phone_call_mod ) as $db_phone_call )
+          {
+            $db_phone_call->end_datetime = util::get_datetime_object();
+            $db_phone_call->status = 'contacted';
+            $db_phone_call->save();
+            $db_phone_call->process_events();
+          }
+        }
+
         // delete the assignment if there are no phone calls, or process callbacks if there are
         if( 0 == $record->get_phone_call_count() ) $record->delete();
         else
