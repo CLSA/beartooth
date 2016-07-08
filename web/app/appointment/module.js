@@ -39,7 +39,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       state: {
         type: 'string',
         title: 'State',
-        help: 'One of completed, upcoming or passed'
+        help: 'Will either be completed, cancelled, upcoming or passed'
       }
     },
     defaultOrder: {
@@ -142,7 +142,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
       // adjust the appointment for daylight savings time
       if( date.tz( timezone ).isDST() ) offset += -60;
-      
+
       var event = {
         getIdentifier: function() { return appointment.getIdentifier() },
         title: ( appointment.uid ? appointment.uid : 'new appointment' ) +
@@ -157,8 +157,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentAdd', [
-    'CnAppointmentModelFactory', 'CnSession', 'CnHttpFactory',
-    function( CnAppointmentModelFactory, CnSession, CnHttpFactory ) {
+    'CnAppointmentModelFactory', 'CnSession', 'CnHttpFactory', 'CnModalConfirmFactory', '$q',
+    function( CnAppointmentModelFactory, CnSession, CnHttpFactory, CnModalConfirmFactory, $q ) {
       return {
         templateUrl: module.getFileUrl( 'add.tpl.html' ),
         restrict: 'E',
@@ -166,6 +166,33 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         controller: function( $scope ) {
           $scope.loading = true;
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
+
+          $scope.model.addModel.afterNew( function() {
+            // warn if old appointment will be cancelled
+            var addDirective = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
+            if( null == addDirective ) throw new Exception( 'Unable to find appointment\'s cnRecordAdd scope.' );
+            var saveFn = addDirective.save;
+            addDirective.save = function() {
+              CnHttpFactory.instance( {
+                path: 'interview/' + $scope.model.getParentIdentifier().identifier,
+                data: { select: { column: [ 'missed_appointment' ] } }
+              } ).get().then( function( response ) {
+                var proceed = false;
+                var promise =
+                  response.data.missed_appointment ?
+                  CnModalConfirmFactory.instance( {
+                    title: 'Cancel Missed Appointment?',
+                    message: 'There already exists a passed appointment for this interview, ' +
+                             'do you wish to cancel it and create a new one?'
+                  } ).show().then( function( response ) { proceed = response; } ) :
+                  $q.all().then( function() { proceed = true; } );
+
+                // proceed with the usual save function if we are told to proceed
+                promise.then( function() { if( proceed ) saveFn(); } );
+              } );
+            };
+          } );
+
           $scope.model.addModel.afterNew( function() {
             // get a home or site calendar, based on the appointment's parent
             var identifier = $scope.model.getParentIdentifier();
@@ -483,7 +510,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
             parentModel.calendarModel.cache = parentModel.calendarModel.cache.filter( function( e ) {
               return e.getIdentifier() != record.getIdentifier();
             } );
-            self.parentModel.enableAdd( 0 == self.total );
+            console.log( 'TODO: need to reset add enabled state?' );
+            self.parentModel.getAddEnabled = function() { return 0 == self.total; };
           } );
         };
       };
@@ -502,8 +530,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         this.onView = function() {
           return this.$$onView().then( function() {
             var upcoming = moment().isBefore( self.record.datetime, 'minute' );
-            parentModel.enableDelete( upcoming );
-            parentModel.enableEdit( upcoming );
+            parentModel.getDeleteEnabled = function() { return parentModel.$$getDeleteEnabled() && upcoming; };
+            parentModel.getEditEnabled = function() { return parentModel.$$getEditEnabled() && upcoming; };
           } );
         };
       }
@@ -692,7 +720,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 site = CnSession.siteList.findByProperty( identifier[0], identifier[1] );
             }
           }
-          
+
           if( null == site ) site = CnSession.site;
           if( null == type ) type = 'site';
           return this.forSite( site, type );

@@ -21,17 +21,28 @@ class appointment extends \cenozo\database\record
    */
   public function save()
   {
-    // make sure there is a maximum of 1 incomplete appointment per interview
-    if( is_null( $this->id ) && !$this->completed )
+    // make sure there is a maximum of 1 unresolved appointment per interview
+    if( is_null( $this->id ) && is_null( $this->outcome ) )
     {
       $appointment_mod = lib::create( 'database\modifier' );
-      $appointment_mod->where( 'interview_id', '=', $this->interview_id );
-      $appointment_mod->where( 'completed', '=', false );
+      $appointment_mod->where( 'outcome', '=', NULL );
       if( !is_null( $this->id ) ) $appointment_mod->where( 'id', '!=', $this->id );
+      $appointment_mod->order( 'datetime' );
 
-      if( 0 < static::count( $appointment_mod ) )
-        throw lib::create( 'exception\notice',
-          'Cannot have more than one incomplete appointment per interview.', __METHOD__ );
+      // cancel any missed appointments
+      foreach( $this->get_interview()->get_appointment_object_list( $appointment_mod ) as $db_appointment )
+      {
+        if( $db_appointment->datetime < util::get_datetime_object() )
+        {
+          $db_appointment->outcome = 'cancelled';
+          $db_appointment->save();
+        }
+        else
+        {
+          throw lib::create( 'exception\notice',
+            'Cannot have more than one incomplete appointment per interview.', __METHOD__ );
+        }
+      }
     }
 
     // make sure home appointments have an address and user, and site appointments do not
@@ -55,7 +66,7 @@ class appointment extends \cenozo\database\record
     }
 
     // if we changed certain columns then update the queue
-    $update_queue = $this->has_column_changed( array( 'completed', 'datetime' ) );
+    $update_queue = $this->has_column_changed( array( 'outcome', 'datetime' ) );
     parent::save();
     if( $update_queue ) $this->get_interview()->get_participant()->repopulate_queue( true );
   }
@@ -138,7 +149,8 @@ class appointment extends \cenozo\database\record
 
   /**
    * Get the state of the appointment as a string:
-   *   completed: the appointment has been completed and the interview is done
+   *   completed: the appointment has been completed
+   *   cancelled: the appointment has been cancelled
    *   upcoming: the appointment's date/time has not yet occurred
    *   passed: the appointment's date/time has passed and the interview is not done
    * @author Patrick Emond <emondpd@mcmaster.ca>
@@ -154,7 +166,7 @@ class appointment extends \cenozo\database\record
     } 
     
     // first see if the appointment is complete
-    if( $this->completed ) return 'completed';
+    if( !is_null( $this->outcome ) ) return $this->outcome;
 
     $now = util::get_datetime_object()->getTimestamp();
     $appointment = $this->datetime->getTimestamp();

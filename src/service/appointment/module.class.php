@@ -100,7 +100,7 @@ class module extends \cenozo\service\base_calendar_module
           $this->set_data( 'Appointments cannot be changed after an interview is complete.' );
           $this->get_status()->set_code( 306 );
         }
-        // no writing of appointments if it has passed
+        // no writing of appointments if they have passed
         else if( !is_null( $db_appointment ) && $db_appointment->datetime < util::get_datetime_object() )
         {
           $this->set_data( 'Appointments cannot be changed after they have passed.' );
@@ -358,8 +358,8 @@ class module extends \cenozo\service\base_calendar_module
       {
         // specialized sql used to determine the appointment's current state
         $sql =
-          'IF( appointment.completed, '.
-            '"completed", '.
+          'IF( appointment.outcome IS NOT NULL, '.
+            'outcome, '.
             'IF( UTC_TIMESTAMP() < appointment.datetime, "upcoming", "passed" ) '.
           ')';
 

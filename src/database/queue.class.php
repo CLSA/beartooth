@@ -550,19 +550,18 @@ class queue extends \cenozo\database\record
 
     if( 'appointment' == $queue )
     {
-      // link to appointment table and make sure the appointment hasn't been assigned
-      // (by design, there can only ever be one unassigned appointment per interview)
+      // link to appointment table and make sure the appointment hasn't been resolved
+      // (by design, there can only ever be one unresolved appointment per interview)
       $modifier->join( 'appointment', 'appointment.interview_id', 'temp_participant.current_interview_id' );
-      $modifier->where( 'appointment.completed', '=', false );
+      $modifier->where( 'appointment.outcome', '=', NULL );
       return;
     }
 
-    // Make sure there is no unassigned appointment.  By design there can only be one of
-    // per interview, so if the appointment is null then the interview has no pending
-    // appointments.
+    // Make sure there is no unresolved appointment.  By design there can only be one unresolved appointment
+    // per interview, so if the appointment is null then the interview has no pending appointments.
     $join_mod = lib::create( 'database\modifier' );
     $join_mod->where( 'appointment.interview_id', '=', 'temp_participant.current_interview_id', false );
-    $join_mod->where( 'appointment.completed', '=', false );
+    $join_mod->where( 'appointment.outcome', '=', NULL );
     $modifier->join_modifier( 'appointment', $join_mod, 'left' );
     $modifier->where( 'appointment.id', '=', NULL );
 
