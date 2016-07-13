@@ -1,5 +1,5 @@
 // extend the framework's module
-define( [ cenozoApp.module( 'user' ).getFileUrl( 'module.js' ], function() {
+define( [ cenozoApp.module( 'user' ).getFileUrl( 'module.js' ) ], function() {
   'use strict';
 
   var module = cenozoApp.module( 'user' );
