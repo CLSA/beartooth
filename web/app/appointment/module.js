@@ -295,7 +295,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         controller: function( $scope ) {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
           $scope.model.calendarModel.heading = $scope.model.site.name.ucWords() + ' - '
-            + ( 'home' == $scope.model.type && 1 == CnSession.role.tier ? 'Personal ' : '' )
+            + ( 'home' == $scope.model.type &&
+                1 == CnSession.role.tier &&
+                !CnSession.role.allSites ? 'Personal ' : '' )
             + $scope.model.type.ucWords() + ' Appointment Calendar';
         },
         link: function( scope, element ) {
@@ -569,7 +571,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         this.getServiceData = function( type, columnRestrictLists ) {
           var data = this.$$getServiceData( type, columnRestrictLists );
           if( 'calendar' == type || 'list' == type ) {
-            data.restricted_site_id = self.site.id;
+            if( 'appointment' == self.getSubjectFromState() ) data.restricted_site_id = self.site.id;
             data.type = self.type;
             if( 'calendar' == type ) {
               data.select = { column: [ 'datetime', {

@@ -30,14 +30,17 @@ class module extends \cenozo\service\base_calendar_module
   protected function get_argument( $name, $default = NULL )
   {
     $session = lib::create( 'business\session' );
+    $db_site = $session->get_site();
+    $db_role = $session->get_role();
+
     // return specific values for min_date and max_date for the onyx role
-    if( 'min_date' == $name && 'onyx' == $session->get_role()->name )
+    if( 'min_date' == $name && 'onyx' == $db_role->name )
     {
       return util::get_datetime_object()->format( 'Y-m-d' );
     }
-    else if( 'max_date' == $name && 'onyx' == $session->get_role()->name )
+    else if( 'max_date' == $name && 'onyx' == $db_role->name )
     {
-      $db_setting = $session->get_site()->get_setting();
+      $db_setting = $db_site->get_setting();
       $date_obj = util::get_datetime_object();
       $date_obj->add( new \DateInterval( sprintf( 'P%dD', $db_setting->appointment_update_span ) ) );
       return $date_obj->format( 'Y-m-d' );
@@ -139,6 +142,9 @@ class module extends \cenozo\service\base_calendar_module
     parent::prepare_read( $select, $modifier );
 
     $session = lib::create( 'business\session' );
+    $db_application = $session->get_application();
+    $db_user = $session->get_user();
+    $db_role = $session->get_role();
 
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
@@ -147,11 +153,11 @@ class module extends \cenozo\service\base_calendar_module
     $participant_site_join_mod->where(
       'interview.participant_id', '=', 'participant_site.participant_id', false );
     $participant_site_join_mod->where(
-      'participant_site.application_id', '=', $session->get_application()->id );
+      'participant_site.application_id', '=', $db_application->id );
     $modifier->join_modifier( 'participant_site', $participant_site_join_mod, 'left' );
 
     // onyx roles need to be treated specially
-    if( 'onyx' == $session->get_role()->name )
+    if( 'onyx' == $db_role->name )
     {
       $onyx_instance_class_name = lib::create( 'database\onyx_instance' );
       $appointment_type_class_name = lib::create( 'database\appointment_type' );
@@ -178,7 +184,6 @@ class module extends \cenozo\service\base_calendar_module
       $modifier->left_join( 'region', 'address.region_id', 'region.id' );
 
       // restrict by onyx instance
-      $db_user = $session->get_user();
       $db_onyx_instance = $onyx_instance_class_name::get_unique_record( 'user_id', $db_user->id );
       if( is_null( $db_onyx_instance ) )
         throw lib::create( 'exception\runtime',
@@ -345,11 +350,8 @@ class module extends \cenozo\service\base_calendar_module
         $modifier->where( 'participant_site.site_id', '=', $db_restricted_site->id );
 
       // restrict by user
-      if( 1 == $session->get_role()->tier )
-      {
-        $db_user = $session->get_user();
+      if( 1 == $db_role->tier && !$db_role->all_sites )
         $modifier->where( sprintf( 'IFNULL( appointment.user_id, %s )', $db_user->id ), '=', $db_user->id );
-      }
 
       if( $select->has_table_columns( 'appointment_type' ) )
         $modifier->left_join( 'appointment_type', 'appointment.appointment_type_id', 'appointment_type.id' );
