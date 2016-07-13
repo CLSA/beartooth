@@ -69,7 +69,6 @@ class module extends \cenozo\service\site_restricted_module
         {
           // check if there is an appointment for the current interview
           $db_interview = $record->get_interview();
-          $this->is_survey_complete = 0 < $db_interview->get_appointment_count();
 
           if( 'close' == $operation )
           {
@@ -245,14 +244,8 @@ class module extends \cenozo\service\site_restricted_module
         {
           // update any callbacks associated with this assignment
           $record->process_callbacks( true );
-
-          // mark the interview as complete if the survey is complete
-          if( $this->is_survey_complete ) $record->get_interview()->complete();
         }
       }
     }
   }
-
-  // TODO: document
-  protected $is_survey_complete = NULL;
 }
