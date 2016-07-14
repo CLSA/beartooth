@@ -56,7 +56,7 @@ CREATE PROCEDURE patch_role_has_service()
       "AND service.restricted = 1 ",
       "AND service.id NOT IN ( ",
         "SELECT id FROM service ",
-        "WHERE subject = 'appointment' ",
+        "WHERE subject IN( 'appointment', 'onyx' ) ",
         "OR ( subject = 'assignment' AND method = 'POST' ) ",
         "OR ( subject = 'phone_call' AND method != 'DELETE' ) ",
         "OR subject IN( 'token' ) ",
@@ -96,7 +96,19 @@ CREATE PROCEDURE patch_role_has_service()
     DEALLOCATE PREPARE statement;
 
     -- onyx
-    -- no access to restricted services required
+    SET @sql = CONCAT(
+      "INSERT INTO role_has_service( role_id, service_id ) ",
+      "SELECT role.id, service.id ",
+      "FROM ", @cenozo, ".role, service ",
+      "WHERE role.name = 'onyx' ",
+      "AND service.restricted = 1 ",
+      "AND service.id IN ( ",
+        "SELECT id FROM service ",
+        "WHERE subject = 'onyx' "
+      ")" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
 
     -- coordinator
     SET @sql = CONCAT(
@@ -109,7 +121,7 @@ CREATE PROCEDURE patch_role_has_service()
         "SELECT id FROM service ",
         "WHERE subject IN( ",
           "'address', 'alternate', 'application', 'appointment_type', 'availability_type', 'collection', ",
-          "'consent', 'consent_type', 'event', 'hin', 'interview', 'jurisdiction', 'language', 'phase', ",
+          "'consent', 'consent_type', 'event', 'hin', 'interview', 'jurisdiction', 'language', 'onyx', 'phase', ",
           "'phone', 'qnaire', 'quota', 'region_site', 'recording', 'recording_list', 'report_schedule', ",
           "'script', 'source', 'state' ) ",
         "OR ( subject = 'report_restriction' AND method IN( 'DELETE', 'PATCH', 'POST' ) ) ",

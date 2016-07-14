@@ -43,13 +43,12 @@ class interview extends \cenozo\database\record
    * Performes all necessary steps when completing an interview.
    * 
    * This method encapsulates all processing required when an interview is completed.
-   * If you wish to "force" the completion or uncompletion of an interview please use
-   * the force_complete() and force_uncomplete() methods intead.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\site $db_credit_site If null then the session's site is credited
+   * @param DateTime $datetime When the interview was completed, or now will be used if null
    * @access public
    */
-  public function complete( $db_credit_site = NULL )
+  public function complete( $db_credit_site = NULL, $datetime = NULL )
   {
     if( is_null( $this->id ) )
     {
@@ -63,11 +62,11 @@ class interview extends \cenozo\database\record
     }
     else
     {
-      $now = util::get_datetime_object();
+      if( is_null( $datetime ) ) $datetime = util::get_datetime_object();
       if( is_null( $db_credit_site ) ) $db_credit_site = lib::create( 'business\session' )->get_site();
 
       // update the record
-      $this->end_datetime = $now;
+      $this->end_datetime = $datetime;
       $this->site_id = $db_credit_site->id;
       $this->save();
 
@@ -76,7 +75,7 @@ class interview extends \cenozo\database\record
       $db_completed_event_type = $this->get_qnaire()->get_completed_event_type();
       $modifier = lib::create( 'database\modifier' );
       $modifier->where( 'event_type_id', '=', $db_completed_event_type->id );
-      if( 0 == $db_participant->get_event_type_count( $modifier ) )
+      if( 0 == $db_participant->get_event_count( $modifier ) )
       {
         $session = lib::create( 'business\session' );
         $db_site = $session->get_site();
@@ -86,54 +85,18 @@ class interview extends \cenozo\database\record
         $db_event->event_type_id = $db_completed_event_type->id;
         $db_event->site_id = $db_site->id;
         $db_event->user_id = $db_user->id;
-        $db_event->datetime = $now;
+        $db_event->datetime = $datetime;
         $db_event->save();
       }
     }
-  }
 
-  /**
-   * Forces an interview to become completed.
-   * 
-   * This method will update an interview's status to be complete.  It will also update the
-   * correspinding limesurvey data to be set as complete.  This action cannot be undone.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
-   */
-  public function force_complete()
-  {
-    if( is_null( $this->id ) )
+    // fill in the outcome of all appointments with no outcome
+    $appointment_mod = lib::create( 'database\modifier' );
+    $appointment_mod->where( 'outcome', '=', NULL );
+    foreach( $this->get_appointment_object_list( $appointment_mod ) as $db_appointment )
     {
-      log::warning( 'Tried to force complete interview with no primary key.' );
-      return;
+      $db_appointment->outcome = 'completed';
+      $db_appointment->save();
     }
-
-    // do nothing if the interview is already set as completed
-    if( !is_null( $this->end_datetime ) ) return;
-
-    // there are no additional operations involved in completing an interview
-    $this->complete();
-  }
-
-  /**
-   * Forces an interview to become incomplete.
-   * 
-   * This method will update an interview's status to be incomplete.  It will also delete the
-   * correspinding limesurvey data.  This action cannot be undone.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
-   * @access public
-   */
-  public function force_uncomplete()
-  {
-    if( is_null( $this->id ) )
-    {
-      log::warning( 'Tried to force uncomplete interview with no primary key.' );
-      return;
-    }
-
-    // update the record (nothing else is required)
-    $this->end_datetime = NULL;
-    $this->site_id = NULL;
-    $this->save();
   }
 }
