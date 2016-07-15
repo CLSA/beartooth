@@ -158,6 +158,8 @@ class post extends \cenozo\service\service
    */
   private function process_consent( $db_participant, $object )
   {
+    if( 1 >= count( $object_vars ) ) return;
+
     // get the datetime of the export
     // try timeEnd, if null then try timeStart, if null then use today's date
     $member = 'timeEnd';
@@ -178,9 +180,7 @@ class post extends \cenozo\service\service
 
       $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'participation' );
       $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) ||
-          $db_last_consent->accept != $value ||
-          $db_last_consent->written != true )
+      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
         $db_consent = lib::create( 'database\consent' );
         $db_consent->participant_id = $db_participant->id;
@@ -201,9 +201,7 @@ class post extends \cenozo\service\service
 
       $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'draw blood' );
       $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) ||
-          $db_last_consent->accept != $value ||
-          $db_last_consent->written != true )
+      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
         $db_consent = lib::create( 'database\consent' );
         $db_consent->participant_id = $db_participant->id;
@@ -222,9 +220,7 @@ class post extends \cenozo\service\service
 
       $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'HIN access' );
       $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) ||
-          $db_last_consent->accept != $value ||
-          $db_last_consent->written != true )
+      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
         $db_consent = lib::create( 'database\consent' );
         $db_consent->participant_id = $db_participant->id;
@@ -286,6 +282,40 @@ class post extends \cenozo\service\service
    */
   private function process_hin( $db_participant, $object )
   {
+    if( 1 >= count( $object_vars ) ) return;
+
+    // get the datetime of the export
+    // try timeEnd, if null then try timeStart, if null then use today's date
+    $member = 'timeEnd';
+    $datetime = NULL;
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) ) $datetime = $object->$member;
+    else
+    {
+      $member = 'timeStart';
+      if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) ) $datetime = $object->$member;
+    }
+    $datetime_obj = util::get_datetime_object( $datetime );
+
+    // update the HIN details
+    $member = 'ICF_10HIN_COM';
+    if( property_exists( $object, $member ) )
+    {
+      $db_hin = $db_participant->get_last_hin();
+      if( !is_null( $db_hin ) )
+      {
+        $accept = 1 == preg_match( '/y|yes|true|1/i', $hin_data->$member );
+        $db_hin->extended_access = $accept;
+        $db_hin->save();
+      }
+    }
+
+    // PDF form
+    $member = 'pdfForm';
+    if( property_exists( $object, $member ) )
+    { // if a form is included we need to send the request to mastodon
+      $form = $object->$member;
+      // TODO: add to form system
+    }
   }
 
   /**
@@ -293,6 +323,8 @@ class post extends \cenozo\service\service
    */
   private function process_participant( $db_participant, $object )
   {
+    if( 1 >= count( $object_vars ) ) return;
+
     $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
     $interview_class_name = lib::get_class_name( 'database\interview' );
@@ -354,9 +386,7 @@ class post extends \cenozo\service\service
 
       $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'draw blood' );
       $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) ||
-          $db_last_consent->accept != $value ||
-          $db_last_consent->written != true )
+      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
         $db_consent = lib::create( 'database\consent' );
         $db_consent->participant_id = $db_participant->id;
@@ -377,9 +407,7 @@ class post extends \cenozo\service\service
 
       $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'take urine' );
       $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) ||
-          $db_last_consent->accept != $value ||
-          $db_last_consent->written != true )
+      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
         $db_consent = lib::create( 'database\consent' );
         $db_consent->participant_id = $db_participant->id;
@@ -442,223 +470,194 @@ class post extends \cenozo\service\service
    */
   private function process_proxy( $db_participant, $object )
   {
-/* TODO: convert from Cenozo1 code
+    if( 1 >= count( $object_vars ) ) return;
 
-    $object_vars = get_object_vars( $proxy_data );
-    if( 1 >= count( $object_vars ) ) continue;
-
-    $noid = array( 'user.name' => $db_user->name );
-    $entry = array();
-
-    $db_participant = $participant_class_name::get_unique_record( 'uid', $uid );
-    if( is_null( $db_participant ) )
-      throw lib::create( 'exception\runtime',
-        sprintf( 'Participant UID "%s" does not exist.', $uid ),
-        __METHOD__ );
-    $entry['uid'] = $db_participant->uid;
-
-    $db_data_collection = $db_participant->get_data_collection();
-    if( is_null( $db_data_collection ) )
-    {
-      $db_data_collection = lib::create( 'database\data_collection' );
-      $db_data_collection->participant_id = $db_participant->id;
-    }
-
-    // try timeEnd, if null then try timeStart
+    // get the datetime of the export
+    // try timeEnd, if null then try timeStart, if null then use today's date
     $member = 'timeEnd';
-    if( !array_key_exists( $member, $object_vars ) ||
-        0 == strlen( $proxy_data->$member ) )
+    $datetime = NULL;
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) ) $datetime = $object->$member;
+    else
     {
       $member = 'timeStart';
-      if( !array_key_exists( $member, $object_vars ) ||
-          0 == strlen( $proxy_data->$member ) )
-        throw lib::create( 'exception\argument',
-          $member, NULL, __METHOD__ );
-    
+      if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) ) $datetime = $object->$member;
     }
-    $entry['date'] = util::get_datetime_object( $proxy_data->$member )->format( 'Y-m-d' );
+    $datetime_obj = util::get_datetime_object( $datetime );
+
+    // consent information
+    $member = 'ICF_TEST_COM';
+    if( property_exists( $object, $member ) )
+    {
+      $value = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'continue physical tests' );
+      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
+      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
+      {
+        $db_consent = lib::create( 'database\consent' );
+        $db_consent->participant_id = $db_participant->id;
+        $db_consent->consent_type_id = $db_consent_type->id;
+        $db_consent->accept = $value;
+        $db_consent->written = true;
+        $db_consent->datetime = $datetime_obj;
+        $db_consent->note = 'Provided by Onyx.';
+      }
+    }
+
+    $member = 'ICF_SAMP_COM';
+    if( property_exists( $object, $member ) )
+    {
+      $value = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'continue draw blood' );
+      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
+      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
+      {
+        $db_consent = lib::create( 'database\consent' );
+        $db_consent->participant_id = $db_participant->id;
+        $db_consent->consent_type_id = $db_consent_type->id;
+        $db_consent->accept = $value;
+        $db_consent->written = true;
+        $db_consent->datetime = $datetime_obj;
+        $db_consent->note = 'Provided by Onyx.';
+      }
+    }
+
+    // proxy form information
+    $entry = array();
+    $entry['date'] = util::get_datetime_object( $object->$member )->format( 'Y-m-d' );
 
     $member = 'ICF_IDPROXY_COM';
     $entry['proxy'] =
-      array_key_exists( $member, $object_vars ) &&
-      1 == preg_match( '/y|yes|true|1/i', $proxy_data->$member ) ? 1 : 0;
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_OKPROXY_COM';
     $entry['already_identified'] =
-      array_key_exists( $member, $object_vars ) &&
-      1 == preg_match( '/y|yes|true|1/i', $proxy_data->$member ) ? 1 : 0;
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_PXFIRSTNAME_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
-      $entry['proxy_first_name'] = $proxy_data->$member;
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $entry['proxy_first_name'] = $object->$member;
 
     $member = 'ICF_PXLASTNAME_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
-      $entry['proxy_last_name'] = $proxy_data->$member;
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $entry['proxy_last_name'] = $object->$member;
 
     $member = 'ICF_PXADD_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
-      $parts = explode( ' ', trim( $proxy_data->$member ), 2 );
+      $parts = explode( ' ', trim( $object->$member ), 2 );
       $entry['proxy_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
       $entry['proxy_street_name'] = array_key_exists( 1, $parts ) ? $parts[1] : NULL;
     }
 
     $member = 'ICF_PXADD2_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
-      $entry['proxy_address_other'] = $proxy_data->$member;
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $entry['proxy_address_other'] = $object->$member;
 
     $member = 'ICF_PXCITY_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
-      $entry['proxy_city'] = $proxy_data->$member;
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $entry['proxy_city'] = $object->$member;
 
     $member = 'ICF_PXPROVINCE_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
-      $db_region =
-        $region_class_name::get_unique_record( 'abbreviation', $proxy_data->$member );
-      if( is_null( $db_region ) )
-        $db_region =
-          $region_class_name::get_unique_record( 'name', $proxy_data->$member );
-
-      if( !is_null( $db_region ) )
-        $noid['proxy_region.abbreviation'] = $db_region->abbreviation;
+      $db_region = $region_class_name::get_unique_record( 'abbreviation', $object->$member );
+      if( is_null( $db_region ) ) $db_region = $region_class_name::get_unique_record( 'name', $object->$member );
+      if( !is_null( $db_region ) ) $entry['proxy_region_id'] = $db_region->id;
     }
 
     $member = 'ICF_PXPOSTALCODE_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
-      $postcode = $proxy_data->$member;
-      $postcode = trim( $postcode );
+      $postcode = trim( $object->$member );
       if( 6 == strlen( $postcode ) )
-        $postcode = sprintf( '%s %s',
-                             substr( $postcode, 0, 3 ),
-                             substr( $postcode, 3 ) );
+        $postcode = sprintf( '%s %s', substr( $postcode, 0, 3 ), substr( $postcode, 3 ) );
       $entry['proxy_postcode'] = $postcode;
     }
 
     $member = 'ICF_PXTEL_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
-      $phone = $proxy_data->$member;
-      $phone = preg_replace( '/[^0-9]/', '', $phone );
-      $phone = sprintf( '%s-%s-%s',
-                        substr( $phone, 0, 3 ),
-                        substr( $phone, 3, 3 ),
-                        substr( $phone, 6 ) );
+      $phone = preg_replace( '/[^0-9]/', '', $object->$member );
+      $phone = sprintf( '%s-%s-%s', substr( $phone, 0, 3 ), substr( $phone, 3, 3 ), substr( $phone, 6 ) );
       $entry['proxy_phone'] = $phone;
     }
 
     $member = 'ICF_PRXINF_COM';
     $entry['informant'] =
-      array_key_exists( $member, $object_vars ) &&
-      1 == preg_match( '/y|yes|true|1/i', $proxy_data->$member ) ? 1 : 0;
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_PRXINFSM_COM';
     $entry['same_as_proxy'] =
-      array_key_exists( $member, $object_vars ) &&
-      1 == preg_match( '/y|yes|true|1/i', $proxy_data->$member ) ? 1 : 0;
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_INFFIRSTNAME_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
-      $entry['informant_first_name'] = $proxy_data->$member;
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $entry['informant_first_name'] = $object->$member;
 
     $member = 'ICF_INFLASTNAME_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
-      $entry['informant_last_name'] = $proxy_data->$member;
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $entry['informant_last_name'] = $object->$member;
 
     $member = 'ICF_INFADD_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
-      $parts = explode( ' ', trim( $proxy_data->$member ), 2 );
+      $parts = explode( ' ', trim( $object->$member ), 2 );
       $entry['informant_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
       $entry['informant_street_name'] = array_key_exists( 1, $parts ) ? $parts[1] : NULL;
     }
 
     $member = 'ICF_INFADD2_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
-      $entry['informant_address_other'] = $proxy_data->$member;
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $entry['informant_address_other'] = $object->$member;
 
     $member = 'ICF_INFCITY_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
-      $entry['informant_city'] = $proxy_data->$member;
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $entry['informant_city'] = $object->$member;
 
     $member = 'ICF_INFPROVINCE_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
-      $db_region =
-        $region_class_name::get_unique_record( 'abbreviation', $proxy_data->$member );
-      if( is_null( $db_region ) )
-        $db_region =
-          $region_class_name::get_unique_record( 'name', $proxy_data->$member );
-
-      if( !is_null( $db_region ) )
-        $noid['informant_region.abbreviation'] = $db_region->abbreviation;
+      $db_region = $region_class_name::get_unique_record( 'abbreviation', $object->$member );
+      if( is_null( $db_region ) ) $db_region = $region_class_name::get_unique_record( 'name', $object->$member );
+      if( !is_null( $db_region ) ) $entry['informant_region_id'] = $db_region->id;
     }
 
     $member = 'ICF_INFPOSTALCODE_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
-      $postcode = $proxy_data->$member;
-      $postcode = trim( $postcode );
+      $postcode = trim( $object->$member );
       if( 6 == strlen( $postcode ) )
-        $postcode = sprintf( '%s %s',
-                             substr( $postcode, 0, 3 ),
-                             substr( $postcode, 3 ) );
+        $postcode = sprintf( '%s %s', substr( $postcode, 0, 3 ), substr( $postcode, 3 ) );
       $entry['informant_postcode'] = $postcode;
     }
 
     $member = 'ICF_INFTEL_COM';
-    if( array_key_exists( $member, $object_vars ) && 0 < strlen( $proxy_data->$member ) )
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
-      $phone = $proxy_data->$member;
-      $phone = preg_replace( '/[^0-9]/', '', $phone );
-      $phone = sprintf( '%s-%s-%s',
-                        substr( $phone, 0, 3 ),
-                        substr( $phone, 3, 3 ),
-                        substr( $phone, 6 ) );
+      $phone = preg_replace( '/[^0-9]/', '', $object->$member );
+      $phone = sprintf( '%s-%s-%s', substr( $phone, 0, 3 ), substr( $phone, 3, 3 ), substr( $phone, 6 ) );
       $entry['informant_phone'] = $phone;
     }
 
     $member = 'ICF_ANSW_COM';
     $entry['informant_continue'] =
-      array_key_exists( $member, $object_vars ) &&
-      1 == preg_match( '/y|yes|true|1/i', $proxy_data->$member ) ? 1 : 0;
-
-    $member = 'ICF_TEST_COM';
-    $db_data_collection->physical_tests_continue =
-      array_key_exists( $member, $object_vars ) &&
-      1 == preg_match( '/y|yes|true|1/i', $proxy_data->$member ) ? 1 : 0;
-
-    $member = 'ICF_SAMP_COM';
-    $db_data_collection->draw_blood_continue =
-      array_key_exists( $member, $object_vars ) &&
-      1 == preg_match( '/y|yes|true|1/i', $proxy_data->$member ) ? 1 : 0;
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_HCNUMB_COM';
     $entry['health_card'] =
-      array_key_exists( $member, $object_vars ) &&
-      1 == preg_match( '/y|yes|true|1/i', $proxy_data->$member ) ? 1 : 0;
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
-    // now pass on the data to Mastodon
-    $mastodon_manager = lib::create( 'business\cenozo_manager', MASTODON_URL );
-    $args = array(
-      'columns' => array(
-        'from_onyx' => 1,
-        'complete' => 0,
-        'date' => $entry['date'] ),
-      'entry' => $entry,
-      'noid' => $noid );
-    if( property_exists( $object, 'pdfForm' ) )
-      $args['form'] = $proxy_data->pdfForm;
-    $mastodon_manager->push( 'proxy_form', 'new', $args );
-
-    // update the participant and data_collection
-    // NOTE: these calls need to happen AFTER the mastodon push operation above, otherwise
-    // a database lock will prevent the operation from completing
     $db_participant->save();
-    $db_data_collection->save();
-*/
+
+    // PDF form
+    $member = 'pdfForm';
+    if( property_exists( $object, $member ) )
+    { // if a form is included we need to send the request to mastodon
+      $form = $object->$member;
+      // TODO: add to form system
+    }
   }
 
   /**
