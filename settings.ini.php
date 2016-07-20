@@ -19,4 +19,4 @@ $SETTINGS['general']['build'] = '6615a9d';
 $SETTINGS['general']['development_mode'] = false;
 
 // the location of beartooth internal path
-$SETTINGS['path']['APPLICATION'] = '/usr/local/lib/beartooth';
+$SETTINGS['path']['APPLICATION'] = str_replace( '/settings.ini.php', '', __FILE__ );
