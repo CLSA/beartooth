@@ -583,6 +583,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           return data;
         };
 
+        // don't show add button when viewing full appointment list
+        this.getAddEnabled = function() { return 'appointment' != this.getSubjectFromState(); };
+
         // pass type/site when transitioning to list state
         this.transitionToParentListState = function( subject ) {
           if( angular.isUndefined( subject ) ) subject = '^';
