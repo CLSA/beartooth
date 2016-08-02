@@ -53,31 +53,6 @@ CREATE PROCEDURE patch_queue()
         description = "Participants who are not eligible because they do not have an address.";
     END IF;
 
-    SELECT "Adding events missing queue" AS "";
-
-    SET @test = ( SELECT COUNT(*) FROM queue WHERE name = "events missing" );
-    IF @test = 0 THEN
-      -- increment all queue ids by 1 from the qnaire waiting queue onward
-      SET @id = ( SELECT MAX( id ) FROM queue );
-      SET @min_id = ( SELECT id FROM queue WHERE name = "qnaire waiting" );
-      WHILE @id >= @min_id DO
-        CALL set_queue_id( @id, @id + 1 );
-        SET @id = @id - 1;
-      END WHILE;
-
-      SET @parent_queue_id = ( SELECT id FROM queue WHERE name = "qnaire" );
-
-      -- add the new events missing queue
-      INSERT INTO queue SET
-        id = @min_id,
-        name = "events missing",
-        title = "Required events missing",
-        rank = NULL,
-        time_specific = 0,
-        parent_queue_id = @parent_queue_id,
-        description = "Participants who do not have all events required by the questionnaire.";
-    END IF;
-
     SELECT "Adding no active address queue" AS "";
 
     SET @test = ( SELECT COUNT(*) FROM queue WHERE name = "no active address" );
