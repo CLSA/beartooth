@@ -54,7 +54,7 @@ define( function() {
       help: 'Passwords must be at least 8 characters long and cannot contain the word "password"'
     },
     interviewer_user_id: {
-      title: 'Instance',
+      title: 'Interviewer',
       type: 'lookup-typeahead',
       typeahead: {
         table: 'user',
