@@ -196,18 +196,6 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
       ALTER TABLE qnaire DROP COLUMN default_interview_method_id;
     END IF;
 
-    SELECT "Dropping withdraw_sid column from qnaire table" AS "";
-
-    SET @test = (
-      SELECT COUNT(*)
-      FROM information_schema.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = "qnaire"
-      AND COLUMN_NAME = "withdraw_sid" );
-    IF @test = 1 THEN
-      ALTER TABLE qnaire DROP COLUMN withdraw_sid;
-    END IF;
-
     SET @test = (
       SELECT COUNT(*)
       FROM information_schema.TABLES
@@ -227,6 +215,19 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
         "JOIN ", @limesurvey, ".surveys_languagesettings ON phase.sid = surveyls_survey_id ",
         "AND surveyls_language = 'en' "
         "ORDER BY qnaire.rank, phase.rank, type.name DESC" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+
+      SELECT "Creating script based on qnaire withdraw script" AS "";
+
+      SET @sql = CONCAT(
+        "INSERT IGNORE INTO ", @cenozo, ".script( ",
+          "name, started_event_type_id, finished_event_type_id, sid, repeated, withdraw, description ) ",
+        "SELECT surveyls_title, NULL, NULL, withdraw_sid, 0, 1, qnaire.description ",
+        "FROM qnaire ",
+        "JOIN ", @limesurvey, ".surveys_languagesettings ON withdraw_sid = surveyls_survey_id ",
+        "AND surveyls_language = 'en'" );
       PREPARE statement FROM @sql;
       EXECUTE statement;
       DEALLOCATE PREPARE statement;
@@ -271,13 +272,25 @@ DROP PROCEDURE IF EXISTS patch_qnaire;
         "INSERT IGNORE INTO ", @cenozo, ".application_has_script( application_id, script_id ) ",
         "SELECT application.id, script.id ",
         "FROM ", @cenozo, ".application, ", @cenozo, ".script ",
-        "WHERE sid IN ( SELECT DISTINCT sid FROM phase ) ",
+        "WHERE sid IN ( SELECT DISTINCT sid FROM phase UNION SELECT DISTINCT withdraw_sid FROM qnaire ) ",
         "AND DATABASE() LIKE CONCAT( '%_', application.name )" );
       PREPARE statement FROM @sql;
       EXECUTE statement;
       DEALLOCATE PREPARE statement;
 
       CALL create_events();
+    END IF;
+
+    SELECT "Dropping withdraw_sid column from qnaire table" AS "";
+
+    SET @test = (
+      SELECT COUNT(*)
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = "qnaire"
+      AND COLUMN_NAME = "withdraw_sid" );
+    IF @test = 1 THEN
+      ALTER TABLE qnaire DROP COLUMN withdraw_sid;
     END IF;
 
     SELECT "Dropping description column from qnaire table" AS "";
