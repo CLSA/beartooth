@@ -11,7 +11,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 class post extends \cenozo\service\service
 {
-  /** 
+  /**
    * Constructor
    * 
    * @author Patrick Emond <emondpd@mcmaster.ca>
@@ -25,7 +25,7 @@ class post extends \cenozo\service\service
     parent::__construct( 'POST', $path, $args, $file );
   }
 
-  /** 
+  /**
    * Override parent method since onyx is a meta-resource
    */
   protected function create_resource( $index )
@@ -77,7 +77,7 @@ class post extends \cenozo\service\service
         $sub_mod->where( 'application_has_participant.datetime', '!=', NULL );
         $participant_mod->join_modifier(
           'application_has_participant', $sub_mod, $db_application->release_based ? '' : 'left' );
-        
+
         // restrict by site
         $sub_mod = lib::create( 'database\modifier' );
         $sub_mod->where( 'participant.id', '=', 'participant_site.participant_id', false );
@@ -160,6 +160,8 @@ class post extends \cenozo\service\service
   {
     if( 1 >= count( get_object_vars( $object ) ) ) return;
 
+    $form_type_class_name = lib::get_class_name( 'database\form_type' );
+
     // get the datetime of the export
     // try timeEnd, if null then try timeStart, if null then use today's date
     $member = 'timeEnd';
@@ -173,6 +175,7 @@ class post extends \cenozo\service\service
     $datetime_obj = util::get_datetime_object( $datetime );
 
     // consent information
+    $db_participation_consent = NULL;
     $member = 'ConclusiveStatus';
     if( property_exists( $object, $member ) )
     {
@@ -182,16 +185,17 @@ class post extends \cenozo\service\service
       $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
       if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
-        $db_consent = lib::create( 'database\consent' );
-        $db_consent->participant_id = $db_participant->id;
-        $db_consent->consent_type_id = $db_consent_type->id;
-        $db_consent->accept = $value;
-        $db_consent->written = true;
-        $db_consent->datetime = $datetime_obj;
-        $db_consent->note = 'Provided by Onyx.';
+        $db_participation_consent = lib::create( 'database\consent' );
+        $db_participation_consent->participant_id = $db_participant->id;
+        $db_participation_consent->consent_type_id = $db_consent_type->id;
+        $db_participation_consent->accept = $value;
+        $db_participation_consent->written = true;
+        $db_participation_consent->datetime = $datetime_obj;
+        $db_participation_consent->note = 'Provided by Onyx.';
       }
     }
 
+    $db_blood_consent = NULL;
     $member = 'PCF_CSTSAMP_COM';
     if( property_exists( $object, $member ) )
     {
@@ -203,16 +207,17 @@ class post extends \cenozo\service\service
       $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
       if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
-        $db_consent = lib::create( 'database\consent' );
-        $db_consent->participant_id = $db_participant->id;
-        $db_consent->consent_type_id = $db_consent_type->id;
-        $db_consent->accept = $value;
-        $db_consent->written = true;
-        $db_consent->datetime = $datetime_obj;
-        $db_consent->note = 'Provided by Onyx.';
+        $db_blood_consent = lib::create( 'database\consent' );
+        $db_blood_consent->participant_id = $db_participant->id;
+        $db_blood_consent->consent_type_id = $db_consent_type->id;
+        $db_blood_consent->accept = $value;
+        $db_blood_consent->written = true;
+        $db_blood_consent->datetime = $datetime_obj;
+        $db_blood_consent->note = 'Provided by Onyx.';
       }
     }
 
+    $db_hin_consent = NULL;
     $member = 'PCF_CSTGVDB_COM';
     if( property_exists( $object, $member ) )
     {
@@ -222,17 +227,18 @@ class post extends \cenozo\service\service
       $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
       if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
-        $db_consent = lib::create( 'database\consent' );
-        $db_consent->participant_id = $db_participant->id;
-        $db_consent->consent_type_id = $db_consent_type->id;
-        $db_consent->accept = $value;
-        $db_consent->written = true;
-        $db_consent->datetime = $datetime_obj;
-        $db_consent->note = 'Provided by Onyx.';
+        $db_hin_consent = lib::create( 'database\consent' );
+        $db_hin_consent->participant_id = $db_participant->id;
+        $db_hin_consent->consent_type_id = $db_consent_type->id;
+        $db_hin_consent->accept = $value;
+        $db_hin_consent->written = true;
+        $db_hin_consent->datetime = $datetime_obj;
+        $db_hin_consent->note = 'Provided by Onyx.';
       }
     }
 
     // HIN information
+    $db_hin = NULL;
     $member = 'ADM_NUMB_COM';
     if( property_exists( $object, $member ) && 'HEALTH-NUMBER' == $object->$member )
     {
@@ -271,9 +277,26 @@ class post extends \cenozo\service\service
     // PDF form
     $member = 'pdfForm';
     if( property_exists( $object, $member ) )
-    { // if a form is included we need to send the request to mastodon
-      $form = $object->$member;
-      // TODO: add to form system
+    { // if a form is included immediately add it to the form system
+      $db_form_type = $form_type_class_name::get_unique_record( 'name', 'consent' );
+      $db_form = lib::create( 'database\form' );
+      $db_form->participant_id = $db_participant->id;
+      $db_form->form_type_id = $db_form_type->id;
+      $db_form->date = $datetime_obj;
+      $db_form->save();
+
+      // save the pdf form to disk
+      $directory = dirname( $db_form->get_filename() );
+      if( !is_dir( $directory ) ) mkdir( $directory, 0777, true );
+      if( false === file_put_contents( $db_form->get_filename(), $object->$member ) )
+        throw lib::create( 'exception\runtime', 'Unable to write PDF form file to disk.', __METHOD__ );
+
+      // add the form associations
+      if( !is_null( $db_participation_consent ) )
+        $db_form->add_association( 'consent', $db_participation_consent->id );
+      if( !is_null( $db_blood_consent ) ) $db_form->add_association( 'consent', $db_blood_consent->id );
+      if( !is_null( $db_hin_consent ) ) $db_form->add_association( 'consent', $db_hin_consent->id );
+      if( !is_null( $db_hin ) ) $db_form->add_association( 'hin', $db_hin->id );
     }
   }
 
@@ -285,6 +308,7 @@ class post extends \cenozo\service\service
     if( 1 >= count( get_object_vars( $object ) ) ) return;
 
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
+    $form_type_class_name = lib::get_class_name( 'database\form_type' );
 
     // get the datetime of the export
     // try timeEnd, if null then try timeStart, if null then use today's date
@@ -299,6 +323,7 @@ class post extends \cenozo\service\service
     $datetime_obj = util::get_datetime_object( $datetime );
 
     // update the HIN details
+    $db_consent = NULL;
     $member = 'ICF_10HIN_COM';
     if( property_exists( $object, $member ) )
     {
@@ -320,9 +345,22 @@ class post extends \cenozo\service\service
     // PDF form
     $member = 'pdfForm';
     if( property_exists( $object, $member ) )
-    { // if a form is included we need to send the request to mastodon
-      $form = $object->$member;
-      // TODO: add to form system
+    { // if a form is included immediately add it to the form system
+      $db_form_type = $form_type_class_name::get_unique_record( 'name', 'hin' );
+      $db_form = lib::create( 'database\form' );
+      $db_form->participant_id = $db_participant->id;
+      $db_form->form_type_id = $db_form_type->id;
+      $db_form->date = $datetime_obj;
+      $db_form->save();
+
+      // save the pdf form to disk
+      $directory = dirname( $db_form->get_filename() );
+      if( !is_dir( $directory ) ) mkdir( $directory, 0777, true );
+      if( false === file_put_contents( $db_form->get_filename(), $object->$member ) )
+        throw lib::create( 'exception\runtime', 'Unable to write PDF form file to disk.', __METHOD__ );
+
+      // add the form associations
+      if( !is_null( $db_consent ) ) $db_form->add_association( 'consent', $db_consent->id );
     }
   }
 
@@ -436,7 +474,7 @@ class post extends \cenozo\service\service
         throw lib::create( 'exception\runtime',
           sprintf( 'Missing required object member "%s" from %s', $member, $db_participant->uid ),
           __METHOD__ );
-      
+
       $onyx_instance_sel = lib::create( 'database\select' );
       $onyx_instance_mod = lib::create( 'database\modifier' );
       $onyx_instance_mod->join( 'user', 'onyx_instance.user_id', 'user.id' );
@@ -481,7 +519,11 @@ class post extends \cenozo\service\service
     if( 1 >= count( get_object_vars( $object ) ) ) return;
 
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
+    $form_type_class_name = lib::get_class_name( 'database\form_type' );
     $region_class_name = lib::get_class_name( 'database\region' );
+    $application_class_name = lib::get_class_name( 'database\application' );
+    $setting_manager = lib::create( 'business\setting_manager' );
+    $session = lib::create( 'business\session' );
 
     // get the datetime of the export
     // try timeEnd, if null then try timeStart, if null then use today's date
@@ -495,7 +537,8 @@ class post extends \cenozo\service\service
     }
     $datetime_obj = util::get_datetime_object( $datetime );
 
-    // consent information
+    // consent information (immediately processed)
+    $db_tests_consent = NULL;
     $member = 'ICF_TEST_COM';
     if( property_exists( $object, $member ) )
     {
@@ -505,16 +548,18 @@ class post extends \cenozo\service\service
       $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
       if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
-        $db_consent = lib::create( 'database\consent' );
-        $db_consent->participant_id = $db_participant->id;
-        $db_consent->consent_type_id = $db_consent_type->id;
-        $db_consent->accept = $value;
-        $db_consent->written = true;
-        $db_consent->datetime = $datetime_obj;
-        $db_consent->note = 'Provided by Onyx.';
+        $db_tests_consent = lib::create( 'database\consent' );
+        $db_tests_consent->participant_id = $db_participant->id;
+        $db_tests_consent->consent_type_id = $db_consent_type->id;
+        $db_tests_consent->accept = $value;
+        $db_tests_consent->written = true;
+        $db_tests_consent->datetime = $datetime_obj;
+        $db_tests_consent->note = 'Provided by Onyx.';
+        $db_tests_consent->save();
       }
     }
 
+    $db_blood_consent = NULL;
     $member = 'ICF_SAMP_COM';
     if( property_exists( $object, $member ) )
     {
@@ -524,58 +569,63 @@ class post extends \cenozo\service\service
       $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
       if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
-        $db_consent = lib::create( 'database\consent' );
-        $db_consent->participant_id = $db_participant->id;
-        $db_consent->consent_type_id = $db_consent_type->id;
-        $db_consent->accept = $value;
-        $db_consent->written = true;
-        $db_consent->datetime = $datetime_obj;
-        $db_consent->note = 'Provided by Onyx.';
+        $db_blood_consent = lib::create( 'database\consent' );
+        $db_blood_consent->participant_id = $db_participant->id;
+        $db_blood_consent->consent_type_id = $db_consent_type->id;
+        $db_blood_consent->accept = $value;
+        $db_blood_consent->written = true;
+        $db_blood_consent->datetime = $datetime_obj;
+        $db_blood_consent->note = 'Provided by Onyx.';
+        $db_blood_consent->save();
       }
     }
 
-    // proxy form information
-    $entry = array();
-    $entry['date'] = $datetime_obj->format( 'Y-m-d' );
+    // proxy form information (send to mastodon for processing)
+    $form_data = array(
+      'from_onyx' => true,
+      'date' => $datetime_obj->format( 'Y-m-d' ),
+      'user_id' => $session->get_user()->id,
+      'uid' => $db_participant->uid
+    );
 
     $member = 'ICF_IDPROXY_COM';
-    $entry['proxy'] =
+    $form_data['proxy'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_OKPROXY_COM';
-    $entry['already_identified'] =
+    $form_data['already_identified'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_PXFIRSTNAME_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
-      $entry['proxy_first_name'] = $object->$member;
+      $form_data['proxy_first_name'] = $object->$member;
 
     $member = 'ICF_PXLASTNAME_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
-      $entry['proxy_last_name'] = $object->$member;
+      $form_data['proxy_last_name'] = $object->$member;
 
     $member = 'ICF_PXADD_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
       $parts = explode( ' ', trim( $object->$member ), 2 );
-      $entry['proxy_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
-      $entry['proxy_street_name'] = array_key_exists( 1, $parts ) ? $parts[1] : NULL;
+      $form_data['proxy_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
+      $form_data['proxy_street_name'] = array_key_exists( 1, $parts ) ? $parts[1] : NULL;
     }
 
     $member = 'ICF_PXADD2_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
-      $entry['proxy_address_other'] = $object->$member;
+      $form_data['proxy_address_other'] = $object->$member;
 
     $member = 'ICF_PXCITY_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
-      $entry['proxy_city'] = $object->$member;
+      $form_data['proxy_city'] = $object->$member;
 
     $member = 'ICF_PXPROVINCE_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
       $db_region = $region_class_name::get_unique_record( 'abbreviation', $object->$member );
       if( is_null( $db_region ) ) $db_region = $region_class_name::get_unique_record( 'name', $object->$member );
-      if( !is_null( $db_region ) ) $entry['proxy_region_id'] = $db_region->id;
+      if( !is_null( $db_region ) ) $form_data['proxy_region_id'] = $db_region->id;
     }
 
     $member = 'ICF_PXPOSTALCODE_COM';
@@ -584,7 +634,7 @@ class post extends \cenozo\service\service
       $postcode = trim( $object->$member );
       if( 6 == strlen( $postcode ) )
         $postcode = sprintf( '%s %s', substr( $postcode, 0, 3 ), substr( $postcode, 3 ) );
-      $entry['proxy_postcode'] = $postcode;
+      $form_data['proxy_postcode'] = $postcode;
     }
 
     $member = 'ICF_PXTEL_COM';
@@ -592,47 +642,47 @@ class post extends \cenozo\service\service
     {
       $phone = preg_replace( '/[^0-9]/', '', $object->$member );
       $phone = sprintf( '%s-%s-%s', substr( $phone, 0, 3 ), substr( $phone, 3, 3 ), substr( $phone, 6 ) );
-      $entry['proxy_phone'] = $phone;
+      $form_data['proxy_phone'] = $phone;
     }
 
     $member = 'ICF_PRXINF_COM';
-    $entry['informant'] =
+    $form_data['informant'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_PRXINFSM_COM';
-    $entry['same_as_proxy'] =
+    $form_data['same_as_proxy'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_INFFIRSTNAME_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
-      $entry['informant_first_name'] = $object->$member;
+      $form_data['informant_first_name'] = $object->$member;
 
     $member = 'ICF_INFLASTNAME_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
-      $entry['informant_last_name'] = $object->$member;
+      $form_data['informant_last_name'] = $object->$member;
 
     $member = 'ICF_INFADD_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
       $parts = explode( ' ', trim( $object->$member ), 2 );
-      $entry['informant_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
-      $entry['informant_street_name'] = array_key_exists( 1, $parts ) ? $parts[1] : NULL;
+      $form_data['informant_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
+      $form_data['informant_street_name'] = array_key_exists( 1, $parts ) ? $parts[1] : NULL;
     }
 
     $member = 'ICF_INFADD2_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
-      $entry['informant_address_other'] = $object->$member;
+      $form_data['informant_address_other'] = $object->$member;
 
     $member = 'ICF_INFCITY_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
-      $entry['informant_city'] = $object->$member;
+      $form_data['informant_city'] = $object->$member;
 
     $member = 'ICF_INFPROVINCE_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
     {
       $db_region = $region_class_name::get_unique_record( 'abbreviation', $object->$member );
       if( is_null( $db_region ) ) $db_region = $region_class_name::get_unique_record( 'name', $object->$member );
-      if( !is_null( $db_region ) ) $entry['informant_region_id'] = $db_region->id;
+      if( !is_null( $db_region ) ) $form_data['informant_region_id'] = $db_region->id;
     }
 
     $member = 'ICF_INFPOSTALCODE_COM';
@@ -641,7 +691,7 @@ class post extends \cenozo\service\service
       $postcode = trim( $object->$member );
       if( 6 == strlen( $postcode ) )
         $postcode = sprintf( '%s %s', substr( $postcode, 0, 3 ), substr( $postcode, 3 ) );
-      $entry['informant_postcode'] = $postcode;
+      $form_data['informant_postcode'] = $postcode;
     }
 
     $member = 'ICF_INFTEL_COM';
@@ -649,26 +699,61 @@ class post extends \cenozo\service\service
     {
       $phone = preg_replace( '/[^0-9]/', '', $object->$member );
       $phone = sprintf( '%s-%s-%s', substr( $phone, 0, 3 ), substr( $phone, 3, 3 ), substr( $phone, 6 ) );
-      $entry['informant_phone'] = $phone;
+      $form_data['informant_phone'] = $phone;
     }
 
     $member = 'ICF_ANSW_COM';
-    $entry['informant_continue'] =
+    $form_data['informant_continue'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_HCNUMB_COM';
-    $entry['health_card'] =
+    $form_data['health_card'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
-    $db_participant->save();
-
-    // PDF form
     $member = 'pdfForm';
     if( property_exists( $object, $member ) )
-    { // if a form is included we need to send the request to mastodon
-      $form = $object->$member;
-      // TODO: add to form system
+    { // if a form is included immediately add it to the form system
+      $db_form_type = $form_type_class_name::get_unique_record( 'name', 'proxy' );
+      $db_form = lib::create( 'database\form' );
+      $db_form->participant_id = $db_participant->id;
+      $db_form->form_type_id = $db_form_type->id;
+      $db_form->date = $datetime_obj;
+      $db_form->save();
+      $form_data['form_id'] = $db_form->id;
+
+      // save the pdf form to disk
+      $directory = dirname( $db_form->get_filename() );
+      if( !is_dir( $directory ) ) mkdir( $directory, 0777, true );
+      if( false === file_put_contents( $db_form->get_filename(), $object->$member ) )
+        throw lib::create( 'exception\runtime', 'Unable to write PDF form file to disk.', __METHOD__ );
+
+      // add the form associations
+      if( !is_null( $db_tests_consent ) ) $db_form->add_association( 'consent', $db_tests_consent->id );
+      if( !is_null( $db_blood_consent ) ) $db_form->add_association( 'consent', $db_blood_consent->id );
     }
+
+    // we need to complete any transactions before continuing
+    $session->get_database()->complete_transaction();
+
+    // now send all data to mastodon's data entry system
+    $curl = curl_init();
+
+    $authentication = sprintf( '%s:%s',
+      $setting_manager->get_setting( 'utility', 'username' ),
+      $setting_manager->get_setting( 'utility', 'password' ) );
+
+    // set URL and other appropriate options
+    $db_mastodon_application = $application_class_name::get_unique_record( 'name', 'mastodon' );
+    curl_setopt( $curl, CURLOPT_URL, sprintf( '%s/api/proxy_form', $db_mastodon_application->url ) );
+    curl_setopt( $curl, CURLOPT_HTTPHEADER,
+      array( sprintf( 'Authorization:Basic %s', base64_encode( $authentication ) ) ) );
+    curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
+    curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
+    curl_setopt( $curl, CURLOPT_POST, true );
+    curl_setopt( $curl, CURLOPT_POSTFIELDS, util::json_encode( $form_data ) );
+
+    $this->set_data( curl_exec( $curl ) );
+    $this->status->set_code( curl_getinfo( $curl, CURLINFO_HTTP_CODE ) );
   }
 
   /**
