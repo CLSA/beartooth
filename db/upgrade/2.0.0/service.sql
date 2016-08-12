@@ -229,7 +229,7 @@ INSERT INTO service ( subject, method, resource, restricted ) VALUES
 ( 'interview', 'GET', 1, 0 ),
 ( 'interview', 'PATCH', 1, 1 ),
 ( 'interview', 'POST', 0, 0 ),
-( 'onyx', 'POST', 0, 1 ),
+( 'onyx', 'POST', 1, 1 ),
 ( 'onyx_instance', 'DELETE', 1, 1 ),
 ( 'onyx_instance', 'GET', 0, 1 ),
 ( 'onyx_instance', 'GET', 1, 1 ),

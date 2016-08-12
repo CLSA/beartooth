@@ -158,7 +158,7 @@ class post extends \cenozo\service\service
    */
   private function process_consent( $db_participant, $object )
   {
-    if( 1 >= count( $object_vars ) ) return;
+    if( 1 >= count( get_object_vars( $object ) ) ) return;
 
     // get the datetime of the export
     // try timeEnd, if null then try timeStart, if null then use today's date
@@ -282,7 +282,9 @@ class post extends \cenozo\service\service
    */
   private function process_hin( $db_participant, $object )
   {
-    if( 1 >= count( $object_vars ) ) return;
+    if( 1 >= count( get_object_vars( $object ) ) ) return;
+
+    $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
 
     // get the datetime of the export
     // try timeEnd, if null then try timeStart, if null then use today's date
@@ -300,12 +302,18 @@ class post extends \cenozo\service\service
     $member = 'ICF_10HIN_COM';
     if( property_exists( $object, $member ) )
     {
-      $db_hin = $db_participant->get_last_hin();
-      if( !is_null( $db_hin ) )
+      $value = 1 == preg_match( '/y|yes|true|1/i', $object->$member );
+      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'HIN extended access' );
+      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
+      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
       {
-        $accept = 1 == preg_match( '/y|yes|true|1/i', $hin_data->$member );
-        $db_hin->extended_access = $accept;
-        $db_hin->save();
+        $db_consent = lib::create( 'database\consent' );
+        $db_consent->participant_id = $db_participant->id;
+        $db_consent->consent_type_id = $db_consent_type->id;
+        $db_consent->accept = $value;
+        $db_consent->written = true;
+        $db_consent->datetime = $datetime_obj;
+        $db_consent->note = 'Provided by Onyx.';
       }
     }
 
@@ -323,7 +331,7 @@ class post extends \cenozo\service\service
    */
   private function process_participant( $db_participant, $object )
   {
-    if( 1 >= count( $object_vars ) ) return;
+    if( 1 >= count( get_object_vars( $object ) ) ) return;
 
     $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
@@ -470,7 +478,10 @@ class post extends \cenozo\service\service
    */
   private function process_proxy( $db_participant, $object )
   {
-    if( 1 >= count( $object_vars ) ) return;
+    if( 1 >= count( get_object_vars( $object ) ) ) return;
+
+    $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
+    $region_class_name = lib::get_class_name( 'database\region' );
 
     // get the datetime of the export
     // try timeEnd, if null then try timeStart, if null then use today's date
@@ -525,7 +536,7 @@ class post extends \cenozo\service\service
 
     // proxy form information
     $entry = array();
-    $entry['date'] = util::get_datetime_object( $object->$member )->format( 'Y-m-d' );
+    $entry['date'] = $datetime_obj->format( 'Y-m-d' );
 
     $member = 'ICF_IDPROXY_COM';
     $entry['proxy'] =
