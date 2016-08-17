@@ -161,93 +161,60 @@ class post extends \cenozo\service\service
     if( 1 >= count( get_object_vars( $object ) ) ) return;
 
     $form_type_class_name = lib::get_class_name( 'database\form_type' );
+    $region_class_name = lib::get_class_name( 'database\region' );
 
-    // get the datetime of the export
-    // try timeEnd, if null then try timeStart, if null then use today's date
-    $member = 'timeEnd';
-    $datetime = NULL;
-    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) ) $datetime = $object->$member;
-    else
+    $datetime_obj = $this->get_datetime_from_object( $object );
+
+    // create the form
+    $db_form_type = $form_type_class_name::get_unique_record( 'name', 'consent' );
+    $db_form = lib::create( 'database\form' );
+    $db_form->participant_id = $db_participant->id;
+    $db_form->form_type_id = $db_form_type->id;
+    $db_form->date = $datetime_obj;
+    $db_form->save();
+
+    // save the PDF form
+    $member = 'pdfForm';
+    if( property_exists( $object, $member ) )
     {
-      $member = 'timeStart';
-      if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) ) $datetime = $object->$member;
+      if( !$db_form->write_file( $object->$member ) )
+        throw lib::create( 'exception\runtime', 'Unable to write consent form file to disk.', __METHOD__ );
     }
-    $datetime_obj = util::get_datetime_object( $datetime );
 
-    // consent information
-    $db_participation_consent = NULL;
+    // add consent records
     $member = 'ConclusiveStatus';
     if( property_exists( $object, $member ) )
     {
-      $value = 'CONSENT' == $object->$member ? 1 : 0;
-
-      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'participation' );
-      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
-      {
-        $db_participation_consent = lib::create( 'database\consent' );
-        $db_participation_consent->participant_id = $db_participant->id;
-        $db_participation_consent->consent_type_id = $db_consent_type->id;
-        $db_participation_consent->accept = $value;
-        $db_participation_consent->written = true;
-        $db_participation_consent->datetime = $datetime_obj;
-        $db_participation_consent->note = 'Provided by Onyx.';
-      }
+      $db_form->add_consent( 'participation',
+        array( 'accept' => 'CONSENT' == $object->$member ? 1 : 0, 'datetime' => $datetime_obj )
+      );
     }
 
-    $db_blood_consent = NULL;
     $member = 'PCF_CSTSAMP_COM';
     if( property_exists( $object, $member ) )
     {
-      $value = $object->$member;
-      if( is_string( $value ) ) $value = 1 === preg_match( '/y|yes|true|1/i', $value );
-      else $value = (bool) $value;
-
-      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'draw blood' );
-      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
-      {
-        $db_blood_consent = lib::create( 'database\consent' );
-        $db_blood_consent->participant_id = $db_participant->id;
-        $db_blood_consent->consent_type_id = $db_consent_type->id;
-        $db_blood_consent->accept = $value;
-        $db_blood_consent->written = true;
-        $db_blood_consent->datetime = $datetime_obj;
-        $db_blood_consent->note = 'Provided by Onyx.';
-      }
+      $db_form->add_consent( 'draw blood',
+        array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj )
+      );
     }
 
-    $db_hin_consent = NULL;
     $member = 'PCF_CSTGVDB_COM';
     if( property_exists( $object, $member ) )
     {
-      $value = 1 == preg_match( '/y|yes|true|1/i', $object->PCF_CSTGVDB_COM );
-
-      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'HIN access' );
-      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
-      {
-        $db_hin_consent = lib::create( 'database\consent' );
-        $db_hin_consent->participant_id = $db_participant->id;
-        $db_hin_consent->consent_type_id = $db_consent_type->id;
-        $db_hin_consent->accept = $value;
-        $db_hin_consent->written = true;
-        $db_hin_consent->datetime = $datetime_obj;
-        $db_hin_consent->note = 'Provided by Onyx.';
-      }
+      $db_form->add_consent( 'HIN access',
+        array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj )
+      );
     }
 
     // HIN information
-    $db_hin = NULL;
     $member = 'ADM_NUMB_COM';
     if( property_exists( $object, $member ) && 'HEALTH-NUMBER' == $object->$member )
     {
       $member = 'ADM_NUMB_NB_COM';
       if( property_exists( $object, $member ) )
       {
-        $code = $object->$member;
+        $hin = array( 'code' => $object->$member );
 
-        $db_region = NULL;
         $member = 'ADM_PROV_COM';
         if( property_exists( $object, $member ) )
         {
@@ -256,47 +223,11 @@ class post extends \cenozo\service\service
                     ? 'Newfoundland and Labrador' // special case
                     : ucwords( trim( str_replace( '-', ' ', $object->$member ) ) );
           $db_region = $region_class_name::get_unique_record( 'name', $province );
+          $hin['region_id'] = is_null( $db_region ) ? NULL : $db_region->id;
         }
 
-        // add the hin information if it doesn't already exist
-        $db_last_hin = $db_participant->get_last_hin();
-        if( is_null( $db_last_hin ) ||
-            $code != $db_last_hin->code ||
-            ( is_null( $db_region ) && !is_null( $db_last_hin->region_id ) ) ||
-            ( !is_null( $db_region ) && $db_region->id != $db_last_hin->region_id ) )
-        {
-          $db_hin = lib::create( 'database\hin' );
-          $db_hin->participant_id = $db_participant->id;
-          $db_hin->code = $code;
-          $db_hin->region_id = is_null( $db_region ) ? NULL : $db_region->id;
-          $db_hin->datetime = $datetime_obj;
-        }
+        $db_form->add_hin( $hin );
       }
-    }
-
-    // PDF form
-    $member = 'pdfForm';
-    if( property_exists( $object, $member ) )
-    { // if a form is included immediately add it to the form system
-      $db_form_type = $form_type_class_name::get_unique_record( 'name', 'consent' );
-      $db_form = lib::create( 'database\form' );
-      $db_form->participant_id = $db_participant->id;
-      $db_form->form_type_id = $db_form_type->id;
-      $db_form->date = $datetime_obj;
-      $db_form->save();
-
-      // save the pdf form to disk
-      $directory = dirname( $db_form->get_filename() );
-      if( !is_dir( $directory ) ) mkdir( $directory, 0777, true );
-      if( false === file_put_contents( $db_form->get_filename(), $object->$member ) )
-        throw lib::create( 'exception\runtime', 'Unable to write PDF form file to disk.', __METHOD__ );
-
-      // add the form associations
-      if( !is_null( $db_participation_consent ) )
-        $db_form->add_association( 'consent', $db_participation_consent->id );
-      if( !is_null( $db_blood_consent ) ) $db_form->add_association( 'consent', $db_blood_consent->id );
-      if( !is_null( $db_hin_consent ) ) $db_form->add_association( 'consent', $db_hin_consent->id );
-      if( !is_null( $db_hin ) ) $db_form->add_association( 'hin', $db_hin->id );
     }
   }
 
@@ -307,60 +238,33 @@ class post extends \cenozo\service\service
   {
     if( 1 >= count( get_object_vars( $object ) ) ) return;
 
-    $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
     $form_type_class_name = lib::get_class_name( 'database\form_type' );
 
-    // get the datetime of the export
-    // try timeEnd, if null then try timeStart, if null then use today's date
-    $member = 'timeEnd';
-    $datetime = NULL;
-    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) ) $datetime = $object->$member;
-    else
-    {
-      $member = 'timeStart';
-      if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) ) $datetime = $object->$member;
-    }
-    $datetime_obj = util::get_datetime_object( $datetime );
+    $datetime_obj = $this->get_datetime_from_object( $object );
 
-    // update the HIN details
-    $db_consent = NULL;
+    // create the form
+    $db_form_type = $form_type_class_name::get_unique_record( 'name', 'consent' );
+    $db_form = lib::create( 'database\form' );
+    $db_form->participant_id = $db_participant->id;
+    $db_form->form_type_id = $db_form_type->id;
+    $db_form->date = $datetime_obj;
+    $db_form->save();
+
+    // save the PDF form
+    $member = 'pdfForm';
+    if( property_exists( $object, $member ) )
+    {
+      if( !$db_form->write_file( $object->$member ) )
+        throw lib::create( 'exception\runtime', 'Unable to write consent form file to disk.', __METHOD__ );
+    }
+
+    // extneded HIN consent
     $member = 'ICF_10HIN_COM';
     if( property_exists( $object, $member ) )
     {
-      $value = 1 == preg_match( '/y|yes|true|1/i', $object->$member );
-      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'HIN extended access' );
-      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
-      {
-        $db_consent = lib::create( 'database\consent' );
-        $db_consent->participant_id = $db_participant->id;
-        $db_consent->consent_type_id = $db_consent_type->id;
-        $db_consent->accept = $value;
-        $db_consent->written = true;
-        $db_consent->datetime = $datetime_obj;
-        $db_consent->note = 'Provided by Onyx.';
-      }
-    }
-
-    // PDF form
-    $member = 'pdfForm';
-    if( property_exists( $object, $member ) )
-    { // if a form is included immediately add it to the form system
-      $db_form_type = $form_type_class_name::get_unique_record( 'name', 'hin' );
-      $db_form = lib::create( 'database\form' );
-      $db_form->participant_id = $db_participant->id;
-      $db_form->form_type_id = $db_form_type->id;
-      $db_form->date = $datetime_obj;
-      $db_form->save();
-
-      // save the pdf form to disk
-      $directory = dirname( $db_form->get_filename() );
-      if( !is_dir( $directory ) ) mkdir( $directory, 0777, true );
-      if( false === file_put_contents( $db_form->get_filename(), $object->$member ) )
-        throw lib::create( 'exception\runtime', 'Unable to write PDF form file to disk.', __METHOD__ );
-
-      // add the form associations
-      if( !is_null( $db_consent ) ) $db_form->add_association( 'consent', $db_consent->id );
+      $db_form->add_consent( 'HIN extended access',
+        array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj )
+      );
     }
   }
 
@@ -373,7 +277,6 @@ class post extends \cenozo\service\service
 
     $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
-    $interview_class_name = lib::get_class_name( 'database\interview' );
 
     $member = 'Admin.Interview.endDate';
     $datetime_obj = util::get_datetime_object( property_exists( $object, $member ) ? $object->$member : NULL );
@@ -518,67 +421,12 @@ class post extends \cenozo\service\service
   {
     if( 1 >= count( get_object_vars( $object ) ) ) return;
 
-    $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
-    $form_type_class_name = lib::get_class_name( 'database\form_type' );
     $region_class_name = lib::get_class_name( 'database\region' );
     $application_class_name = lib::get_class_name( 'database\application' );
     $setting_manager = lib::create( 'business\setting_manager' );
     $session = lib::create( 'business\session' );
 
-    // get the datetime of the export
-    // try timeEnd, if null then try timeStart, if null then use today's date
-    $member = 'timeEnd';
-    $datetime = NULL;
-    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) ) $datetime = $object->$member;
-    else
-    {
-      $member = 'timeStart';
-      if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) ) $datetime = $object->$member;
-    }
-    $datetime_obj = util::get_datetime_object( $datetime );
-
-    // consent information (immediately processed)
-    $db_tests_consent = NULL;
-    $member = 'ICF_TEST_COM';
-    if( property_exists( $object, $member ) )
-    {
-      $value = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
-
-      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'continue physical tests' );
-      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
-      {
-        $db_tests_consent = lib::create( 'database\consent' );
-        $db_tests_consent->participant_id = $db_participant->id;
-        $db_tests_consent->consent_type_id = $db_consent_type->id;
-        $db_tests_consent->accept = $value;
-        $db_tests_consent->written = true;
-        $db_tests_consent->datetime = $datetime_obj;
-        $db_tests_consent->note = 'Provided by Onyx.';
-        $db_tests_consent->save();
-      }
-    }
-
-    $db_blood_consent = NULL;
-    $member = 'ICF_SAMP_COM';
-    if( property_exists( $object, $member ) )
-    {
-      $value = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
-
-      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'continue draw blood' );
-      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
-      {
-        $db_blood_consent = lib::create( 'database\consent' );
-        $db_blood_consent->participant_id = $db_participant->id;
-        $db_blood_consent->consent_type_id = $db_consent_type->id;
-        $db_blood_consent->accept = $value;
-        $db_blood_consent->written = true;
-        $db_blood_consent->datetime = $datetime_obj;
-        $db_blood_consent->note = 'Provided by Onyx.';
-        $db_blood_consent->save();
-      }
-    }
+    $datetime_obj = $this->get_datetime_from_object( $object );
 
     // proxy form information (send to mastodon for processing)
     $form_data = array(
@@ -587,6 +435,15 @@ class post extends \cenozo\service\service
       'user_id' => $session->get_user()->id,
       'uid' => $db_participant->uid
     );
+
+    // consent information (immediately processed)
+    $member = 'ICF_TEST_COM';
+    if( property_exists( $object, $member ) )
+      $form_data['continue_tests_consent'] = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+    $member = 'ICF_SAMP_COM';
+    if( property_exists( $object, $member ) )
+      $form_data['draw_blood_consent'] = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_IDPROXY_COM';
     $form_data['proxy'] =
@@ -711,26 +568,7 @@ class post extends \cenozo\service\service
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'pdfForm';
-    if( property_exists( $object, $member ) )
-    { // if a form is included immediately add it to the form system
-      $db_form_type = $form_type_class_name::get_unique_record( 'name', 'proxy' );
-      $db_form = lib::create( 'database\form' );
-      $db_form->participant_id = $db_participant->id;
-      $db_form->form_type_id = $db_form_type->id;
-      $db_form->date = $datetime_obj;
-      $db_form->save();
-      $form_data['form_id'] = $db_form->id;
-
-      // save the pdf form to disk
-      $directory = dirname( $db_form->get_filename() );
-      if( !is_dir( $directory ) ) mkdir( $directory, 0777, true );
-      if( false === file_put_contents( $db_form->get_filename(), $object->$member ) )
-        throw lib::create( 'exception\runtime', 'Unable to write PDF form file to disk.', __METHOD__ );
-
-      // add the form associations
-      if( !is_null( $db_tests_consent ) ) $db_form->add_association( 'consent', $db_tests_consent->id );
-      if( !is_null( $db_blood_consent ) ) $db_form->add_association( 'consent', $db_blood_consent->id );
-    }
+    if( property_exists( $object, $member ) ) $form_data['data'] = $object->$member;
 
     // we need to complete any transactions before continuing
     $session->get_database()->complete_transaction();
@@ -754,6 +592,22 @@ class post extends \cenozo\service\service
 
     $this->set_data( curl_exec( $curl ) );
     $this->status->set_code( curl_getinfo( $curl, CURLINFO_HTTP_CODE ) );
+  }
+
+  /**
+   * TODO: document
+   * get the datetime of the export
+   */
+  private function get_datetime_from_object( $object )
+  {
+    // try timeEnd, if null then try timeStart, if null then use today's date
+    $datetime = NULL;
+    if( property_exists( $object, timeEnd ) && 0 < strlen( $object->timeEnd ) )
+      $datetime = $object->timeEnd;
+    else if( property_exists( $object, timeStart ) && 0 < strlen( $object->timeStart ) )
+      $datetime = $object->timeStart;
+
+    return util::get_datetime_object( $datetime );
   }
 
   /**
