@@ -436,15 +436,6 @@ class post extends \cenozo\service\service
       'uid' => $db_participant->uid
     );
 
-    // consent information (immediately processed)
-    $member = 'ICF_TEST_COM';
-    if( property_exists( $object, $member ) )
-      $form_data['continue_tests_consent'] = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
-
-    $member = 'ICF_SAMP_COM';
-    if( property_exists( $object, $member ) )
-      $form_data['draw_blood_consent'] = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
-
     $member = 'ICF_IDPROXY_COM';
     $form_data['proxy'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
@@ -560,11 +551,19 @@ class post extends \cenozo\service\service
     }
 
     $member = 'ICF_ANSW_COM';
-    $form_data['informant_continue'] =
+    $form_data['use_informant'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
+    $member = 'ICF_TEST_COM';
+    if( property_exists( $object, $member ) )
+      $form_data['continue_physical_tests'] = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+    $member = 'ICF_SAMP_COM';
+    if( property_exists( $object, $member ) )
+      $form_data['continue_draw_blood'] = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
     $member = 'ICF_HCNUMB_COM';
-    $form_data['health_card'] =
+    $form_data['hin_future_access'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'pdfForm';
@@ -602,9 +601,9 @@ class post extends \cenozo\service\service
   {
     // try timeEnd, if null then try timeStart, if null then use today's date
     $datetime = NULL;
-    if( property_exists( $object, timeEnd ) && 0 < strlen( $object->timeEnd ) )
+    if( property_exists( $object, 'timeEnd' ) && 0 < strlen( $object->timeEnd ) )
       $datetime = $object->timeEnd;
-    else if( property_exists( $object, timeStart ) && 0 < strlen( $object->timeStart ) )
+    else if( property_exists( $object, 'timeStart' ) && 0 < strlen( $object->timeStart ) )
       $datetime = $object->timeStart;
 
     return util::get_datetime_object( $datetime );
