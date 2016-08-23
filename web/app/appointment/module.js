@@ -512,8 +512,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
             parentModel.calendarModel.cache = parentModel.calendarModel.cache.filter( function( e ) {
               return e.getIdentifier() != record.getIdentifier();
             } );
-            console.log( 'TODO: need to reset add enabled state?' );
-            self.parentModel.getAddEnabled = function() { return 0 == self.total; };
           } );
         };
       };
@@ -584,7 +582,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         };
 
         // don't show add button when viewing full appointment list
-        this.getAddEnabled = function() { return 'appointment' != this.getSubjectFromState(); };
+        this.getAddEnabled = function() {
+          return 'appointment' != this.getSubjectFromState() && this.$$getAddEnabled();
+        };
 
         // pass type/site when transitioning to list state
         this.transitionToParentListState = function( subject ) {
