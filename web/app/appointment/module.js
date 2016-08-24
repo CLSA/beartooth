@@ -185,7 +185,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 }
               };
 
-              listener();
+              listener(); // your watch has ended
             }
           } );
 
@@ -287,8 +287,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentCalendar', [
-    'CnAppointmentModelFactory', 'CnSession', '$timeout',
-    function( CnAppointmentModelFactory, CnSession, $timeout ) {
+    'CnAppointmentModelFactory', 'CnSession',
+    function( CnAppointmentModelFactory, CnSession ) {
       return {
         templateUrl: module.getFileUrl( 'calendar.tpl.html' ),
         restrict: 'E',
@@ -321,15 +321,29 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           } );
 
           // highlight the calendar button that we're currently viewing
-          $timeout( function() {
-            var homeButton = element.find( '#home-appointment-button' );
-            homeButton.addClass( 'home' == scope.model.type ? 'btn-warning' : 'btn-default' );
-            homeButton.removeClass( 'home' == scope.model.type ? 'btn-default' : 'btn-warning' );
+          var homeListener = scope.$watch(
+            function() { return element.find( '#home-appointment-button' ).length; },
+            function( length ) {
+              if( 0 < length ) {
+                var homeButton = element.find( '#home-appointment-button' );
+                homeButton.addClass( 'home' == scope.model.type ? 'btn-warning' : 'btn-default' );
+                homeButton.removeClass( 'home' == scope.model.type ? 'btn-default' : 'btn-warning' );
+                homeListener(); // your watch has ended
+              }
+            }
+          );
 
-            var siteButton = element.find( '#site-appointment-button' );
-            siteButton.addClass( 'site' == scope.model.type ? 'btn-warning' : 'btn-default' );
-            siteButton.removeClass( 'site' == scope.model.type ? 'btn-default' : 'btn-warning' );
-          }, 200 );
+          var siteListener = scope.$watch(
+            function() { return element.find( '#site-appointment-button' ).length; },
+            function( length ) {
+              if( 0 < length ) {
+                var siteButton = element.find( '#site-appointment-button' );
+                siteButton.addClass( 'site' == scope.model.type ? 'btn-warning' : 'btn-default' );
+                siteButton.removeClass( 'site' == scope.model.type ? 'btn-default' : 'btn-warning' );
+                siteListener(); // your watch has ended
+              }
+            }
+          );
         }
       };
     }
@@ -392,7 +406,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 };
               }
 
-              listener();
+              listener(); // your watch has ended
             }
           } );
 
