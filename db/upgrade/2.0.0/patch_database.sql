@@ -34,6 +34,7 @@ SOURCE appointment_type.sql
 SOURCE service.sql
 SOURCE role_has_operation.sql
 SOURCE role_has_service.sql
+SOURCE role_has_state.sql
 SOURCE operation.sql
 SOURCE setting_value.sql
 SOURCE setting.sql

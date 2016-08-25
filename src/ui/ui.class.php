@@ -20,6 +20,12 @@ class ui extends \cenozo\ui\ui
   protected function get_module_list( $modifier = NULL )
   {
     $module_list = parent::get_module_list( $modifier );
+    $db_role = lib::create( 'business\session' )->get_role();
+
+    // remove all lists from the interviewer role
+    if( 'interviewer' == $db_role->name )
+      foreach( $module_list as $name => &$module )
+        if( 'participant' != $name ) $module['list_menu'] = false;
 
     // add child actions to certain modules
     if( array_key_exists( 'assignment', $module_list ) )
@@ -68,6 +74,12 @@ class ui extends \cenozo\ui\ui
     $list = parent::get_list_items( $module_list );
     $db_role = lib::create( 'business\session' )->get_role();
 
+    if( in_array( $db_role->name, array( 'interviewer', 'interviewer+' ) ) )
+    {
+      $list['My Participants'] = $list['Participants'];
+      unset( $list['Participants'] );
+    }
+
     // add application-specific states to the base list
     if( array_key_exists( 'interview', $module_list ) && $module_list['interview']['list_menu'] )
       $list['Interviews'] = 'interview';
@@ -90,6 +102,12 @@ class ui extends \cenozo\ui\ui
     $db_site = lib::create( 'business\session' )->get_site();
     $db_role = lib::create( 'business\session' )->get_role();
 
+    // interviewers get no list items
+    if( 'interviewer' == $db_role->name )
+    {   
+      unset( $list['Participant Search'] );
+    }   
+    
     // add application-specific states to the base list
     if( 2 <= $db_role->tier )
     {
