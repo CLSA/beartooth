@@ -21,6 +21,8 @@ class module extends \cenozo\service\participant\module
   {
     parent::prepare_read( $select, $modifier );
 
+    $session = lib::create( 'business\session' );
+
     if( $this->get_argument( 'assignment', false ) )
     {
       $modifier->join( 'queue_has_participant', 'participant.id', 'queue_has_participant.participant_id' );
@@ -137,6 +139,21 @@ class module extends \cenozo\service\participant\module
           // fake the qnaire start-date
           if( $select->has_table_column( 'qnaire', 'start_date' ) )
             $select->add_table_column( 'qnaire', 'queue_has_participant.start_qnaire_date', 'start_date', false );
+        }
+      }
+
+      // interviewer's participant list only includes participants they have an incomplete appointment with
+      // an exception is for interviewer+ looking at parented participant lists
+      if( 'GET' == $this->get_method() && is_null( $this->get_resource() ) )
+      {
+        $db_role = $session->get_role();
+        if( 'interviewer' == $db_role->name ||
+            ( 'interviewer+' == $db_role->name && is_null( $this->get_parent_subject() ) ) )
+        {
+          $modifier->join( 'interview', 'participant.id', 'interview.participant_id' );
+          $modifier->join( 'appointment', 'interview.id', 'appointment.interview_id' );
+          $modifier->where( 'appointment.user_id', '=', $session->get_user()->id );
+          $modifier->where( 'appointment.outcome', '=', NULL );
         }
       }
     }

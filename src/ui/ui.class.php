@@ -60,6 +60,9 @@ class ui extends \cenozo\ui\ui
     }
     if( array_key_exists( 'quota', $module_list ) )
       $module_list['quota']['choosing'] = array( 'qnaire' );
+    // interviewers do not get access to participant search
+    if( array_key_exists( 'search_result', $module_list ) && 'interviewer' == $db_role->name )
+      $module_list['search_result']['actions'] = array();
     if( array_key_exists( 'site', $module_list ) )
       $module_list['site']['choosing'] = array( 'qnaire' );
 
@@ -82,7 +85,8 @@ class ui extends \cenozo\ui\ui
 
     // add application-specific states to the base list
     if( array_key_exists( 'interview', $module_list ) && $module_list['interview']['list_menu'] )
-      $list['Interviews'] = 'interview';
+      if( !in_array( $db_role->name, array( 'interviewer', 'interviewer+' ) ) )
+        $list['Interviews'] = 'interview';
     if( array_key_exists( 'onyx_instance', $module_list ) && $module_list['onyx_instance']['list_menu'] )
       $list['Onyx Instances'] = 'onyx_instance';
     if( array_key_exists( 'qnaire', $module_list ) && $module_list['qnaire']['list_menu'] )
@@ -128,7 +132,7 @@ class ui extends \cenozo\ui\ui
     }
     foreach( array( 'home', 'site' ) as $type )
     {
-      if( in_array( $db_role->name, array( 'helpline', 'coordinator', 'interviewer' ) ) )
+      if( in_array( $db_role->name, array( 'helpline', 'coordinator', 'interviewer', 'interviewer+' ) ) )
       {
         $list[ucwords( $type ).' Assignment Control'] = array(
           'subject' => 'assignment',
