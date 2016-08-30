@@ -141,7 +141,11 @@ class post extends \cenozo\service\service
   }
 
   /**
-   * TODO: document
+   * Returns the property name sent by Onyx (in CamelCase)
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @return string
+   * @access private
    */
   private function get_property_name()
   {
@@ -154,7 +158,12 @@ class post extends \cenozo\service\service
   }
 
   /**
-   * TODO: document
+   * Processes the onyx/consent service
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\participant $db_participant The participant being exported to
+   * @param stdClass $object The data sent by Onyx
+   * @access private
    */
   private function process_consent( $db_participant, $object )
   {
@@ -232,7 +241,12 @@ class post extends \cenozo\service\service
   }
 
   /**
-   * TODO: document
+   * Processes the onyx/hin service
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\participant $db_participant The participant being exported to
+   * @param stdClass $object The data sent by Onyx
+   * @access private
    */
   private function process_hin( $db_participant, $object )
   {
@@ -269,7 +283,12 @@ class post extends \cenozo\service\service
   }
 
   /**
-   * TODO: document
+   * Processes the onyx/participants service
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\participant $db_participant The participant being exported to
+   * @param stdClass $object The data sent by Onyx
+   * @access private
    */
   private function process_participant( $db_participant, $object )
   {
@@ -415,7 +434,12 @@ class post extends \cenozo\service\service
   }
 
   /**
-   * TODO: document
+   * Processes the onyx/proxy service
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\participant $db_participant The participant being exported to
+   * @param stdClass $object The data sent by Onyx
+   * @access private
    */
   private function process_proxy( $db_participant, $object )
   {
@@ -594,8 +618,12 @@ class post extends \cenozo\service\service
   }
 
   /**
-   * TODO: document
-   * get the datetime of the export
+   * Gets the datetime from an Onyx object (expecting timeEnd or timeStart properties)
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param stdClass $object
+   * @return DateTime
+   * @access private
    */
   private function get_datetime_from_object( $object )
   {

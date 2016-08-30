@@ -16,6 +16,7 @@ class phone_call extends \cenozo\database\record
 {
   /**
    * Overrides the parent save method.
+   * 
    * @author Patrick Emond
    * @access public
    */
@@ -35,7 +36,12 @@ class phone_call extends \cenozo\database\record
     parent::save();
   }
 
-  // TODO: document
+  /**
+   * Processes application-based events based on this phone call
+   * 
+   * @author Patrick Emond
+   * @access public
+   */
   public function process_events()
   {
     if( !is_null( $this->end_datetime ) )

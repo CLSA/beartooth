@@ -98,7 +98,9 @@ class patch extends \cenozo\service\patch
   }
 
   /**
-   * TODO: document
+   * The original, unedited, patch array
+   * @var array
+   * @access private
    */
   private $original_patch_array = NULL;
 }
