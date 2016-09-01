@@ -20,8 +20,10 @@ class module extends \cenozo\service\base_calendar_module
   public function __construct( $index, $service )
   {
     parent::__construct( $index, $service );
-    $this->lower_date = array( 'null' => false, 'column' => 'DATE( datetime )' );
-    $this->upper_date = array( 'null' => false, 'column' => 'DATE( datetime )' );
+    $db_user = lib::create( 'business\session' )->get_user();
+    $date_string = sprintf( 'DATE( CONVERT_TZ( datetime, "UTC", "%s" ) )', $db_user->timezone );
+    $this->lower_date = array( 'null' => false, 'column' => $date_string );
+    $this->upper_date = array( 'null' => false, 'column' => $date_string );
   }
 
   /**
@@ -323,12 +325,16 @@ class module extends \cenozo\service\base_calendar_module
         'duration',
         false );
 
-      // include the user first/last/name as supplemental data
       $modifier->left_join( 'user', 'appointment.user_id', 'user.id' );
-      $select->add_column(
-        'CONCAT( user.first_name, " ", user.last_name, " (", user.name, ")" )',
-        'formatted_user_id',
-        false );
+
+      if( !is_null( $this->get_resource() ) )
+      {
+        // include the user first/last/name as supplemental data
+        $select->add_column(
+          'CONCAT( user.first_name, " ", user.last_name, " (", user.name, ")" )',
+          'formatted_user_id',
+          false );
+      }
 
       // include the participant uid and interviewer name as supplemental data
       $modifier->left_join( 'user', 'appointment.user_id', 'user.id' );
