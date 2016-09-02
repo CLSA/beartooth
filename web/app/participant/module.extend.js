@@ -4,42 +4,42 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
 
   var module = cenozoApp.module( 'participant' );
   module.addInputGroup( 'Next of Kin', {
-    kin_first_name: {
+    next_of_kin_first_name: {
       column: 'next_of_kin.first_name',
       title: 'First Name',
       type: 'string'
     },
-    kin_last_name: {
+    next_of_kin_last_name: {
       column: 'next_of_kin.last_name',
       title: 'Last Name',
       type: 'string'
     },
-    kin_sex: {
+    next_of_kin_gender: {
       column: 'next_of_kin.gender',
       title: 'Sex',
       type: 'string'
     },
-    kin_phone: {
+    next_of_kin_phone: {
       column: 'next_of_kin.phone',
       title: 'Phone',
       type: 'string'
     },
-    kin_address: {
+    next_of_kin_street: {
       column: 'next_of_kin.street',
       title: 'Address',
       type: 'string'
     },
-    kin_city: {
+    next_of_kin_city: {
       column: 'next_of_kin.city',
       title: 'City',
       type: 'string'
     },
-    kin_region: {
+    next_of_kin_province: {
       column: 'next_of_kin.province',
       title: 'Region',
       type: 'string'
     },
-    kin_postcode: {
+    next_of_kin_postal_code: {
       column: 'next_of_kin.postal_code',
       title: 'Postcode',
       type: 'string'
