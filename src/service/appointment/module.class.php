@@ -326,15 +326,11 @@ class module extends \cenozo\service\base_calendar_module
         false );
 
       $modifier->left_join( 'user', 'appointment.user_id', 'user.id' );
-
-      if( !is_null( $this->get_resource() ) )
-      {
-        // include the user first/last/name as supplemental data
-        $select->add_column(
-          'CONCAT( user.first_name, " ", user.last_name, " (", user.name, ")" )',
-          'formatted_user_id',
-          false );
-      }
+      // include the user first/last/name as supplemental data (for both get and query)
+      $select->add_column(
+        'CONCAT( user.first_name, " ", user.last_name, " (", user.name, ")" )',
+        'formatted_user_id',
+        false );
 
       // include the participant uid and interviewer name as supplemental data
       $modifier->left_join( 'user', 'appointment.user_id', 'user.id' );
