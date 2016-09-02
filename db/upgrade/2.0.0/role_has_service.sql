@@ -45,7 +45,7 @@ CREATE PROCEDURE patch_role_has_service()
     END IF;
 
     -- populate table
-    DELETE FROM role_has_service;
+    TRUNCATE role_has_service;
 
     -- administrator
     SET @sql = CONCAT(
@@ -120,7 +120,7 @@ CREATE PROCEDURE patch_role_has_service()
         "SELECT id FROM service ",
         "WHERE subject IN( ",
           "'address', 'alternate', 'application', 'appointment_type', 'availability_type', 'collection', ",
-          "'consent', 'consent_type', 'event', 'event_type', 'form' 'hin', 'interview', 'jurisdiction', ",
+          "'consent', 'consent_type', 'event', 'event_type', 'form', 'hin', 'interview', 'jurisdiction', ",
           "'language', 'onyx', 'phase', 'phone', 'qnaire', 'quota', 'region_site', 'recording', ",
           "'recording_list', 'report_schedule', 'script', 'source', 'state' ) ",
         "OR ( subject = 'report_restriction' AND method IN( 'DELETE', 'PATCH', 'POST' ) ) ",
