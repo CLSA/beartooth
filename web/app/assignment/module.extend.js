@@ -1,110 +1,24 @@
 // we need the participant module for the special CnAssignmentControlFactory
-define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
+define( [ 'participant' ].reduce( function( list, name ) {
+  return list.concat( cenozoApp.module( name ).getRequiredFiles() );
+}, [ cenozoApp.module( 'assignment' ).getFileUrl( 'module.js' ) ] ), function() {
   'use strict';
 
-  try { var module = cenozoApp.module( 'assignment', true ); } catch( err ) { console.warn( err ); return; }
-  angular.extend( module, {
-    identifier: {
-      parent: {
-        subject: 'interview',
-        column: 'interview_id',
-        friendly: 'qnaire'
-      }
-    },
-    name: {
-      singular: 'assignment',
-      plural: 'assignments',
-      possessive: 'assignment\'s',
-      pluralPossessive: 'assignments\''
-    },
-    columnList: {
-      user: {
-        column: 'user.name',
-        title: 'User'
-      },
-      role: {
-        column: 'role.name',
-        title: 'Role'
-      },
-      site: {
-        column: 'site.name',
-        title: 'Site'
-      },
-      start_datetime: {
-        column: 'assignment.start_datetime',
-        title: 'Start',
-        type: 'datetimesecond'
-      },
-      end_datetime: {
-        column: 'assignment.end_datetime',
-        title: 'End',
-        type: 'datetimesecond'
-      }
-    },
-    defaultOrder: {
-      column: 'start_datetime',
-      reverse: true
-    }
-  } );
+  var module = cenozoApp.module( 'assignment' );
 
-  module.addInputGroup( '', {
-    participant: {
-      column: 'participant.uid',
-      title: 'Participant',
-      type: 'string',
-      constant: true
-    },
-    qnaire: {
-      column: 'qnaire.name',
-      title: 'Questionnaire',
-      type: 'string',
-      constant: true
-    },
-    user: {
-      column: 'user.name',
-      title: 'User',
-      type: 'string',
-      constant: true
-    },
-    role: {
-      column: 'role.name',
-      title: 'Role',
-      type: 'string',
-      constant: true
-    },
-    site: {
-      column: 'site.name',
-      title: 'Site',
-      type: 'string',
-      constant: true
-    },
-    queue: {
-      column: 'queue.title',
-      title: 'Queue',
-      type: 'string',
-      constant: true
-    },
-    start_datetime: {
-      column: 'assignment.start_datetime',
-      title: 'Start Date & Time',
-      type: 'datetimesecond',
-      max: 'end_datetime'
-    },
-    end_datetime: {
-      column: 'assignment.end_datetime',
-      title: 'End Date & Time',
-      type: 'datetimesecond',
-      min: 'start_datetime',
-      max: 'now'
-    }
-  } );
+  module.identifier.parent.friendly = 'qnaire';
 
-  module.addExtraOperation( 'view', {
-    title: 'Force Close',
-    operation: function( $state, model ) { model.viewModel.forceClose(); },
-    isDisabled: function( $state, model ) { return null !== model.viewModel.record.end_datetime; },
-    isIncluded: function( $state, model ) { return model.viewModel.forceCloseAllowed; },
-    help: 'Closes the interview along with any open calls.'
+  module.addInputAfter( '', 'participant', 'qnaire', {
+    column: 'qnaire.name',
+    title: 'Questionnaire',
+    type: 'string',
+    constant: true
+  } );
+  module.addInputAfter( '', 'site', 'queue', {
+    column: 'queue.title',
+    title: 'Queue',
+    type: 'string',
+    constant: true
   } );
 
   /* ######################################################################################################## */
@@ -112,7 +26,7 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
     'CnAssignmentControlFactory', '$window',
     function( CnAssignmentControlFactory, $window ) {
       return {
-        templateUrl: module.getFileUrl( 'control.tpl.html' ),
+        templateUrl: cenozoApp.getFileUrl( 'assignment', 'control.tpl.html' ),
         restrict: 'E',
         controller: function( $scope ) {
           $scope.model = CnAssignmentControlFactory.instance();
@@ -124,111 +38,6 @@ define( cenozoApp.module( 'participant' ).getRequiredFiles(), function() {
           var win = angular.element( $window ).on( 'focus', focusFn );
           scope.$on( '$destroy', function() { win.off( 'focus', focusFn ); } );
         }
-      };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnAssignmentList', [
-    'CnAssignmentModelFactory',
-    function( CnAssignmentModelFactory ) {
-      return {
-        templateUrl: module.getFileUrl( 'list.tpl.html' ),
-        restrict: 'E',
-        scope: { model: '=?' },
-        controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnAssignmentModelFactory.root;
-        }
-      };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnAssignmentView', [
-    'CnAssignmentModelFactory',
-    function( CnAssignmentModelFactory ) {
-      return {
-        templateUrl: module.getFileUrl( 'view.tpl.html' ),
-        restrict: 'E',
-        scope: { model: '=?' },
-        controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnAssignmentModelFactory.root;
-        }
-      };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnAssignmentListFactory', [
-    'CnBaseListFactory',
-    function( CnBaseListFactory ) {
-      var object = function( parentModel ) { CnBaseListFactory.construct( this, parentModel ); };
-      return { instance: function( parentModel ) { return new object( parentModel ); } };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnAssignmentViewFactory', [
-    'CnBaseViewFactory', 'CnSession', 'CnHttpFactory', 'CnModalConfirmFactory', 'CnModalMessageFactory',
-    function( CnBaseViewFactory, CnSession, CnHttpFactory, CnModalConfirmFactory, CnModalMessageFactory ) {
-      var object = function( parentModel, root ) {
-        var self = this;
-        CnBaseViewFactory.construct( this, parentModel, root );
-        this.forceCloseAllowed = 1 < CnSession.role.tier;
-        this.forceClose = function() {
-          CnModalConfirmFactory.instance( {
-            title: 'Force Close Assignment?',
-            message: 'Are you sure you wish to force-close the assignment?'
-          } ).show().then( function( response ) {
-            function refreshView() {
-              // the assignment may no longer exist, so go back to the interview if it's gone
-              CnHttpFactory.instance( {
-                path: 'assignment/' + self.record.id,
-                data: { select: { column: [ 'id' ] } },
-                onError: function( response ) {
-                  if( 404 == response.status ) {
-                    self.transitionOnDelete();
-                  } else { CnModalMessageFactory.httpError( response ); }
-                }
-              } ).get().then( function() { self.onView(); } );
-            }
-
-            if( response ) {
-              CnHttpFactory.instance( {
-                path: 'assignment/' + self.record.id + '?operation=force_close',
-                data: {},
-                onError: function( response ) {
-                  if( 404 == response.status ) {
-                    // 404 means the assignment no longer exists
-                    self.transitionOnDelete();
-                  } else if( 409 == response.status ) {
-                    // 409 means the assignment is already closed
-                    refreshView();
-                  } else { CnModalMessageFactory.httpError( response ); }
-                }
-              } ).patch().then( refreshView );
-            }
-          } );
-        };
-      }
-      return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnAssignmentModelFactory', [
-    '$state', 'CnBaseModelFactory', 'CnAssignmentListFactory', 'CnAssignmentViewFactory',
-    function( $state, CnBaseModelFactory, CnAssignmentListFactory, CnAssignmentViewFactory ) {
-      var object = function( root ) {
-        var self = this;
-        CnBaseModelFactory.construct( this, module );
-        this.listModel = CnAssignmentListFactory.instance( this );
-        this.viewModel = CnAssignmentViewFactory.instance( this, root );
-      };
-
-      return {
-        root: new object( true ),
-        instance: function() { return new object( false ); }
       };
     }
   ] );
