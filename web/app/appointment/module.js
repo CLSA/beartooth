@@ -299,9 +299,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         controller: function( $scope ) {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
           $scope.model.calendarModel.heading = $scope.model.site.name.ucWords() + ' - '
-            + ( 'home' == $scope.model.type &&
-                1 == CnSession.role.tier &&
-                !CnSession.role.allSites ? 'Personal ' : '' )
+            + ( 'home' == $scope.model.type && 'interviewer' == CnSession.role.name ? 'Personal ' : '' )
             + $scope.model.type.ucWords() + ' Appointment Calendar';
         },
         link: function( scope, element ) {

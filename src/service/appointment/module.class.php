@@ -352,7 +352,7 @@ class module extends \cenozo\service\base_calendar_module
         $modifier->where( 'participant_site.site_id', '=', $db_restricted_site->id );
 
       // restrict by user
-      if( 1 == $db_role->tier && !$db_role->all_sites )
+      if( 'interviewer' == $db_role->name )
         $modifier->where( sprintf( 'IFNULL( appointment.user_id, %s )', $db_user->id ), '=', $db_user->id );
 
       if( $select->has_table_columns( 'appointment_type' ) )
