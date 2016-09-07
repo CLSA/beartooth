@@ -18,40 +18,6 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
     constant: true
   } );
 
-  /* ######################################################################################################## */
-  cenozo.providers.decorator( 'cnInterviewViewDirective', [
-    '$delegate', 'CnInterviewModelFactory',
-    function( $delegate, CnInterviewModelFactory ) {
-      var directive = $delegate[0];
-
-      // hack to make sure the address and user columns don't show in the appointment list for site interviews
-      angular.extend( directive, {
-        templateUrl: cenozoApp.getFileUrl( 'interview', 'view.tpl.html' ),
-        controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnInterviewModelFactory.root;
-          $scope.model.viewModel.afterView( function() {
-            if( 'site' == $scope.model.viewModel.record.type ) {
-              var appointmentListScope = cenozo.findChildDirectiveScope(
-                cenozo.getScopeByQuerySelector( '[name="appointmentList"]').$$childHead,
-                'cnRecordList'
-              );
-
-              if( null != appointmentListScope ) {
-                var dataArray = appointmentListScope.dataArray;
-                var addressIndex = dataArray.findIndexByProperty( 'key', 'address_summary' );
-                if( null != addressIndex ) dataArray.splice( addressIndex, 1 );
-                var userIndex = dataArray.findIndexByProperty( 'key', 'formatted_user_id' );
-                if( null != userIndex ) dataArray.splice( userIndex, 1 );
-              }
-            }
-          } );
-        }
-      } );
-
-      return $delegate;
-    }
-  ] );
-
   // extend the list factory
   cenozo.providers.decorator( 'CnInterviewListFactory', [
     '$delegate', 'CnHttpFactory',
@@ -145,10 +111,10 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
         object.onView = function() {
           return object.$$onView().then( function() {
             // set the correct type and refresh the list
-            if( angular.isDefined( self.appointmentModel ) ) {
-              if( self.appointmentModel.type != self.record.type ) {
-                self.appointmentModel.type = self.record.type;
-                self.appointmentModel.listModel.onList( true );
+            if( angular.isDefined( object.appointmentModel ) ) {
+              if( object.appointmentModel.type != object.record.type ) {
+                object.appointmentModel.type = object.record.type;
+                object.appointmentModel.listModel.onList( true );
               }
               updateEnableFunctions();
             }
@@ -159,7 +125,9 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
         object.deferred.promise.then( function() {
           if( angular.isDefined( object.appointmentModel ) ) {
             object.appointmentModel.listModel.onDelete = function( record ) {
-              return object.appointmentModel.listModel.$$onDelete( record ).then( function() { object.onView(); } );
+              return object.appointmentModel.listModel.$$onDelete( record ).then( function() {
+                object.onView();
+              } );
             };
           }
         } );

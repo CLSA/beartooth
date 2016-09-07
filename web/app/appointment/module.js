@@ -23,11 +23,13 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       },
       formatted_user_id: {
         type: 'string',
-        title: 'Interviewer'
+        title: 'Interviewer',
+        isIncluded: function( $state, model ) { return 'home' == $state.params.type || 'home' == model.type; }
       },
       address_summary: {
         type: 'string',
-        title: 'Address'
+        title: 'Address',
+        isIncluded: function( $state, model ) { return 'home' == $state.params.type || 'home' == model.type; }
       },
       appointment_type_id: {
         column: 'appointment_type.name',
