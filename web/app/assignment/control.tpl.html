@@ -7,8 +7,8 @@
       </div>
       <div class="container-fluid">
         <blockquote class="spacer">
-          You are currently in a {{ model.isWrongType }} assignment.<br>
-          Before you can start a {{ 'site' == model.isWrongType ? 'home' : 'site' }} assignment you must first
+          You are currently in a {{ 'site' == model.isWrongType ? 'home' : 'site' }} assignment.<br>
+          Before you can start a {{ model.isWrongType }} assignment you must first
           complete your active assignment.
           You may <a style="cursor:pointer;" ui-sref="assignment.control({type:'site' == model.isWrongType ? 'home' : 'site'})">click here</a>
           to view the assignment.
@@ -168,7 +168,7 @@
             </div>
             <div class="btn-group">
               <a class="btn btn-default"
-                 ui-sref="interview.view({ identifier: model.assignment.interview_id })"
+                 ui-sref="interview.view({ type: model.type, identifier: model.assignment.interview_id })"
                  href="#">View Interview</a>
             </div>
             <div class="btn-group">

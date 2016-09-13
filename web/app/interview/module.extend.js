@@ -1,5 +1,4 @@
 // extend the framework's module
-console.log( cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) );
 define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function() {
   'use strict';
 
@@ -84,8 +83,8 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
 
   // extend the view factory
   cenozo.providers.decorator( 'CnInterviewViewFactory', [
-    '$delegate',
-    function( $delegate ) {
+    '$delegate', '$state',
+    function( $delegate, $state ) {
       var instance = $delegate.instance;
       $delegate.instance = function( parentModel, root ) {
         var object = instance( parentModel, root );
@@ -110,14 +109,14 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
         // override onView
         object.onView = function() {
           return object.$$onView().then( function() {
-            // set the correct type and refresh the list
-            if( angular.isDefined( object.appointmentModel ) ) {
-              if( object.appointmentModel.type != object.record.type ) {
-                object.appointmentModel.type = object.record.type;
-                object.appointmentModel.listModel.onList( true );
-              }
-              updateEnableFunctions();
+            // check that the state type matches the interview's type
+            if( $state.params.type != object.record.type ) {
+              $state.go( 'error.404' );
+              throw new Error( 'Interview type does not match state parameters, redirecting to 404.' );
             }
+
+            // set the correct type and refresh the list
+            if( angular.isDefined( object.appointmentModel ) ) updateEnableFunctions();
           } );
         };
 
@@ -140,17 +139,27 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
 
   // extend the model factory
   cenozo.providers.decorator( 'CnInterviewModelFactory', [
-    '$delegate', 'CnHttpFactory',
-    function( $delegate, CnHttpFactory ) {
+    '$delegate', '$state', 'CnHttpFactory',
+    function( $delegate, $state, CnHttpFactory ) {
       var instance = $delegate.instance;
       // extend getBreadcrumbTitle
       // (metadata's promise will have already returned so we don't have to wait for it)
       function extendObject( object ) {
+        object.type = $state.params.type;
+
         angular.extend( object, {
           getBreadcrumbTitle: function() {
             var qnaire = object.metadata.columnList.qnaire_id.enumList.findByProperty(
               'value', object.viewModel.record.qnaire_id );
             return qnaire ? qnaire.name : 'unknown';
+          },
+
+          // pass type when transitioning to view state
+          transitionToViewState: function( record ) {
+            return $state.go(
+              object.module.subject.snake + '.view',
+              { type: record.type, identifier: record.getIdentifier() }
+            );
           },
 
           // extend getMetadata

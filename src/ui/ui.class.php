@@ -32,11 +32,18 @@ class ui extends \cenozo\ui\ui
     // add child actions to certain modules
     if( array_key_exists( 'appointment', $module_list ) )
     {
-      $module_list['appointment']['actions']['list'] =
-        '/{type}/{identifier}'.$module_list['appointment']['actions']['list'];
+      if( array_key_exists( 'add', $module_list['appointment']['actions'] ) )
+        $module_list['appointment']['actions']['add'] = '/{type}'.$module_list['appointment']['actions']['add'];
+      if( array_key_exists( 'list', $module_list['appointment']['actions'] ) )
+        $module_list['appointment']['actions']['list'] =
+          '/{type}/{typeIdentifier}'.$module_list['appointment']['actions']['list'];
+      if( array_key_exists( 'view', $module_list['appointment']['actions'] ) )
+       $module_list['appointment']['actions']['view'] = '/{type}'.$module_list['appointment']['actions']['view'];
     }
     if( array_key_exists( 'interview', $module_list ) )
     {
+      if( array_key_exists( 'view', $module_list['interview']['actions'] ) )
+        $module_list['interview']['actions']['view'] = '/{type}'.$module_list['interview']['actions']['view'];
       array_unshift( $module_list['interview']['children'], 'appointment' );
     }
     if( array_key_exists( 'onyx_instance', $module_list ) )
