@@ -161,7 +161,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
   // used by the add and view directives below
   function setupInputArray( CnHttpFactory, model, childScope ) {
     var inputArray = childScope.dataArray[0].inputArray;
-    
+
     // show/hide user and address columns based on the type
     inputArray.findByProperty( 'key', 'user_id' ).type = 'home' == model.type ? 'lookup-typeahead' : 'hidden';
     inputArray.findByProperty( 'key', 'address_id' ).type = 'home' == model.type ? 'enum' : 'hidden';
@@ -207,7 +207,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
             if( !date.isBefore( moment(), 'day' ) ) {
               var dateString = date.format( 'YYYY-MM-DD' ) + 'T12:00:00';
               var datetime = moment.tz( dateString, CnSession.user.timezone ).tz( 'UTC' );
-              
+
               var cnRecordAddScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
               if( !cnRecordAddScope ) throw new Error( 'Unable to find appointment\'s cnRecordAdd scope.' );
               cnRecordAddScope.record.datetime = datetime.format();
@@ -342,7 +342,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               if( !date.isBefore( moment(), 'day' ) ) {
                 var dateString = date.format( 'YYYY-MM-DD' ) + 'T12:00:00';
                 var datetime = moment.tz( dateString, CnSession.user.timezone ).tz( 'UTC' );
-                
+
                 // if we clicked today then make sure it's after the current time
                 if( !datetime.isAfter( moment() ) ) datetime.hour( moment().hour() + 1 );
 
@@ -356,7 +356,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                     CnSession.formatValue( datetime, 'datetime', true );
                   $scope.$apply(); // needed otherwise the new datetime takes seconds before it appears
                   cnRecordViewScope.patch( 'datetime' );
-                  
+
                   // update the calendar
                   $element.find( 'div.calendar' ).fullCalendar( 'refetchEvents' );
                 }
@@ -457,7 +457,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAppointmentViewFactory', [
-    'CnBaseViewFactory', 'CnSession', '$injector', 
+    'CnBaseViewFactory', 'CnSession', '$injector',
     function( CnBaseViewFactory, CnSession, $injector ) {
       var object = function( parentModel, root ) {
         var self = this;
@@ -535,8 +535,15 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         this.transitionToAddState = function() {
           this.type = $state.params.type;
           var params = { type: this.type, parentIdentifier: $state.params.identifier };
-//TODO (get participant's site) if( CnSession.role.allSites ) params.site = 'name=' + CnSession.site.name;
-          return $state.go( '^.add_' + this.module.subject.snake, params );
+
+          // get the participant's primary site (assuming the current state is an interview)
+          return CnHttpFactory.instance( {
+            path: 'interview/' + $state.params.identifier,
+            data: { select: { column: [ { table: 'effective_site', column: 'name' } ] } }
+          } ).get().then( function( response ) {
+            if( response.data.name ) params.site = 'name=' + response.data.name;
+            return $state.go( '^.add_' + self.module.subject.snake, params );
+          } );
         };
 
         // pass type/site when transitioning to list state
@@ -551,10 +558,16 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         // pass type when transitioning to view state
         this.transitionToViewState = function( record ) {
           this.type = $state.params.type;
-          return $state.go(
-            this.module.subject.snake + '.view',
-            { type: this.type, identifier: record.getIdentifier() }
-          );
+          var params = { type: this.type, identifier: record.getIdentifier() };
+
+          // get the participant's primary site (assuming the current state is an interview)
+          return CnHttpFactory.instance( {
+            path: 'appointment/' + record.getIdentifier(),
+            data: { select: { column: [ { table: 'effective_site', column: 'name' } ] } }
+          } ).get().then( function( response ) {
+            if( response.data.name ) params.site = 'name=' + response.data.name;
+            return $state.go( self.module.subject.snake + '.view', params );
+          } );
         };
 
         // pass type when transitioning to last state
@@ -683,10 +696,16 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         },
         instance: function() {
           var site = null;
-          if( 'calendar' == $state.current.name.split( '.' )[1] ||
-              'list' == $state.current.name.split( '.' )[1] ) {
+          var currentState = $state.current.name.split( '.' )[1];
+          if( 'calendar' == currentState || 'list' == currentState ) {
             if( angular.isDefined( $state.params.identifier ) ) {
               var identifier = $state.params.identifier.split( '=' );
+              if( 2 == identifier.length )
+                site = CnSession.siteList.findByProperty( identifier[0], identifier[1] );
+            }
+          } else if( 'add_appointment' == currentState || 'view' == currentState ) {
+            if( angular.isDefined( $state.params.site ) ) {
+              var identifier = $state.params.site.split( '=' );
               if( 2 == identifier.length )
                 site = CnSession.siteList.findByProperty( identifier[0], identifier[1] );
             }

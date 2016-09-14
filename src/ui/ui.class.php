@@ -33,12 +33,13 @@ class ui extends \cenozo\ui\ui
     if( array_key_exists( 'appointment', $module_list ) )
     {
       if( array_key_exists( 'add', $module_list['appointment']['actions'] ) )
-        $module_list['appointment']['actions']['add'] = '/{type}'.$module_list['appointment']['actions']['add'];
+        $module_list['appointment']['actions']['add'] = '?{site}';
       if( array_key_exists( 'list', $module_list['appointment']['actions'] ) )
         $module_list['appointment']['actions']['list'] =
           '/{type}/{identifier}'.$module_list['appointment']['actions']['list'];
       if( array_key_exists( 'view', $module_list['appointment']['actions'] ) )
-       $module_list['appointment']['actions']['view'] = '/{type}'.$module_list['appointment']['actions']['view'];
+       $module_list['appointment']['actions']['view'] =
+         sprintf( '/{type}%s?{site}', $module_list['appointment']['actions']['view'] );
     }
     if( array_key_exists( 'interview', $module_list ) )
     {
