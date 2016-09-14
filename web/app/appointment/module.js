@@ -255,7 +255,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
               $scope.model.addModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
               setupInputArray( CnHttpFactory, $scope.model, cnRecordAddScope );
-              console.log( cnRecordAddScope );
             } );
           } );
         }
@@ -526,19 +525,18 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         this.transitionToParentListState = function( subject ) {
           this.type = $state.params.type;
           if( angular.isUndefined( subject ) ) subject = '^';
-          return $state.go( subject + '.list', {
-            type: self.type,
-            identifier: this.site.getIdentifier() }
+          return $state.go(
+            subject + '.list',
+            { type: this.type, identifier: this.site.getIdentifier() }
           );
         };
 
         // pass type when transitioning to add state
         this.transitionToAddState = function() {
           this.type = $state.params.type;
-          return $state.go(
-            '^.add_' + self.module.subject.snake,
-            { type: self.type, parentIdentifier: $state.params.identifier }
-          );
+          var params = { type: this.type, parentIdentifier: $state.params.identifier };
+//TODO (get participant's site) if( CnSession.role.allSites ) params.site = 'name=' + CnSession.site.name;
+          return $state.go( '^.add_' + this.module.subject.snake, params );
         };
 
         // pass type/site when transitioning to list state
@@ -546,7 +544,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           this.type = $state.params.type;
           return $state.go(
             this.module.subject.snake + '.list',
-            { type: self.type, identifier: this.site.getIdentifier() }
+            { type: this.type, identifier: this.site.getIdentifier() }
           );
         };
 
@@ -555,7 +553,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           this.type = $state.params.type;
           return $state.go(
             this.module.subject.snake + '.view',
-            { type: self.type, identifier: record.getIdentifier() }
+            { type: this.type, identifier: record.getIdentifier() }
           );
         };
 
@@ -565,8 +563,15 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           var parent = this.getParentIdentifier();
           return $state.go(
             parent.subject + '.view',
-            { type: self.type, identifier: parent.identifier }
+            { type: this.type, identifier: parent.identifier }
           );
+        };
+
+        this.transitionToParentViewState = function( subject, identifier ) {
+          this.type = $state.params.type;
+          var params = { identifier: identifier };
+          if( 'interview' == subject ) params.type = this.type;
+          return $state.go( subject + '.view', params );
         };
 
         // extend getBreadcrumbTitle
@@ -583,13 +588,13 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
         // extend getMetadata
         this.getMetadata = function() {
-          var promiseList = [
-            this.$$getMetadata().then( function() {
-              // Force the user and address columns to be mandatory (this will only affect home appointments)
-              self.metadata.columnList.user_id.required = true;
-              self.metadata.columnList.address_id.required = true;
+          return this.$$getMetadata().then( function() {
+            // Force the user and address columns to be mandatory (this will only affect home appointments)
+            self.metadata.columnList.user_id.required = true;
+            self.metadata.columnList.address_id.required = true;
 
-              return CnHttpFactory.instance( {
+            var promiseList = [
+              CnHttpFactory.instance( {
                 path: 'appointment_type',
                 data: {
                   select: { column: [ 'id', 'name', 'qnaire_id' ] },
@@ -606,41 +611,41 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
                 // and leave the enum list empty for now, it will be set by the view/add services
                 self.metadata.columnList.appointment_type_id.enumList = [];
-              } );
-            } )
-          ];
+              } )
+            ];
 
-          var parent = this.getParentIdentifier();
-          if( angular.isDefined( parent.subject ) && angular.isDefined( parent.identifier ) ) {
-            promiseList.push(
-              CnHttpFactory.instance( {
-                path: [ parent.subject, parent.identifier ].join( '/' ),
-                data: { select: { column: { column: 'participant_id' } } }
-              } ).query().then( function( response ) {
-                // get the participant's address list
-                return CnHttpFactory.instance( {
-                  path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
-                  data: {
-                    select: { column: [ 'id', 'rank', 'summary' ] },
-                    modifier: {
-                      where: { column: 'address.active', operator: '=', value: true },
-                      order: { rank: false }
-                    }
-                  }
+            var parent = self.getParentIdentifier();
+            if( angular.isDefined( parent.subject ) && angular.isDefined( parent.identifier ) ) {
+              promiseList.push(
+                CnHttpFactory.instance( {
+                  path: [ parent.subject, parent.identifier ].join( '/' ),
+                  data: { select: { column: { column: 'participant_id' } } }
                 } ).query().then( function( response ) {
-                  self.metadata.columnList.address_id.enumList = [];
-                  response.data.forEach( function( item ) {
-                    self.metadata.columnList.address_id.enumList.push( {
-                      value: item.id,
-                      name: item.summary
+                  // get the participant's address list
+                  return CnHttpFactory.instance( {
+                    path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
+                    data: {
+                      select: { column: [ 'id', 'rank', 'summary' ] },
+                      modifier: {
+                        where: { column: 'address.active', operator: '=', value: true },
+                        order: { rank: false }
+                      }
+                    }
+                  } ).query().then( function( response ) {
+                    self.metadata.columnList.address_id.enumList = [];
+                    response.data.forEach( function( item ) {
+                      self.metadata.columnList.address_id.enumList.push( {
+                        value: item.id,
+                        name: item.summary
+                      } );
                     } );
                   } );
-                } );
-              } )
-            );
-          }
+                } )
+              );
+            }
 
-          return $q.all( promiseList );
+            return $q.all( promiseList );
+          } );
         };
 
         // extend getTypeaheadData
@@ -688,6 +693,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           }
 
           if( null == site ) site = CnSession.site;
+          if( angular.isUndefined( site.getIdentifier ) )
+            site.getIdentifier = function() { return 'name=' + this.name; };
           return this.forSite( site );
         }
       };

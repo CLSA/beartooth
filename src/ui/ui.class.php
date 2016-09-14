@@ -36,7 +36,7 @@ class ui extends \cenozo\ui\ui
         $module_list['appointment']['actions']['add'] = '/{type}'.$module_list['appointment']['actions']['add'];
       if( array_key_exists( 'list', $module_list['appointment']['actions'] ) )
         $module_list['appointment']['actions']['list'] =
-          '/{type}/{typeIdentifier}'.$module_list['appointment']['actions']['list'];
+          '/{type}/{identifier}'.$module_list['appointment']['actions']['list'];
       if( array_key_exists( 'view', $module_list['appointment']['actions'] ) )
        $module_list['appointment']['actions']['view'] = '/{type}'.$module_list['appointment']['actions']['view'];
     }
