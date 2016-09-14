@@ -17,102 +17,91 @@ class ui extends \cenozo\ui\ui
   /**
    * Extends the parent method
    */
-  protected function get_module_list( $modifier = NULL )
+  protected function build_module_list()
   {
-    $module_list = parent::get_module_list( $modifier );
+    parent::build_module_list();
+
     $db_role = lib::create( 'business\session' )->get_role();
 
     // remove all lists from the interviewer role
-    if( 'interviewer' == $db_role->name )
-    {
-      foreach( $module_list as $name => &$module )
-        if( 'participant' != $name ) $module['list_menu'] = false;
-    }
+    if( 'interviewer' == $db_role->name ) $this->set_all_list_menu( false );
 
     // add child actions to certain modules
-    if( array_key_exists( 'appointment', $module_list ) )
-    {
-      if( array_key_exists( 'add', $module_list['appointment']['actions'] ) )
-        $module_list['appointment']['actions']['add'] = '?{site}';
-      if( array_key_exists( 'list', $module_list['appointment']['actions'] ) )
-        $module_list['appointment']['actions']['list'] =
-          '/{type}/{identifier}'.$module_list['appointment']['actions']['list'];
-      if( array_key_exists( 'view', $module_list['appointment']['actions'] ) )
-       $module_list['appointment']['actions']['view'] =
-         sprintf( '/{type}%s?{site}', $module_list['appointment']['actions']['view'] );
-    }
-    if( array_key_exists( 'interview', $module_list ) )
-    {
-      if( array_key_exists( 'view', $module_list['interview']['actions'] ) )
-        $module_list['interview']['actions']['view'] = '/{type}'.$module_list['interview']['actions']['view'];
-      array_unshift( $module_list['interview']['children'], 'appointment' );
-    }
-    if( array_key_exists( 'onyx_instance', $module_list ) )
-    {
-      $module_list['onyx_instance']['children'] = array( 'activity' );
-    }
-    if( array_key_exists( 'participant', $module_list ) )
-    {
-      // add extra types to history
-      $module_list['participant']['actions']['history'] .= '&{appointment}';
-    }
-    if( array_key_exists( 'qnaire', $module_list ) )
-    {
-      $module_list['qnaire']['children'] = array( 'appointment_type' );
-      $module_list['qnaire']['choosing'] = array( 'script', 'site', 'quota' );
-    }
-    if( array_key_exists( 'queue', $module_list ) )
-    {
-      $module_list['queue']['list_menu'] = true; // always show the queue list
-      $module_list['queue']['choosing'] = array( 'participant' );
 
+    $module = $this->get_module( 'appointment' );
+    if( !is_null( $module ) )
+    {
+      // add type (home|site) to list and view states, and identifier (site) to list state
+      $module->prepend_action_query( 'list', '/{type}/{identifier}' );
+      $module->prepend_action_query( 'view', '/{type}' );
+
+      // add site parameter to add and view states
+      $module->append_action_query( 'add', '?{site}' );
+      $module->append_action_query( 'view', '?{site}' );
+    }
+
+    $module = $this->get_module( 'interview' );
+    if( !is_null( $module ) )
+    {
+      $module->prepend_action_query( 'view', '/{type}' );
+      $module->add_child( 'appointment' );
+    }
+
+    $module = $this->get_module( 'onyx_instance' );
+    if( !is_null( $module ) ) $module->add_child( 'activity' );
+
+    $module = $this->get_module( 'participant' );
+    if( !is_null( $module ) ) $module->append_action_query( 'history', '&{appointment}' );
+
+    $module = $this->get_module( 'qnaire' );
+    if( !is_null( $module ) )
+    {
+      $module->add_child( 'appointment_type' );
+      $module->add_choose( 'script' );
+      $module->add_choose( 'site' );
+      $module->add_choose( 'quota' );
+    }
+
+    $module = $this->get_module( 'queue' );
+    if( !is_null( $module ) )
+    {
+      $module->set_list_menu( true ); // always show the queue list
+      $module->add_choose( 'participant' );
       // add special query parameters to queue-view
-      if( array_key_exists( 'view', $module_list['queue']['actions'] ) )
-        $module_list['queue']['actions']['view'] .= '?{restrict}&{order}&{reverse}';
-    }
-    if( array_key_exists( 'quota', $module_list ) )
-    {
-      $module_list['quota']['choosing'] = array( 'qnaire' );
-    }
-    // interviewers do not get access to participant search
-    if( array_key_exists( 'search_result', $module_list ) && 'interviewer' == $db_role->name )
-    {
-      $module_list['search_result']['actions'] = array();
-    }
-    if( array_key_exists( 'site', $module_list ) )
-    {
-      $module_list['site']['choosing'] = array( 'qnaire' );
+      $module->append_action_query( 'view', '?{restrict}&{order}&{reverse}' );
     }
 
-    return $module_list;
+    $module = $this->get_module( 'quota' );
+    if( !is_null( $module ) ) $module->add_choose( 'qnaire' );
+
+    // interviewers do not get access to participant search
+    $module = $this->get_module( 'search_result' );
+    if( !is_null( $module ) && 'interviewer' == $db_role->name ) $module->remove_all_actions();
+
+    $module = $this->get_module( 'site' );
+    if( !is_null( $module ) ) $module->add_choose( 'qnaire' );
   }
 
   /**
    * Extends the parent method
    */
-  protected function get_list_items( $module_list )
+  protected function build_listitem_list()
   {
-    $list = parent::get_list_items( $module_list );
+    parent::build_listitem_list();
+
     $db_role = lib::create( 'business\session' )->get_role();
 
     if( in_array( $db_role->name, array( 'interviewer', 'interviewer+' ) ) )
     {
-      $list['My Participants'] = $list['Participants'];
-      unset( $list['Participants'] );
+      $this->add_listitem( 'My Participants', 'participant' );
+      $this->remove_listitem( 'Participants' );
+      $this->remove_listitem( 'Interviews' );
     }
 
     // add application-specific states to the base list
-    if( array_key_exists( 'Interviews', $list ) &&
-        !in_array( $db_role->name, array( 'interviewer', 'interviewer+' ) ) )
-      unset( $list['Interviews'] );
-    if( array_key_exists( 'onyx_instance', $module_list ) && $module_list['onyx_instance']['list_menu'] )
-      $list['Onyx Instances'] = 'onyx_instance';
-    if( array_key_exists( 'qnaire', $module_list ) && $module_list['qnaire']['list_menu'] )
-      $list['Questionnaires'] = 'qnaire';
-    if( array_key_exists( 'queue', $module_list ) && $module_list['queue']['list_menu'] )
-      $list['Queues'] = 'queue';
-
-    return $list;
+    $this->add_listitem( 'Onyx Instances', 'onyx_instance' );
+    $this->add_listitem( 'Questionnaires', 'qnaire' );
+    $this->add_listitem( 'Queues', 'queue' );
   }
 
   /**
