@@ -158,6 +158,9 @@ class module extends \cenozo\service\base_calendar_module
       'participant_site.application_id', '=', $db_application->id );
     $modifier->join_modifier( 'participant_site', $participant_site_join_mod, 'left' );
 
+    if( $select->has_table_columns( 'effective_site' ) )
+      $modifier->join( 'site', 'participant_site.site_id', 'effective_site.id', 'left', 'effective_site' );
+
     // onyx roles need to be treated specially
     if( 'onyx' == $db_role->name )
     {
@@ -248,11 +251,6 @@ class module extends \cenozo\service\base_calendar_module
       {
         $modifier->where( 'appointment.user_id', '=', $db_interviewer_user->id );
       }
-
-      // restrict by site
-      $db_restricted_site = $this->get_restricted_site();
-      if( !is_null( $db_restricted_site ) )
-        $modifier->where( 'participant_site.site_id', '=', $db_restricted_site->id );
 
       // restrict by appointment type
       $appointment_type = $this->get_argument( 'type', false );
