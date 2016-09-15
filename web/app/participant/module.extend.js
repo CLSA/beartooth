@@ -195,4 +195,18 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
 
   } );
 
+  // extend the list factory
+  cenozo.providers.decorator( 'CnParticipantListFactory', [
+    '$delegate', 'CnSession',
+    function( $delegate, CnSession ) {
+      var instance = $delegate.instance;
+      $delegate.instance = function( parentModel ) {
+        var object = instance( parentModel );
+        if( 'interviewer' == CnSession.role.name ) object.heading = 'My Participant List';
+        return object;
+      };
+      return $delegate;
+    }
+  ] );
+
 } );

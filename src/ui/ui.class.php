@@ -23,8 +23,12 @@ class ui extends \cenozo\ui\ui
 
     $db_role = lib::create( 'business\session' )->get_role();
 
-    // remove all lists from the interviewer role
-    if( 'interviewer' == $db_role->name ) $this->set_all_list_menu( false );
+    // remove all lists from the interviewer role except for participant
+    if( 'interviewer' == $db_role->name )
+    {
+      $this->set_all_list_menu( false );
+      $this->get_module( 'participant' )->set_list_menu( true );
+    }
 
     // add child actions to certain modules
 
@@ -44,7 +48,7 @@ class ui extends \cenozo\ui\ui
     if( !is_null( $module ) )
     {
       $module->prepend_action_query( 'view', '/{type}' );
-      $module->add_child( 'appointment' );
+      $module->add_child( 'appointment', 0 );
     }
 
     $module = $this->get_module( 'onyx_instance' );
