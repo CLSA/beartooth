@@ -274,7 +274,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           preventSiteChange: '@'
         },
         controller: function( $scope ) {
+          console.log( $scope.model );
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
+          console.log( $scope.model.type );
           $scope.model.calendarModel.heading = $scope.model.site.name.ucWords() + ' - '
             + ( 'home' == $scope.model.type && 'interviewer' == CnSession.role.name ? 'Personal ' : '' )
             + $scope.model.type.ucWords() + ' Appointment Calendar';
@@ -692,6 +694,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           }
           if( angular.isUndefined( this.siteInstanceList[site.id] ) )
             this.siteInstanceList[site.id] = new object( site );
+          if( $state.params.type ) this.siteInstanceList[site.id].type = $state.params.type;
           return this.siteInstanceList[site.id];
         },
         instance: function() {

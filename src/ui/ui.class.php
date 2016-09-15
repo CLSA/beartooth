@@ -91,7 +91,7 @@ class ui extends \cenozo\ui\ui
 
     $db_role = lib::create( 'business\session' )->get_role();
 
-    if( in_array( $db_role->name, array( 'interviewer', 'interviewer+' ) ) )
+    if( 'interviewer' == $db_role->name )
     {
       $this->add_listitem( 'My Participants', 'participant' );
       $this->remove_listitem( 'Participants' );
