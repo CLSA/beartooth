@@ -143,12 +143,10 @@ class module extends \cenozo\service\participant\module
       }
 
       // interviewer's participant list only includes participants they have an incomplete appointment with
-      // an exception is for interviewer+ looking at parented participant lists
       if( 'GET' == $this->get_method() && is_null( $this->get_resource() ) )
       {
         $db_role = $session->get_role();
-        if( 'interviewer' == $db_role->name ||
-            ( 'interviewer+' == $db_role->name && is_null( $this->get_parent_subject() ) ) )
+        if( 'interviewer' == $db_role->name )
         {
           $modifier->join( 'interview', 'participant.id', 'interview.participant_id' );
           $modifier->join( 'appointment', 'interview.id', 'appointment.interview_id' );
