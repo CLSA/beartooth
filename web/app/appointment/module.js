@@ -540,11 +540,11 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     'CnBaseModelFactory',
     'CnAppointmentAddFactory', 'CnAppointmentCalendarFactory',
     'CnAppointmentListFactory', 'CnAppointmentViewFactory',
-    'CnSession', 'CnHttpFactory', '$q', '$state', '$rootScope',
+    'CnSession', 'CnHttpFactory', '$state',
     function( CnBaseModelFactory,
               CnAppointmentAddFactory, CnAppointmentCalendarFactory,
               CnAppointmentListFactory, CnAppointmentViewFactory,
-              CnSession, CnHttpFactory, $q, $state, $rootScope ) {
+              CnSession, CnHttpFactory, $state, ) {
       var object = function( site ) {
         if( !angular.isObject( site ) || angular.isUndefined( site.id ) )
           throw new Error( 'Tried to create CnAppointmentModel without specifying the site.' );
