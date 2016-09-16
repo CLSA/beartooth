@@ -274,9 +274,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           preventSiteChange: '@'
         },
         controller: function( $scope ) {
-          console.log( $scope.model );
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
-          console.log( $scope.model.type );
           $scope.model.calendarModel.heading = $scope.model.site.name.ucWords() + ' - '
             + ( 'home' == $scope.model.type && 'interviewer' == CnSession.role.name ? 'Personal ' : '' )
             + $scope.model.type.ucWords() + ' Appointment Calendar';
@@ -388,6 +386,38 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       var object = function( parentModel ) {
         var self = this;
         CnBaseAddFactory.construct( this, parentModel );
+
+        this.onNew = function( record ) {
+          // update the address list based on the parent interview
+          var parent = parentModel.getParentIdentifier();
+          return CnHttpFactory.instance( {
+            path: [ parent.subject, parent.identifier ].join( '/' ),
+            data: { select: { column: { column: 'participant_id' } } }
+          } ).query().then( function( response ) {
+            // get the participant's address list
+            return CnHttpFactory.instance( {
+              path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
+              data: {
+                select: { column: [ 'id', 'rank', 'summary' ] },
+                modifier: {
+                  where: { column: 'address.active', operator: '=', value: true },
+                  order: { rank: false }
+                }
+              }
+            } ).query().then( function( response ) {
+              return parentModel.metadata.getPromise().then( function() {
+                parentModel.metadata.columnList.address_id.enumList = [];
+                response.data.forEach( function( item ) {
+                  parentModel.metadata.columnList.address_id.enumList.push( {
+                    value: item.id,
+                    name: item.summary
+                  } );
+                } );
+                return self.$$onNew( record );
+              } );
+            } );
+          } )
+        };
 
         // add the new appointment's events to the calendar cache
         this.onAdd = function( record ) {
@@ -608,58 +638,24 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
             self.metadata.columnList.user_id.required = true;
             self.metadata.columnList.address_id.required = true;
 
-            var promiseList = [
-              CnHttpFactory.instance( {
-                path: 'appointment_type',
-                data: {
-                  select: { column: [ 'id', 'name', 'qnaire_id' ] },
-                  modifier: { order: 'name' }
-                }
-              } ).query().then( function success( response ) {
-                // store the appointment types in a special array with qnaire_id as indeces:
-                var qnaireList = {};
-                response.data.forEach( function( item ) {
-                  if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
-                  qnaireList[item.qnaire_id].push( { value: item.id, name: item.name, } );
-                } );
-                self.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
+            return CnHttpFactory.instance( {
+              path: 'appointment_type',
+              data: {
+                select: { column: [ 'id', 'name', 'qnaire_id' ] },
+                modifier: { order: 'name' }
+              }
+            } ).query().then( function success( response ) {
+              // store the appointment types in a special array with qnaire_id as indeces:
+              var qnaireList = {};
+              response.data.forEach( function( item ) {
+                if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
+                qnaireList[item.qnaire_id].push( { value: item.id, name: item.name, } );
+              } );
+              self.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
 
-                // and leave the enum list empty for now, it will be set by the view/add services
-                self.metadata.columnList.appointment_type_id.enumList = [];
-              } )
-            ];
-
-            var parent = self.getParentIdentifier();
-            if( angular.isDefined( parent.subject ) && angular.isDefined( parent.identifier ) ) {
-              promiseList.push(
-                CnHttpFactory.instance( {
-                  path: [ parent.subject, parent.identifier ].join( '/' ),
-                  data: { select: { column: { column: 'participant_id' } } }
-                } ).query().then( function( response ) {
-                  // get the participant's address list
-                  return CnHttpFactory.instance( {
-                    path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
-                    data: {
-                      select: { column: [ 'id', 'rank', 'summary' ] },
-                      modifier: {
-                        where: { column: 'address.active', operator: '=', value: true },
-                        order: { rank: false }
-                      }
-                    }
-                  } ).query().then( function( response ) {
-                    self.metadata.columnList.address_id.enumList = [];
-                    response.data.forEach( function( item ) {
-                      self.metadata.columnList.address_id.enumList.push( {
-                        value: item.id,
-                        name: item.summary
-                      } );
-                    } );
-                  } );
-                } )
-              );
-            }
-
-            return $q.all( promiseList );
+              // and leave the enum list empty for now, it will be set by the view/add services
+              self.metadata.columnList.appointment_type_id.enumList = [];
+            } );
           } );
         };
 
