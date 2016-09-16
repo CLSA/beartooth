@@ -489,17 +489,45 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAppointmentViewFactory', [
-    'CnBaseViewFactory', 'CnSession', '$injector',
-    function( CnBaseViewFactory, CnSession, $injector ) {
+    'CnBaseViewFactory', 'CnSession', 'CnHttpFactory', '$injector',
+    function( CnBaseViewFactory, CnSession, CnHttpFactory, $injector ) {
       var object = function( parentModel, root ) {
         var self = this;
         CnBaseViewFactory.construct( this, parentModel, root );
 
         this.onView = function() {
-          return this.$$onView().then( function() {
+          return self.$$onView().then( function() {
             var upcoming = moment().isBefore( self.record.datetime, 'minute' );
             parentModel.getDeleteEnabled = function() { return parentModel.$$getDeleteEnabled() && upcoming; };
             parentModel.getEditEnabled = function() { return parentModel.$$getEditEnabled() && upcoming; };
+
+            // update the address list based on the parent interview
+            return CnHttpFactory.instance( {
+              path: 'interview/' + self.record.interview_id,
+              data: { select: { column: { column: 'participant_id' } } }
+            } ).query().then( function( response ) {
+              // get the participant's address list
+              return CnHttpFactory.instance( {
+                path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
+                data: {
+                  select: { column: [ 'id', 'rank', 'summary' ] },
+                  modifier: {
+                    where: { column: 'address.active', operator: '=', value: true },
+                    order: { rank: false }
+                  }
+                }
+              } ).query().then( function( response ) {
+                return parentModel.metadata.getPromise().then( function() {
+                  parentModel.metadata.columnList.address_id.enumList = [];
+                  response.data.forEach( function( item ) {
+                    parentModel.metadata.columnList.address_id.enumList.push( {
+                      value: item.id,
+                      name: item.summary
+                    } );
+                  } );
+                } );
+              } );
+            } );
           } );
         };
       }
