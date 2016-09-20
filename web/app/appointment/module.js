@@ -167,27 +167,29 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     inputArray.findByProperty( 'key', 'address_id' ).type = 'home' == model.type ? 'enum' : 'hidden';
 
     var identifier = model.getParentIdentifier();
-    CnHttpFactory.instance( {
-      path: identifier.subject + '/' + identifier.identifier,
-      data: { select: { column: [ 'qnaire_id' ] } }
-    } ).get().then( function( response ) {
-      var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
+    if( angular.isDefined( identifier.subject ) && angular.isDefined( identifier.identifier ) ) {
+      CnHttpFactory.instance( {
+        path: identifier.subject + '/' + identifier.identifier,
+        data: { select: { column: [ 'qnaire_id' ] } }
+      } ).get().then( function( response ) {
+        var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
 
-      // set the appointment type enum list based on the qnaire_id
-      inputArray[appointmentTypeIndex].enumList = angular.copy(
-        model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
-      );
+        // set the appointment type enum list based on the qnaire_id
+        inputArray[appointmentTypeIndex].enumList = angular.copy(
+          model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
+        );
 
-      // we must also manually add the empty entry
-      if( angular.isUndefined( inputArray[appointmentTypeIndex].enumList ) )
-        inputArray[appointmentTypeIndex].enumList = [];
-      if( null == inputArray[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) ) {
-        inputArray[appointmentTypeIndex].enumList.unshift( {
-          value: 'cnRecordAdd' == childScope.directive ? undefined : '',
-          name: '(empty)'
-        } );
-      }
-    } );
+        // we must also manually add the empty entry
+        if( angular.isUndefined( inputArray[appointmentTypeIndex].enumList ) )
+          inputArray[appointmentTypeIndex].enumList = [];
+        if( null == inputArray[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) ) {
+          inputArray[appointmentTypeIndex].enumList.unshift( {
+            value: 'cnRecordAdd' == childScope.directive ? undefined : '',
+            name: '(empty)'
+          } );
+        }
+      } );
+    }
   }
 
   /* ######################################################################################################## */
