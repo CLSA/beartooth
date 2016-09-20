@@ -197,6 +197,7 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
 
   } );
 
+
   // extend the list factory
   cenozo.providers.decorator( 'CnParticipantListFactory', [
     '$delegate', 'CnSession',
@@ -207,6 +208,16 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
         if( 'interviewer' == CnSession.role.name ) object.heading = 'My Participant List';
         return object;
       };
+      return $delegate;
+    }
+  ] );
+
+  // extend the list factory
+  cenozo.providers.decorator( 'CnParticipantModelFactory', [
+    '$delegate', 'CnSession',
+    function( $delegate, CnSession ) {
+      // only allow tier-3 roles to override the quota
+      $delegate.root.module.getInput( 'override_quota' ).constant = 3 > CnSession.role.tier;
       return $delegate;
     }
   ] );
