@@ -10,6 +10,61 @@ DROP PROCEDURE IF EXISTS patch_interview;
       WHERE constraint_schema = DATABASE()
       AND constraint_name = "fk_access_site_id" );
 
+    SELECT "Finding orphaned appointments" AS "";
+
+    DROP TABLE IF EXISTS home_appointment;
+
+    SET @sql = CONCAT(
+      "CREATE TEMPORARY TABLE home_appointment ",
+      "SELECT appointment.id ",
+      "FROM appointment ",
+      "JOIN ", @cenozo, ".participant ON appointment.participant_id = participant.id ",
+      "JOIN interview ON participant.id = interview.participant_id ",
+      "JOIN qnaire ON interview.qnaire_id = qnaire.id AND qnaire.type = 'home' ",
+      "WHERE appointment.address_id IS NOT NULL" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    ALTER TABLE home_appointment ADD PRIMARY KEY (id);
+
+    DROP TABLE IF EXISTS site_appointment;
+
+    SET @sql = CONCAT(
+      "CREATE TEMPORARY TABLE site_appointment ",
+      "SELECT appointment.id ",
+      "FROM appointment ",
+      "JOIN ", @cenozo, ".participant ON appointment.participant_id = participant.id ",
+      "JOIN interview ON participant.id = interview.participant_id ",
+      "JOIN qnaire ON interview.qnaire_id = qnaire.id AND qnaire.type = 'site' ",
+      "WHERE appointment.address_id IS NULL" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    ALTER TABLE site_appointment ADD PRIMARY KEY (id);
+
+    SELECT "Creating interviews for orphaned home appointments" AS "";
+
+    INSERT INTO interview( qnaire_id, participant_id )
+    SELECT qnaire.id, appointment.participant_id
+    FROM qnaire, appointment
+    WHERE qnaire.type = "home"
+    AND appointment.id NOT IN( SELECT id FROM home_appointment UNION SELECT id FROM site_appointment )
+    AND appointment.address_id IS NOT NULL;
+
+    SELECT "Creating interviews for orphaned site appointments" AS "";
+
+    INSERT INTO interview( qnaire_id, participant_id )
+    SELECT qnaire.id, appointment.participant_id
+    FROM qnaire, appointment
+    WHERE qnaire.type = "site"
+    AND appointment.id NOT IN( SELECT id FROM home_appointment UNION SELECT id FROM site_appointment )
+    AND appointment.address_id IS NULL;
+
+    DROP TABLE home_appointment;
+    DROP TABLE site_appointment;
+
     SELECT "Replacing completed with start_datetime and end_datetime columns in interview table" AS "";
 
     SET @test = (
