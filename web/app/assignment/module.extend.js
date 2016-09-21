@@ -21,6 +21,12 @@ define( [ 'participant' ].reduce( function( list, name ) {
     constant: true
   } );
 
+  // used when transitioning to the parent interview state
+  module.addInput( '', 'type', {
+    column: 'qnaire.type',
+    type: 'hidden'
+  } );
+
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAssignmentControl', [
     'CnAssignmentControlFactory', '$window',
@@ -39,6 +45,37 @@ define( [ 'participant' ].reduce( function( list, name ) {
           scope.$on( '$destroy', function() { win.off( 'focus', focusFn ); } );
         }
       };
+    }
+  ] );
+
+  // extend the model factory
+  cenozo.providers.decorator( 'CnAssignmentModelFactory', [
+    '$delegate', '$state', 'CnHttpFactory',
+    function( $delegate, $state, CnHttpFactory ) {
+      var instance = $delegate.instance;
+      // extend getBreadcrumbTitle
+      // (metadata's promise will have already returned so we don't have to wait for it)
+      function extendObject( object ) {
+        angular.extend( object, {
+          // pass type when transitioning to view state
+          transitionToParentViewState: function( subject, identifier ) {
+            return $state.go(
+              subject + '.view',
+              { type: object.viewModel.record.type, identifier: identifier }
+            );
+          }
+        } );
+      }
+
+      extendObject( $delegate.root );
+
+      $delegate.instance = function() {
+        var object = instance();
+        extendObject( object );
+        return object;
+      };
+
+      return $delegate;
     }
   ] );
 
