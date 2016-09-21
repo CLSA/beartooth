@@ -140,6 +140,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     if( angular.isDefined( appointment.start ) && angular.isDefined( appointment.end ) ) {
       return appointment;
     } else {
+    console.log( appointment );
       var date = moment( appointment.datetime );
       var offset = moment.tz.zone( timezone ).offset( date.unix() );
 
@@ -154,6 +155,12 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         end: moment( appointment.datetime ).subtract( offset, 'minutes' ).add( appointment.duration, 'minute' ),
         color: appointment.color
       };
+
+      if( null != appointment.outcome ) {
+        if( 'cancelled' == appointment.outcome ) event.className = 'calendar-event-cancelled';
+        event.textColor = 'lightgray';
+      }
+
       return event;
     }
   }
@@ -569,7 +576,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
             if( 'appointment' == self.getSubjectFromState() ) data.restricted_site_id = self.site.id;
             data.type = self.type;
             if( 'calendar' == type ) {
-              data.select = { column: [ 'datetime', {
+              data.select = { column: [ 'datetime', 'outcome', {
                 table: 'appointment_type',
                 column: 'color'
               } ] };
