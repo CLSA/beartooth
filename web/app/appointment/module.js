@@ -140,7 +140,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     if( angular.isDefined( appointment.start ) && angular.isDefined( appointment.end ) ) {
       return appointment;
     } else {
-    console.log( appointment );
       var date = moment( appointment.datetime );
       var offset = moment.tz.zone( timezone ).offset( date.unix() );
 
