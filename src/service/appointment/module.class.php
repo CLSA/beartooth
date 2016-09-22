@@ -146,6 +146,7 @@ class module extends \cenozo\service\base_calendar_module
     $session = lib::create( 'business\session' );
     $db_application = $session->get_application();
     $db_user = $session->get_user();
+    $db_site = $session->get_site();
     $db_role = $session->get_role();
 
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
@@ -187,6 +188,7 @@ class module extends \cenozo\service\base_calendar_module
         'participant_primary_address', 'participant.id', 'participant_primary_address.participant_id' );
       $modifier->left_join( 'address', 'participant_primary_address.address_id', 'address.id' );
       $modifier->left_join( 'region', 'address.region_id', 'region.id' );
+      $modifier->where( 'participant_site.site_id', '=', $db_site->id );
 
       // restrict by onyx instance
       $db_onyx_instance = $onyx_instance_class_name::get_unique_record( 'user_id', $db_user->id );
@@ -197,7 +199,11 @@ class module extends \cenozo\service\base_calendar_module
           __METHOD__ );
 
       $db_interviewer_user = $db_onyx_instance->get_interviewer_user();
-      if( is_null( $db_interviewer_user ) )
+      if( !is_null( $db_interviewer_user ) )
+      {
+        $modifier->where( 'appointment.user_id', '=', $db_interviewer_user->id );
+      }
+      else
       {
         $modifier->where( 'appointment.user_id', '=', NULL );
         $select->add_column(
@@ -246,10 +252,6 @@ class module extends \cenozo\service\base_calendar_module
           'urine_consent.id',
           'urine_consent' );
         $modifier->where( 'urine_consent_type.name', '=', 'take urine' );
-      }
-      else
-      {
-        $modifier->where( 'appointment.user_id', '=', $db_interviewer_user->id );
       }
 
       // restrict by appointment type
