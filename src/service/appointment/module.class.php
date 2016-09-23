@@ -184,6 +184,17 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_table_column( 'address', 'postcode' );
       $select->add_table_column( 'participant', 'email' );
 
+      // add next of kin information
+      $modifier->left_join( 'next_of_kin', 'participant.id', 'next_of_kin.participant_id' );
+      $select->add_table_column( 'next_of_kin', 'first_name', 'nextOfKin.firstName' );
+      $select->add_table_column( 'next_of_kin', 'last_name', 'nextOfKin.lastName' );
+      $select->add_table_column( 'next_of_kin', 'gender', 'nextOfKin.gender' );
+      $select->add_table_column( 'next_of_kin', 'phone', 'nextOfKin.phone' );
+      $select->add_table_column( 'next_of_kin', 'street', 'nextOfKin.street' );
+      $select->add_table_column( 'next_of_kin', 'city', 'nextOfKin.city' );
+      $select->add_table_column( 'next_of_kin', 'province', 'nextOfKin.province' );
+      $select->add_table_column( 'next_of_kin', 'postal_code', 'nextOfKin.postalCode' );
+
       $modifier->join(
         'participant_primary_address', 'participant.id', 'participant_primary_address.participant_id' );
       $modifier->left_join( 'address', 'participant_primary_address.address_id', 'address.id' );
