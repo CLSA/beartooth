@@ -386,4 +386,8 @@ class module extends \cenozo\service\base_calendar_module
       if( !is_null( $type ) ) $modifier->where( 'qnaire.type', '=', $type );
     }
   }
+
+  // TODO: temporary code until Onyx is updated to use valid ISO8601 dates at which time this will be removed
+  public function post_read( &$row )
+  { $row['datetime'] = util::get_datetime_object( $row['datetime'] )->format( \DateTime::ISO8601 ); }
 }
