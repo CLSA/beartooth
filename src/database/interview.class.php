@@ -21,26 +21,23 @@ class interview extends \cenozo\database\interview
   {
     parent::complete( $db_credit_site );
 
-    if( is_null( $this->end_datetime ) )
+    // record the qnaire as complete
+    $db_participant = $this->get_participant();
+    $db_completed_event_type = $this->get_qnaire()->get_completed_event_type();
+    $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'event_type_id', '=', $db_completed_event_type->id );
+    if( 0 == $db_participant->get_event_count( $modifier ) )
     {
-      // record the qnaire as complete
-      $db_participant = $this->get_participant();
-      $db_completed_event_type = $this->get_qnaire()->get_completed_event_type();
-      $modifier = lib::create( 'database\modifier' );
-      $modifier->where( 'event_type_id', '=', $db_completed_event_type->id );
-      if( 0 == $db_participant->get_event_count( $modifier ) )
-      {
-        $session = lib::create( 'business\session' );
-        $db_site = $session->get_site();
-        $db_user = $session->get_user();
-        $db_event = lib::create( 'database\event' );
-        $db_event->participant_id = $db_participant->id;
-        $db_event->event_type_id = $db_completed_event_type->id;
-        $db_event->site_id = $db_site->id;
-        $db_event->user_id = $db_user->id;
-        $db_event->datetime = $datetime;
-        $db_event->save();
-      }
+      $session = lib::create( 'business\session' );
+      $db_site = $session->get_site();
+      $db_user = $session->get_user();
+      $db_event = lib::create( 'database\event' );
+      $db_event->participant_id = $db_participant->id;
+      $db_event->event_type_id = $db_completed_event_type->id;
+      $db_event->site_id = $db_site->id;
+      $db_event->user_id = $db_user->id;
+      $db_event->datetime = $datetime;
+      $db_event->save();
     }
 
     // fill in the outcome of all appointments with no outcome
