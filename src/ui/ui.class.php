@@ -62,7 +62,6 @@ class ui extends \cenozo\ui\ui
     {
       $module->add_child( 'appointment_type' );
       $module->add_choose( 'script' );
-      $module->add_choose( 'site' );
       $module->add_choose( 'quota' );
     }
 
@@ -81,9 +80,6 @@ class ui extends \cenozo\ui\ui
     // interviewers do not get access to participant search
     $module = $this->get_module( 'search_result' );
     if( !is_null( $module ) && 'interviewer' == $db_role->name ) $module->remove_all_actions();
-
-    $module = $this->get_module( 'site' );
-    if( !is_null( $module ) ) $module->add_choose( 'qnaire' );
   }
 
   /**
