@@ -98,6 +98,23 @@ CREATE PROCEDURE patch_role_has_service()
       "INSERT INTO role_has_service( role_id, service_id ) ",
       "SELECT role.id, service.id ",
       "FROM ", @cenozo, ".role, service ",
+      "WHERE role.name IN ( 'interviewer', 'interviewer+' ) ",
+      "AND ( ",
+        "service.restricted = 1 ",
+        "AND service.subject = 'report' ",
+        "OR ( ",
+          "service.subject IN( 'report_restriction', 'report_type' ) ",
+          "AND service.method = 'GET' ",
+        ") ",
+      ")" );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT INTO role_has_service( role_id, service_id ) ",
+      "SELECT role.id, service.id ",
+      "FROM ", @cenozo, ".role, service ",
       "WHERE role.name = 'interviewer+' ",
       "AND service.restricted = 1 ",
       "AND service.subject = 'queue'" );

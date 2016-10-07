@@ -47,6 +47,7 @@ SOURCE consent.sql
 SOURCE data_collection.sql
 SOURCE next_of_kin.sql
 SOURCE report_type.sql
+SOURCE report_restriction.sql
 SOURCE application_type_has_report_type.sql
 SOURCE role_has_report_type.sql
 SOURCE export.sql
