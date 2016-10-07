@@ -53,6 +53,9 @@ SOURCE role_has_report_type.sql
 SOURCE export.sql
 SOURCE export_column.sql
 SOURCE export_restriction.sql
+SOURCE overview.sql
+SOURCE application_type_has_overview.sql
+SOURCE role_has_overview.sql
 
 SOURCE interview_last_appointment.sql
 SOURCE update_interview_last_appointment.sql
