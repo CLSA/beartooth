@@ -29,7 +29,7 @@ class overview extends \cenozo\database\overview
     $db_site = $session->get_site();
     $db_site = $session->get_site();
     $db_user = $session->get_user();
-    
+
     // TODO: implement overview data fetching here
     if( 'Progress' == $this->title )
     {
@@ -128,7 +128,7 @@ class overview extends \cenozo\database\overview
           'DATE( CONVERT_TZ( overview_participant.callback, "UTC", "%s" ) ) < '.
           'DATE_ADD( CURDATE(), INTERVAL 7 - WEEKDAY( CURDATE() ) DAY ) )',
         $db_user->timezone,
-        $db_user->timezone ); 
+        $db_user->timezone );
 
       $select->from( 'overview_participant' );
       $select->add_table_column( 'qnaire', 'type' );
@@ -293,20 +293,20 @@ class overview extends \cenozo\database\overview
       $formatted_data = array();
       foreach( $data as $site => $site_data )
       {
-        $array = array( 'label' => $site, 'list' => array() );
-        
+        $array = array( 'label' => $site, 'value' => array() );
+
         foreach( $site_data as $label => $value )
         {
           if( 'home' == $label || 'site' == $label )
           {
-            $sub_array = array( 'label' => ucwords( $label ).' Interview', 'list' => array() );
+            $sub_array = array( 'label' => ucwords( $label ).' Interview', 'value' => array() );
             foreach( $value as $label => $sub_value )
-              $sub_array['list'][] = array( 'label' => $label, 'value' => (string) $sub_value );
-            $array['list'][] = $sub_array;
+              $sub_array['value'][] = array( 'label' => $label, 'value' => (string) $sub_value );
+            $array['value'][] = $sub_array;
           }
           else
           {
-            $array['list'][] = array( 'label' => $label, 'value' => (string) $value );
+            $array['value'][] = array( 'label' => $label, 'value' => (string) $value );
           }
         }
 
@@ -315,7 +315,7 @@ class overview extends \cenozo\database\overview
 
       return $formatted_data;
     }
-    
+
     // if we get here then the overview must be defined in the framework class
     return static::get_data();
   }
