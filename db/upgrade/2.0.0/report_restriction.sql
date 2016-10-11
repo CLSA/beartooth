@@ -99,30 +99,6 @@ DROP PROCEDURE IF EXISTS patch_report_restriction;
           "NULL AS enum_list, ",
           "'Restrict to a particular site.' AS description ",
       ") AS restriction ",
-      "WHERE report_type.name = 'progress'" );
-    PREPARE statement FROM @sql;
-    EXECUTE statement;
-    DEALLOCATE PREPARE statement;
-
-    SET @sql = CONCAT(
-      "INSERT IGNORE INTO ", @cenozo, ".report_restriction ( ",
-        "report_type_id, rank, name, title, mandatory, restriction_type, custom, ",
-        "subject, operator, enum_list, description ) ",
-      "SELECT report_type.id, rank, restriction.name, restriction.title, mandatory, type, custom, ",
-             "restriction.subject, operator, enum_list, restriction.description ",
-      "FROM ", @cenozo, ".report_type, ( ",
-        "SELECT ",
-          "1 AS rank, ",
-          "'site' AS name, ",
-          "'Site' AS title, ",
-          "0 AS mandatory, ",
-          "'table' AS type, ",
-          "1 AS custom, ",
-          "'site' AS subject, ",
-          "NULL AS operator, ",
-          "NULL AS enum_list, ",
-          "'Restrict to a particular site.' AS description ",
-      ") AS restriction ",
       "WHERE report_type.name = 'sample'" );
     PREPARE statement FROM @sql;
     EXECUTE statement;

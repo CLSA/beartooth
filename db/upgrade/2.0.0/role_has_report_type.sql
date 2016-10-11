@@ -17,7 +17,7 @@ DROP PROCEDURE IF EXISTS patch_role_has_report_type;
       "SELECT role.id, report_type.id ",
       "FROM ", @cenozo, ".role, ", @cenozo, ".report_type ",
       "WHERE role.name IN( 'administrator', 'coordinator' ) ",
-      "AND report_type.name IN( 'appointment', 'progress', 'sample' )" );
+      "AND report_type.name IN( 'appointment', 'sample' )" );
     PREPARE statement FROM @sql;
     EXECUTE statement;
     DEALLOCATE PREPARE statement;

@@ -22,8 +22,6 @@ DROP PROCEDURE IF EXISTS patch_report_type;
       "INSERT IGNORE INTO ", @cenozo, ".report_type ( name, title, subject, description ) VALUES ",
       "( 'appointment', 'Appointment', 'appointment', "
         "'This report provides a list of all appointments for a particular questionnaire.' ), "
-      "( 'progress', 'Progress', 'participant', "
-        "'Shows when participants completed each questionnaire.' ), "
       "( 'sample', 'Sample', 'participant', ",
         "'This report contains details used to help manage participant sample.' )" );
     PREPARE statement FROM @sql;
