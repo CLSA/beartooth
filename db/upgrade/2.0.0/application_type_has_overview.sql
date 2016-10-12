@@ -17,7 +17,7 @@ DROP PROCEDURE IF EXISTS patch_application_type_has_overview;
       "SELECT application_type.id, overview.id ",
       "FROM ", @cenozo, ".application_type, ", @cenozo, ".overview ",
       "WHERE application_type.name = 'beartooth' ",
-      "AND overview.title IN ( 'Progress' )" );
+      "AND overview.name IN ( 'progress' )" );
     PREPARE statement FROM @sql;
     EXECUTE statement;
     DEALLOCATE PREPARE statement;

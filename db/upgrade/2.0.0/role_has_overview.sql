@@ -17,7 +17,7 @@ DROP PROCEDURE IF EXISTS patch_role_has_overview;
       "SELECT role.id, overview.id ",
       "FROM ", @cenozo, ".role, ", @cenozo, ".overview ",
       "WHERE role.name IN ( 'administrator', 'coordinator' ) ",
-      "AND overview.title IN ( 'Progress' )" );
+      "AND overview.name IN ( 'progress' )" );
     PREPARE statement FROM @sql;
     EXECUTE statement;
     DEALLOCATE PREPARE statement;

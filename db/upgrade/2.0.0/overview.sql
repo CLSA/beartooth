@@ -13,8 +13,8 @@ DROP PROCEDURE IF EXISTS patch_overview;
     SELECT "Adding additional overviews" AS "";
 
     SET @sql = CONCAT(
-      "INSERT IGNORE INTO ", @cenozo, ".overview( title, description ) VALUES ",
-      "( 'Progress', 'Overview of interview progress.' )" );
+      "INSERT IGNORE INTO ", @cenozo, ".overview( name, title, description ) VALUES ",
+      "( 'progress', 'Progress', 'Overview of interview progress.' )" );
     PREPARE statement FROM @sql;
     EXECUTE statement;
     DEALLOCATE PREPARE statement;
