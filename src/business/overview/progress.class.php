@@ -25,10 +25,17 @@ class progress extends \cenozo\business\overview\base_overview
     $db_application = $session->get_application();
     $db_role = $session->get_role();
     $db_site = $session->get_site();
-    $db_site = $session->get_site();
     $db_user = $session->get_user();
 
     $data = array();
+
+    // get a list of all states
+    $state_sel = lib::create( 'database\select' );
+    $state_sel->add_column( 'name' );
+    $state_mod = lib::create( 'database\modifier' );
+    $state_mod->order( 'name' );
+    $state_list = array();
+    foreach( $state_class_name::select( $state_sel, $state_mod ) as $state ) $state_list[] = $state['name'];
 
     // create temporary table of this application's participants and their effective site
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +110,8 @@ class progress extends \cenozo\business\overview\base_overview
       $node = $this->add_root_item( $site );
       $this->add_item( $node, 'All Participants', $data['all'] );
       $this->add_item( $node, 'Withdrawn', $data['withdrawn'] );
-      $this->add_item( $node, 'Conditions' );
+      $state_node = $this->add_item( $node, 'Conditions' );
+      foreach( $state_list as $state ) $this->add_item( $state_node, $state, 0 );
       $home_node = $this->add_item( $node, 'Home Interview' );
       $this->add_item( $home_node, 'Scheduled callbacks', 0 );
       $this->add_item( $home_node, 'Callbacks this week', 0 );
@@ -141,8 +149,9 @@ class progress extends \cenozo\business\overview\base_overview
 
     foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) ) as $row )
     {
-      $node = $site_node_lookup[$row['site']]->find_node( 'Conditions' );
-      $this->add_item( $node, $row['state'], $row['count'] );
+      $parent_node = $site_node_lookup[$row['site']]->find_node( 'Conditions' );
+      $node = $parent_node->find_node( $row['state'] );
+      $node->set_value( $row['count'] );
     }
 
     // get callback data
@@ -403,15 +412,22 @@ class progress extends \cenozo\business\overview\base_overview
     if( $db_role->all_sites )
     {
       // create a summary node of all sites
-      $summary_node = $this->root_node->get_summary_node();
-
-      // sort the conditions
-      $condition_node = $summary_node->find_node( 'Conditions' );
-      $condition_node->sort_children(
-        function( $node1, $node2 ) { return $node1->get_label() > $node2->get_label(); }
-      );
-
-      $this->root_node->add_child( $summary_node, true );
+      $first_node = $this->root_node->get_summary_node();
+      $this->root_node->add_child( $first_node, true );
     }
+    else
+    {
+      $first_node = $this->root_node->find_node( $db_site->name );
+    }
+
+    // go through the first node and remove all states with a value of 0
+    $state_node = $first_node->find_node( 'Conditions' );
+    $removed_label_list = $state_node->remove_empty_children();
+
+    // and remove them from other nodes as well
+    $this->root_node->each( function( $node ) use( $removed_label_list ) {
+      $state_node = $node->find_node( 'Conditions' );
+      $state_node->remove_child_by_label( $removed_label_list );
+    } );
   }
 }
