@@ -45,11 +45,14 @@ class appointment extends \cenozo\business\report\base_report
     $select->add_column( $this->get_datetime_column( 'appointment.datetime', 'date' ), 'Date', false );
     $select->add_column( $this->get_datetime_column( 'appointment.datetime', 'time' ), 'Time', false );
     $select->add_table_column( 'participant', 'TIMESTAMPDIFF( YEAR, date_of_birth, CURDATE() )', 'Age', false );
+    $select->add_table_column( 'participant', 'sex', 'Sex' );
+    $select->add_table_column( 'language', 'name', 'Language' );
 
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
-    $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
     $modifier->where( 'qnaire.id', '=', $db_qnaire->id );
+    $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
+    $modifier->join( 'language', 'participant.language_id', 'language.id' );
 
     if( 'home' == $db_qnaire->type )
     {
