@@ -47,6 +47,11 @@ class appointment extends \cenozo\business\report\base_report
     $select->add_table_column( 'participant', 'TIMESTAMPDIFF( YEAR, date_of_birth, CURDATE() )', 'Age', false );
     $select->add_table_column( 'participant', 'sex', 'Sex' );
     $select->add_table_column( 'language', 'name', 'Language' );
+    $select->add_column(
+      'IFNULL( appointment.outcome, IF( UTC_TIMESTAMP() < appointment.datetime, "upcoming", "passed" ) )',
+      'State',
+      false
+    );
 
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
@@ -97,7 +102,10 @@ class appointment extends \cenozo\business\report\base_report
       $modifier->left_join( 'user', 'event.user_id', 'user.id' );
     }
 
-    if( $is_interviewer ) $modifier->where( 'user.id', '=', $this->db_user->id );
+    if( $is_interviewer )
+    {
+      $modifier->where( 'user.id', '=', $this->db_user->id );
+    }
 
     $this->apply_restrictions( $modifier );
 
@@ -109,6 +117,7 @@ class appointment extends \cenozo\business\report\base_report
       $modifier->join_modifier( 'participant_site', $join_mod );
     }
     $modifier->left_join( 'site', 'participant_site.site_id', 'site.id' );
+    if( !$this->db_role->all_sites ) $modifier->where( 'site.id', '=', $this->db_site->id );
 
     $this->add_table_from_select( NULL, $participant_class_name::select( $select, $modifier ) );
   }
