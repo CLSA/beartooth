@@ -93,7 +93,7 @@ DROP PROCEDURE IF EXISTS patch_report_restriction;
           "'Site' AS title, ",
           "0 AS mandatory, ",
           "'table' AS type, ",
-          "1 AS custom, ",
+          "0 AS custom, ",
           "'site' AS subject, ",
           "NULL AS operator, ",
           "NULL AS enum_list, ",

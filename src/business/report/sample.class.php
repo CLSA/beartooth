@@ -24,75 +24,133 @@ class sample extends \cenozo\business\report\base_report
     $participant_class_name = lib::get_class_name( 'database\participant' );
     $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
 
-    $modifier = lib::create( 'database\modifier' );
     $select = lib::create( 'database\select' );
     $select->from( 'participant' );
     $select->add_column( 'uid', 'UID' );
+    if( $this->db_role->all_sites )
+      $select->add_table_column( 'site', 'IFNULL( site.name, "(none)" )', 'Site', false );
+    $select->add_column( 'IF( participant.active, "Yes", "No" )', 'Active', false );
+    $select->add_table_column( 'blood_consent', 'IF( blood_consent.accept, "Yes", "No" )', 'Blood', false );
+    $select->add_table_column( 'state', 'IFNULL( state.name, "(none)" )', 'Condition', false );
+    $select->add_table_column(
+      'application_has_participant',
+      $this->get_datetime_column( 'application_has_participant.datetime' ),
+      'Released',
+      false
+    );
+    $select->add_column( 'IF( participant.email IS NOT NULL, "Yes", "No" )', 'Has Email', false );
+    $select->add_column(
+      $this->get_datetime_column( 'participant.callback' ),
+      'Callback',
+      false
+    );
+    $select->add_table_column( 'home_interview',
+      sprintf( 'IF( home_interview.end_datetime IS NOT NULL, %s, %s )',
+               $this->get_datetime_column( 'home_interview.end_datetime' ),
+               $this->get_datetime_column( 'home_appointment.datetime' ) ),
+      'Home Interview Date',
+      false
+    );
+    $select->add_table_column( 'home_interview',
+      'IF( home_interview.end_datetime IS NOT NULL, "(exported)", interviewer.name )',
+      'Home Interviewer',
+      false
+    );
+    $select->add_table_column( 'home_interview',
+      'IF( home_interview.end_datetime IS NOT NULL, "Yes", "No" )',
+      'Home Completed',
+      false
+    );
+    $select->add_table_column( 'site_interview',
+      sprintf( 'IF( site_interview.end_datetime IS NOT NULL, %s, %s )',
+               $this->get_datetime_column( 'site_interview.end_datetime' ),
+               $this->get_datetime_column( 'site_appointment.datetime' ) ),
+      'Site Interview Date',
+      false
+    );
 
-    // join to each interview for each qnaire
-    $qnaire_sel = lib::create( 'database\select' );
-    $qnaire_sel->add_column( 'id' );
-    $qnaire_sel->add_table_column( 'script', 'name' );
-    $qnaire_mod = lib::create( 'database\modifier' );
-    $qnaire_mod->join( 'script', 'qnaire.script_id', 'script.id' );
-    $qnaire_mod->order( 'qnaire.rank' );
+    $modifier = lib::create( 'database\modifier' );
 
-    // restriction which qnaire to show if there is a restriction on qnaire
-    $report_restriction_sel = lib::create( 'database\select' );
-    $report_restriction_sel->add_table_column( 'report_has_report_restriction', 'value' );
-    $report_restriction_sel->add_column( 'name' );
-    $report_restriction_sel->add_column( 'restriction_type' );
-    $report_restriction_sel->add_column( 'subject' );
-    $report_restriction_sel->add_column( 'operator' );
-    $report_restriction_mod = lib::create( 'database\modifier' );
-    $report_restriction_mod->where( 'custom', '=', true );
-    $restriction_list =
-      $this->db_report->get_report_restriction_list( $report_restriction_sel, $report_restriction_mod );
+    // do not include withdrawn participants
+    $modifier->join( 'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );
+    $modifier->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
+    $modifier->where( 'consent_type.name', '=', 'participation' );
+    $modifier->left_join( 'consent', 'participant_last_consent.consent_id', 'consent.id' );
+    $modifier->where( 'IFNULL( consent.accept, true )', '=', true );
 
-    foreach( $restriction_list as $restriction )
-      if( 'qnaire' == $restriction['name'] )
-        $qnaire_mod->where( 'qnaire.id', '=', $restriction['value'] );
+    $modifier->join(
+      'participant_last_consent',
+      'participant.id',
+      'participant_last_blood_consent.participant_id',
+      '',
+      'participant_last_blood_consent'
+    );
+    $modifier->join(
+      'consent_type',
+      'participant_last_blood_consent.consent_type_id',
+      'blood_consent_type.id',
+      '',
+      'blood_consent_type'
+    );
+    $modifier->where( 'blood_consent_type.name', '=', 'draw blood' );
+    $modifier->left_join( 'consent', 'participant_last_consent.consent_id', 'blood_consent.id', 'blood_consent' );
+    $modifier->left_join( 'state', 'participant.state_id', 'state.id' );
 
-    foreach( $qnaire_class_name::select( $qnaire_sel, $qnaire_mod ) as $qnaire )
-    {
-      $interview = sprintf( 'interview_%d', $qnaire['id'] );
-      $join_mod = lib::create( 'database\modifier' );
-      $join_mod->where( 'participant.id', '=', $interview.'.participant_id', false );
-      $join_mod->where( $interview.'.qnaire_id', '=', $qnaire['id'] );
-      $modifier->join_modifier( 'interview', $join_mod, 'left', $interview );
-      $select->add_column(
-        $this->get_datetime_column( $interview.'.end_datetime' ), $qnaire['name'], false, 'string' );
-    }
+    $modifier->inner_join( 'qnaire', NULL, 'home_qnaire' );
+    $modifier->where( 'home_qnaire.type', '=', 'home' );
+    $modifier->join(
+      'event_type', 'home_qnaire.completed_event_type_id', 'home_event_type.id', '', 'home_event_type' );
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'participant.id', '=', 'home_interview.participant_id', false );
+    $join_mod->where( 'home_qnaire.id', '=', 'home_interview.qnaire_id', false );
+    $modifier->join_modifier( 'interview', $join_mod, 'left', 'home_interview' );
+    $modifier->left_join(
+      'interview_last_appointment',
+      'home_interview.id',
+      'home_interview_last_appointment.interview_id',
+      'home_interview_last_appointment'
+    );
+    $modifier->left_join(
+      'appointment',
+      'home_interview_last_appointment.appointment_id',
+      'home_appointment.id',
+      'home_appointment'
+    );
+    $modifier->left_join( 'user', 'home_appointment.user_id', 'interviewer.id', 'interviewer' );
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'participant.id', '=', 'home_event.participant_id', false );
+    $join_mod->where( 'home_event_type.id', '=', 'home_event.event_type_id', false );
+    $modifier->join_modifier( 'event', $join_mod, 'left', 'home_event' );
+    
+    $modifier->inner_join( 'qnaire', NULL, 'site_qnaire' );
+    $modifier->where( 'site_qnaire.type', '=', 'site' );
+    $modifier->join(
+      'event_type', 'site_qnaire.completed_event_type_id', 'site_event_type.id', '', 'site_event_type' );
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'participant.id', '=', 'site_interview.participant_id', false );
+    $join_mod->where( 'site_qnaire.id', '=', 'site_interview.qnaire_id', false );
+    $modifier->join_modifier( 'interview', $join_mod, 'left', 'site_interview' );
+    $modifier->where( 'site_interview.end_datetime', '=', NULL ); // don't include completed site interviews
+    $modifier->left_join(
+      'interview_last_appointment',
+      'site_interview.id',
+      'site_interview_last_appointment.interview_id',
+      'site_interview_last_appointment'
+    );
+    $modifier->left_join(
+      'appointment',
+      'site_interview_last_appointment.appointment_id',
+      'site_appointment.id',
+      'site_appointment'
+    );
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'participant.id', '=', 'site_event.participant_id', false );
+    $join_mod->where( 'site_event_type.id', '=', 'site_event.event_type_id', false );
+    $modifier->join_modifier( 'event', $join_mod, 'left', 'site_event' );
 
-    // set up requirements
+    // set up restrictions
     $this->apply_restrictions( $modifier );
 
-    $header = array();
-    $content = array();
-    $sql = sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() );
-    $rows = $participant_class_name::select( $select, $modifier );
-
-    // create totals table
-    if( count( $rows ) )
-    {
-      $totals = array_fill( 0, count( $rows[0] ), 0 );
-      
-      foreach( $rows as $row )
-      {
-        $index = 0;
-        foreach( $row as $value )
-        {
-          if( $value ) $totals[$index]++;
-          $index++;
-        }
-      }
-
-      $header = array();
-      foreach( $row as $column => $value ) $header[] = ucwords( str_replace( '_', ' ', $column ) );
-
-      $this->add_table( 'Totals', $header, array( $totals ) );
-    }
-
-    $this->add_table_from_select( NULL, $rows );
+    $this->add_table_from_select( NULL, $participant_class_name::select( $select, $modifier ) );
   }
 }
