@@ -52,6 +52,12 @@ class appointment extends \cenozo\business\report\base_report
       'State',
       false
     );
+    $select->add_table_column(
+      'appointment_type',
+      'IFNULL( appointment_type.name, "normal" )',
+      'Appointment Type',
+      false
+    );
 
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
@@ -108,6 +114,9 @@ class appointment extends \cenozo\business\report\base_report
     }
 
     $this->apply_restrictions( $modifier );
+
+    if( !$modifier->has_join( 'appointment_type' ) )
+      $modifier->left_join( 'appointment_type', 'appointment.appointment_type_id', 'appointment_type.id' );
 
     if( !$modifier->has_join( 'participant_site' ) )
     {
