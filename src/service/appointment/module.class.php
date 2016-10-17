@@ -178,9 +178,9 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_column( 'IFNULL( participant.date_of_birth, "" )', 'dob', false );
       $select->add_table_column( 'participant', 'sex', 'gender' );
       $select->add_column( 'datetime' );
-      $select->add_table_column( 'address', 'address1' );
+      $select->add_table_column( 'address', 'address1', 'street' );
       $select->add_table_column( 'address', 'city' );
-      $select->add_table_column( 'region', 'name', 'region' );
+      $select->add_table_column( 'region', 'name', 'province' );
       $select->add_table_column( 'address', 'postcode' );
       $select->add_table_column( 'participant', 'email' );
 
@@ -386,8 +386,4 @@ class module extends \cenozo\service\base_calendar_module
       if( !is_null( $type ) ) $modifier->where( 'qnaire.type', '=', $type );
     }
   }
-
-  // TODO: temporary code until Onyx is updated to use valid ISO8601 dates at which time this will be removed
-  public function post_read( &$row )
-  { $row['datetime'] = util::get_datetime_object( $row['datetime'] )->format( \DateTime::ISO8601 ); }
 }
