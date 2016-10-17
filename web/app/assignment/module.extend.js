@@ -29,20 +29,23 @@ define( [ 'participant' ].reduce( function( list, name ) {
 
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAssignmentControl', [
-    'CnAssignmentControlFactory', '$window',
-    function( CnAssignmentControlFactory, $window ) {
+    'CnAssignmentControlFactory', 'CnSession', '$window',
+    function( CnAssignmentControlFactory, CnSession, $window ) {
       return {
         templateUrl: cenozoApp.getFileUrl( 'assignment', 'control.tpl.html' ),
         restrict: 'E',
         controller: function( $scope ) {
           $scope.model = CnAssignmentControlFactory.instance();
-          $scope.model.onLoad(); // breadcrumbs are handled by the service
+          $scope.model.onLoad( false ); // breadcrumbs are handled by the service
         },
         link: function( scope ) {
           // update the script list whenever we regain focus since there may have been script activity
           var focusFn = function() { if( null != scope.model.assignment ) scope.model.loadScriptList(); };
           var win = angular.element( $window ).on( 'focus', focusFn );
           scope.$on( '$destroy', function() { win.off( 'focus', focusFn ); } );
+
+          // close the session's script window whenever this page is unloaded (refreshed or closed)
+          $window.onunload = function() { CnSession.closeScript(); };
         }
       };
     }
@@ -87,6 +90,7 @@ define( [ 'participant' ].reduce( function( list, name ) {
               CnParticipantModelFactory, CnScriptLauncherFactory, CnModalMessageFactory, CnModalConfirmFactory ) {
       var object = function( root ) {
         var self = this;
+        this.scriptLauncher = null;
 
         // need to 404 if state is undefined or not home/site
         if( 'home' != $state.params.type && 'site' != $state.params.type ) $state.go( 'error.404' );
@@ -182,11 +186,14 @@ define( [ 'participant' ].reduce( function( list, name ) {
           } );
         };
 
-        this.onLoad = function() {
+        this.onLoad = function( closeScript ) {
+          if( angular.isUndefined( closeScript ) ) closeScript = true;
           self.reset();
           self.isAssignmentLoading = true;
           self.isWrongType = false;
           self.isPrevAssignmentLoading = true;
+
+          if( closeScript ) CnSession.closeScript();
           return CnHttpFactory.instance( {
             path: 'assignment/0',
             data: { select: { column: [ 'id', 'interview_id', 'start_datetime',
@@ -368,11 +375,12 @@ define( [ 'participant' ].reduce( function( list, name ) {
         };
 
         this.launchScript = function( script ) {
-          CnScriptLauncherFactory.instance( {
+          this.scriptLauncher = CnScriptLauncherFactory.instance( {
             script: script,
             identifier: 'uid=' + self.participant.uid,
             lang: self.participant.language_code
-          } ).launch().then( function() { self.loadScriptList(); } );
+          } );
+          this.scriptLauncher.launch().then( function() { self.loadScriptList(); } );
         };
 
         this.startCall = function( phone ) {
