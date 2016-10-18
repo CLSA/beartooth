@@ -21,8 +21,81 @@ class sample extends \cenozo\business\report\base_report
    */
   protected function build()
   {
+    $db = lib::create( 'business\session' )->get_database();
     $participant_class_name = lib::get_class_name( 'database\participant' );
-    $qnaire_class_name = lib::get_class_name( 'database\qnaire' );
+
+    // need to create temporary tables to make report more efficient
+    $interview_assignment_total_sel = lib::create( 'database\select' );
+    $interview_assignment_total_sel->from( 'interview' );
+    $interview_assignment_total_sel->add_column( 'id' );
+    $interview_assignment_total_sel->add_column( 'IF( assignment.id IS NULL, 0, COUNT(*) )', 'total', false );
+    $interview_assignment_total_mod = lib::create( 'database\modifier' );
+    $interview_assignment_total_mod->left_join( 'assignment', 'interview.id', 'assignment.interview_id' );
+    $interview_assignment_total_mod->group( 'interview.id' );
+    $db->execute( sprintf(
+      "CREATE TEMPORARY TABLE interview_assignment_total\n%s %s",
+      $interview_assignment_total_sel->get_sql(),
+      $interview_assignment_total_mod->get_sql()
+    ) );
+    $db->execute( 'ALTER TABLE interview_assignment_total ADD INDEX dk_id( id )' );
+
+    $home_data_sel = lib::create( 'database\select' );
+    $home_data_sel->from( 'qnaire' );
+    $home_data_sel->add_table_column( 'interview', 'id', 'interview_id' );
+    $home_data_sel->add_table_column( 'interview', 'participant_id' );
+    $home_data_sel->add_table_column( 'interview', 'end_datetime', 'interview_datetime' );
+    $home_data_sel->add_table_column( 'appointment', 'datetime', 'appointment_datetime' );
+    $home_data_sel->add_table_column( 'qnaire', 'completed_event_type_id', 'event_type_id' );
+    $home_data_sel->add_table_column( 'interview_assignment_total', 'total', 'assignment_count' );
+    $home_data_sel->add_table_column( 'user', 'name', 'interviewer' );
+    $home_data_mod = lib::create( 'database\modifier' );
+    $home_data_mod->join( 'interview', 'qnaire.id', 'interview.qnaire_id' );
+    $home_data_mod->join( 'interview_assignment_total', 'interview.id', 'interview_assignment_total.id' );
+    $home_data_mod->left_join(
+      'interview_last_appointment', 'interview.id', 'interview_last_appointment.interview_id' );
+    $home_data_mod->left_join( 'appointment', 'interview_last_appointment.appointment_id', 'appointment.id' );
+    $home_data_mod->left_join( 'user', 'appointment.user_id', 'user.id' );
+    $home_data_mod->where( 'qnaire.type', '=', 'home' );
+    $db->execute( sprintf(
+      "CREATE TEMPORARY TABLE home_data\n%s %s",
+      $home_data_sel->get_sql(),
+      $home_data_mod->get_sql()
+    ) );
+    $db->execute(
+      "ALTER TABLE home_data\n".
+      "ADD INDEX dk_interview_id( interview_id ),\n".
+      "ADD INDEX dk_participant_id( participant_id ),\n".
+      "ADD INDEX dk_event_type_id( event_type_id )"
+    );
+
+    $site_data_sel = lib::create( 'database\select' );
+    $site_data_sel->from( 'qnaire' );
+    $site_data_sel->add_table_column( 'interview', 'id', 'interview_id' );
+    $site_data_sel->add_table_column( 'interview', 'participant_id' );
+    $site_data_sel->add_table_column( 'interview', 'end_datetime', 'interview_datetime' );
+    $site_data_sel->add_table_column( 'appointment', 'datetime', 'appointment_datetime' );
+    $site_data_sel->add_table_column( 'qnaire', 'completed_event_type_id', 'event_type_id' );
+    $site_data_sel->add_table_column( 'interview_assignment_total', 'total', 'assignment_count' );
+    $site_data_sel->add_table_column( 'user', 'name', 'interviewer' );
+    $site_data_mod = lib::create( 'database\modifier' );
+    $site_data_mod->join( 'interview', 'qnaire.id', 'interview.qnaire_id' );
+    $site_data_mod->join( 'interview_assignment_total', 'interview.id', 'interview_assignment_total.id' );
+    $site_data_mod->left_join(
+      'interview_last_appointment', 'interview.id', 'interview_last_appointment.interview_id' );
+    $site_data_mod->left_join( 'appointment', 'interview_last_appointment.appointment_id', 'appointment.id' );
+    $site_data_mod->left_join( 'user', 'appointment.user_id', 'user.id' );
+    $site_data_mod->where( 'qnaire.type', '=', 'site' );
+    $db->execute( sprintf(
+      "CREATE TEMPORARY TABLE site_data\n%s %s",
+      $site_data_sel->get_sql(),
+      $site_data_mod->get_sql()
+    ) );
+    $db->execute(
+      "ALTER TABLE site_data\n".
+      "ADD INDEX dk_interview_id( interview_id ),\n".
+      "ADD INDEX dk_participant_id( participant_id ),\n".
+      "ADD INDEX dk_event_type_id( event_type_id )"
+    );
 
     $select = lib::create( 'database\select' );
     $select->from( 'participant' );
@@ -44,27 +117,29 @@ class sample extends \cenozo\business\report\base_report
       'Callback',
       false
     );
-    $select->add_table_column( 'home_interview',
-      sprintf( 'IF( home_interview.end_datetime IS NOT NULL, %s, %s )',
-               $this->get_datetime_column( 'home_interview.end_datetime' ),
-               $this->get_datetime_column( 'home_appointment.datetime' ) ),
+    $select->add_table_column( 'home_data',
+      sprintf( 'IF( home_data.interview_datetime IS NOT NULL, %s, %s )',
+               $this->get_datetime_column( 'home_data.interview_datetime' ),
+               $this->get_datetime_column( 'home_data.appointment_datetime' ) ),
       'Home Interview Date',
       false
     );
-    $select->add_table_column( 'home_interview',
-      'IF( home_interview.end_datetime IS NOT NULL, "(exported)", interviewer.name )',
+    $select->add_table_column( 'home_data', 'assignment_count', 'Home Assignments' );
+    $select->add_table_column( 'home_date',
+      'IF( home_data.interview_datetime IS NOT NULL, "(exported)", home_data.interviewer )',
       'Home Interviewer',
       false
     );
-    $select->add_table_column( 'home_interview',
-      'IF( home_interview.end_datetime IS NOT NULL, "Yes", "No" )',
+    $select->add_table_column( 'home_data',
+      'IF( home_data.interview_datetime IS NOT NULL, "Yes", "No" )',
       'Home Completed',
       false
     );
-    $select->add_table_column( 'site_interview',
-      sprintf( 'IF( site_interview.end_datetime IS NOT NULL, %s, %s )',
-               $this->get_datetime_column( 'site_interview.end_datetime' ),
-               $this->get_datetime_column( 'site_appointment.datetime' ) ),
+    $select->add_table_column( 'site_data', 'assignment_count', 'Site Assignments' );
+    $select->add_table_column( 'site_data',
+      sprintf( 'IF( site_data.interview_datetime IS NOT NULL, %s, %s )',
+               $this->get_datetime_column( 'site_data.interview_datetime' ),
+               $this->get_datetime_column( 'site_data.appointment_datetime' ) ),
       'Site Interview Date',
       false
     );
@@ -96,57 +171,9 @@ class sample extends \cenozo\business\report\base_report
     $modifier->left_join( 'consent', 'participant_last_consent.consent_id', 'blood_consent.id', 'blood_consent' );
     $modifier->left_join( 'state', 'participant.state_id', 'state.id' );
 
-    $modifier->inner_join( 'qnaire', NULL, 'home_qnaire' );
-    $modifier->where( 'home_qnaire.type', '=', 'home' );
-    $modifier->join(
-      'event_type', 'home_qnaire.completed_event_type_id', 'home_event_type.id', '', 'home_event_type' );
-    $join_mod = lib::create( 'database\modifier' );
-    $join_mod->where( 'participant.id', '=', 'home_interview.participant_id', false );
-    $join_mod->where( 'home_qnaire.id', '=', 'home_interview.qnaire_id', false );
-    $modifier->join_modifier( 'interview', $join_mod, 'left', 'home_interview' );
-    $modifier->left_join(
-      'interview_last_appointment',
-      'home_interview.id',
-      'home_interview_last_appointment.interview_id',
-      'home_interview_last_appointment'
-    );
-    $modifier->left_join(
-      'appointment',
-      'home_interview_last_appointment.appointment_id',
-      'home_appointment.id',
-      'home_appointment'
-    );
-    $modifier->left_join( 'user', 'home_appointment.user_id', 'interviewer.id', 'interviewer' );
-    $join_mod = lib::create( 'database\modifier' );
-    $join_mod->where( 'participant.id', '=', 'home_event.participant_id', false );
-    $join_mod->where( 'home_event_type.id', '=', 'home_event.event_type_id', false );
-    $modifier->join_modifier( 'event', $join_mod, 'left', 'home_event' );
-    
-    $modifier->inner_join( 'qnaire', NULL, 'site_qnaire' );
-    $modifier->where( 'site_qnaire.type', '=', 'site' );
-    $modifier->join(
-      'event_type', 'site_qnaire.completed_event_type_id', 'site_event_type.id', '', 'site_event_type' );
-    $join_mod = lib::create( 'database\modifier' );
-    $join_mod->where( 'participant.id', '=', 'site_interview.participant_id', false );
-    $join_mod->where( 'site_qnaire.id', '=', 'site_interview.qnaire_id', false );
-    $modifier->join_modifier( 'interview', $join_mod, 'left', 'site_interview' );
-    $modifier->where( 'site_interview.end_datetime', '=', NULL ); // don't include completed site interviews
-    $modifier->left_join(
-      'interview_last_appointment',
-      'site_interview.id',
-      'site_interview_last_appointment.interview_id',
-      'site_interview_last_appointment'
-    );
-    $modifier->left_join(
-      'appointment',
-      'site_interview_last_appointment.appointment_id',
-      'site_appointment.id',
-      'site_appointment'
-    );
-    $join_mod = lib::create( 'database\modifier' );
-    $join_mod->where( 'participant.id', '=', 'site_event.participant_id', false );
-    $join_mod->where( 'site_event_type.id', '=', 'site_event.event_type_id', false );
-    $modifier->join_modifier( 'event', $join_mod, 'left', 'site_event' );
+    $modifier->left_join( 'home_data', 'participant.id', 'home_data.participant_id' );
+    $modifier->left_join( 'site_data', 'participant.id', 'site_data.participant_id' );
+    $modifier->where( 'site_data.interview_datetime', '=', NULL );
 
     // set up restrictions
     $this->apply_restrictions( $modifier );
