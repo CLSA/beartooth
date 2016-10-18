@@ -39,34 +39,36 @@ class progress extends \cenozo\business\overview\base_overview
 
     // create temporary table of this application's participants and their effective site
     /////////////////////////////////////////////////////////////////////////////////////////////
-    $select = lib::create( 'database\select' );
-    $modifier = lib::create( 'database\modifier' );
+    $overview_sel = lib::create( 'database\select' );
+    $overview_mod = lib::create( 'database\modifier' );
 
-    $select->from( 'participant' );
-    $select->add_column( 'id' );
-    $select->add_column( 'state_id' );
-    $select->add_column( 'callback' );
-    $select->add_table_column( 'site', 'IFNULL( site.name, "None" )', 'site', false );
+    $overview_sel->from( 'participant' );
+    $overview_sel->add_column( 'id' );
+    $overview_sel->add_column( 'active' );
+    $overview_sel->add_column( 'state_id' );
+    $overview_sel->add_column( 'callback' );
+    $overview_sel->add_table_column( 'site', 'IFNULL( site.name, "None" )', 'site', false );
+    $overview_mod->where( 'participant.active', '=', true );
 
     // restrict to this application
     $join_mod = lib::create( 'database\modifier' );
     $join_mod->where( 'application_has_participant.participant_id', '=', 'participant.id', false );
     $join_mod->where( 'application_has_participant.application_id', '=', $db_application->id );
-    $modifier->join_modifier( 'application_has_participant', $join_mod );
-    $modifier->where( 'application_has_participant.datetime', '!=', NULL );
+    $overview_mod->join_modifier( 'application_has_participant', $join_mod );
+    $overview_mod->where( 'application_has_participant.datetime', '!=', NULL );
 
     // group by site
     $join_mod = lib::create( 'database\modifier' );
     $join_mod->where( 'participant_site.participant_id', '=', 'participant.id', false );
     $join_mod->where( 'participant_site.application_id', '=', $db_application->id );
-    $modifier->join_modifier( 'participant_site', $join_mod );
-    $modifier->left_join( 'site', 'participant_site.site_id', 'site.id' );
-    if( !$db_role->all_sites ) $modifier->where( 'site.id', '=', $db_site->id );
+    $overview_mod->join_modifier( 'participant_site', $join_mod );
+    $overview_mod->left_join( 'site', 'participant_site.site_id', 'site.id' );
+    if( !$db_role->all_sites ) $overview_mod->where( 'site.id', '=', $db_site->id );
 
     $db->execute( sprintf(
       'CREATE TEMPORARY TABLE overview_participant %s %s',
-      $select->get_sql(),
-      $modifier->get_sql() ) );
+      $overview_sel->get_sql(),
+      $overview_mod->get_sql() ) );
     $db->execute( sprintf(
       'ALTER TABLE overview_participant '.
       'ADD INDEX dk_id ( id ), '.
@@ -80,27 +82,30 @@ class progress extends \cenozo\business\overview\base_overview
     $modifier = lib::create( 'database\modifier' );
 
     $select->from( 'overview_participant' );
+    $select->add_column( 'active' );
     $select->add_table_column( 'consent', 'IFNULL( consent.accept, true )', 'consent', false );
     $select->add_column( 'site' );
     $select->add_column( 'COUNT(*)', 'count', false );
 
     $modifier->group( 'site' );
 
-    // group by negative participant consent
+    // group by active and negative participant consent
     $modifier->join(
       'participant_last_consent', 'overview_participant.id', 'participant_last_consent.participant_id' );
     $modifier->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
     $modifier->where( 'consent_type.name', '=', 'participation' );
     $modifier->left_join( 'consent', 'participant_last_consent.consent_id', 'consent.id' );
+    $modifier->group( 'active' );
     $modifier->group( 'IFNULL( consent.accept, true )' );
 
     $list = array();
     foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) ) as $row )
     {
       if( !array_key_exists( $row['site'], $list ) )
-        $list[$row['site']] = array( 'all' => 0, 'withdrawn' => 0 );
+        $list[$row['site']] = array( 'all' => 0, 'inactive' => 0, 'withdrawn' => 0 );
 
-      if( false == $row['consent'] ) $list[$row['site']]['withdrawn'] += $row['count'];
+      if( !$row['active'] ) $list[$row['site']]['inactive'] += $row['count'];
+      else if( !$row['consent'] ) $list[$row['site']]['withdrawn'] += $row['count'];
       $list[$row['site']]['all'] += $row['count'];
     }
 
@@ -109,6 +114,7 @@ class progress extends \cenozo\business\overview\base_overview
     {
       $node = $this->add_root_item( $site );
       $this->add_item( $node, 'All Participants', $data['all'] );
+      $this->add_item( $node, 'Inactive', $data['inactive'] );
       $this->add_item( $node, 'Withdrawn', $data['withdrawn'] );
       $state_node = $this->add_item( $node, 'Conditions' );
       foreach( $state_list as $state ) $this->add_item( $state_node, $state, 0 );
@@ -130,6 +136,27 @@ class progress extends \cenozo\business\overview\base_overview
       $this->add_item( $site_node, 'Completed Interviews', 0 );
       $site_node_lookup[$site] = $node;
     }
+
+    // now remove all inactive and withdrawn participants from the overview_participant table
+    $remove_sel = lib::create( 'database\select' );
+    $remove_sel->from( 'participant' );
+    $remove_sel->add_column( 'id' );
+    $remove_mod = lib::create( 'database\modifier' );
+    $remove_mod->join(
+      'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );
+    $remove_mod->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
+    $remove_mod->where( 'consent_type.name', '=', 'participation' );
+    $remove_mod->left_join( 'consent', 'participant_last_consent.consent_id', 'consent.id' );
+    $remove_mod->where( 'participant.active', '=', false );
+    $remove_mod->or_where( 'IFNULL( consent.accept, true )', '=', false );
+    $db->execute( sprintf(
+      "DELETE FROM overview_participant\n".
+      "WHERE id IN(\n".
+      "  %s %s\n".
+      ")",
+      $remove_sel->get_sql(),
+      $remove_mod->get_sql()
+    ) );
 
     // get state data
     /////////////////////////////////////////////////////////////////////////////////////////////
