@@ -648,22 +648,6 @@ class queue extends \cenozo\database\record
     // make sure the participant has a site
     $modifier->where( 'participant_site_id', '!=', NULL );
 
-    // left join to the qnaire_has_site table to see if the site is restricted
-    $join_mod = lib::create( 'database\modifier' );
-    $join_mod->where( 'qnaire_has_site.qnaire_id', '=', 'effective_qnaire_id', false );
-    $join_mod->where( 'qnaire_has_site.site_id', '=', 'participant_site_id', false );
-    $modifier->join_modifier( 'qnaire_has_site', $join_mod, 'left' );
-
-    if( 'qnaire disabled' == $queue )
-    {
-      // make sure there is a row in qnaire_has_site
-      $modifier->where( 'qnaire_has_site.qnaire_id', '!=', NULL );
-      return;
-    }
-
-    // make sure there is no row in qnaire_has_site
-    $modifier->where( 'qnaire_has_site.qnaire_id', '!=', NULL );
-
     if( 'quota disabled' == $queue )
     {
       // who belong to a quota which is disabled (row in qnaire_has_quota found)

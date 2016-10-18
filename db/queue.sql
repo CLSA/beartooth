@@ -126,14 +126,6 @@ parent_queue_id = ( SELECT id FROM ( SELECT id FROM queue WHERE name = "qnaire" 
 description = "Participants who will not be assigned since they do not belong to any site.";
 
 INSERT INTO queue SET
-name = "qnaire disabled",
-title = "Participants whose questionnaire is disabled",
-rank = NULL,
-time_specific = 0,
-parent_queue_id = ( SELECT id FROM ( SELECT id FROM queue WHERE name = "qnaire" ) AS tmp ),
-description = "Participants who are unreachable since they currently have no active address.";
-
-INSERT INTO queue SET
 name = "quota disabled",
 title = "Participant's quota is disabled",
 rank = NULL,
