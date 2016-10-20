@@ -23,8 +23,8 @@ class progress extends \cenozo\business\overview\base_overview
     $session = lib::create( 'business\session' );
     $db = $session->get_database();
     $db_application = $session->get_application();
-    $db_role = $session->get_role();
     $db_site = $session->get_site();
+    $db_role = $session->get_role();
     $db_user = $session->get_user();
 
     $data = array();
@@ -37,85 +37,30 @@ class progress extends \cenozo\business\overview\base_overview
     $state_list = array();
     foreach( $state_class_name::select( $state_sel, $state_mod ) as $state ) $state_list[] = $state['name'];
 
-    // create temporary table of this application's participants and their effective site
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    $overview_sel = lib::create( 'database\select' );
-    $overview_mod = lib::create( 'database\modifier' );
-
-    $overview_sel->from( 'participant' );
-    $overview_sel->add_column( 'id' );
-    $overview_sel->add_column( 'active' );
-    $overview_sel->add_column( 'state_id' );
-    $overview_sel->add_column( 'callback' );
-    $overview_sel->add_table_column( 'site', 'IFNULL( site.name, "None" )', 'site', false );
-    $overview_mod->where( 'participant.active', '=', true );
-
-    // restrict to this application
-    $join_mod = lib::create( 'database\modifier' );
-    $join_mod->where( 'application_has_participant.participant_id', '=', 'participant.id', false );
-    $join_mod->where( 'application_has_participant.application_id', '=', $db_application->id );
-    $overview_mod->join_modifier( 'application_has_participant', $join_mod );
-    $overview_mod->where( 'application_has_participant.datetime', '!=', NULL );
-
-    // group by site
-    $join_mod = lib::create( 'database\modifier' );
-    $join_mod->where( 'participant_site.participant_id', '=', 'participant.id', false );
-    $join_mod->where( 'participant_site.application_id', '=', $db_application->id );
-    $overview_mod->join_modifier( 'participant_site', $join_mod );
-    $overview_mod->left_join( 'site', 'participant_site.site_id', 'site.id' );
-    if( !$db_role->all_sites ) $overview_mod->where( 'site.id', '=', $db_site->id );
-
-    $db->execute( sprintf(
-      'CREATE TEMPORARY TABLE overview_participant %s %s',
-      $overview_sel->get_sql(),
-      $overview_mod->get_sql() ) );
-    $db->execute( sprintf(
-      'ALTER TABLE overview_participant '.
-      'ADD INDEX dk_id ( id ), '.
-      'ADD INDEX dk_site ( site ), '.
-      'ADD INDEX dk_state_id ( state_id ), '.
-      'ADD INDEX dk_callback ( callback )' ) );
-
-    // get total and no consent counts
-    /////////////////////////////////////////////////////////////////////////////////////////////
+    // create generic select and modifier objects which can be re-used
     $select = lib::create( 'database\select' );
+    $select->from( 'queue_has_participant' );
+    $select->add_table_column( 'site', 'IFNULL( site.name, "(none)" )', 'site', false );
+    $select->add_column( 'COUNT(*)', 'total', false );
+
     $modifier = lib::create( 'database\modifier' );
+    $modifier->join( 'queue', 'queue_has_participant.queue_id', 'queue.id' );
+    $modifier->left_join( 'site', 'queue_has_participant.site_id', 'site.id' );
+    $modifier->left_join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
+    if( !$db_role->all_sites ) $modifier->where( 'site.id', '=', $db_site->id );
+    $modifier->group( 'queue_has_participant.site_id' );
 
-    $select->from( 'overview_participant' );
-    $select->add_column( 'active' );
-    $select->add_table_column( 'consent', 'IFNULL( consent.accept, true )', 'consent', false );
-    $select->add_column( 'site' );
-    $select->add_column( 'COUNT(*)', 'count', false );
+    // start with the participant totals
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    $all_mod = clone $modifier;
+    $all_mod->where( 'queue.name', '=', 'all' );
 
-    $modifier->group( 'site' );
-
-    // group by active and negative participant consent
-    $modifier->join(
-      'participant_last_consent', 'overview_participant.id', 'participant_last_consent.participant_id' );
-    $modifier->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
-    $modifier->where( 'consent_type.name', '=', 'participation' );
-    $modifier->left_join( 'consent', 'participant_last_consent.consent_id', 'consent.id' );
-    $modifier->group( 'active' );
-    $modifier->group( 'IFNULL( consent.accept, true )' );
-
-    $list = array();
-    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) ) as $row )
+    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $all_mod->get_sql() ) ) as $row )
     {
-      if( !array_key_exists( $row['site'], $list ) )
-        $list[$row['site']] = array( 'all' => 0, 'inactive' => 0, 'withdrawn' => 0 );
-
-      if( !$row['active'] ) $list[$row['site']]['inactive'] += $row['count'];
-      else if( !$row['consent'] ) $list[$row['site']]['withdrawn'] += $row['count'];
-      $list[$row['site']]['all'] += $row['count'];
-    }
-
-    $site_node_lookup = array();
-    foreach( $list as $site => $data )
-    {
-      $node = $this->add_root_item( $site );
-      $this->add_item( $node, 'All Participants', $data['all'] );
-      $this->add_item( $node, 'Inactive', $data['inactive'] );
-      $this->add_item( $node, 'Withdrawn', $data['withdrawn'] );
+      $node = $this->add_root_item( $row['site'] );
+      $this->add_item( $node, 'All Participants', $row['total'] );
+      $this->add_item( $node, 'Inactive', 0 );
+      $this->add_item( $node, 'Refused Consent', 0 );
       $state_node = $this->add_item( $node, 'Conditions' );
       foreach( $state_list as $state ) $this->add_item( $state_node, $state, 0 );
       $home_node = $this->add_item( $node, 'Home Interview' );
@@ -134,308 +79,177 @@ class progress extends \cenozo\business\overview\base_overview
       $this->add_item( $site_node, 'Participants never assigned', 0 );
       $this->add_item( $site_node, 'Participants previously assigned', 0 );
       $this->add_item( $site_node, 'Completed Interviews', 0 );
-      $site_node_lookup[$site] = $node;
+      $site_node_lookup[$row['site']] = $node;
     }
 
-    // now remove all inactive and withdrawn participants from the overview_participant table
-    $remove_sel = lib::create( 'database\select' );
-    $remove_sel->from( 'participant' );
-    $remove_sel->add_column( 'id' );
-    $remove_mod = lib::create( 'database\modifier' );
-    $remove_mod->join(
-      'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );
-    $remove_mod->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
-    $remove_mod->where( 'consent_type.name', '=', 'participation' );
-    $remove_mod->left_join( 'consent', 'participant_last_consent.consent_id', 'consent.id' );
-    $remove_mod->where( 'participant.active', '=', false );
-    $remove_mod->or_where( 'IFNULL( consent.accept, true )', '=', false );
-    $db->execute( sprintf(
-      "DELETE FROM overview_participant\n".
-      "WHERE id IN(\n".
-      "  %s %s\n".
-      ")",
-      $remove_sel->get_sql(),
-      $remove_mod->get_sql()
-    ) );
-
-    // get state data
+    // inactive participants
     /////////////////////////////////////////////////////////////////////////////////////////////
-    $select = lib::create( 'database\select' );
-    $modifier = lib::create( 'database\modifier' );
+    $inactive_mod = clone $modifier;
+    $inactive_mod->where( 'queue.name', '=', 'inactive' );
 
-    $select->from( 'overview_participant' );
-    $select->add_table_column( 'state', 'name', 'state' );
-    $select->add_column( 'site' );
-    $select->add_column( 'COUNT(*)', 'count', false );
+    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $inactive_mod->get_sql() ) ) as $row )
+    {
+      $node = $site_node_lookup[$row['site']]->find_node( 'Inactive' );
+      $node->set_value( $row['total'] );
+    }
 
-    $modifier->group( 'site' );
+    // withdrawn participants
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    $refused_mod = clone $modifier;
+    $refused_mod->where( 'queue.name', '=', 'refused consent' );
 
-    // join to and group by state
-    $modifier->join( 'state', 'overview_participant.state_id', 'state.id' );
-    $modifier->group( 'state' );
+    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $refused_mod->get_sql() ) ) as $row )
+    {
+      $node = $site_node_lookup[$row['site']]->find_node( 'Refused Consent' );
+      $node->set_value( $row['total'] );
+    }
 
-    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) ) as $row )
+    // states
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    $state_sel = clone $select;
+    $state_sel->add_table_column( 'qnaire', 'type' );
+    $state_sel->add_table_column( 'state', 'name', 'state' );
+
+    $state_mod = clone $modifier;
+    $state_mod->where( 'queue.name', '=', 'condition' );
+    $state_mod->join( 'participant', 'queue_has_participant.participant_id', 'participant.id' );
+    $state_mod->join( 'state', 'participant.state_id', 'state.id' );
+    $state_mod->group( 'participant.state_id' );
+
+    foreach( $db->get_all( sprintf( '%s %s', $state_sel->get_sql(), $state_mod->get_sql() ) ) as $row )
     {
       $parent_node = $site_node_lookup[$row['site']]->find_node( 'Conditions' );
       $node = $parent_node->find_node( $row['state'] );
-      $node->set_value( $row['count'] );
+      $node->set_value( $row['total'] );
     }
 
-    // get callback data
+    // callbacks
     /////////////////////////////////////////////////////////////////////////////////////////////
-    $select = lib::create( 'database\select' );
-    $modifier = lib::create( 'database\modifier' );
-
     $week_sql = sprintf(
-      '( DATE( CONVERT_TZ( overview_participant.callback, "UTC", "%s" ) ) >= '.
-        'DATE_SUB( CURDATE(), INTERVAL WEEKDAY( CURDATE() ) DAY ) AND '.
-        'DATE( CONVERT_TZ( overview_participant.callback, "UTC", "%s" ) ) < '.
-        'DATE_ADD( CURDATE(), INTERVAL 7 - WEEKDAY( CURDATE() ) DAY ) )',
+      '('."\n".
+      '  DATE( CONVERT_TZ( participant.callback, "UTC", "%s" ) ) >='."\n".
+      '  DATE_SUB( CURDATE(), INTERVAL WEEKDAY( CURDATE() ) DAY ) AND'."\n".
+      '  DATE( CONVERT_TZ( participant.callback, "UTC", "%s" ) ) <'."\n".
+      '  DATE_ADD( CURDATE(), INTERVAL 7 - WEEKDAY( CURDATE() ) DAY )'."\n".
+      ')',"\n".
       $db_user->timezone,
-      $db_user->timezone );
+      $db_user->timezone
+    );
 
-    $select->from( 'overview_participant' );
-    $select->add_table_column( 'qnaire', 'type' );
-    $select->add_column( $week_sql, 'week', false );
-    $select->add_column( 'site' );
-    $select->add_column( 'COUNT(*)', 'count', false );
+    $callback_sel = clone $select;
+    $callback_sel->add_table_column( 'qnaire', 'type' );
+    $callback_sel->add_column( $week_sql, 'week', false );
 
-    $modifier->group( 'site' );
+    $callback_mod = clone $modifier;
+    $callback_mod->where( 'queue.name', '=', 'callback' );
+    $callback_mod->join( 'participant', 'queue_has_participant.participant_id', 'participant.id' );
+    $callback_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
+    $callback_mod->group( 'qnaire.type' );
+    $callback_mod->group( $week_sql );
 
-    // join to queue_has_participant and group by qnaire
-    $modifier->join(
-      'queue_has_participant', 'overview_participant.id', 'queue_has_participant.participant_id' );
-    $modifier->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
-    $modifier->group( 'qnaire.type' );
-    $modifier->join( 'queue', 'queue_has_participant.queue_id', 'queue.id' );
-    $modifier->where( 'queue.name', '=', 'qnaire' );
-
-    // group by whether the callback is this week or not
-    $modifier->where( 'overview_participant.callback', '!=', NULL );
-    $modifier->group( $week_sql );
-
-    $list = array( 'home' => array(), 'site' => array() );
-    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) ) as $row )
+    foreach( $db->get_all( sprintf( '%s %s', $callback_sel->get_sql(), $callback_mod->get_sql() ) ) as $row )
     {
-      if( !array_key_exists( $row['type'], $list ) ) $list[$row['type']] = array();
-      if( !array_key_exists( $row['site'], $list[$row['type']] ) )
-        $list[$row['type']][$row['site']] = array( 'all' => 0, 'week' => 0 );
-
-      if( $row['week'] ) $list[$row['type']][$row['site']]['week'] += $row['count'];
-      $list[$row['type']][$row['site']]['all'] += $row['count'];
+      $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
+      $all_node = $parent_node->find_node( 'Scheduled callbacks' );
+      $all_node->set_value( $all_node->get_value() + $row['total'] );
+      $week_node = $parent_node->find_node( 'Callbacks this week' );
+      if( $row['week'] ) $week_node->set_value( $week_node->get_value() + $row['total'] );
     }
 
-    foreach( $list as $type => $sub_list )
-    {
-      foreach( $sub_list as $site => $values )
-      {
-        $parent_node = $site_node_lookup[$site]->find_node( ucWords( $type ).' Interview' );
-        foreach( $values as $cat => $value )
-        {
-          $node = $parent_node->find_node( 'all' == $cat ? 'Scheduled callbacks' : 'Callbacks this week' );
-          $node->set_value( $value );
-        }
-      }
-    }
-
-    // get upcomming appointment data
+    // appointments
     /////////////////////////////////////////////////////////////////////////////////////////////
-    $select = lib::create( 'database\select' );
-    $modifier = lib::create( 'database\modifier' );
+    $week_sql = sprintf(
+      '('."\n".
+      '  DATE( CONVERT_TZ( appointment.datetime, "UTC", "%s" ) ) >='."\n".
+      '  DATE_SUB( CURDATE(), INTERVAL WEEKDAY( CURDATE() ) DAY ) AND '."\n".
+      '  DATE( CONVERT_TZ( appointment.datetime, "UTC", "%s" ) ) <'."\n".
+      '  DATE_ADD( CURDATE(), INTERVAL 7 - WEEKDAY( CURDATE() ) DAY )'."\n".
+      ')',
+      $db_user->timezone,
+      $db_user->timezone
+    );
 
-    $select->from( 'overview_participant' );
-    $select->add_table_column( 'qnaire', 'type' );
-    $select->add_column( 'site' );
-    $select->add_column( 'COUNT(*)', 'count', false );
+    $appointment_sel = clone $select;
+    $appointment_sel->add_table_column( 'qnaire', 'type' );
+    $appointment_sel->add_column( $week_sql, 'week', false );
 
-    $modifier->group( 'site' );
+    $appointment_mod = clone $modifier;
+    $appointment_mod->where( 'queue.name', '=', 'appointment' );
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'queue_has_participant.participant_id', '=', 'interview.participant_id', false );
+    $join_mod->where( 'queue_has_participant.qnaire_id', '=', 'interview.qnaire_id', false );
+    $appointment_mod->join_modifier( 'interview', $join_mod );
+    $appointment_mod->join(
+      'interview_last_appointment', 'interview.id', 'interview_last_appointment.interview_id' );
+    $appointment_mod->join( 'appointment', 'interview_last_appointment.appointment_id', 'appointment.id' );
+    $appointment_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
+    $appointment_mod->group( 'qnaire.type' );
+    $appointment_mod->group( $week_sql );
 
-    // join to interview, appointment and qnaire, and group by qnaire
-    $modifier->join( 'interview', 'overview_participant.id', 'interview.participant_id' );
-    $modifier->join( 'appointment', 'interview.id', 'appointment.interview_id' );
-    $modifier->where( 'appointment.outcome', '=', NULL );
-    $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
-    $modifier->group( 'qnaire.type' );
-
-    $list = array( 'home' => array(), 'site' => array() );
-    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) ) as $row )
+    foreach( $db->get_all( sprintf( '%s %s', $appointment_sel->get_sql(), $appointment_mod->get_sql() ) ) as $row )
     {
-      if( !array_key_exists( $row['site'], $list[$row['type']] ) ) $list[$row['type']][$row['site']] = 0;
-      $list[$row['type']][$row['site']] += $row['count'];
+      $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
+      $all_node = $parent_node->find_node( 'Upcoming appointments' );
+      $all_node->set_value( $all_node->get_value() + $row['total'] );
+      $week_node = $parent_node->find_node( 'Appointments this week' );
+      if( $row['week'] ) $week_node->set_value( $week_node->get_value() + $row['total'] );
     }
 
-    foreach( $list as $type => $sub_list )
-    {
-      foreach( $sub_list as $site => $value )
-      {
-        $parent_node = $site_node_lookup[$site]->find_node( ucWords( $type ).' Interview' );
-        $node = $parent_node->find_node( 'Upcoming appointments' );
-        $node->set_value( $value );
-      }
-    }
-
-    // get this week's appointment data
+    // never assigned
     /////////////////////////////////////////////////////////////////////////////////////////////
-    $select = lib::create( 'database\select' );
-    $modifier = lib::create( 'database\modifier' );
+    $old_sel = clone $select;
+    $old_sel->add_table_column( 'qnaire', 'type' );
 
-    $select->from( 'overview_participant' );
-    $select->add_table_column( 'qnaire', 'type' );
-    $select->add_column( 'site' );
-    $select->add_column( 'COUNT(*)', 'count', false );
+    $old_mod = clone $modifier;
+    $old_mod->where( 'queue.name', '=', 'new participant' );
+    $old_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
+    $old_mod->group( 'qnaire.type' );
 
-    $modifier->group( 'site' );
-
-    // join to appointment and group by week
-    $modifier->join( 'interview', 'overview_participant.id', 'interview.participant_id' );
-    $modifier->join( 'appointment', 'interview.id', 'appointment.interview_id' );
-    $modifier->where(
-      sprintf(
-        'DATE( CONVERT_TZ( appointment.datetime, "UTC", "%s" ) )',
-        $db_user->timezone
-      ),
-      '>=',
-      'DATE_SUB( CURDATE(), INTERVAL WEEKDAY( CURDATE() ) DAY )',
-      false );
-    $modifier->where(
-      sprintf(
-        'DATE( CONVERT_TZ( appointment.datetime, "UTC", "%s" ) )',
-        $db_user->timezone
-      ),
-      '<',
-      'DATE_ADD( CURDATE(), INTERVAL 7 - WEEKDAY( CURDATE() ) DAY )',
-      false );
-
-    // join to qnaire and group by type
-    $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
-    $modifier->group( 'qnaire.type' );
-
-    $list = array( 'home' => array(), 'site' => array() );
-    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) ) as $row )
+    foreach( $db->get_all( sprintf( '%s %s', $old_sel->get_sql(), $old_mod->get_sql() ) ) as $row )
     {
-      if( !array_key_exists( $row['site'], $list[$row['type']] ) ) $list[$row['type']][$row['site']] = 0;
-      $list[$row['type']][$row['site']] += $row['count'];
+      $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
+      $node = $parent_node->find_node( 'Participants never assigned' );
+      $node->set_value( $row['total'] );
     }
 
-    foreach( $list as $type => $sub_list )
-    {
-      foreach( $sub_list as $site => $value )
-      {
-        $parent_node = $site_node_lookup[$site]->find_node( ucWords( $type ).' Interview' );
-        $node = $parent_node->find_node( 'Appointments this week' );
-        $node->set_value( $value );
-      }
-    }
-
-    // get participants never assigned (never called)
+    // previously assigned
     /////////////////////////////////////////////////////////////////////////////////////////////
-    $select = lib::create( 'database\select' );
-    $modifier = lib::create( 'database\modifier' );
+    $new_sel = clone $select;
+    $new_sel->add_table_column( 'qnaire', 'type' );
 
-    $select->from( 'overview_participant' );
-    $select->add_table_column( 'qnaire', 'type' );
-    $select->add_column( 'site' );
-    $select->add_column( 'COUNT(*)', 'count', false );
+    $new_mod = clone $modifier;
+    $new_mod->where( 'queue.name', '=', 'old participant' );
+    $old_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
+    $old_mod->group( 'qnaire.type' );
 
-    $modifier->group( 'site' );
-
-    // join to queue_has_participant and group by qnaire
-    $modifier->join(
-      'queue_has_participant', 'overview_participant.id', 'queue_has_participant.participant_id' );
-    $modifier->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
-    $modifier->group( 'qnaire.type' );
-    $modifier->join( 'queue', 'queue_has_participant.queue_id', 'queue.id' );
-    $modifier->where( 'queue.name', '=', 'new participant' );
-
-    $list = array( 'home' => array(), 'site' => array() );
-    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) ) as $row )
+    foreach( $db->get_all( sprintf( '%s %s', $new_sel->get_sql(), $new_mod->get_sql() ) ) as $row )
     {
-      if( !array_key_exists( $row['site'], $list[$row['type']] ) ) $list[$row['type']][$row['site']] = 0;
-      $list[$row['type']][$row['site']] += $row['count'];
+      $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
+      $node = $parent_node->find_node( 'Participants previously assigned' );
+      $node->set_value( $row['total'] );
     }
 
-    foreach( $list as $type => $sub_list )
-    {
-      foreach( $sub_list as $site => $value )
-      {
-        $parent_node = $site_node_lookup[$site]->find_node( ucWords( $type ).' Interview' );
-        $node = $parent_node->find_node( 'Participants never assigned' );
-        $node->set_value( $value );
-      }
-    }
-
-    // get participants previously assigned (never called)
+    // completed
     /////////////////////////////////////////////////////////////////////////////////////////////
-    $select = lib::create( 'database\select' );
-    $modifier = lib::create( 'database\modifier' );
+    $completed_sel = clone $select;
+    $completed_sel->add_table_column( 'qnaire', 'type' );
 
-    $select->from( 'overview_participant' );
-    $select->add_table_column( 'qnaire', 'type' );
-    $select->add_column( 'site' );
-    $select->add_column( 'COUNT(*)', 'count', false );
+    $completed_mod = clone $modifier;
+    $completed_mod->where( 'queue.name', '=', 'all' );
+    $completed_mod->join( 'interview', 'queue_has_participant.participant_id', 'interview.participant_id' );
+    $completed_mod->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
+    $completed_mod->where( 'interview.end_datetime', '!=', NULL );
+    $completed_mod->group( 'qnaire.type' );
 
-    $modifier->group( 'site' );
-
-    // join to queue_has_participant and group by qnaire
-    $modifier->join(
-      'queue_has_participant', 'overview_participant.id', 'queue_has_participant.participant_id' );
-    $modifier->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
-    $modifier->group( 'qnaire.type' );
-    $modifier->join( 'queue', 'queue_has_participant.queue_id', 'queue.id' );
-    $modifier->where( 'queue.name', '=', 'old participant' );
-
-    $list = array( 'home' => array(), 'site' => array() );
-    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) ) as $row )
+    foreach( $db->get_all( sprintf( '%s %s', $completed_sel->get_sql(), $completed_mod->get_sql() ) ) as $row )
     {
-      if( !array_key_exists( $row['site'], $list[$row['type']] ) ) $list[$row['type']][$row['site']] = 0;
-      $list[$row['type']][$row['site']] += $row['count'];
+      $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
+      $node = $parent_node->find_node( 'Completed Interviews' );
+      $node->set_value( $row['total'] );
     }
 
-    foreach( $list as $type => $sub_list )
-    {
-      foreach( $sub_list as $site => $value )
-      {
-        $parent_node = $site_node_lookup[$site]->find_node( ucWords( $type ).' Interview' );
-        $node = $parent_node->find_node( 'Participants previously assigned' );
-        $node->set_value( $value );
-      }
-    }
-
-    // get completed participants
+    // create summary node and finish
     /////////////////////////////////////////////////////////////////////////////////////////////
-    $select = lib::create( 'database\select' );
-    $modifier = lib::create( 'database\modifier' );
-
-    $select->from( 'overview_participant' );
-    $select->add_table_column( 'qnaire', 'type' );
-    $select->add_column( 'site' );
-    $select->add_column( 'COUNT(*)', 'count', false );
-
-    $modifier->group( 'site' );
-
-    // join to interview and qnaire, and group by qnaire
-    $modifier->join( 'interview', 'overview_participant.id', 'interview.participant_id' );
-    $modifier->where( 'interview.end_datetime', '!=', NULL );
-    $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
-    $modifier->group( 'qnaire.type' );
-
-    $list = array( 'home' => array(), 'site' => array() );
-    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) ) as $row )
-    {
-      if( !array_key_exists( $row['site'], $list[$row['type']] ) ) $list[$row['type']][$row['site']] = 0;
-      $list[$row['type']][$row['site']] += $row['count'];
-    }
-
-    foreach( $list as $type => $sub_list )
-    {
-      foreach( $sub_list as $site => $value )
-      {
-        $parent_node = $site_node_lookup[$site]->find_node( ucWords( $type ).' Interview' );
-        $node = $parent_node->find_node( 'Completed Interviews' );
-        $node->set_value( $value );
-      }
-    }
-
     if( $db_role->all_sites )
     {
       // create a summary node of all sites
