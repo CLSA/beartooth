@@ -143,7 +143,6 @@ class progress extends \cenozo\business\overview\base_overview
     $callback_mod = clone $modifier;
     $callback_mod->where( 'queue.name', '=', 'callback' );
     $callback_mod->join( 'participant', 'queue_has_participant.participant_id', 'participant.id' );
-    $callback_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
     $callback_mod->group( 'qnaire.type' );
     $callback_mod->group( $week_sql );
 
@@ -182,7 +181,6 @@ class progress extends \cenozo\business\overview\base_overview
     $appointment_mod->join(
       'interview_last_appointment', 'interview.id', 'interview_last_appointment.interview_id' );
     $appointment_mod->join( 'appointment', 'interview_last_appointment.appointment_id', 'appointment.id' );
-    $appointment_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
     $appointment_mod->group( 'qnaire.type' );
     $appointment_mod->group( $week_sql );
 
@@ -197,15 +195,14 @@ class progress extends \cenozo\business\overview\base_overview
 
     // never assigned
     /////////////////////////////////////////////////////////////////////////////////////////////
-    $old_sel = clone $select;
-    $old_sel->add_table_column( 'qnaire', 'type' );
+    $new_sel = clone $select;
+    $new_sel->add_table_column( 'qnaire', 'type' );
 
-    $old_mod = clone $modifier;
-    $old_mod->where( 'queue.name', '=', 'new participant' );
-    $old_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
-    $old_mod->group( 'qnaire.type' );
+    $new_mod = clone $modifier;
+    $new_mod->where( 'queue.name', '=', 'new participant' );
+    $new_mod->group( 'qnaire.type' );
 
-    foreach( $db->get_all( sprintf( '%s %s', $old_sel->get_sql(), $old_mod->get_sql() ) ) as $row )
+    foreach( $db->get_all( sprintf( '%s %s', $new_sel->get_sql(), $new_mod->get_sql() ) ) as $row )
     {
       $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
       $node = $parent_node->find_node( 'Participants never assigned' );
@@ -214,15 +211,14 @@ class progress extends \cenozo\business\overview\base_overview
 
     // previously assigned
     /////////////////////////////////////////////////////////////////////////////////////////////
-    $new_sel = clone $select;
-    $new_sel->add_table_column( 'qnaire', 'type' );
+    $old_sel = clone $select;
+    $old_sel->add_table_column( 'qnaire', 'type' );
 
-    $new_mod = clone $modifier;
-    $new_mod->where( 'queue.name', '=', 'old participant' );
-    $old_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
+    $old_mod = clone $modifier;
+    $old_mod->where( 'queue.name', '=', 'old participant' );
     $old_mod->group( 'qnaire.type' );
 
-    foreach( $db->get_all( sprintf( '%s %s', $new_sel->get_sql(), $new_mod->get_sql() ) ) as $row )
+    foreach( $db->get_all( sprintf( '%s %s', $old_sel->get_sql(), $old_mod->get_sql() ) ) as $row )
     {
       $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
       $node = $parent_node->find_node( 'Participants previously assigned' );
@@ -237,6 +233,7 @@ class progress extends \cenozo\business\overview\base_overview
     $completed_mod = clone $modifier;
     $completed_mod->where( 'queue.name', '=', 'all' );
     $completed_mod->join( 'interview', 'queue_has_participant.participant_id', 'interview.participant_id' );
+    $completed_mod->remove_join( 'qnaire' );
     $completed_mod->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
     $completed_mod->where( 'interview.end_datetime', '!=', NULL );
     $completed_mod->group( 'qnaire.type' );
