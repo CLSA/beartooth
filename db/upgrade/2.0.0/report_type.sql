@@ -20,8 +20,8 @@ DROP PROCEDURE IF EXISTS patch_report_type;
 
     SET @sql = CONCAT(
       "INSERT IGNORE INTO ", @cenozo, ".report_type ( name, title, subject, description ) VALUES ",
-      "( 'appointment', 'Appointment', 'appointment', "
-        "'This report provides a list of all appointments for a particular questionnaire.' ), "
+      "( 'appointment', 'Appointment', 'appointment', ",
+        "'This report provides a list of all appointments for a particular questionnaire.' ), ",
       "( 'sample', 'Sample', 'participant', ",
         "'This report contains details used to help manage participant sample.' )" );
     PREPARE statement FROM @sql;
