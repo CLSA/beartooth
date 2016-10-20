@@ -107,7 +107,6 @@ class progress extends \cenozo\business\overview\base_overview
     // states
     /////////////////////////////////////////////////////////////////////////////////////////////
     $state_sel = clone $select;
-    $state_sel->add_table_column( 'qnaire', 'type' );
     $state_sel->add_table_column( 'state', 'name', 'state' );
 
     $state_mod = clone $modifier;
@@ -251,6 +250,7 @@ class progress extends \cenozo\business\overview\base_overview
     {
       // create a summary node of all sites
       $first_node = $this->root_node->get_summary_node();
+      $first_node->set_label( 'Summary of All Sites' );
       $this->root_node->add_child( $first_node, true );
     }
     else
