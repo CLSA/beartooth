@@ -65,6 +65,13 @@ define( function() {
     }
   } );
 
+  if( angular.isDefined( module.actions.edit ) ) {
+    module.addExtraOperation( 'view', {
+      title: 'Set Password',
+      operation: function( $state, model ) { model.viewModel.setPassword(); }
+    } );
+  }
+
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnOnyxInstanceAdd', [
     'CnOnyxInstanceModelFactory',
@@ -130,9 +137,41 @@ define( function() {
 
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnOnyxInstanceViewFactory', [
-    'CnBaseViewFactory',
-    function( CnBaseViewFactory ) {
-      var object = function( parentModel, root ) { CnBaseViewFactory.construct( this, parentModel, root ); }
+    'CnBaseViewFactory', 'CnModalPasswordFactory', 'CnModalMessageFactory', 'CnHttpFactory',
+    function( CnBaseViewFactory, CnModalPasswordFactory, CnModalMessageFactory, CnHttpFactory ) {
+      var object = function( parentModel, root ) {
+        var self = this;
+        CnBaseViewFactory.construct( this, parentModel, root );
+
+        // custom operation
+        this.setPassword = function() {
+          CnModalPasswordFactory.instance( {
+            confirm: false,
+            showCancel: true
+          } ).show().then( function( response ) {
+            if( angular.isObject( response ) ) {
+              CnHttpFactory.instance( {
+                path: 'onyx_instance/' + self.record.getIdentifier(),
+                data: { password: response.requestedPass },
+                onError: function( response ) {
+                  if( 403 == response.status ) {
+                    CnModalMessageFactory.instance( {
+                      title: 'Unable To Change Password',
+                      message: 'Sorry, you do not have access to resetting the password for this onyx instance.',
+                      error: true
+                    } ).show();
+                  } else { CnModalMessageFactory.httpError( response ); }
+                }
+              } ).patch().then( function() {
+                CnModalMessageFactory.instance( {
+                  title: 'Password Reset',
+                  message: 'The password has been successfully changed.'
+                } ).show();
+              } );
+            }
+          } );
+        };
+      }
       return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
     }
   ] );
