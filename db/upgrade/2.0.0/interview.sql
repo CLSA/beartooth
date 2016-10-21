@@ -108,16 +108,15 @@ DROP PROCEDURE IF EXISTS patch_interview;
       SET start_datetime = CONVERT_TZ( interview.create_timestamp, 'Canada/Eastern', 'UTC' )
       WHERE start_datetime IS NULL;
 
-      UPDATE interview 
-      LEFT JOIN assignment ON interview.id = assignment.interview_id
-      SET interview.end_datetime = IF( interview.completed, assignment.end_datetime, NULL )
-      WHERE assignment.end_datetime = (
-        SELECT MAX( end_datetime )
-        FROM assignment
-        WHERE assignment.interview_id = interview.id
-        GROUP BY interview_id
-        LIMIT 1
-      );
+      SET @sql = CONCAT(
+        "UPDATE interview ",
+        "JOIN qnaire ON interview.qnaire_id = qnaire.id ",
+        "JOIN ", @cenozo, ".event ON interview.participant_id = event.participant_id ",
+         "AND qnaire.completed_event_type_id = event.event_type_id ",
+        "SET interview.end_datetime = event.datetime" );
+      PREPARE statement FROM @sql;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
 
       -- now get rid of the completed column and index
       ALTER TABLE interview
