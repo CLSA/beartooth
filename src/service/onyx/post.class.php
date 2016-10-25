@@ -363,6 +363,7 @@ class post extends \cenozo\service\service
         $db_consent->written = true;
         $db_consent->datetime = $datetime_obj;
         $db_consent->note = 'Provided by Onyx.';
+        $db_consent->save();
       }
     }
 
@@ -384,6 +385,7 @@ class post extends \cenozo\service\service
         $db_consent->written = true;
         $db_consent->datetime = $datetime_obj;
         $db_consent->note = 'Provided by Onyx.';
+        $db_consent->save();
       }
     }
 
@@ -391,29 +393,14 @@ class post extends \cenozo\service\service
     $member = 'Admin.Interview.status';
     if( property_exists( $object, $member ) && 'completed' == strtolower( $object->$member ) )
     {
-      $member = 'Admin.ApplicationConfiguration.siteCode';
-      if( !property_exists( $object, $member ) )
+      // get the onyx instance to tell whether this is a home or site instance
+      $db_user = lib::create( 'business\session' )->get_user();
+      $db_onyx_instance = $onyx_instance_class_name::get_unique_record( 'user_id', $db_user->id );
+      if( is_null( $db_onyx_instance ) )
         throw lib::create( 'exception\runtime',
-          sprintf( 'Missing required object member "%s" from %s', $member, $db_participant->uid ),
+          sprintf( 'Onyx user "%s" is not linked to any onyx instance.', $db_user->name ),
           __METHOD__ );
-
-      $onyx_instance_sel = lib::create( 'database\select' );
-      $onyx_instance_mod = lib::create( 'database\modifier' );
-      $onyx_instance_mod->join( 'user', 'onyx_instance.user_id', 'user.id' );
-      $onyx_instance_mod->where( 'user.name', '=', $object->$member );
-      $onyx_instance_list = $onyx_instance_class_name::select_objects( $onyx_instance_mod );
-      if( 0 < count( $onyx_instance_list ) )
-      {
-        $db_onyx_instance = current( $onyx_instance_list );
-        $interview_type = is_null( $db_onyx_instance->interviewer_user_id ) ? 'site' : 'home';
-      }
-      else
-      {
-        // can't find the onyx instance, get interview type based on the name instead
-        if( preg_match( '/dcs|site/i', $object->$member ) ) $interview_type = 'site';
-        else if( preg_match( '/home/i', $object->$member ) ) $interview_type = 'home';
-        else $interview_type = false;
-      }
+      $interview_type = is_null( $db_onyx_instance->interviewer_user_id ) ? 'site' : 'home';
 
       // get the interview corresponding with this export
       $interview_sel = lib::create( 'database\select' );
