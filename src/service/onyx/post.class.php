@@ -434,6 +434,7 @@ class post extends \cenozo\service\service
 
     $region_class_name = lib::get_class_name( 'database\region' );
     $application_class_name = lib::get_class_name( 'database\application' );
+    $queue_class_name = lib::get_class_name( 'database\queue' );
     $setting_manager = lib::create( 'business\setting_manager' );
     $session = lib::create( 'business\session' );
 
@@ -580,7 +581,8 @@ class post extends \cenozo\service\service
     $member = 'pdfForm';
     if( property_exists( $object, $member ) ) $form_data['data'] = $object->$member;
 
-    // we need to complete any transactions before continuing
+    // we need to repopulate the queue and complete any transactions before continuing
+    $queue_class_name::execute_delayed();
     $session->get_database()->complete_transaction();
 
     // now send all data to mastodon's data entry system
