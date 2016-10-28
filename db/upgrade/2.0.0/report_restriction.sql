@@ -77,7 +77,7 @@ DROP PROCEDURE IF EXISTS patch_report_restriction;
           "0 AS custom, ",
           "'outcome' AS subject, ",
           "NULL AS operator, ",
-          "'\"completed\",\"cancelled\",null' AS enum_list, ",
+          "'\"completed\",\"cancelled\"' AS enum_list, ",
           "'Whether to only include complete, cancelled or cancelled (empty outcome) appointments.' AS description ",
         "UNION SELECT ",
           "6 AS rank, ",
