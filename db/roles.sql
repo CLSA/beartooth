@@ -10,6 +10,7 @@ INSERT IGNORE INTO cenozo.role( name, tier ) VALUES
 ( "curator", 2, true ),
 ( "helpline", 2, true ),
 ( "interviewer", 1, false ),
+( "interviewer+", 1, false ),
 ( "onyx", 1, false );
 
 -- add states to roles
