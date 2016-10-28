@@ -108,8 +108,25 @@ class module extends \cenozo\service\base_calendar_module
         // no writing of appointments if they have passed
         else if( !is_null( $db_appointment ) && $db_appointment->datetime < util::get_datetime_object() )
         {
-          $this->set_data( 'Appointments cannot be changed after they have passed.' );
-          $this->get_status()->set_code( 306 );
+          // only allow changing of appointments if a passed appointment is having its outcome changed to cancelled
+          $allow = false;
+          if( 'PATCH' == $method )
+          {
+            $data = $this->get_file_as_array();
+            if( 'passed' == $db_appointment->get_state() &&
+                1 == count( $data ) &&
+                array_key_exists( 'outcome', $data ) &&
+                'cancelled' == $data['outcome'] )
+            {
+              $allow = true;
+            }
+          }
+
+          if( !$allow )
+          {
+            $this->set_data( 'Appointments cannot be changed after they have passed.' );
+            $this->get_status()->set_code( 306 );
+          }
         }
         else
         {

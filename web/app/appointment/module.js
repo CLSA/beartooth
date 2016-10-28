@@ -92,7 +92,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       type: 'string',
       exclude: 'add',
       constant: true,
-      help: 'One of reached, not reached, upcoming, assignable, missed, incomplete, assigned or in progress'
+      help: 'One of upcoming, passed, completed or cancelled'
     },
     appointment_type_id: {
       title: 'Special Type',
@@ -134,6 +134,16 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       }
     } );
   }
+
+  module.addExtraOperation( 'view', {
+    title: 'Cancel Appointment',
+    isDisabled: function( $state, model ) {
+      return 'passed' != model.viewModel.record.state;
+    },
+    operation: function( $state, model ) {
+      model.viewModel.cancelAppointment().then( function() { model.viewModel.onView(); } );
+    }
+  } );
 
   // converts appointments into events
   function getEventFromAppointment( appointment, timezone ) {
@@ -497,11 +507,25 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAppointmentViewFactory', [
-    'CnBaseViewFactory', 'CnSession', 'CnHttpFactory', '$injector',
-    function( CnBaseViewFactory, CnSession, CnHttpFactory, $injector ) {
+    'CnBaseViewFactory', 'CnSession', 'CnHttpFactory', 'CnModalMessageFactory', '$injector',
+    function( CnBaseViewFactory, CnSession, CnHttpFactory, CnModalMessageFactory, $injector ) {
       var object = function( parentModel, root ) {
         var self = this;
         CnBaseViewFactory.construct( this, parentModel, root );
+
+        this.cancelAppointment = function() {
+          var modal = CnModalMessageFactory.instance( {
+            title: 'Please Wait',
+            message: 'The appointment is being cancelled, please wait.',
+            block: true
+          } );
+          modal.show();
+
+          return CnHttpFactory.instance( {
+            path: this.parentModel.getServiceResourcePath( this.record.getIdentifier() ),
+            data: { outcome: 'cancelled' }
+          } ).patch().finally( function() { modal.close(); } );
+        };
 
         this.onView = function() {
           return self.$$onView().then( function() {
