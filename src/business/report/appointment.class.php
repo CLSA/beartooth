@@ -59,6 +59,7 @@ class appointment extends \cenozo\business\report\base_report
       false
     );
 
+    $select->add_column( 'IFNULL( participant.email, "(none)" )', 'Email', false );
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
     $modifier->where( 'qnaire.id', '=', $db_qnaire->id );
