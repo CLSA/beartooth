@@ -35,25 +35,23 @@ class appointment extends \cenozo\business\report\base_report
     $select = lib::create( 'database\select' );
     $select->from( $this->db_report->get_report_type()->subject );
     if( $this->db_role->all_sites )
-      $select->add_table_column( 'site', 'IFNULL( site.name, "(none)" )', 'Site', false );
-    $select->add_table_column(
-      'participant',
+      $select->add_column( 'IFNULL( site.name, "(none)" )', 'Site', false );
+    $select->add_column(
       'CONCAT_WS( " ", honorific, participant.first_name, CONCAT( "(", other_name, ")" ), participant.last_name )',
       'Name',
       false );
-    $select->add_table_column( 'participant', 'uid', 'UID' );
+    $select->add_column( 'participant.uid', 'UID', false );
     $select->add_column( $this->get_datetime_column( 'appointment.datetime', 'date' ), 'Date', false );
     $select->add_column( $this->get_datetime_column( 'appointment.datetime', 'time' ), 'Time', false );
-    $select->add_table_column( 'participant', 'TIMESTAMPDIFF( YEAR, date_of_birth, CURDATE() )', 'Age', false );
-    $select->add_table_column( 'participant', 'sex', 'Sex' );
-    $select->add_table_column( 'language', 'name', 'Language' );
+    $select->add_column( 'TIMESTAMPDIFF( YEAR, participant.date_of_birth, CURDATE() )', 'Age', false );
+    $select->add_column( 'participant.sex', 'Sex', false );
+    $select->add_column( 'language.name', 'Language', false );
     $select->add_column(
       'IFNULL( appointment.outcome, IF( UTC_TIMESTAMP() < appointment.datetime, "upcoming", "passed" ) )',
       'State',
       false
     );
-    $select->add_table_column(
-      'appointment_type',
+    $select->add_column(
       'IFNULL( appointment_type.name, "normal" )',
       'Appointment Type',
       false
@@ -68,8 +66,7 @@ class appointment extends \cenozo\business\report\base_report
 
     if( 'home' == $db_qnaire->type )
     {
-      $select->add_table_column(
-        'address',
+      $select->add_column(
         'CONCAT_WS( " ", address.address1, address.address2, address.city, '.
                         'region.abbreviation, address.postcode )',
         'Address',
@@ -77,8 +74,7 @@ class appointment extends \cenozo\business\report\base_report
 
       if( !$is_interviewer )
       {
-        $select->add_table_column(
-          'user',
+        $select->add_column(
           'CONCAT_WS( " ", user.first_name, user.last_name )',
           'Interviewer',
           false );
@@ -92,8 +88,7 @@ class appointment extends \cenozo\business\report\base_report
     {
       if( !$is_interviewer )
       {
-        $select->add_table_column(
-          'user',
+        $select->add_column(
           'CONCAT_WS( " ", user.first_name, user.last_name )',
           'Home Interviewer',
           false );

@@ -101,13 +101,12 @@ class sample extends \cenozo\business\report\base_report
     $select->from( 'participant' );
     $select->add_column( 'uid', 'UID' );
     if( $this->db_role->all_sites )
-      $select->add_table_column( 'site', 'IFNULL( site.name, "(none)" )', 'Site', false );
+      $select->add_column( 'IFNULL( site.name, "(none)" )', 'Site', false );
     $select->add_column( 'IF( participant.active, "Yes", "No" )', 'Active', false );
-    $select->add_table_column( 'blood_consent', 'IF( blood_consent.accept, "Yes", "No" )', 'Blood', false );
-    $select->add_table_column( 'state', 'IFNULL( state.name, "(none)" )', 'Condition', false );
-    $select->add_table_column( 'language', 'IFNULL( language.name, "(none)" )', 'Language', false );
-    $select->add_table_column(
-      'application_has_participant',
+    $select->add_column( 'IF( blood_consent.accept, "Yes", "No" )', 'Blood', false );
+    $select->add_column( 'IFNULL( state.name, "(none)" )', 'Condition', false );
+    $select->add_column( 'IFNULL( language.name, "(none)" )', 'Language', false );
+    $select->add_column(
       $this->get_datetime_column( 'application_has_participant.datetime' ),
       'Released',
       false
@@ -118,26 +117,26 @@ class sample extends \cenozo\business\report\base_report
       'Callback',
       false
     );
-    $select->add_table_column( 'home_data',
+    $select->add_column(
       sprintf( 'IF( home_data.interview_datetime IS NOT NULL, %s, %s )',
                $this->get_datetime_column( 'home_data.interview_datetime' ),
                $this->get_datetime_column( 'home_data.appointment_datetime' ) ),
       'Home Interview Date',
       false
     );
-    $select->add_table_column( 'home_data', 'assignment_count', 'Home Assignments' );
-    $select->add_table_column( 'home_date',
+    $select->add_column( 'home_data.assignment_count', 'Home Assignments', false );
+    $select->add_column(
       'IF( home_data.interview_datetime IS NOT NULL, "(exported)", home_data.interviewer )',
       'Home Interviewer',
       false
     );
-    $select->add_table_column( 'home_data',
+    $select->add_column(
       'IF( home_data.interview_datetime IS NOT NULL, "Yes", "No" )',
       'Home Completed',
       false
     );
-    $select->add_table_column( 'site_data', 'assignment_count', 'Site Assignments' );
-    $select->add_table_column( 'site_data',
+    $select->add_column( 'site_data.assignment_count', 'Site Assignments', false );
+    $select->add_column(
       sprintf( 'IF( site_data.interview_datetime IS NOT NULL, %s, %s )',
                $this->get_datetime_column( 'site_data.interview_datetime' ),
                $this->get_datetime_column( 'site_data.appointment_datetime' ) ),
