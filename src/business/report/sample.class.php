@@ -105,6 +105,7 @@ class sample extends \cenozo\business\report\base_report
     $select->add_column( 'IF( participant.active, "Yes", "No" )', 'Active', false );
     $select->add_table_column( 'blood_consent', 'IF( blood_consent.accept, "Yes", "No" )', 'Blood', false );
     $select->add_table_column( 'state', 'IFNULL( state.name, "(none)" )', 'Condition', false );
+    $select->add_table_column( 'language', 'IFNULL( language.name, "(none)" )', 'Language', false );
     $select->add_table_column(
       'application_has_participant',
       $this->get_datetime_column( 'application_has_participant.datetime' ),
@@ -170,6 +171,7 @@ class sample extends \cenozo\business\report\base_report
     $modifier->where( 'blood_consent_type.name', '=', 'draw blood' );
     $modifier->left_join( 'consent', 'participant_last_consent.consent_id', 'blood_consent.id', 'blood_consent' );
     $modifier->left_join( 'state', 'participant.state_id', 'state.id' );
+    $modifier->join( 'language', 'participant.language_id', 'language.id' );
 
     $modifier->left_join( 'home_data', 'participant.id', 'home_data.participant_id' );
     $modifier->left_join( 'site_data', 'participant.id', 'site_data.participant_id' );
