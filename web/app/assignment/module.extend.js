@@ -84,9 +84,9 @@ define( [ 'participant' ].reduce( function( list, name ) {
 
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAssignmentControlFactory', [
-    '$state', '$window', 'CnSession', 'CnHttpFactory',
+    '$q', '$state', '$window', 'CnSession', 'CnHttpFactory',
     'CnParticipantModelFactory', 'CnScriptLauncherFactory', 'CnModalMessageFactory', 'CnModalConfirmFactory',
-    function( $state, $window, CnSession, CnHttpFactory,
+    function( $q, $state, $window, CnSession, CnHttpFactory,
               CnParticipantModelFactory, CnScriptLauncherFactory, CnModalMessageFactory, CnModalConfirmFactory ) {
       var object = function( root ) {
         var self = this;
@@ -351,35 +351,52 @@ define( [ 'participant' ].reduce( function( list, name ) {
         };
 
         this.loadScriptList = function() {
-          self.isScriptListLoading = true;
-          return CnHttpFactory.instance( {
-            path: 'application/0/script?participant_id=' + self.assignment.participant_id,
-            data: {
-              modifier: { order: ['repeated','name'] },
-              select: { column: [
-                'id', 'name', 'repeated', 'url', 'description',
-                { table: 'started_event', column: 'datetime', alias: 'started_datetime' },
-                { table: 'finished_event', column: 'datetime', alias: 'finished_datetime' }
-              ] }
-            }
-          } ).query().then( function( response ) {
-            self.scriptList = response.data;
+          var promiseList = [];
+          if( null != self.assignment ) {
+            self.isScriptListLoading = true;
 
-            if( 0 == self.scriptList.length ) {
-              self.activeScript = null;
-            } else {
-              if( null == self.activeScript ||
-                  null == self.scriptList.findByProperty( 'id', self.activeScript.id ) ) {
-                self.activeScript = self.scriptList[0];
-              } else {
-                var activeScriptName = self.activeScript.name;
-                self.scriptList.forEach( function( item ) {
-                  if( activeScriptName == item.name ) self.activeScript = item;
-                } );
-              }
-            }
-            self.isScriptListLoading = false;
-          } );
+            promiseList.push(
+              CnHttpFactory.instance( {
+                path: 'participant/' + self.assignment.participant_id,
+                data: { select: { column: [ 'withdrawn' ] } }
+              } ).get().then( function( response ) {
+                if( null != self.participant ) self.participant.withdrawn = response.data.withdrawn;
+              } )
+            );
+
+            promiseList.push(
+              CnHttpFactory.instance( {
+                path: 'application/0/script?participant_id=' + self.assignment.participant_id,
+                data: {
+                  modifier: { order: ['repeated','name'] },
+                  select: { column: [
+                    'id', 'name', 'repeated', 'url', 'description',
+                    { table: 'started_event', column: 'datetime', alias: 'started_datetime' },
+                    { table: 'finished_event', column: 'datetime', alias: 'finished_datetime' }
+                  ] }
+                }
+              } ).query().then( function( response ) {
+                self.scriptList = response.data;
+
+                if( 0 == self.scriptList.length ) {
+                  self.activeScript = null;
+                } else {
+                  if( null == self.activeScript ||
+                      null == self.scriptList.findByProperty( 'id', self.activeScript.id ) ) {
+                    self.activeScript = self.scriptList[0];
+                  } else {
+                    var activeScriptName = self.activeScript.name;
+                    self.scriptList.forEach( function( item ) {
+                      if( activeScriptName == item.name ) self.activeScript = item;
+                    } );
+                  }
+                }
+                self.isScriptListLoading = false;
+              } )
+            );
+          }
+
+          return $q.all( promiseList ).then( function() { self.isScriptListLoading = false; } );
         };
 
         this.launchScript = function( script ) {
