@@ -105,7 +105,7 @@ class qnaire extends \cenozo\database\has_rank
   /**
    * Returns a special event-type associated with this qnaire
    * 
-   * Returns the event-type associated with when the previous phase's qnaire was completed.
+   * Returns the event-type associated with when the previous qnaire was completed.
    * If no event-type exists this method will return NULL.
    * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\event_type

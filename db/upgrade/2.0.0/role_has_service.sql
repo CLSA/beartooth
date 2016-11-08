@@ -149,7 +149,7 @@ CREATE PROCEDURE patch_role_has_service()
         "WHERE subject IN( ",
           "'address', 'alternate', 'application', 'appointment_type', 'availability_type', 'collection', ",
           "'consent', 'consent_type', 'event', 'event_type', 'export', 'export_file', 'export_column', ",
-          "'export_restriction', 'form', 'hin', 'interview', 'jurisdiction', 'language', 'onyx', 'phase', ",
+          "'export_restriction', 'form', 'hin', 'interview', 'jurisdiction', 'language', 'onyx', ",
           "'phone', 'qnaire', 'quota', 'region_site', 'recording', 'recording_list', 'report_schedule', ",
           "'script', 'source', 'state' ) ",
         "OR ( subject = 'report_restriction' AND method IN( 'DELETE', 'PATCH', 'POST' ) ) ",

@@ -64,8 +64,8 @@ define( function() {
     prev_event_type_id: {
       title: 'Previous Event Type',
       type: 'enum',
-      help: 'The event type which was added when the coinciding questionnaire of the same type (home or site) ' +
-            'during the last phase was completed.'
+      help: 'The event type which was added when the previous questionnaire of the same type (home or site) ' +
+            'was completed.'
     }
   } );
 
