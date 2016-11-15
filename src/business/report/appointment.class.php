@@ -57,12 +57,18 @@ class appointment extends \cenozo\business\report\base_report
       false
     );
 
-    $select->add_column( 'IFNULL( participant.email, "(none)" )', 'Email', false );
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
     $modifier->where( 'qnaire.id', '=', $db_qnaire->id );
     $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
     $modifier->join( 'language', 'participant.language_id', 'language.id' );
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'participant.id', '=', 'phone.participant_id', false );
+    $join_mod->where( 'phone.rank', '=', 1 );
+    $modifier->join_modifier( 'phone', $join_mod, 'left' );
+
+    $select->add_column( 'phone.number', 'Phone', false );
+    $select->add_column( 'IFNULL( participant.email, "(none)" )', 'Email', false );
 
     if( 'home' == $db_qnaire->type )
     {
@@ -123,6 +129,8 @@ class appointment extends \cenozo\business\report\base_report
     }
     $modifier->left_join( 'site', 'participant_site.site_id', 'site.id' );
     if( !$this->db_role->all_sites ) $modifier->where( 'site.id', '=', $this->db_site->id );
+
+    $modifier->order( 'appointment.datetime' );
 
     $this->add_table_from_select( NULL, $participant_class_name::select( $select, $modifier ) );
   }
