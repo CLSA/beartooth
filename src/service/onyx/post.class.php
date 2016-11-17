@@ -431,7 +431,9 @@ class post extends \cenozo\service\service
   private function process_proxy( $db_participant, $object )
   {
     // ignore empty or manual forms
-    if( 1 >= count( get_object_vars( $object ) ) || 'MANUAL' == strtoupper( $object->mode ) ) return;
+    if( 1 >= count( get_object_vars( $object ) ) ||
+        'MANUAL' == strtoupper( $object->mode ) ||
+        !property_exists( $object, 'pdfForm' ) ) return;
 
     $region_class_name = lib::get_class_name( 'database\region' );
     $application_class_name = lib::get_class_name( 'database\application' );
