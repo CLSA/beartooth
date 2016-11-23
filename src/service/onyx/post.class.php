@@ -566,7 +566,7 @@ class post extends \cenozo\service\service
     }
 
     $member = 'ICF_ANSW_COM';
-    $form_data['use_informant'] =
+    $form_data['continue_questionnaires'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'ICF_TEST_COM';
