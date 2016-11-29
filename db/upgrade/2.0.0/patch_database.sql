@@ -39,8 +39,6 @@ SOURCE setting_value.sql
 SOURCE setting.sql
 SOURCE system_message.sql
 SOURCE user.sql
-SOURCE recording.sql
-SOURCE recording_file.sql
 SOURCE site.sql
 SOURCE consent.sql
 SOURCE data_collection.sql
