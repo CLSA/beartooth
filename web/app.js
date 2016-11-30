@@ -11,18 +11,18 @@ cenozo.controller( 'HeaderCtrl', [
     // add custom operations here by adding a new property to $scope.operationList
 
     CnSession.promise.then( function() {
-      CnSession.alertHeader = 'none' == CnSession.user.assignmentType
+      CnSession.alertHeader = null == CnSession.user.assignment
                             ? undefined
-                            : 'You are currently in a ' + CnSession.user.assignmentType + ' assignment';
+                            : 'You are currently in a ' + CnSession.user.assignment.type + ' assignment';
       CnSession.onAlertHeader = function() {
-        // we need to re-update the session data to make sure that assignmentType is up to date
+        // we need to re-update the session data to make sure that assignment type is up to date
         CnSession.updateData();
         CnSession.promise.then( function() {
           if( angular.isDefined( cenozoApp.module( 'assignment' ).actions.control ) ) {
-            $state.go( 'assignment.control', { type: CnSession.user.assignmentType } );
+            $state.go( 'assignment.control', { type: CnSession.user.assignment.type } );
           } else {
             CnModalMessageFactory.instance( {
-              title: 'Switch Roles For ' + CnSession.user.assignmentType.ucWords() + ' Assignment',
+              title: 'Switch Roles For ' + CnSession.user.assignment.type.ucWords() + ' Assignment',
               message:
                 'You cannot access your assignment under your current site and role. ' +
                 'The site and role selection dialog will now be opened, please use it to switch to the site and ' +
