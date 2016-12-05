@@ -57,8 +57,13 @@ class module extends \cenozo\service\assignment\module
     if( $select->has_table_columns( 'queue' ) )
       $modifier->left_join( 'queue', 'assignment.queue_id', 'queue.id' );
 
-    if( $select->has_table_columns( 'qnaire' ) )
+    if( $select->has_table_columns( 'qnaire' ) || $select->has_column( 'qnaire_name' ) )
+    {
       $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
+
+      // define the qnaire_name alias from the qnaire's name
+      if( $select->has_column( 'qnaire_name' ) ) $select->add_column( 'qnaire.name', 'qnaire_name', false );
+    }
   }
 
   /**
