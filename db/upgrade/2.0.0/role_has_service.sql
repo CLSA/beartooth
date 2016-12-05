@@ -56,7 +56,7 @@ CREATE PROCEDURE patch_role_has_service()
       "AND service.restricted = 1 ",
       "AND service.id NOT IN ( ",
         "SELECT id FROM service ",
-        "WHERE subject IN( 'appointment', 'onyx' ) ",
+        "WHERE subject IN( 'appointment', 'callback', 'onyx' ) ",
         "OR ( subject = 'assignment' AND method = 'POST' ) ",
         "OR ( subject = 'phone_call' AND method != 'DELETE' ) ",
       ")" );
