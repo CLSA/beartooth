@@ -58,8 +58,8 @@ define( function() {
       type: 'lookup-typeahead',
       typeahead: {
         table: 'user',
-        select: 'CONCAT( first_name, " ", last_name, " (", name, ")" )',
-        where: [ 'first_name', 'last_name', 'name' ]
+        select: 'CONCAT( user.first_name, " ", user.last_name, " (", user.name, ")" )',
+        where: [ 'user.first_name', 'user.last_name', 'user.name' ]
       },
       help: 'Determines which interviewer this instance belongs to, or blank if this is a site instance.'
     }
