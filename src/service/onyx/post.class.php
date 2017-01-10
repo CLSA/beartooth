@@ -127,6 +127,9 @@ class post extends \cenozo\service\service
       else if( 'participants' == $type )
         foreach( $this->object_list as $data )
           $this->process_participant( $data['participant'], $data['object'] );
+      else if( 'general_proxy' == $type )
+        foreach( $this->object_list as $data )
+          $this->process_general_proxy( $data['participant'], $data['object'] );
       else if( 'proxy' == $type )
         foreach( $this->object_list as $data )
           $this->process_proxy( $data['participant'], $data['object'] );
@@ -150,10 +153,9 @@ class post extends \cenozo\service\service
   private function get_property_name()
   {
     $type = $this->get_resource( 0 );
-    if( 'consent' == $type ) return 'Consent';
+    if( in_array( $type, array( 'consent', 'proxy', 'general_proxy' ) ) ) return 'Consent';
     else if( 'hin' == $type ) return 'ConsentHIN';
     else if( 'participants' == $type ) return 'Participants';
-    else if( 'proxy' == $type ) return 'Consent';
     return NULL;
   }
 
@@ -418,6 +420,187 @@ class post extends \cenozo\service\service
         $db_interview->complete( NULL, $datetime_obj );
       }
     }
+  }
+
+  /**
+   * Processes the onyx/general_proxy service
+   * 
+   * @author Patrick Emond <emondpd@mcmaster.ca>
+   * @param database\participant $db_participant The participant being exported to
+   * @param stdClass $object The data sent by Onyx
+   * @access private
+   */
+  private function process_general_proxy( $db_participant, $object )
+  {
+    // ignore empty or manual forms
+    if( 1 >= count( get_object_vars( $object ) ) ||
+        'MANUAL' == strtoupper( $object->mode ) ||
+        !property_exists( $object, 'pdfForm' ) ) return;
+
+    $region_class_name = lib::get_class_name( 'database\region' );
+    $application_class_name = lib::get_class_name( 'database\application' );
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+    $setting_manager = lib::create( 'business\setting_manager' );
+    $session = lib::create( 'business\session' );
+
+    $datetime_obj = $this->get_datetime_from_object( $object );
+
+    // general_proxy form information (send to mastodon for processing)
+    $form_data = array(
+      'from_onyx' => true,
+      'date' => $datetime_obj->format( 'Y-m-d' ),
+      'user_id' => $session->get_user()->id,
+      'uid' => $db_participant->uid
+    );
+
+    $member = 'ICF_ANSW_COM';
+    $form_data['continue_questionnaires'] =
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+    $member = 'ICF_HCNUMB_COM';
+    $form_data['hin_future_access'] =
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+    $member = 'ICF_DCS_COM';
+    $form_data['continue_dcs_visits'] =
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+    $member = 'ICF_PXFIRSTNAME_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $form_data['proxy_first_name'] = $object->$member;
+
+    $member = 'ICF_PXLASTNAME_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $form_data['proxy_last_name'] = $object->$member;
+
+    $member = 'ICF_PXADD_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+    {
+      $parts = explode( ' ', trim( $object->$member ), 2 );
+      $form_data['proxy_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
+      $form_data['proxy_street_name'] = array_key_exists( 1, $parts ) ? $parts[1] : NULL;
+    }
+
+    $member = 'ICF_PXADD2_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $form_data['proxy_address_other'] = $object->$member;
+
+    $member = 'ICF_PXCITY_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $form_data['proxy_city'] = $object->$member;
+
+    $member = 'ICF_PXPROVINCE_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+    {
+      $db_region = $region_class_name::get_unique_record( 'abbreviation', $object->$member );
+      if( is_null( $db_region ) ) $db_region = $region_class_name::get_unique_record( 'name', $object->$member );
+      if( !is_null( $db_region ) ) $form_data['proxy_region_id'] = $db_region->id;
+    }
+
+    $member = 'ICF_PXPOSTALCODE_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+    {
+      $postcode = trim( $object->$member );
+      if( 6 == strlen( $postcode ) )
+        $postcode = sprintf( '%s %s', substr( $postcode, 0, 3 ), substr( $postcode, 3 ) );
+      $form_data['proxy_postcode'] = $postcode;
+    }
+
+    $member = 'ICF_PXTEL_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+    {
+      $phone = preg_replace( '/[^0-9]/', '', $object->$member );
+      $phone = sprintf( '%s-%s-%s', substr( $phone, 0, 3 ), substr( $phone, 3, 3 ), substr( $phone, 6 ) );
+      $form_data['proxy_phone'] = $phone;
+    }
+
+    $member = 'ICF_OKPROXY_COM';
+    $form_data['already_identified'] =
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+    $member = 'ICF_INFFIRSTNAME_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $form_data['informant_first_name'] = $object->$member;
+
+    $member = 'ICF_INFLASTNAME_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $form_data['informant_last_name'] = $object->$member;
+
+    $member = 'ICF_INFADD_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+    {
+      $parts = explode( ' ', trim( $object->$member ), 2 );
+      $form_data['informant_street_number'] = array_key_exists( 0, $parts ) ? $parts[0] : NULL;
+      $form_data['informant_street_name'] = array_key_exists( 1, $parts ) ? $parts[1] : NULL;
+    }
+
+    $member = 'ICF_INFADD2_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $form_data['informant_address_other'] = $object->$member;
+
+    $member = 'ICF_INFCITY_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+      $form_data['informant_city'] = $object->$member;
+
+    $member = 'ICF_INFPROVINCE_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+    {
+      $db_region = $region_class_name::get_unique_record( 'abbreviation', $object->$member );
+      if( is_null( $db_region ) ) $db_region = $region_class_name::get_unique_record( 'name', $object->$member );
+      if( !is_null( $db_region ) ) $form_data['informant_region_id'] = $db_region->id;
+    }
+
+    $member = 'ICF_INFPOSTALCODE_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+    {
+      $postcode = trim( $object->$member );
+      if( 6 == strlen( $postcode ) )
+        $postcode = sprintf( '%s %s', substr( $postcode, 0, 3 ), substr( $postcode, 3 ) );
+      $form_data['informant_postcode'] = $postcode;
+    }
+
+    $member = 'ICF_INFTEL_COM';
+    if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
+    {
+      $phone = preg_replace( '/[^0-9]/', '', $object->$member );
+      $phone = sprintf( '%s-%s-%s', substr( $phone, 0, 3 ), substr( $phone, 3, 3 ), substr( $phone, 6 ) );
+      $form_data['informant_phone'] = $phone;
+    }
+
+    $member = 'ICF_TEST_COM';
+    if( property_exists( $object, $member ) )
+      $form_data['continue_physical_tests'] = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+    $member = 'ICF_SAMP_COM';
+    if( property_exists( $object, $member ) )
+      $form_data['continue_draw_blood'] = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+    $member = 'pdfForm';
+    if( property_exists( $object, $member ) ) $form_data['data'] = $object->$member;
+
+    // we need to repopulate the queue and complete any transactions before continuing
+    $queue_class_name::execute_delayed();
+    $session->get_database()->complete_transaction();
+
+    // now send all data to mastodon's data entry system
+    $curl = curl_init();
+
+    $authentication = sprintf( '%s:%s',
+      $setting_manager->get_setting( 'utility', 'username' ),
+      $setting_manager->get_setting( 'utility', 'password' ) );
+
+    // set URL and other appropriate options
+    $db_mastodon_application = $application_class_name::get_unique_record( 'name', 'mastodon' );
+    curl_setopt( $curl, CURLOPT_URL, sprintf( '%s/api/general_proxy_form', $db_mastodon_application->url ) );
+    curl_setopt( $curl, CURLOPT_HTTPHEADER,
+      array( sprintf( 'Authorization:Basic %s', base64_encode( $authentication ) ) ) );
+    curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
+    curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
+    curl_setopt( $curl, CURLOPT_POST, true );
+    curl_setopt( $curl, CURLOPT_POSTFIELDS, util::json_encode( $form_data ) );
+
+    $this->set_data( curl_exec( $curl ) );
+    $this->status->set_code( curl_getinfo( $curl, CURLINFO_HTTP_CODE ) );
   }
 
   /**
