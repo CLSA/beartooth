@@ -218,6 +218,7 @@ INSERT INTO service ( subject, method, resource, restricted ) VALUES
 ( 'voip', 'GET', 1, 0 ),
 ( 'voip', 'PATCH', 1, 0 ),
 ( 'voip', 'POST', 0, 0 ),
+( 'writelog', 'GET', 0, 1 ),
 
 -- application services
 ( 'appointment', 'DELETE', 1, 1 ),

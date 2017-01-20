@@ -52,7 +52,11 @@ class ui extends \cenozo\ui\ui
     }
 
     $module = $this->get_module( 'onyx_instance' );
-    if( !is_null( $module ) ) $module->add_child( 'activity' );
+    if( !is_null( $module ) )
+    {
+      $module->add_child( 'activity' );
+      $module->add_child( 'writelog' );
+    }
 
     $module = $this->get_module( 'participant' );
     if( !is_null( $module ) ) $module->append_action_query( 'history', '&{appointment}' );

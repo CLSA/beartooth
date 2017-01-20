@@ -6,7 +6,7 @@
  * @filesource
  */
 
-namespace beartooth\service\onyx_instance\activity;
+namespace beartooth\service\onyx_instance\writelog;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
@@ -30,7 +30,7 @@ class query extends \cenozo\service\query
   {
     $modifier = clone $this->modifier;
     $this->select->apply_aliases_to_modifier( $modifier );
-    return $this->get_parent_record()->get_user()->get_activity_count( $modifier );
+    return $this->get_parent_record()->get_user()->get_writelog_count( $modifier );
   }
 
   /**
@@ -40,6 +40,6 @@ class query extends \cenozo\service\query
   {
     $modifier = clone $this->modifier;
     $this->select->apply_aliases_to_modifier( $modifier );
-    return $this->get_parent_record()->get_user()->get_activity_list( $this->select, $modifier );
+    return $this->get_parent_record()->get_user()->get_writelog_list( $this->select, $modifier );
   }
 }
