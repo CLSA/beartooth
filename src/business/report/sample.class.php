@@ -143,6 +143,7 @@ class sample extends \cenozo\business\report\base_report
       'Site Interview Date',
       false
     );
+    $select->add_column( 'global_note', 'Special Note' );
 
     $modifier = lib::create( 'database\modifier' );
 
