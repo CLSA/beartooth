@@ -4,11 +4,14 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
   try { var module = cenozoApp.module( 'appointment', true ); } catch( err ) { console.warn( err ); return; }
   angular.extend( module, {
     identifier: {
-      parent: {
+      parent: [ {
         subject: 'interview',
         column: 'interview_id',
         friendly: 'qnaire'
-      }
+      }, {
+        subject: 'participant',
+        column: 'participant.uid'
+      } ]
     },
     name: {
       singular: 'appointment',
