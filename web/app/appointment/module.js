@@ -165,7 +165,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                ( appointment.username ? ' (' + appointment.username + ')' : '' ),
         start: moment( appointment.datetime ).subtract( offset, 'minutes' ),
         end: moment( appointment.datetime ).subtract( offset, 'minutes' ).add( appointment.duration, 'minute' ),
-        color: appointment.color
+        color: appointment.color,
+        help: appointment.help
       };
 
       if( null != appointment.outcome ) {

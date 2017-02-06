@@ -374,6 +374,18 @@ class module extends \cenozo\service\base_calendar_module
           'CONCAT_WS( ", ", address1, address2, city, region.name )', 'address_summary', false );
       }
 
+      // add help text (for calendar events)
+      $modifier->left_join( 'phone', 'participant.id', 'phone.participant_id' );
+      $modifier->where( 'IFNULL( phone.rank, 1 )', '=', 1 );
+      $select->add_column(
+        'CONCAT( '.
+          'participant.first_name, " ", participant.last_name, '.
+          'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
+          'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
+        ')',
+        'help',
+        false
+      );
       // restrict by site
       $db_restricted_site = $this->get_restricted_site();
       if( !is_null( $db_restricted_site ) )
