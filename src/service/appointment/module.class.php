@@ -199,7 +199,7 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_table_column( 'address', 'city' );
       $select->add_table_column( 'region', 'name', 'province' );
       $select->add_table_column( 'address', 'postcode' );
-      $select->add_table_column( 'participant', 'email' );
+      $select->add_table_column( 'participant', 'IFNULL( email, "" )', 'email', false );
 
       // add next of kin information
       $modifier->left_join( 'next_of_kin', 'participant.id', 'next_of_kin.participant_id' );
