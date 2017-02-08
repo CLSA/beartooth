@@ -262,18 +262,11 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 promise.then( function() { if( proceed ) saveFn(); } );
               } );
             };
-          } );
 
-          $scope.model.addModel.afterNew( function() {
             // make sure the metadata has been created
             $scope.model.metadata.getPromise().then( function() {
               var cnRecordAddScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
               if( !cnRecordAddScope ) throw new Error( 'Cannot find cnRecordAdd scope' );
-
-              // automatically fill in the current user as the interviewer (or null if this is a site appointment)
-              cnRecordAddScope.record.user_id = 'home' == $scope.model.type ? CnSession.user.id : null;
-              cnRecordAddScope.formattedRecord.user_id = 'home' == $scope.model.type ?
-                CnSession.user.firstName + ' ' + CnSession.user.lastName + ' (' + CnSession.user.name + ')' : null;
 
               $scope.model.addModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
               setupInputArray( CnHttpFactory, $scope.model, cnRecordAddScope );
@@ -438,7 +431,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 return self.$$onNew( record );
               } );
             } );
-          } )
+          } );
         };
 
         // add the new appointment's events to the calendar cache
@@ -594,6 +587,12 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         this.viewModel = CnAppointmentViewFactory.instance( this, site.id == CnSession.site.id );
         this.site = site;
         this.type = $state.params.type;
+
+        // set the default value of the user_id to the current user
+        module.getInput( 'user_id' ).default = {
+          id: CnSession.user.id,
+          formatted: CnSession.user.firstName + ' ' + CnSession.user.lastName + ' (' + CnSession.user.name + ')'
+        };
 
         // customize service data
         this.getServiceData = function( type, columnRestrictLists ) {
