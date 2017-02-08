@@ -212,6 +212,13 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_table_column( 'next_of_kin', 'province', 'nextOfKin.province' );
       $select->add_table_column( 'next_of_kin', 'postal_code', 'nextOfKin.postalCode' );
 
+      // make sure the participant has consented to participate
+      $modifier->join( 'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );
+      $modifier->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
+      $modifier->join( 'consent', 'participant_last_consent.consent_id', 'consent.id' );
+      $modifier->where( 'consent_type.name', '=', 'participation' );
+      $modifier->where( 'consent.accept', '=', true );
+
       $modifier->join(
         'participant_primary_address', 'participant.id', 'participant_primary_address.participant_id' );
       $modifier->left_join( 'address', 'participant_primary_address.address_id', 'address.id' );

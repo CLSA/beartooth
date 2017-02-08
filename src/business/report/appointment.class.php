@@ -70,6 +70,13 @@ class appointment extends \cenozo\business\report\base_report
     $select->add_column( 'phone.number', 'Phone', false );
     $select->add_column( 'IFNULL( participant.email, "(none)" )', 'Email', false );
 
+    // make sure the participant has consented to participate
+    $modifier->join( 'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );
+    $modifier->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
+    $modifier->join( 'consent', 'participant_last_consent.consent_id', 'consent.id' );
+    $modifier->where( 'consent_type.name', '=', 'participation' );
+    $modifier->where( 'consent.accept', '=', true );
+
     if( 'home' == $db_qnaire->type )
     {
       $select->add_column(
