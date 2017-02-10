@@ -199,7 +199,7 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_table_column( 'address', 'city' );
       $select->add_table_column( 'region', 'name', 'province' );
       $select->add_table_column( 'address', 'postcode' );
-      $select->add_table_column( 'participant', 'email' );
+      $select->add_table_column( 'participant', 'IFNULL( email, "" )', 'email', false );
 
       // add next of kin information
       $modifier->left_join( 'next_of_kin', 'participant.id', 'next_of_kin.participant_id' );
@@ -211,6 +211,13 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_table_column( 'next_of_kin', 'city', 'nextOfKin.city' );
       $select->add_table_column( 'next_of_kin', 'province', 'nextOfKin.province' );
       $select->add_table_column( 'next_of_kin', 'postal_code', 'nextOfKin.postalCode' );
+
+      // make sure the participant has consented to participate
+      $modifier->join( 'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );
+      $modifier->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
+      $modifier->join( 'consent', 'participant_last_consent.consent_id', 'consent.id' );
+      $modifier->where( 'consent_type.name', '=', 'participation' );
+      $modifier->where( 'consent.accept', '=', true );
 
       $modifier->join(
         'participant_primary_address', 'participant.id', 'participant_primary_address.participant_id' );
@@ -374,6 +381,18 @@ class module extends \cenozo\service\base_calendar_module
           'CONCAT_WS( ", ", address1, address2, city, region.name )', 'address_summary', false );
       }
 
+      // add help text (for calendar events)
+      $modifier->left_join( 'phone', 'participant.id', 'phone.participant_id' );
+      $modifier->where( 'IFNULL( phone.rank, 1 )', '=', 1 );
+      $select->add_column(
+        'CONCAT( '.
+          'participant.first_name, " ", participant.last_name, '.
+          'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
+          'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
+        ')',
+        'help',
+        false
+      );
       // restrict by site
       $db_restricted_site = $this->get_restricted_site();
       if( !is_null( $db_restricted_site ) )
