@@ -1,3 +1,9 @@
-====================================================================================================
-2.0.0
-====================================================================================================
+Version 2.1
+===========
+Integrated new general-proxy from onyx exports
+Adding writelog to onyx-instance view module (to show more onyx-instance operations)
+Adding global_note to sample report
+Adding participant name, phone and global note as help popup to appointment events
+Fixed bug where empty emails showed in Onyx as "null" instead of ""
+Fixed bug where username wasn't always filled out when making new home appointments
+Excluding participants with no consent to participate from appointment report and onyx appointment lists
