@@ -142,11 +142,11 @@ class ui extends \cenozo\ui\ui
     {
       if( in_array( $db_role->name, array( 'helpline', 'coordinator', 'interviewer', 'interviewer+' ) ) )
       {
-        $list[ucwords( $type ).' Assignment Control'] = array(
+        $list[ucWords( $type ).' Assignment Control'] = array(
           'subject' => 'assignment',
-          'action' => 'control',
-          'query' => '/{type}?{restrict}&{order}&{reverse}',
-          'values' => sprintf( '{type:"%s"}', $type ) );
+          'action' => $type.'_control',
+          'query' => '?{restrict}&{order}&{reverse}'
+        );
       }
       if( !$db_role->all_sites || 'helpline' == $db_role->name )
       {

@@ -27,27 +27,42 @@ define( [ 'participant' ].reduce( function( list, name ) {
     type: 'hidden'
   } );
 
+  // Both home and site control directives are identical, so this function will build the directive object
+  // for the directive definitions below
+  // Note: the two are defined as distinct directives to make sure that state params aren't confused
+  function getAssignmentControlDirective( CnAssignmentControlFactory, CnSession, $window ) {
+    return {
+      templateUrl: cenozoApp.getFileUrl( 'assignment', 'control.tpl.html' ),
+      restrict: 'E',
+      controller: function( $scope ) {
+        $scope.model = CnAssignmentControlFactory.instance();
+        $scope.model.onLoad( false ); // breadcrumbs are handled by the service
+      },
+      link: function( scope ) {
+        // update the script list whenever we regain focus since there may have been script activity
+        var focusFn = function() { if( null != scope.model.assignment ) scope.model.loadScriptList(); };
+        var win = angular.element( $window ).on( 'focus', focusFn );
+        scope.$on( '$destroy', function() { win.off( 'focus', focusFn ); } );
+
+        // close the session's script window whenever this page is unloaded (refreshed or closed)
+        $window.onunload = function() { CnSession.closeScript(); };
+      }
+    };
+  }
+
   /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnAssignmentControl', [
+  cenozo.providers.directive( 'cnAssignmentHomeControl', [
     'CnAssignmentControlFactory', 'CnSession', '$window',
     function( CnAssignmentControlFactory, CnSession, $window ) {
-      return {
-        templateUrl: cenozoApp.getFileUrl( 'assignment', 'control.tpl.html' ),
-        restrict: 'E',
-        controller: function( $scope ) {
-          $scope.model = CnAssignmentControlFactory.instance();
-          $scope.model.onLoad( false ); // breadcrumbs are handled by the service
-        },
-        link: function( scope ) {
-          // update the script list whenever we regain focus since there may have been script activity
-          var focusFn = function() { if( null != scope.model.assignment ) scope.model.loadScriptList(); };
-          var win = angular.element( $window ).on( 'focus', focusFn );
-          scope.$on( '$destroy', function() { win.off( 'focus', focusFn ); } );
+      return getAssignmentControlDirective( CnAssignmentControlFactory, CnSession, $window );
+    }
+  ] );
 
-          // close the session's script window whenever this page is unloaded (refreshed or closed)
-          $window.onunload = function() { CnSession.closeScript(); };
-        }
-      };
+  /* ######################################################################################################## */
+  cenozo.providers.directive( 'cnAssignmentSiteControl', [
+    'CnAssignmentControlFactory', 'CnSession', '$window',
+    function( CnAssignmentControlFactory, CnSession, $window ) {
+      return getAssignmentControlDirective( CnAssignmentControlFactory, CnSession, $window );
     }
   ] );
 
@@ -93,7 +108,13 @@ define( [ 'participant' ].reduce( function( list, name ) {
         this.scriptLauncher = null;
 
         // need to 404 if state is undefined or not home/site
-        if( 'home' != $state.params.type && 'site' != $state.params.type ) $state.go( 'error.404' );
+        this.type = null;
+        if( 'assignment.home_control' == $state.current.name ) this.type = 'home';
+        else if( 'assignment.site_control' == $state.current.name ) this.type = 'site';
+        if( null == this.type ) {
+          if( 'home' != $state.params.type && 'site' != $state.params.type ) $state.go( 'error.404' );
+          this.type = $state.params.type;
+        }
 
         this.reset = function() {
           self.assignment = null;
@@ -122,7 +143,6 @@ define( [ 'participant' ].reduce( function( list, name ) {
         // override the default column order for the participant list to rank
         this.participantModel.listModel.order = { column: 'rank', reverse: false };
 
-        this.type = $state.params.type;
         this.reset();
 
         // add additional columns to the model

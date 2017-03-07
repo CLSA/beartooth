@@ -18,8 +18,9 @@ cenozo.controller( 'HeaderCtrl', [
         // we need to re-update the session data to make sure that assignment type is up to date
         CnSession.updateData();
         CnSession.promise.then( function() {
-          if( angular.isDefined( cenozoApp.module( 'assignment' ).actions.control ) ) {
-            $state.go( 'assignment.control', { type: CnSession.user.assignment.type } );
+          var controlName = CnSession.user.assignment.type + '_control';
+          if( angular.isDefined( cenozoApp.module( 'assignment' ).actions[controlName] ) ) {
+            $state.go( 'assignment.' + controlName );
           } else {
             CnModalMessageFactory.instance( {
               title: 'Switch Roles For ' + CnSession.user.assignment.type.ucWords() + ' Assignment',
@@ -43,7 +44,8 @@ cenozo.controller( 'HeaderCtrl', [
     logoutOperation.execute = function() {
       // private function to redirect the user to the assignment control
       function showAssignmentExists( assignmentType ) {
-        var hasAccess = angular.isDefined( cenozoApp.module( 'assignment' ).actions.control );
+        var controlName = assignmentType + '_control';
+        var hasAccess = angular.isDefined( cenozoApp.module( 'assignment' ).actions[controlName] );
 
         CnModalMessageFactory.instance( {
           title: 'Active ' + ( assignmentType ? assignmentType.ucWords()+' ' : '' ) + 'Assignment Detected',
@@ -59,7 +61,7 @@ cenozo.controller( 'HeaderCtrl', [
           error: true
         } ).show().then( function() {
           // check if the role has access to the assignment module
-          if( hasAccess ) $state.go( 'assignment.control', { type: assignmentType } );
+          if( hasAccess ) $state.go( 'assignment.' + controlName );
           else CnSession.showSiteRoleModal();
         } );
       }

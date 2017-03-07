@@ -9,8 +9,9 @@
         <blockquote class="spacer">
           You are currently in a {{ 'site' == model.isWrongType ? 'home' : 'site' }} assignment.<br>
           Before you can start a {{ model.isWrongType }} assignment you must first
-          complete your active assignment.
-          You may <a style="cursor:pointer;" ui-sref="assignment.control({type:'site' == model.isWrongType ? 'home' : 'site'})">click here</a>
+          complete your active assignment.  You may
+          <a style="cursor:pointer;"
+             ui-sref="assignment.{type:'site' == model.isWrongType ? 'home' : 'site'}_control">click here</a>
           to view the assignment.
         </blockquote>
       </div>
