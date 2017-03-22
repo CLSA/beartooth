@@ -426,6 +426,7 @@ class post extends \cenozo\service\service
       {
         $db_interview = current( $interview_list );
         $db_interview->complete( NULL, $datetime_obj );
+        $db_participant->repopulate_queue( false );
       }
     }
   }
