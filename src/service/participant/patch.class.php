@@ -54,6 +54,9 @@ class patch extends \cenozo\service\participant\patch
       foreach( $this->next_of_kin as $column => $value ) $db_next_of_kin->$column = $value;
       $db_next_of_kin->save();
     }
+
+    // update the participant's queue, if requested
+    if( $this->get_argument( 'repopulate', false ) ) $db_participant->repopulate_queue();
   }
 
   /**
