@@ -3,6 +3,9 @@
 SET AUTOCOMMIT=0;
 
 SOURCE column_character_sets.sql
+SOURCE overview.sql
+SOURCE application_type_has_overview.sql
+SOURCE role_has_overview.sql
 
 SOURCE update_version_number.sql
 
