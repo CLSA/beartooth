@@ -36,6 +36,7 @@ class appointment_type extends \cenozo\business\overview\base_overview
     // create an entry for each site
     $site_mod = lib::create( 'database\modifier' );
     $site_mod->order( 'name' );
+    if( !$db_role->all_sites ) $site_mod->where( 'site.id', '=', $db_site->id );
     $site_sel = lib::create( 'database\select' );
     $site_sel->add_table_column( 'site', 'name' );
     $site_node_list = array();
@@ -57,6 +58,7 @@ class appointment_type extends \cenozo\business\overview\base_overview
     $appointment_mod->join_modifier( 'participant_site', $join_mod );
     $appointment_mod->left_join( 'site', 'participant_site.site_id', 'site.id' );
     $appointment_mod->where( 'appointment.outcome', '=', 'completed' );
+    if( !$db_role->all_sites ) $appointment_mod->where( 'site.id', '=', $db_site->id );
     $appointment_mod->group( 'participant_site.site_id' );
     $appointment_mod->group( 'appointment_type.id' );
 
