@@ -100,6 +100,16 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     appointment_type_id: {
       title: 'Special Type',
       type: 'enum',
+      exclude: 'view',
+      help: 'Identified whether this is a special appointment type.  If blank then it is considered ' +
+            'a "regular" appointment.'
+    },
+    appointment_type: {
+      column: 'appointment_type.name',
+      title: 'Special Type',
+      type: 'string',
+      exclude: 'add',
+      constant: true,
       help: 'Identified whether this is a special appointment type.  If blank then it is considered ' +
             'a "regular" appointment.'
     },
@@ -178,40 +188,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     }
   }
 
-  // used by the add and view directives below
-  function setupInputArray( CnHttpFactory, model, childScope ) {
-    var inputArray = childScope.dataArray[0].inputArray;
-
-    // show/hide user and address columns based on the type
-    inputArray.findByProperty( 'key', 'user_id' ).type = 'home' == model.type ? 'lookup-typeahead' : 'hidden';
-    inputArray.findByProperty( 'key', 'address_id' ).type = 'home' == model.type ? 'enum' : 'hidden';
-
-    var identifier = model.getParentIdentifier();
-    if( angular.isDefined( identifier.subject ) && angular.isDefined( identifier.identifier ) ) {
-      CnHttpFactory.instance( {
-        path: identifier.subject + '/' + identifier.identifier,
-        data: { select: { column: [ 'qnaire_id' ] } }
-      } ).get().then( function( response ) {
-        var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
-
-        // set the appointment type enum list based on the qnaire_id
-        inputArray[appointmentTypeIndex].enumList = angular.copy(
-          model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
-        );
-
-        // we must also manually add the empty entry
-        if( angular.isUndefined( inputArray[appointmentTypeIndex].enumList ) )
-          inputArray[appointmentTypeIndex].enumList = [];
-        if( null == inputArray[appointmentTypeIndex].enumList.findIndexByProperty( 'name', '(empty)' ) ) {
-          inputArray[appointmentTypeIndex].enumList.unshift( {
-            value: 'cnRecordAdd' == childScope.directive ? undefined : '',
-            name: '(empty)'
-          } );
-        }
-      } );
-    }
-  }
-
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentAdd', [
     'CnAppointmentModelFactory', 'CnSession', 'CnHttpFactory', 'CnModalConfirmFactory', '$q',
@@ -269,7 +245,42 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               if( !cnRecordAddScope ) throw new Error( 'Cannot find cnRecordAdd scope' );
 
               $scope.model.addModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
-              setupInputArray( CnHttpFactory, $scope.model, cnRecordAddScope );
+
+              var inputArray = cnRecordAddScope.dataArray[0].inputArray;
+
+              // show/hide user and address columns based on the type
+              inputArray.findByProperty( 'key', 'user_id' ).type =
+                'home' == $scope.model.type ? 'lookup-typeahead' : 'hidden';
+              inputArray.findByProperty( 'key', 'address_id' ).type =
+                'home' == $scope.model.type ? 'enum' : 'hidden';
+
+              var identifier = $scope.model.getParentIdentifier();
+              if( angular.isDefined( identifier.subject ) && angular.isDefined( identifier.identifier ) ) {
+                CnHttpFactory.instance( {
+                  path: identifier.subject + '/' + identifier.identifier,
+                  data: { select: { column: [ 'qnaire_id' ] } }
+                } ).get().then( function( response ) {
+                  var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
+
+                  // set the appointment type enum list based on the qnaire_id
+                  inputArray[appointmentTypeIndex].enumList = angular.copy(
+                    $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
+                  );
+
+                  // we must also manually add the empty entry
+                  if( angular.isUndefined( inputArray[appointmentTypeIndex].enumList ) )
+                    inputArray[appointmentTypeIndex].enumList = [];
+                  var emptyIndex = inputArray[appointmentTypeIndex]
+                                     .enumList
+                                     .findIndexByProperty( 'name', '(empty)' );
+                  if( null == emptyIndex ) {
+                    inputArray[appointmentTypeIndex].enumList.unshift( {
+                      value: 'cnRecordAdd' == cnRecordAddScope.directive ? undefined : '',
+                      name: '(empty)'
+                    } );
+                  }
+                } );
+              }
             } );
           } );
         }
@@ -384,9 +395,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
             $scope.model.metadata.getPromise().then( function() {
               var cnRecordViewScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordView' );
               if( !cnRecordViewScope ) throw new Error( 'Cannot find cnRecordView scope' );
-
               $scope.model.viewModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
-              setupInputArray( CnHttpFactory, $scope.model, cnRecordViewScope );
             } );
           } );
         }
