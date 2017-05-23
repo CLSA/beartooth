@@ -27,9 +27,10 @@ class appointment extends \cenozo\business\report\base_report
     $is_interviewer = 'interviewer' == $this->db_role->name || 'interviewer+' == $this->db_role->name;
 
     // get whether this is a site or home qnaire
-    $restriction_list = $this->get_restriction_list();
-    $restriction = current( $restriction_list ); // there is always one and only one custom restriction
-    $db_qnaire = lib::create( 'database\qnaire', $restriction['value'] );
+    $db_qnaire = NULL;
+    foreach( $this->get_restriction_list() as $restriction )
+      if( 'qnaire' == $restriction['name'] )
+        $db_qnaire = lib::create( 'database\qnaire', $restriction['value'] );
 
     $modifier = lib::create( 'database\modifier' );
     $select = lib::create( 'database\select' );
@@ -41,6 +42,7 @@ class appointment extends \cenozo\business\report\base_report
       'Name',
       false );
     $select->add_column( 'participant.uid', 'UID', false );
+    if( is_null( $db_qnaire ) ) $select->add_column( 'qnaire.name', 'Questionnaire', false );
     $select->add_column( $this->get_datetime_column( 'appointment.datetime', 'date' ), 'Date', false );
     $select->add_column( $this->get_datetime_column( 'appointment.datetime', 'time' ), 'Time', false );
     $select->add_column( 'TIMESTAMPDIFF( YEAR, participant.date_of_birth, CURDATE() )', 'Age', false );
@@ -59,7 +61,7 @@ class appointment extends \cenozo\business\report\base_report
 
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
-    $modifier->where( 'qnaire.id', '=', $db_qnaire->id );
+    if( !is_null( $db_qnaire ) ) $modifier->where( 'qnaire.id', '=', $db_qnaire->id );
     $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
     $modifier->join( 'language', 'participant.language_id', 'language.id' );
     $join_mod = lib::create( 'database\modifier' );
@@ -77,44 +79,47 @@ class appointment extends \cenozo\business\report\base_report
     $modifier->where( 'consent_type.name', '=', 'participation' );
     $modifier->where( 'consent.accept', '=', true );
 
-    if( 'home' == $db_qnaire->type )
+    if( !is_null( $db_qnaire ) )
     {
-      $select->add_column(
-        'CONCAT_WS( " ", address.address1, address.address2, address.city, '.
-                        'region.abbreviation, address.postcode )',
-        'Address',
-        false );
-
-      if( !$is_interviewer )
+      if( 'home' == $db_qnaire->type )
       {
         $select->add_column(
-          'CONCAT_WS( " ", user.first_name, user.last_name )',
-          'Interviewer',
+          'CONCAT_WS( " ", address.address1, address.address2, address.city, '.
+                          'region.abbreviation, address.postcode )',
+          'Address',
           false );
-      }
 
-      $modifier->join( 'address', 'appointment.address_id', 'address.id' );
-      $modifier->join( 'region', 'address.region_id', 'region.id' );
-      $modifier->join( 'user', 'appointment.user_id', 'user.id' );
-    }
-    else // site qnaire
-    {
-      if( !$is_interviewer )
+        if( !$is_interviewer )
+        {
+          $select->add_column(
+            'CONCAT_WS( " ", user.first_name, user.last_name )',
+            'Interviewer',
+            false );
+        }
+
+        $modifier->join( 'address', 'appointment.address_id', 'address.id' );
+        $modifier->join( 'region', 'address.region_id', 'region.id' );
+        $modifier->join( 'user', 'appointment.user_id', 'user.id' );
+      }
+      else if( 'site' == $db_qnaire->type )
       {
-        $select->add_column(
-          'CONCAT_WS( " ", user.first_name, user.last_name )',
-          'Home Interviewer',
-          false );
-      }
+        if( !$is_interviewer )
+        {
+          $select->add_column(
+            'CONCAT_WS( " ", user.first_name, user.last_name )',
+            'Home Interviewer',
+            false );
+        }
 
-      $modifier->left_join( 'qnaire', 'qnaire.rank', 'prev_qnaire.rank + 1', 'prev_qnaire' );
-      $join_mod = lib::create( 'database\modifier' );
-      $join_mod->where(
-        'prev_qnaire.completed_event_type_id', '=', 'participant_last_event.event_type_id', false );
-      $join_mod->where( 'participant.id', '=', 'participant_last_event.participant_id', false );
-      $modifier->join_modifier( 'participant_last_event', $join_mod, 'left' );
-      $modifier->left_join( 'event', 'participant_last_event.event_id', 'event.id' );
-      $modifier->left_join( 'user', 'event.user_id', 'user.id' );
+        $modifier->left_join( 'qnaire', 'qnaire.rank', 'prev_qnaire.rank + 1', 'prev_qnaire' );
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where(
+          'prev_qnaire.completed_event_type_id', '=', 'participant_last_event.event_type_id', false );
+        $join_mod->where( 'participant.id', '=', 'participant_last_event.participant_id', false );
+        $modifier->join_modifier( 'participant_last_event', $join_mod, 'left' );
+        $modifier->left_join( 'event', 'participant_last_event.event_id', 'event.id' );
+        $modifier->left_join( 'user', 'event.user_id', 'user.id' );
+      }
     }
 
     if( $is_interviewer )
