@@ -127,7 +127,7 @@ class post extends \cenozo\service\service
       else if( 'participants' == $type )
         foreach( $this->object_list as $data )
           $this->process_participant( $data['participant'], $data['object'] );
-      else if( 'general_proxy' == $type )
+      else if( 'generalproxy' == $type ) // note the missing underscore in general proxy
         foreach( $this->object_list as $data )
           $this->process_general_proxy( $data['participant'], $data['object'] );
       else if( 'proxy' == $type )
@@ -470,7 +470,7 @@ class post extends \cenozo\service\service
     $form_data['hin_future_access'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
-    $member = 'ICF_DCS_COM';
+    $member = 'ICF_DCSCONTINUE_COM';
     $form_data['continue_dcs_visits'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
