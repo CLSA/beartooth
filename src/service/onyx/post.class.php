@@ -140,7 +140,7 @@ class post extends \cenozo\service\service
       $this->status->set_code( 306 );
     }
 
-    $this->status->set_code( 201 );
+    if( is_null( $this->status->get_code() ) ) $this->status->set_code( 201 );
   }
 
   /**
@@ -153,7 +153,8 @@ class post extends \cenozo\service\service
   private function get_property_name()
   {
     $type = $this->get_resource( 0 );
-    if( in_array( $type, array( 'consent', 'proxy', 'general_proxy' ) ) ) return 'Consent';
+    if( in_array( $type, array( 'consent', 'proxy' ) ) ) return 'Consent';
+    else if( 'generalproxy' == $type ) return 'GeneralProxy';
     else if( 'hin' == $type ) return 'ConsentHIN';
     else if( 'participants' == $type ) return 'Participants';
     return NULL;
@@ -527,6 +528,10 @@ class post extends \cenozo\service\service
     $form_data['already_identified'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
+    $member = 'ICF_PRXINFSM_COM';
+    $form_data['same_as_proxy'] =
+      property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
     $member = 'ICF_INFFIRSTNAME_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
       $form_data['informant_first_name'] = $object->$member;
@@ -579,10 +584,6 @@ class post extends \cenozo\service\service
     $member = 'ICF_TEST_COM';
     if( property_exists( $object, $member ) )
       $form_data['continue_physical_tests'] = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
-
-    $member = 'ICF_SAMP_COM';
-    if( property_exists( $object, $member ) )
-      $form_data['continue_draw_blood'] = 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
 
     $member = 'pdfForm';
     if( property_exists( $object, $member ) ) $form_data['data'] = $object->$member;
