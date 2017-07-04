@@ -49,6 +49,7 @@ class progress extends \cenozo\business\overview\base_overview
     $modifier->left_join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
     if( !$db_role->all_sites ) $modifier->where( 'site.id', '=', $db_site->id );
     $modifier->group( 'queue_has_participant.site_id' );
+    $modifier->order( 'site.name' );
 
     // start with the participant totals
     /////////////////////////////////////////////////////////////////////////////////////////////

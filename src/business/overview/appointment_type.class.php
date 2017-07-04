@@ -61,6 +61,7 @@ class appointment_type extends \cenozo\business\overview\base_overview
     if( !$db_role->all_sites ) $appointment_mod->where( 'site.id', '=', $db_site->id );
     $appointment_mod->group( 'participant_site.site_id' );
     $appointment_mod->group( 'appointment_type.id' );
+    $appointment_mod->order( 'site.name' );
 
     $appointment_sel = lib::create( 'database\select' );
     $appointment_sel->from( 'appointment' );
@@ -70,6 +71,7 @@ class appointment_type extends \cenozo\business\overview\base_overview
 
     foreach( $appointment_class_name::select( $appointment_sel, $appointment_mod ) as $row )
     {
+      log::debug( $row['site'] );
       $node = $site_node_list[$row['site']]->find_node( $row['atype'] );
       $node->set_value( $row['total'] );
     }
