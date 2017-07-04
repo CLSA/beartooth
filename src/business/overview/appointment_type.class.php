@@ -71,7 +71,6 @@ class appointment_type extends \cenozo\business\overview\base_overview
 
     foreach( $appointment_class_name::select( $appointment_sel, $appointment_mod ) as $row )
     {
-      log::debug( $row['site'] );
       $node = $site_node_list[$row['site']]->find_node( $row['atype'] );
       $node->set_value( $row['total'] );
     }
