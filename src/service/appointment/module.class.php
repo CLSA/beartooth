@@ -184,6 +184,7 @@ class module extends \cenozo\service\base_calendar_module
     {
       $onyx_instance_class_name = lib::create( 'database\onyx_instance' );
       $appointment_type_class_name = lib::create( 'database\appointment_type' );
+      $form_type_class_name = lib::create( 'database\form_type' );
 
       // add specific columns
       $select->remove_column();
@@ -200,6 +201,11 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_table_column( 'region', 'name', 'province' );
       $select->add_table_column( 'address', 'postcode' );
       $select->add_table_column( 'participant', 'IFNULL( email, "" )', 'email', false );
+      $select->add_column(
+        'IF( 70 <= TIMESTAMPDIFF( YEAR, date_of_birth, CURDATE() ) AND proxy_form.id IS NULL, 1, 0 )',
+        'ask_proxy',
+        false
+      );
 
       // add next of kin information
       $modifier->left_join( 'next_of_kin', 'participant.id', 'next_of_kin.participant_id' );
@@ -219,11 +225,26 @@ class module extends \cenozo\service\base_calendar_module
       $modifier->where( 'consent_type.name', '=', 'participation' );
       $modifier->where( 'consent.accept', '=', true );
 
+      // link to the primary address
       $modifier->join(
         'participant_primary_address', 'participant.id', 'participant_primary_address.participant_id' );
       $modifier->left_join( 'address', 'participant_primary_address.address_id', 'address.id' );
       $modifier->left_join( 'region', 'address.region_id', 'region.id' );
       $modifier->where( 'participant_site.site_id', '=', $db_site->id );
+
+      // link to the proxy form (which may not exist)
+      $proxy_form_type_id_list = array();
+      $form_type_sel = lib::create( 'database\select' );
+      $form_type_sel->add_column( 'id' );
+      $form_type_mod = lib::create( 'database\modifier' );
+      $form_type_mod->where( 'name', 'IN', array( 'proxy', 'general_proxy' ) );
+      foreach( $form_type_class_name::select( $form_type_sel, $form_type_mod ) as $form_type )
+        $proxy_form_type_id_list[] = $form_type['id'];
+
+      $join_mod = lib::create( 'database\modifier' );
+      $join_mod->where( 'participant.id', '=', 'proxy_form.participant_id', false );
+      $join_mod->where( 'proxy_form.form_type_id', 'IN', $proxy_form_type_id_list );
+      $modifier->join_modifier( 'form', $join_mod, 'left', 'proxy_form' );
 
       // restrict by onyx instance
       $db_onyx_instance = $onyx_instance_class_name::get_unique_record( 'user_id', $db_user->id );
