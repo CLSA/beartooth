@@ -403,11 +403,12 @@ class module extends \cenozo\service\base_calendar_module
       }
 
       // add help text (for calendar events)
+      $modifier->join( 'language', 'participant.language_id', 'language.id' );
       $modifier->left_join( 'phone', 'participant.id', 'phone.participant_id' );
       $modifier->where( 'IFNULL( phone.rank, 1 )', '=', 1 );
       $select->add_column(
         'CONCAT( '.
-          'participant.first_name, " ", participant.last_name, '.
+          'participant.first_name, " ", participant.last_name, " (", language.name, ")", '.
           'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
           'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
         ')',
