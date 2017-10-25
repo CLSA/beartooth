@@ -609,7 +609,11 @@ class post extends \cenozo\service\service
     curl_setopt( $curl, CURLOPT_POST, true );
     curl_setopt( $curl, CURLOPT_POSTFIELDS, util::json_encode( $form_data ) );
 
-    $this->set_data( curl_exec( $curl ) );
+    $response = curl_exec( $curl );
+    $code = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
+    if( 306 == $code )
+      log::warning( sprintf( 'Responding to onyx post request with 306 message: "%s"', $response ) );
+    $this->set_data( $response );
     $this->status->set_code( curl_getinfo( $curl, CURLINFO_HTTP_CODE ) );
   }
 
