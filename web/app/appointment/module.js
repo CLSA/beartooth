@@ -749,10 +749,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         };
       };
 
-      // get the siteColumn to be used by a site's identifier
-      var siteModule = cenozoApp.module( 'site' );
-      var siteColumn = angular.isDefined( siteModule.identifier.column ) ? siteModule.identifier.column : 'id';
-
       return {
         siteInstanceList: {},
         forSite: function( site ) {
