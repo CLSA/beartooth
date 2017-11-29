@@ -3,7 +3,6 @@
  * post.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @filesource
  */
 
 namespace beartooth\service\onyx;
@@ -14,7 +13,6 @@ class post extends \cenozo\service\service
   /**
    * Constructor
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param string $path The URL of the service (not including the base)
    * @param array $args An associative array of arguments to be processed by the post operation.
    * @param string $file The raw file posted by the request
@@ -146,7 +144,6 @@ class post extends \cenozo\service\service
   /**
    * Returns the property name sent by Onyx (in CamelCase)
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return string
    * @access private
    */
@@ -163,7 +160,6 @@ class post extends \cenozo\service\service
   /**
    * Processes the onyx/consent service
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\participant $db_participant The participant being exported to
    * @param stdClass $object The data sent by Onyx
    * @access private
@@ -252,7 +248,6 @@ class post extends \cenozo\service\service
   /**
    * Processes the onyx/hin service
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\participant $db_participant The participant being exported to
    * @param stdClass $object The data sent by Onyx
    * @access private
@@ -296,7 +291,6 @@ class post extends \cenozo\service\service
   /**
    * Processes the onyx/participants service
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\participant $db_participant The participant being exported to
    * @param stdClass $object The data sent by Onyx
    * @access private
@@ -435,7 +429,6 @@ class post extends \cenozo\service\service
   /**
    * Processes the onyx/general_proxy service
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\participant $db_participant The participant being exported to
    * @param stdClass $object The data sent by Onyx
    * @access private
@@ -620,7 +613,6 @@ class post extends \cenozo\service\service
   /**
    * Processes the onyx/proxy service
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param database\participant $db_participant The participant being exported to
    * @param stdClass $object The data sent by Onyx
    * @access private
@@ -809,7 +801,6 @@ class post extends \cenozo\service\service
   /**
    * Gets the datetime from an Onyx object (expecting timeEnd or timeStart properties)
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param stdClass $object
    * @return DateTime
    * @access private

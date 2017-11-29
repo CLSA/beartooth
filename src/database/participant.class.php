@@ -3,7 +3,6 @@
  * participant.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @filesource
  */
 
 namespace beartooth\database;
@@ -42,7 +41,6 @@ class participant extends \cenozo\database\participant
    * re-determined.  This method should be called if any of the participant's details
    * which affect which queue they belong in change (eg: change to appointments, consent
    * status, state, etc).
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param boolean $delayed Whether to wait until the end of execution or to process immediately
    * @access public
    */
@@ -70,7 +68,6 @@ class participant extends \cenozo\database\participant
 
   /**
    * Get the participant's most recent, closed assignment.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return assignment
    * @access public
    */
@@ -96,7 +93,6 @@ class participant extends \cenozo\database\participant
 
   /**
    * Get the participant's current assignment (or null if none is found)
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return assignment
    * @access public
    */
@@ -146,7 +142,6 @@ class participant extends \cenozo\database\participant
    * Returns the participant's current queue.
    * 
    * The "current" queue is always a leaf-queue (queue of deepest level)
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\queue
    * @access public
    */
@@ -165,7 +160,6 @@ class participant extends \cenozo\database\participant
    * If they current have an incomplete interview then that interview's qnaire is returned.
    * If their current interview is complete then the next qnaire is returned, and if there
    * is no next qnaire then NULL is returned (ie: the participant has completed all qnaires).
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\qnaire
    * @access public
    */
@@ -184,7 +178,6 @@ class participant extends \cenozo\database\participant
    * If they have an incomplete interview then that interviews is returned.
    * If their current interview is complete then a new interview is created for the next qnaire and returned,
    * and if there is no next qnaire then NULL is returned (ie: the participant has completed all interviews).
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @param boolean $save If a new interview is created this determines whether to immediately write it to the db
    * @return database\qnaire
    * @access public
@@ -219,7 +212,6 @@ class participant extends \cenozo\database\participant
    * This is determined by cross-referencing the participant's quota and their effective qnaire
    * since quotas can be enabled/disabled by qnaire.  If the participant does not belong to any
    * quota then NULL is returned instead.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return boolean
    * @access public
    */
@@ -243,7 +235,6 @@ class participant extends \cenozo\database\participant
    * and the greatest of its start event and the completed interview's completion date.
    * If there is no next qnaire or the current interview is not complete then NULL is returned,
    * meaning the qnaire has already started (ie: the start date is in the past).
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return datetime
    * @access public
    */
@@ -255,7 +246,6 @@ class participant extends \cenozo\database\participant
 
   /**
    * Fills in the queue-based information about the participant
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @access private
    */
   private function load_queue_data()

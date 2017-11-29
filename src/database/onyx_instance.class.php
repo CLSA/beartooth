@@ -3,7 +3,6 @@
  * onyx_instance.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @filesource
  */
 
 namespace beartooth\database;
@@ -16,7 +15,6 @@ class onyx_instance extends \cenozo\database\record
 {
   /**
    * Returns the user record associated with the interviewer_user_id
-   * @author Patrick Emond
    * @return user
    * @access public
    */

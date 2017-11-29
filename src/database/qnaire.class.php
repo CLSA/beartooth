@@ -3,7 +3,6 @@
  * qnaire.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @filesource
  */
 
 namespace beartooth\database;
@@ -78,7 +77,6 @@ class qnaire extends \cenozo\database\has_rank
    * 
    * Returns the qnaire done previously to the current qnaire.  If there is no previous qnaire
    * then this method will return NULL.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\qnaire
    * @access public
    */
@@ -92,7 +90,6 @@ class qnaire extends \cenozo\database\has_rank
    * 
    * Returns the event-type associated with when this qnaire is completed.  If no event-type exists
    * this method will return NULL.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\event_type
    * @access public
    */
@@ -107,7 +104,6 @@ class qnaire extends \cenozo\database\has_rank
    * 
    * Returns the event-type associated with when the previous qnaire was completed.
    * If no event-type exists this method will return NULL.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return database\event_type
    * @access public
    */

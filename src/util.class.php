@@ -1,8 +1,7 @@
 <?php
 /**
  * util.class.php
- * 
- * @filesource
+ * @author Patrick Emond <emondpd@mcmaster.ca>
  */
 
 namespace beartooth;

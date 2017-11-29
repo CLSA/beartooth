@@ -3,7 +3,6 @@
  * appointment.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
- * @filesource
  */
 
 namespace beartooth\database;
@@ -16,7 +15,6 @@ class appointment extends \cenozo\database\record
 {
   /**
    * Overrides the parent save method.
-   * @author Patrick Emond
    * @access public
    */
   public function save()
@@ -84,7 +82,6 @@ class appointment extends \cenozo\database\record
   /**
    * Determines whether all mandatory scripts required by this appointment have been completed
    * 
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return boolean
    * @access public
    */
@@ -125,7 +122,6 @@ class appointment extends \cenozo\database\record
    * 
    * This function will make sure the participant's start qnaire date (from the queues) does
    * not come after the current date.  It will also ensure the participant has a valid qnaire.
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return boolean
    * @access public
    */
@@ -153,7 +149,6 @@ class appointment extends \cenozo\database\record
    *   cancelled: the appointment has been cancelled
    *   upcoming: the appointment's date/time has not yet occurred
    *   passed: the appointment's date/time has passed and the interview is not done
-   * @author Patrick Emond <emondpd@mcmaster.ca>
    * @return string
    * @access public
    */
