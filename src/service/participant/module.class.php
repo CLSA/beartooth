@@ -27,7 +27,6 @@ class module extends \cenozo\service\participant\module
       $modifier->join( 'queue_has_participant', 'participant.id', 'queue_has_participant.participant_id' );
       $modifier->join( 'queue', 'queue_has_participant.queue_id', 'queue.id' );
       $modifier->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
-      $modifier->where( 'participant.active', '=', true );
       $modifier->where( 'queue.rank', '!=', NULL );
 
       if( $select->has_column( 'blood' ) )

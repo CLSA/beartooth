@@ -35,7 +35,7 @@
   </div>
   <div ng-if="!model.isWrongType && !model.isForbidden">
     <div ng-if="!model.assignment">
-      <cn-record-list model="model.participantModel" remove-columns="active cohort source"></cn-record-list>
+      <cn-record-list model="model.participantModel" remove-columns="cohort source last_hold enrollment"></cn-record-list>
     </div>
     <div ng-if="model.assignment">
       <div class="utility-view rounded">

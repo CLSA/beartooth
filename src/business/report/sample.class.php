@@ -98,21 +98,16 @@ class sample extends \cenozo\business\report\base_report
     $select = lib::create( 'database\select' );
     $select->from( 'participant' );
     $select->add_column( 'uid', 'UID' );
-    if( $this->db_role->all_sites )
-      $select->add_column( 'IFNULL( site.name, "(none)" )', 'Site', false );
-    $select->add_column( 'IF( participant.active, "Yes", "No" )', 'Active', false );
+    if( $this->db_role->all_sites ) $select->add_column( 'IFNULL( site.name, "(none)" )', 'Site', false );
     $select->add_column( 'IF( blood_consent.accept, "Yes", "No" )', 'Blood', false );
+    $select->add_column( 'IFNULL( language.name, "(none)" )', 'Language', false );
+    $select->add_column( 'IFNULL( CONCAT( "No: ", enrollment.name ), "Yes" )', 'Enrolled', false );
     $select->add_column(
       'IF( hold_type.type IS NULL, "(none)", CONCAT( hold_type.type, ": ", hold_type.name ) )',
-      'Condition',
+      'Hold',
       false
     );
-    $select->add_column( 'IFNULL( language.name, "(none)" )', 'Language', false );
-    $select->add_column(
-      $this->get_datetime_column( 'application_has_participant.datetime' ),
-      'Released',
-      false
-    );
+    $select->add_column( $this->get_datetime_column( 'application_has_participant.datetime' ), 'Released', false );
     $select->add_column( 'IF( participant.email IS NOT NULL, "Yes", "No" )', 'Has Email', false );
     $select->add_column(
       $this->get_datetime_column( 'participant.callback' ),
@@ -173,7 +168,7 @@ class sample extends \cenozo\business\report\base_report
     $modifier->where( 'blood_consent_type.name', '=', 'draw blood' );
     $modifier->left_join( 'consent', 'participant_last_consent.consent_id', 'blood_consent.id', 'blood_consent' );
     $modifier->join( 'participant_last_hold', 'participant.id', 'participant_last_hold.participant_id' );
-    $modifier->join( 'hold', 'particiapnt_last_hold.hold_id', 'hold.id' );
+    $modifier->left_join( 'hold', 'particiapnt_last_hold.hold_id', 'hold.id' );
     $modifier->left_join( 'hold_type', 'hold.hold_type_id', 'hold_type.id' );
     $modifier->join( 'language', 'participant.language_id', 'language.id' );
 
