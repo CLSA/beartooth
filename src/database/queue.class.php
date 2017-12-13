@@ -513,23 +513,27 @@ class queue extends \cenozo\database\record
       return;
     }
 
-    if( 'temporary hold' == $queue )
-    {
-      $modifier->where( 'participant_exclusion_id', '=', NULL );
-      $modifier->where( 'last_hold_type_type', '=', 'temporary' );
-      return;
-    }
-
     if( 'tracing' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
+      $modifier->where( 'IFNULL( last_hold_type_type, "" )', '!=', 'final' );
       $modifier->where( 'last_trace_type_name', '!=', NULL );
+      return;
+    }
+
+    if( 'temporary hold' == $queue )
+    {
+      $modifier->where( 'participant_exclusion_id', '=', NULL );
+      $modifier->where( 'last_trace_type_name', '=', NULL );
+      $modifier->where( 'last_hold_type_type', '=', 'temporary' );
       return;
     }
 
     if( 'proxy' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
+      $modifier->where( 'last_trace_type_name', '=', NULL );
+      $modifier->where( 'last_hold_type_type', '=', NULL );
       $modifier->where( 'last_proxy_type_name', '!=', NULL );
       return;
     }
@@ -590,6 +594,20 @@ class queue extends \cenozo\database\record
     $join_mod->where( 'appointment.outcome', '=', NULL );
     $modifier->join_modifier( 'appointment', $join_mod, 'left' );
     $modifier->where( 'appointment.id', '=', NULL );
+
+    // join to the first_address table based on participant id
+    $modifier->left_join(
+      'temp_participant_first_address', 'temp_participant_first_address.id', 'temp_participant.id' );
+
+    if( 'no active address' == $queue )
+    {
+      // make sure there is no active address
+      $modifier->where( 'temp_participant_first_address.address_id', '=', NULL );
+      return;
+    }
+
+    // make sure there is an active address
+    $modifier->where( 'temp_participant_first_address.address_id', '!=', NULL );
 
     // join to the quota table based on site, region, sex and age group
     $join_mod = lib::create( 'database\modifier' );
@@ -696,6 +714,41 @@ class queue extends \cenozo\database\record
         'ADD INDEX dk_participant_id_site_id ( id, participant_site_id )' );
     if( static::$debug ) log::debug( sprintf(
       '(Queue) Building temp_participant_participant_site temp table%s: %0.2f',
+      is_null( $db_participant ) ? '' : ' for '.$db_participant->uid,
+      util::get_elapsed_time() - $time ) );
+
+    // build temp_participant_first_address table
+    $sql = sprintf(
+      'CREATE TEMPORARY TABLE IF NOT EXISTS temp_participant_first_address '.
+      'SELECT participant.id AS id, '.
+             'address.id AS address_id, '.
+             'address.timezone_offset AS first_address_timezone_offset, '.
+             'address.daylight_savings AS first_address_daylight_savings '.
+      'FROM participant_first_address '.
+      'JOIN application_has_participant '.
+      'ON participant_first_address.participant_id = application_has_participant.participant_id '.
+      'AND application_has_participant.application_id = %s '.
+      'AND application_has_participant.datetime IS NOT NULL '.
+      'LEFT JOIN participant ON participant_first_address.participant_id = participant.id '.
+      'LEFT JOIN address '.
+      'ON participant_first_address.address_id = address.id ',
+      static::db()->format_string( $application_id ) );
+    if( !is_null( $db_participant ) )
+      $sql .= sprintf( 'WHERE participant.id = %s ',
+                       static::db()->format_string( $db_participant->id ) );
+
+    if( static::$debug ) $time = util::get_elapsed_time();
+    static::db()->execute( 'DROP TABLE IF EXISTS temp_participant_first_address' );
+    static::db()->execute( $sql );
+
+    if( is_null( $db_participant ) )
+      static::db()->execute(
+        'ALTER TABLE temp_participant_first_address '.
+        'ADD INDEX dk_id ( id ), '.
+        'ADD INDEX dk_first_address_timezone_offset ( first_address_timezone_offset ), '.
+        'ADD INDEX dk_first_address_daylight_savings ( first_address_daylight_savings )' );
+    if( static::$debug ) log::debug( sprintf(
+      '(Queue) Building temp_participant_first_address temp table%s: %0.2f',
       is_null( $db_participant ) ? '' : ' for '.$db_participant->uid,
       util::get_elapsed_time() - $time ) );
 
