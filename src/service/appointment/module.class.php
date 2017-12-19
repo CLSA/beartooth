@@ -263,11 +263,11 @@ class module extends \cenozo\service\base_calendar_module
       {
         $modifier->where( 'appointment.user_id', '=', NULL );
         $select->add_column(
-          'IF( IFNULL( blood_consent.accept, true ), "Yes", "No" )',
+          'IF( IFNULL( blood_consent.accept, true ), "YES", "NO" )',
           'consentToDrawBlood',
           false );
         $select->add_column(
-          'IF( IFNULL( urine_consent.accept, true ), "Yes", "No" )',
+          'IF( IFNULL( urine_consent.accept, true ), "YES", "NO" )',
           'consentToTakeUrine',
           false );
 
