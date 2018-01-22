@@ -171,13 +171,13 @@ class sample extends \cenozo\business\report\base_report
     $modifier->where( 'blood_consent_type.name', '=', 'draw blood' );
     $modifier->left_join( 'consent', 'participant_last_consent.consent_id', 'blood_consent.id', 'blood_consent' );
     $modifier->join( 'participant_last_hold', 'participant.id', 'participant_last_hold.participant_id' );
-    $modifier->left_join( 'hold', 'particiapnt_last_hold.hold_id', 'hold.id' );
+    $modifier->left_join( 'hold', 'participant_last_hold.hold_id', 'hold.id' );
     $modifier->left_join( 'hold_type', 'hold.hold_type_id', 'hold_type.id' );
     $modifier->join( 'participant_last_trace', 'participant.id', 'participant_last_trace.participant_id' );
-    $modifier->left_join( 'trace', 'particiapnt_last_trace.trace_id', 'trace.id' );
+    $modifier->left_join( 'trace', 'participant_last_trace.trace_id', 'trace.id' );
     $modifier->left_join( 'trace_type', 'trace.trace_type_id', 'trace_type.id' );
     $modifier->join( 'participant_last_proxy', 'participant.id', 'participant_last_proxy.participant_id' );
-    $modifier->left_join( 'proxy', 'particiapnt_last_proxy.proxy_id', 'proxy.id' );
+    $modifier->left_join( 'proxy', 'participant_last_proxy.proxy_id', 'proxy.id' );
     $modifier->left_join( 'proxy_type', 'proxy.proxy_type_id', 'proxy_type.id' );
     $modifier->join( 'language', 'participant.language_id', 'language.id' );
 
