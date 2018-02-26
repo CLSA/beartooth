@@ -3,49 +3,6 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
   'use strict';
 
   var module = cenozoApp.module( 'participant' );
-  module.addInputGroup( 'Next of Kin', {
-    next_of_kin_first_name: {
-      column: 'next_of_kin.first_name',
-      title: 'First Name',
-      type: 'string'
-    },
-    next_of_kin_last_name: {
-      column: 'next_of_kin.last_name',
-      title: 'Last Name',
-      type: 'string'
-    },
-    next_of_kin_gender: {
-      column: 'next_of_kin.gender',
-      title: 'Sex',
-      type: 'string'
-    },
-    next_of_kin_phone: {
-      column: 'next_of_kin.phone',
-      title: 'Phone',
-      type: 'string'
-    },
-    next_of_kin_street: {
-      column: 'next_of_kin.street',
-      title: 'Address',
-      type: 'string'
-    },
-    next_of_kin_city: {
-      column: 'next_of_kin.city',
-      title: 'City',
-      type: 'string'
-    },
-    next_of_kin_province: {
-      column: 'next_of_kin.province',
-      title: 'Region',
-      type: 'string'
-    },
-    next_of_kin_postal_code: {
-      column: 'next_of_kin.postal_code',
-      title: 'Postcode',
-      type: 'string'
-    }
-  } );
-
   module.addInputGroup( 'Queue Details', {
     title: {
       title: 'Current Questionnaire',
@@ -250,6 +207,53 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
     function( $delegate, CnSession ) {
       // only allow tier-3 roles to override the quota
       $delegate.root.module.getInput( 'override_quota' ).constant = 3 > CnSession.role.tier;
+
+      // only allow tier-3 roles to see next-of-kin information
+      if( 3 <= CnSession.role.tier ) {
+        $delegate.root.module.addInputGroup( 'Next of Kin', {
+          next_of_kin_first_name: {
+            column: 'next_of_kin.first_name',
+            title: 'First Name',
+            type: 'string'
+          },
+          next_of_kin_last_name: {
+            column: 'next_of_kin.last_name',
+            title: 'Last Name',
+            type: 'string'
+          },
+          next_of_kin_gender: {
+            column: 'next_of_kin.gender',
+            title: 'Sex',
+            type: 'string'
+          },
+          next_of_kin_phone: {
+            column: 'next_of_kin.phone',
+            title: 'Phone',
+            type: 'string'
+          },
+          next_of_kin_street: {
+            column: 'next_of_kin.street',
+            title: 'Address',
+            type: 'string'
+          },
+          next_of_kin_city: {
+            column: 'next_of_kin.city',
+            title: 'City',
+            type: 'string'
+          },
+          next_of_kin_province: {
+            column: 'next_of_kin.province',
+            title: 'Region',
+            type: 'string'
+          },
+          next_of_kin_postal_code: {
+            column: 'next_of_kin.postal_code',
+            title: 'Postcode',
+            type: 'string'
+          }
+        } );
+      }
+
       return $delegate;
     }
   ] );
