@@ -16,8 +16,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     name: {
       singular: 'appointment',
       plural: 'appointments',
-      possessive: 'appointment\'s',
-      pluralPossessive: 'appointments\''
+      possessive: 'appointment\'s'
     },
     columnList: {
       datetime: {

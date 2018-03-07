@@ -12,8 +12,7 @@ define( function() {
     name: {
       singular: 'appointment type',
       plural: 'appointment types',
-      possessive: 'appointment type\'s',
-      pluralPossessive: 'appointment types\''
+      possessive: 'appointment type\'s'
     },
     columnList: {
       name: {

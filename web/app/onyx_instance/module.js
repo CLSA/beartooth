@@ -8,7 +8,6 @@ define( function() {
       singular: 'onyx instance',
       plural: 'onyx instances',
       possessive: 'onyx instance\'s',
-      pluralPossessive: 'onyx instances\'',
       friendlyColumn: 'username'
     },
     columnList: {
