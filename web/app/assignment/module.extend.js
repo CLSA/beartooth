@@ -258,6 +258,13 @@ define( [ 'participant' ].reduce( function( list, name ) {
               } else {
                 self.isWrongType = false;
 
+                // get notes from the last interview
+                CnHttpFactory.instance( {
+                  path: 'interview/' + self.assignment.interview_id + '?last_interview_note=1'
+                } ).get().then( function( response ) {
+                  self.last_interview_note = response.data;
+                } );
+
                 // get the assigned participant's details
                 CnHttpFactory.instance( {
                   path: 'participant/' + self.assignment.participant_id,
