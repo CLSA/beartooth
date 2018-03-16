@@ -302,6 +302,37 @@ class post extends \cenozo\service\service
     $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
 
+    // get the onyx instance to tell whether this is a home or site instance
+    $db_user = lib::create( 'business\session' )->get_user();
+    $db_onyx_instance = $onyx_instance_class_name::get_unique_record( 'user_id', $db_user->id );
+    if( is_null( $db_onyx_instance ) )
+    {
+      throw lib::create( 'exception\runtime',
+        sprintf( 'Onyx user "%s" is not linked to any onyx instance.', $db_user->name ),
+        __METHOD__
+      );
+    }
+
+    // get the interview corresponding with this export
+    $interview_type = is_null( $db_onyx_instance->interviewer_user_id ) ? 'site' : 'home';
+    $interview_sel = lib::create( 'database\select' );
+    $interview_sel->from( 'interview' );
+    $interview_sel->add_column( 'id' );
+    $interview_mod = lib::create( 'database\modifier' );
+    $interview_mod->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
+    $interview_mod->where( 'qnaire.type', '=', $interview_type );
+    $interview_mod->where( 'interview.end_datetime', '=', NULL );
+    $interview_mod->order_desc( 'interview.start_datetime' );
+    $interview_list = $db_participant->get_interview_object_list( $interview_mod );
+    if( 0 < count( $interview_list ) )
+    {
+      throw lib::create( 'exception\runtime',
+        sprintf( 'Trying to export Onyx interview but not matching %s interview can be found.', $interview_type ),
+        __METHOD__
+      );
+    }
+    $db_interview = current( $interview_list );
+
     $member = 'Admin.Interview.endDate';
     $datetime_obj = util::get_datetime_object( property_exists( $object, $member ) ? $object->$member : NULL );
 
@@ -398,32 +429,12 @@ class post extends \cenozo\service\service
     $member = 'Admin.Interview.status';
     if( property_exists( $object, $member ) && 'completed' == strtolower( $object->$member ) )
     {
-      // get the onyx instance to tell whether this is a home or site instance
-      $db_user = lib::create( 'business\session' )->get_user();
-      $db_onyx_instance = $onyx_instance_class_name::get_unique_record( 'user_id', $db_user->id );
-      if( is_null( $db_onyx_instance ) )
-        throw lib::create( 'exception\runtime',
-          sprintf( 'Onyx user "%s" is not linked to any onyx instance.', $db_user->name ),
-          __METHOD__ );
-      $interview_type = is_null( $db_onyx_instance->interviewer_user_id ) ? 'site' : 'home';
-
-      // get the interview corresponding with this export
-      $interview_sel = lib::create( 'database\select' );
-      $interview_sel->from( 'interview' );
-      $interview_sel->add_column( 'id' );
-      $interview_mod = lib::create( 'database\modifier' );
-      $interview_mod->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
-      $interview_mod->where( 'qnaire.type', '=', $interview_type );
-      $interview_mod->where( 'interview.end_datetime', '=', NULL );
-      $interview_mod->order_desc( 'interview.start_datetime' );
-      $interview_list = $db_participant->get_interview_object_list( $interview_mod );
-      if( 0 < count( $interview_list ) )
-      {
-        $db_interview = current( $interview_list );
-        $db_interview->complete( NULL, $datetime_obj );
-        $db_participant->repopulate_queue( false );
-      }
+      $db_interview->complete( NULL, $datetime_obj );
+      $db_participant->repopulate_queue( false );
     }
+
+    $member = 'GeneralComments';
+    if( property_exists( $object, $member ) ) $db_interview->note = $object->$member;
   }
 
   /**
