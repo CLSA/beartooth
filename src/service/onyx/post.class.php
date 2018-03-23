@@ -324,10 +324,10 @@ class post extends \cenozo\service\service
     $interview_mod->where( 'interview.end_datetime', '=', NULL );
     $interview_mod->order_desc( 'interview.start_datetime' );
     $interview_list = $db_participant->get_interview_object_list( $interview_mod );
-    if( 0 < count( $interview_list ) )
+    if( 0 == count( $interview_list ) )
     {
       throw lib::create( 'exception\runtime',
-        sprintf( 'Trying to export Onyx interview but not matching %s interview can be found.', $interview_type ),
+        sprintf( 'Trying to export Onyx interview but no matching %s interview can be found.', $interview_type ),
         __METHOD__
       );
     }
@@ -429,7 +429,8 @@ class post extends \cenozo\service\service
     $member = 'GeneralComments';
     if( property_exists( $object, $member ) )
     {
-      $db_interview->note = implode( "\n\n", util::json_decode( $object->$member ) );
+      $data = str_replace( '""', '"', preg_replace( '/^"(.*)"$/', '\1', $object->$member ) );
+      $db_interview->note = implode( "\n\n", util::json_decode( $data ) );
       $db_interview->save();
     }
 
