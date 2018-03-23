@@ -86,7 +86,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     },
     address_id: {
       title: 'Address',
-      type: 'enum',
+      type: 'hidden',
       help: 'The address of the home appointment.'
     },
     state: {
@@ -114,6 +114,15 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     },
     type: { column: 'qnaire.type', type: 'hidden' }
   } );
+
+  if( angular.isDefined( cenozoApp.module( 'participant' ).actions.notes ) ) {
+    module.addExtraOperation( 'view', {
+      title: 'Notes',
+      operation: function( $state, model ) {
+        $state.go( 'participant.notes', { identifier: 'uid=' + model.viewModel.record.participant } );
+      }
+    } );
+  }
 
   // add an extra operation for home and site appointment types
   if( angular.isDefined( module.actions.calendar ) ) {
@@ -396,6 +405,16 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               if( !cnRecordViewScope ) throw new Error( 'Cannot find cnRecordView scope' );
               $scope.model.viewModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
             } );
+
+            // show/hide user and address columns based on the type
+            var cnRecordViewScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordView' );
+            if( !cnRecordViewScope ) throw new Error( 'Cannot find cnRecordView scope' );
+            var inputArray = cnRecordViewScope.dataArray[0].inputArray;
+
+            inputArray.findByProperty( 'key', 'user_id' ).type =
+              'home' == $scope.model.type ? 'lookup-typeahead' : 'hidden';
+            inputArray.findByProperty( 'key', 'address_id' ).type =
+              'home' == $scope.model.type ? 'enum' : 'hidden';
           } );
         }
       };
@@ -538,33 +557,35 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
             parentModel.getDeleteEnabled = function() { return parentModel.$$getDeleteEnabled() && upcoming; };
             parentModel.getEditEnabled = function() { return parentModel.$$getEditEnabled() && upcoming; };
 
-            // update the address list based on the parent interview
-            return CnHttpFactory.instance( {
-              path: 'interview/' + self.record.interview_id,
-              data: { select: { column: { column: 'participant_id' } } }
-            } ).query().then( function( response ) {
-              // get the participant's address list
+            if( 'home' == self.record.type ) {
+              // update the address list based on the parent interview
               return CnHttpFactory.instance( {
-                path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
-                data: {
-                  select: { column: [ 'id', 'rank', 'summary' ] },
-                  modifier: {
-                    where: { column: 'address.active', operator: '=', value: true },
-                    order: { rank: false }
-                  }
-                }
+                path: 'interview/' + self.record.interview_id,
+                data: { select: { column: { column: 'participant_id' } } }
               } ).query().then( function( response ) {
-                return parentModel.metadata.getPromise().then( function() {
-                  parentModel.metadata.columnList.address_id.enumList = [];
-                  response.data.forEach( function( item ) {
-                    parentModel.metadata.columnList.address_id.enumList.push( {
-                      value: item.id,
-                      name: item.summary
+                // get the participant's address list
+                return CnHttpFactory.instance( {
+                  path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
+                  data: {
+                    select: { column: [ 'id', 'rank', 'summary' ] },
+                    modifier: {
+                      where: { column: 'address.active', operator: '=', value: true },
+                      order: { rank: false }
+                    }
+                  }
+                } ).query().then( function( response ) {
+                  return parentModel.metadata.getPromise().then( function() {
+                    parentModel.metadata.columnList.address_id.enumList = [];
+                    response.data.forEach( function( item ) {
+                      parentModel.metadata.columnList.address_id.enumList.push( {
+                        value: item.id,
+                        name: item.summary
+                      } );
                     } );
                   } );
                 } );
               } );
-            } );
+            }
           } );
         };
       }
