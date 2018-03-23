@@ -425,6 +425,14 @@ class post extends \cenozo\service\service
       }
     }
 
+    // general interview comments
+    $member = 'GeneralComments';
+    if( property_exists( $object, $member ) )
+    {
+      $db_interview->note = implode( "\n\n", util::json_decode( $object->$member ) );
+      $db_interview->save();
+    }
+
     // interview and appointment status
     $member = 'Admin.Interview.status';
     if( property_exists( $object, $member ) && 'completed' == strtolower( $object->$member ) )
@@ -432,9 +440,6 @@ class post extends \cenozo\service\service
       $db_interview->complete( NULL, $datetime_obj );
       $db_participant->repopulate_queue( false );
     }
-
-    $member = 'GeneralComments';
-    if( property_exists( $object, $member ) ) $db_interview->note = $object->$member;
   }
 
   /**
