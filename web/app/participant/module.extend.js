@@ -209,7 +209,7 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
       $delegate.root.module.getInput( 'override_quota' ).constant = 3 > CnSession.role.tier;
 
       // only allow tier-3 roles to see next-of-kin information
-      if( 3 <= CnSession.role.tier ) {
+      if( CnSession.application.nextOfKin || 3 <= CnSession.role.tier ) {
         $delegate.root.module.addInputGroup( 'Next of Kin', {
           next_of_kin_first_name: {
             column: 'next_of_kin.first_name',
