@@ -103,6 +103,7 @@ class post extends \cenozo\service\service
       {
         $this->set_data( $error );
         $this->status->set_code( 306 );
+        log::warning( sprintf( 'Responding to onyx post request with 306 message: "%s"', $error ) );
       }
     }
   }
@@ -136,6 +137,7 @@ class post extends \cenozo\service\service
     {
       $this->set_data( $e->get_raw_message() );
       $this->status->set_code( 306 );
+      log::warning( sprintf( 'Responding to onyx post request with 306 message: "%s"', $e->get_raw_message() ) );
     }
 
     if( is_null( $this->status->get_code() ) ) $this->status->set_code( 201 );
