@@ -21,5 +21,6 @@ $SETTINGS['general']['next_of_kin'] = false;
 // the location of beartooth internal path
 $SETTINGS['path']['APPLICATION'] = str_replace( '/settings.ini.php', '', __FILE__ );
 
-// add the interview module
+// add modules used by the application
 $SETTINGS['module']['interview'] = true;
+$SETTINGS['module']['script'] = true;
