@@ -13,7 +13,7 @@ global $SETTINGS;
 $SETTINGS['general']['application_name'] = 'beartooth';
 $SETTINGS['general']['instance_name'] = $SETTINGS['general']['application_name'];
 $SETTINGS['general']['version'] = '2.2';
-$SETTINGS['general']['build'] = 'fd7d11f';
+$SETTINGS['general']['build'] = 'a277cd3';
 
 // determines whether users other than administrators can see next-of-kin data
 $SETTINGS['general']['next_of_kin'] = false;

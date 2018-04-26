@@ -177,8 +177,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       // adjust the appointment for daylight savings time
       if( date.tz( timezone ).isDST() ) offset += -60;
 
+      // get the identifier now and not in the getIdentifier() function below
+      var identifier = appointment.getIdentifier();
       var event = {
-        getIdentifier: function() { return appointment.getIdentifier() },
+        getIdentifier: function() { return identifier; },
         title: ( appointment.uid ? appointment.uid : 'new appointment' ) +
                ( appointment.username ? ' (' + appointment.username + ')' : '' ),
         start: moment( appointment.datetime ).subtract( offset, 'minutes' ),
