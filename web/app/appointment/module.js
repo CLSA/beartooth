@@ -172,7 +172,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       return appointment;
     } else {
       var date = moment( appointment.datetime );
-      var offset = moment.tz.zone( timezone ).offset( date.unix() );
+      var offset = moment.tz.zone( timezone ).utcOffset( date.unix() );
 
       // adjust the appointment for daylight savings time
       if( date.tz( timezone ).isDST() ) offset += -60;
