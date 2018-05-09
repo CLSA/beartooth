@@ -209,15 +209,16 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         controller: function( $scope ) {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
 
+          // get the child cn-record-add's scope
+          var cnRecordAddScope = null;
+          $scope.$on( 'cnRecordAdd ready', function( event, data ) { cnRecordAddScope = data; } );
+
           // connect the calendar's day click callback to the appointment's datetime
           $scope.model.calendarModel.settings.dayClick = function( date ) {
             // make sure date is no earlier than today
             if( !date.isBefore( moment(), 'day' ) ) {
               var dateString = date.format( 'YYYY-MM-DD' ) + 'T12:00:00';
               var datetime = moment.tz( dateString, CnSession.user.timezone ).tz( 'UTC' );
-
-              var cnRecordAddScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
-              if( !cnRecordAddScope ) throw new Error( 'Unable to find appointment\'s cnRecordAdd scope.' );
               cnRecordAddScope.record.datetime = datetime.format();
               cnRecordAddScope.formattedRecord.datetime = CnSession.formatValue( datetime, 'datetime', true );
               $scope.$apply(); // needed otherwise the new datetime takes seconds before it appears
@@ -226,10 +227,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
           $scope.model.addModel.afterNew( function() {
             // warn if old appointment will be cancelled
-            var addDirective = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
-            if( null == addDirective ) throw new Error( 'Unable to find appointment\'s cnRecordAdd scope.' );
-            var saveFn = addDirective.save;
-            addDirective.save = function() {
+            var saveFn = cnRecordAddScope.save;
+            cnRecordAddScope.save = function() {
               CnHttpFactory.instance( {
                 path: 'interview/' + $scope.model.getParentIdentifier().identifier,
                 data: { select: { column: [ 'missed_appointment' ] } }
@@ -251,11 +250,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
             // make sure the metadata has been created
             $scope.model.metadata.getPromise().then( function() {
-              var cnRecordAddScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordAdd' );
-              if( !cnRecordAddScope ) throw new Error( 'Cannot find cnRecordAdd scope' );
-
               $scope.model.addModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
-
               var inputArray = cnRecordAddScope.dataArray[0].inputArray;
 
               // show/hide user and address columns based on the type
@@ -371,6 +366,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         controller: function( $scope, $element ) {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
 
+          // get the child cn-record-view's scope
+          var cnRecordViewScope = null;
+          $scope.$on( 'cnRecordView ready', function( event, data ) { cnRecordViewScope = data; } );
+
           // connect the calendar's day click callback to the appointment's datetime
           if( $scope.model.getEditEnabled() ) {
             $scope.model.calendarModel.settings.dayClick = function( date ) {
@@ -383,10 +382,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 if( !datetime.isAfter( moment() ) ) datetime.hour( moment().hour() + 1 );
 
                 if( !datetime.isSame( moment( $scope.model.viewModel.record.datetime ) ) ) {
-                  var cnRecordViewScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordView' );
-                  if( null == cnRecordViewScope )
-                    throw new Error( 'Unable to find appointment\'s cnRecordView scope.' );
-
                   $scope.model.viewModel.record.datetime = datetime.format();
                   $scope.model.viewModel.formattedRecord.datetime =
                     CnSession.formatValue( datetime, 'datetime', true );
@@ -403,16 +398,11 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           $scope.model.viewModel.afterView( function() {
             // make sure the metadata has been created
             $scope.model.metadata.getPromise().then( function() {
-              var cnRecordViewScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordView' );
-              if( !cnRecordViewScope ) throw new Error( 'Cannot find cnRecordView scope' );
               $scope.model.viewModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
             } );
 
             // show/hide user and address columns based on the type
-            var cnRecordViewScope = cenozo.findChildDirectiveScope( $scope, 'cnRecordView' );
-            if( !cnRecordViewScope ) throw new Error( 'Cannot find cnRecordView scope' );
             var inputArray = cnRecordViewScope.dataArray[0].inputArray;
-
             inputArray.findByProperty( 'key', 'user_id' ).type =
               'home' == $scope.model.type ? 'lookup-typeahead' : 'hidden';
             inputArray.findByProperty( 'key', 'address_id' ).type =
