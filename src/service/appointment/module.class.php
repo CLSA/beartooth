@@ -201,7 +201,7 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_table_column( 'address', 'postcode' );
       $select->add_table_column( 'participant', 'IFNULL( email, "" )', 'email', false );
       $select->add_column(
-        'IF( 70 <= TIMESTAMPDIFF( YEAR, date_of_birth, CURDATE() ) AND proxy_form.id IS NULL, 1, 0 )',
+        'IF( 70 <= TIMESTAMPDIFF( YEAR, date_of_birth, CURDATE() ) AND proxy_form.total = 0, 1, 0 )',
         'ask_proxy',
         false
       );
@@ -231,7 +231,7 @@ class module extends \cenozo\service\base_calendar_module
       $modifier->left_join( 'region', 'address.region_id', 'region.id' );
       $modifier->where( 'participant_site.site_id', '=', $db_site->id );
 
-      // link to the proxy form (which may not exist)
+      // link to the number of proxy forms the participant has (which may be zero)
       $proxy_form_type_id_list = array();
       $form_type_sel = lib::create( 'database\select' );
       $form_type_sel->add_column( 'id' );
@@ -240,10 +240,23 @@ class module extends \cenozo\service\base_calendar_module
       foreach( $form_type_class_name::select( $form_type_sel, $form_type_mod ) as $form_type )
         $proxy_form_type_id_list[] = $form_type['id'];
 
+      $proxy_form_sel = lib::create( 'database\select' );
+      $proxy_form_sel->add_column( 'id', 'participant_id' );
+      $proxy_form_sel->add_column( 'IF( form.id IS NULL, 0, COUNT(*) )', 'total', false );
+      $proxy_form_sel->from( 'participant' );
+
       $join_mod = lib::create( 'database\modifier' );
-      $join_mod->where( 'participant.id', '=', 'proxy_form.participant_id', false );
-      $join_mod->where( 'proxy_form.form_type_id', 'IN', $proxy_form_type_id_list );
-      $modifier->join_modifier( 'form', $join_mod, 'left', 'proxy_form' );
+      $join_mod->where( 'participant.id', '=', 'form.participant_id', false );
+      $join_mod->where( 'form.form_type_id', 'IN', $proxy_form_type_id_list );
+      $proxy_form_mod = lib::create( 'database\modifier' );
+      $proxy_form_mod->join_modifier( 'form', $join_mod, 'left' );
+      $proxy_form_mod->group( 'participant.id' );
+
+      $modifier->join(
+        sprintf( '( %s %s ) AS proxy_form', $proxy_form_sel->get_sql(), $proxy_form_mod->get_sql() ),
+        'participant.id',
+        'proxy_form.participant_id'
+      );
 
       // restrict by onyx instance
       $db_onyx_instance = $onyx_instance_class_name::get_unique_record( 'user_id', $db_user->id );
