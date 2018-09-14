@@ -165,6 +165,7 @@ class module extends \cenozo\service\base_calendar_module
     $db_site = $session->get_site();
     $db_role = $session->get_role();
 
+    $modifier->left_join( 'appointment_type', 'appointment.appointment_type_id', 'appointment_type.id' );
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
