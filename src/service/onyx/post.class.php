@@ -123,6 +123,9 @@ class post extends \cenozo\service\service
       else if( 'hin' == $type )
         foreach( $this->object_list as $data )
           $this->process_hin( $data['participant'], $data['object'] );
+      else if( 'extendedhin' == $type )
+        foreach( $this->object_list as $data )
+          $this->process_extended_hin( $data['participant'], $data['object'] );
       else if( 'participants' == $type )
         foreach( $this->object_list as $data )
           $this->process_participant( $data['participant'], $data['object'] );
@@ -288,6 +291,71 @@ class post extends \cenozo\service\service
         'Provided by Onyx.'
       );
     }
+  }
+
+  /**
+   * Processes the onyx/extendedhin service
+   * 
+   * @param database\participant $db_participant The participant being exported to
+   * @param stdClass $object The data sent by Onyx
+   * @access private
+   */
+  private function process_extended_hin( $db_participant, $object )
+  {
+    if( 1 >= count( get_object_vars( $object ) ) ) return;
+
+    $form_type_class_name = lib::get_class_name( 'database\form_type' );
+    $region_class_name = lib::get_class_name( 'database\region' );
+
+    $datetime_obj = $this->get_datetime_from_object( $object );
+
+    // create the form
+    $db_form_type = $form_type_class_name::get_unique_record( 'name', 'extended_hin' );
+    $db_form = lib::create( 'database\form' );
+    $db_form->participant_id = $db_participant->id;
+    $db_form->form_type_id = $db_form_type->id;
+    $db_form->date = $datetime_obj;
+    $db_form->save();
+
+    // save the PDF form
+    $member = 'pdfForm';
+    if( property_exists( $object, $member ) )
+    {
+      if( !$db_form->write_file( $object->$member ) )
+        throw lib::create( 'exception\runtime', 'Unable to write consent form file to disk.', __METHOD__ );
+    }
+
+    // add consent records
+    $member = 'TODO';
+    if( property_exists( $object, $member ) )
+    {
+      $db_form->add_consent(
+        'Extended HIN Access',
+        array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj ),
+        'Provided by Onyx.'
+      );
+    }
+
+    $member = 'TODO';
+    if( property_exists( $object, $member ) )
+    {
+      $db_form->add_consent(
+        'CIHI Access',
+        array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj ),
+        'Provided by Onyx.'
+      );
+    }
+
+    $member = 'TODO';
+    if( property_exists( $object, $member ) )
+    {
+      $db_form->add_consent(
+        'Extended CIHI Access',
+        array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj ),
+        'Provided by Onyx.'
+      );
+    }
+
   }
 
   /**
