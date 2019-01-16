@@ -113,8 +113,8 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
         }
 
         // override onView
-        object.onView = function() {
-          return object.$$onView().then( function() {
+        object.onView = function( force ) {
+          return object.$$onView( force ).then( function() {
             // check that the state type matches the interview's type
             if( $state.params.type != object.record.type ) {
               $state.go( 'error.404' );
