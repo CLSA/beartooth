@@ -543,8 +543,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           } ).patch().finally( function() { modal.close(); } );
         };
 
-        this.onView = function() {
-          return self.$$onView().then( function() {
+        this.onView = function( force ) {
+          return self.$$onView( force ).then( function() {
             var upcoming = moment().isBefore( self.record.datetime, 'minute' );
             parentModel.getDeleteEnabled = function() { return parentModel.$$getDeleteEnabled() && upcoming; };
             parentModel.getEditEnabled = function() { return parentModel.$$getEditEnabled() && upcoming; };
