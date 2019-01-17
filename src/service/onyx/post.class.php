@@ -326,7 +326,7 @@ class post extends \cenozo\service\service
     }
 
     // add consent records
-    $member = 'TODO';
+    $member = 'ICF_HIN10YEARACCESS_COM';
     if( property_exists( $object, $member ) )
     {
       $db_form->add_consent(
@@ -336,7 +336,7 @@ class post extends \cenozo\service\service
       );
     }
 
-    $member = 'TODO';
+    $member = 'ICF_CIHIHINACCESS_COM';
     if( property_exists( $object, $member ) )
     {
       $db_form->add_consent(
@@ -346,7 +346,7 @@ class post extends \cenozo\service\service
       );
     }
 
-    $member = 'TODO';
+    $member = 'ICF_CIHI10YEARACCESS_COM';
     if( property_exists( $object, $member ) )
     {
       $db_form->add_consent(
