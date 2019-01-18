@@ -157,6 +157,7 @@ class post extends \cenozo\service\service
     $type = $this->get_resource( 0 );
     if( in_array( $type, array( 'consent', 'proxy' ) ) ) return 'Consent';
     else if( 'generalproxy' == $type ) return 'GeneralProxy';
+    else if( 'extendedhin' == $type ) return 'ExtendedHIN';
     else if( 'hin' == $type ) return 'ConsentHIN';
     else if( 'participants' == $type ) return 'Participants';
     return NULL;
@@ -190,7 +191,7 @@ class post extends \cenozo\service\service
     $member = 'pdfForm';
     if( property_exists( $object, $member ) )
     {
-      if( !$db_form->write_file( $object->$member ) )
+      if( !$db_form->write_file( base64_decode( chunk_split( $object->$member ) ) ) )
         throw lib::create( 'exception\runtime', 'Unable to write consent form file to disk.', __METHOD__ );
     }
 
@@ -277,7 +278,7 @@ class post extends \cenozo\service\service
     $member = 'pdfForm';
     if( property_exists( $object, $member ) )
     {
-      if( !$db_form->write_file( $object->$member ) )
+      if( !$db_form->write_file( base64_decode( chunk_split( $object->$member ) ) ) )
         throw lib::create( 'exception\runtime', 'Unable to write consent form file to disk.', __METHOD__ );
     }
 
@@ -321,7 +322,7 @@ class post extends \cenozo\service\service
     $member = 'pdfForm';
     if( property_exists( $object, $member ) )
     {
-      if( !$db_form->write_file( $object->$member ) )
+      if( !$db_form->write_file( base64_decode( chunk_split( $object->$member ) ) ) )
         throw lib::create( 'exception\runtime', 'Unable to write consent form file to disk.', __METHOD__ );
     }
 
