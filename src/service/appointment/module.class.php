@@ -207,17 +207,6 @@ class module extends \cenozo\service\base_calendar_module
         false
       );
 
-      // add next of kin information
-      $modifier->left_join( 'next_of_kin', 'participant.id', 'next_of_kin.participant_id' );
-      $select->add_table_column( 'next_of_kin', 'first_name', 'nextOfKin.firstName' );
-      $select->add_table_column( 'next_of_kin', 'last_name', 'nextOfKin.lastName' );
-      $select->add_table_column( 'next_of_kin', 'gender', 'nextOfKin.gender' );
-      $select->add_table_column( 'next_of_kin', 'phone', 'nextOfKin.phone' );
-      $select->add_table_column( 'next_of_kin', 'street', 'nextOfKin.street' );
-      $select->add_table_column( 'next_of_kin', 'city', 'nextOfKin.city' );
-      $select->add_table_column( 'next_of_kin', 'province', 'nextOfKin.province' );
-      $select->add_table_column( 'next_of_kin', 'postal_code', 'nextOfKin.postalCode' );
-
       // make sure the participant has consented to participate
       $modifier->join( 'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );
       $modifier->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );

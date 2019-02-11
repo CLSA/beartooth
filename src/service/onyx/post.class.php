@@ -426,31 +426,6 @@ class post extends \cenozo\service\service
       $db_participant->date_of_birth = util::get_datetime_object( $object->$member )->format( 'Y-m-d' );
     $db_participant->save();
 
-    // next-of-kin information
-    $db_next_of_kin = $db_participant->get_next_of_kin();
-    if( is_null( $db_next_of_kin ) )
-    {
-      $db_next_of_kin = lib::create( 'database\next_of_kin' );
-      $db_next_of_kin->participant_id = $db_participant->id;
-    }
-    $member = 'Admin.Participant.nextOfKin.firstName';
-    if( property_exists( $object, $member ) ) $db_next_of_kin->first_name = $object->$member;
-    $member = 'Admin.Participant.nextOfKin.lastName';
-    if( property_exists( $object, $member ) ) $db_next_of_kin->last_name = $object->$member;
-    $member = 'Admin.Participant.nextOfKin.gender';
-    if( property_exists( $object, $member ) ) $db_next_of_kin->gender = $object->$member;
-    $member = 'Admin.Participant.nextOfKin.phone';
-    if( property_exists( $object, $member ) ) $db_next_of_kin->phone = $object->$member;
-    $member = 'Admin.Participant.nextOfKin.street';
-    if( property_exists( $object, $member ) ) $db_next_of_kin->street = $object->$member;
-    $member = 'Admin.Participant.nextOfKin.city';
-    if( property_exists( $object, $member ) ) $db_next_of_kin->city = $object->$member;
-    $member = 'Admin.Participant.nextOfKin.province';
-    if( property_exists( $object, $member ) ) $db_next_of_kin->province = $object->$member;
-    $member = 'Admin.Participant.nextOfKin.postalCode';
-    if( property_exists( $object, $member ) ) $db_next_of_kin->postal_code = $object->$member;
-    $db_next_of_kin->save();
-
     // consent information
     $member = 'Admin.Participant.consentToDrawBlood';
     if( property_exists( $object, $member ) )
