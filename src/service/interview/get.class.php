@@ -29,12 +29,18 @@ class get extends \cenozo\service\get
       {
         $db_interview = $this->get_leaf_record();
         $cenozo_manager = lib::create( 'business\cenozo_manager', $db_application->get_previous_application() );
-        $data = $cenozo_manager->send( sprintf(
-          'participant/uid=%s/interview/qnaire_rank=%d?select={"column":["note"]}',
-          $db_interview->get_participant()->uid,
-          $db_interview->get_qnaire()->rank
-        ) );
-        $note = $data->note;
+        try
+        {
+          $data = $cenozo_manager->send( sprintf(
+            'participant/uid=%s/interview/qnaire_rank=%d?select={"column":["note"]}',
+            $db_interview->get_participant()->uid,
+            $db_interview->get_qnaire()->rank
+          ) );
+          $note = $data->note;
+        }
+        // We have to ignore any runtime errors, otherwise participants who didn't complete the previous stage
+        // of the interview won't be able to proceed.
+        catch( \cenozo\exception\runtime $e ) {}
       }
 
       $this->set_data( $note );
