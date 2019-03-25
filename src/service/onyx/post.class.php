@@ -668,9 +668,18 @@ class post extends \cenozo\service\service
     $response = curl_exec( $curl );
     $code = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
     if( 306 == $code )
+    {
       log::warning( sprintf( 'Responding to onyx post request with 306 message: "%s"', $response ) );
+    }
+    else if( 409 == $code )
+    {
+      // ignore duplicate errors since we can proceed knowing the form already exists
+      $code = 201;
+      $response = '';
+    }
+
     $this->set_data( $response );
-    $this->status->set_code( curl_getinfo( $curl, CURLINFO_HTTP_CODE ) );
+    $this->status->set_code( $code );
   }
 
   /**
@@ -857,8 +866,21 @@ class post extends \cenozo\service\service
     curl_setopt( $curl, CURLOPT_POST, true );
     curl_setopt( $curl, CURLOPT_POSTFIELDS, util::json_encode( $form_data ) );
 
-    $this->set_data( curl_exec( $curl ) );
-    $this->status->set_code( curl_getinfo( $curl, CURLINFO_HTTP_CODE ) );
+    $response = curl_exec( $curl );
+    $code = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
+    if( 306 == $code )
+    {
+      log::warning( sprintf( 'Responding to onyx post request with 306 message: "%s"', $response ) );
+    }
+    else if( 409 == $code )
+    {
+      // ignore duplicate errors since we can proceed knowing the form already exists
+      $code = 201;
+      $response = '';
+    }
+
+    $this->set_data( $response );
+    $this->status->set_code( $code );
   }
 
   /**
