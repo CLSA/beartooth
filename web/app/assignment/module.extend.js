@@ -407,10 +407,15 @@ define( [ 'participant' ].reduce( function( list, name ) {
             promiseList.push(
               CnHttpFactory.instance( {
                 path: 'participant/' + self.assignment.participant_id,
-                data: { select: { column: [ { table: 'hold_type', column: 'name' } ] } }
+                data: { select: { column: [
+                  { table: 'hold_type', column: 'name', alias: 'hold' },
+                  { table: 'proxy_type', column: 'name', alias: 'proxy' }
+                ] } }
               } ).get().then( function( response ) {
-                if( null != self.participant )
-                  self.participant.withdrawn = 'Withdrawn' == response.data.name;
+                if( null != self.participant ) {
+                  self.participant.withdrawn = 'Withdrawn' == response.data.hold;
+                  self.participant.proxy = null != response.data.proxy;
+                }
               } )
             );
 
@@ -458,9 +463,9 @@ define( [ 'participant' ].reduce( function( list, name ) {
           this.scriptLauncher.launch().then( function() { self.loadScriptList(); } );
 
           // check for when the window gets focus back and update the participant details
-          if( null != script.name.match( /withdraw/i ) ) {
+          if( null != script.name.match( /withdraw|proxy/i ) ) {
             var win = angular.element( $window ).on( 'focus', function() {
-              // the following will process the withdraw script (in case it was finished)
+              // the following will process the withdraw or proxy script (in case it was finished)
               CnHttpFactory.instance( {
                 path: 'script/' + script.id + '/token/uid=' + self.participant.uid
               } ).get().then( function() { self.loadScriptList(); } );
