@@ -310,53 +310,52 @@ class post extends \cenozo\service\service
 
     $datetime_obj = $this->get_datetime_from_object( $object );
 
-    // create the form
-    $db_form_type = $form_type_class_name::get_unique_record( 'name', 'extended_hin' );
-    $db_form = lib::create( 'database\form' );
-    $db_form->participant_id = $db_participant->id;
-    $db_form->form_type_id = $db_form_type->id;
-    $db_form->date = $datetime_obj;
-    $db_form->save();
-
-    // save the PDF form
+    // save the PDF form (and otherwise ignore if there is no form attached)
     $member = 'pdfForm';
     if( property_exists( $object, $member ) )
     {
       if( !$db_form->write_file( base64_decode( chunk_split( $object->$member ) ) ) )
         throw lib::create( 'exception\runtime', 'Unable to write consent form file to disk.', __METHOD__ );
-    }
+      
+      // create the form
+      $db_form_type = $form_type_class_name::get_unique_record( 'name', 'extended_hin' );
+      $db_form = lib::create( 'database\form' );
+      $db_form->participant_id = $db_participant->id;
+      $db_form->form_type_id = $db_form_type->id;
+      $db_form->date = $datetime_obj;
+      $db_form->save();
 
-    // add consent records
-    $member = 'ICF_HIN10YEARACCESS_COM';
-    if( property_exists( $object, $member ) )
-    {
-      $db_form->add_consent(
-        'Extended HIN Access',
-        array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj ),
-        'Provided by Onyx.'
-      );
-    }
+      // add consent records
+      $member = 'ICF_HIN10YEARACCESS_COM';
+      if( property_exists( $object, $member ) )
+      {
+        $db_form->add_consent(
+          'Extended HIN Access',
+          array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj ),
+          'Provided by Onyx.'
+        );
+      }
 
-    $member = 'ICF_CIHIHINACCESS_COM';
-    if( property_exists( $object, $member ) )
-    {
-      $db_form->add_consent(
-        'CIHI Access',
-        array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj ),
-        'Provided by Onyx.'
-      );
-    }
+      $member = 'ICF_CIHIHINACCESS_COM';
+      if( property_exists( $object, $member ) )
+      {
+        $db_form->add_consent(
+          'CIHI Access',
+          array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj ),
+          'Provided by Onyx.'
+        );
+      }
 
-    $member = 'ICF_CIHI10YEARACCESS_COM';
-    if( property_exists( $object, $member ) )
-    {
-      $db_form->add_consent(
-        'Extended CIHI Access',
-        array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj ),
-        'Provided by Onyx.'
-      );
+      $member = 'ICF_CIHI10YEARACCESS_COM';
+      if( property_exists( $object, $member ) )
+      {
+        $db_form->add_consent(
+          'Extended CIHI Access',
+          array( 'accept' => 1 == preg_match( '/y|yes|true|1/i', $object->$member ), 'datetime' => $datetime_obj ),
+          'Provided by Onyx.'
+        );
+      }
     }
-
   }
 
   /**
