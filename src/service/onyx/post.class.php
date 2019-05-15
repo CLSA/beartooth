@@ -314,9 +314,6 @@ class post extends \cenozo\service\service
     $member = 'pdfForm';
     if( property_exists( $object, $member ) )
     {
-      if( !$db_form->write_file( base64_decode( chunk_split( $object->$member ) ) ) )
-        throw lib::create( 'exception\runtime', 'Unable to write consent form file to disk.', __METHOD__ );
-      
       // create the form
       $db_form_type = $form_type_class_name::get_unique_record( 'name', 'extended_hin' );
       $db_form = lib::create( 'database\form' );
@@ -325,6 +322,9 @@ class post extends \cenozo\service\service
       $db_form->date = $datetime_obj;
       $db_form->save();
 
+      if( !$db_form->write_file( base64_decode( chunk_split( $object->$member ) ) ) )
+        throw lib::create( 'exception\runtime', 'Unable to write consent form file to disk.', __METHOD__ );
+      
       // add consent records
       $member = 'ICF_HIN10YEARACCESS_COM';
       if( property_exists( $object, $member ) )
