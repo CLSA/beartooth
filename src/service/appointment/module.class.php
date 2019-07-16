@@ -259,56 +259,97 @@ class module extends \cenozo\service\base_calendar_module
       $db_interviewer_user = $db_onyx_instance->get_interviewer_user();
       if( !is_null( $db_interviewer_user ) )
       {
+        // home interview
         $modifier->where( 'appointment.user_id', '=', $db_interviewer_user->id );
       }
       else
       {
+        // site interview
         $modifier->where( 'appointment.user_id', '=', NULL );
+
+        $select->add_column(
+          'IF( IFNULL( hin_consent.accept, false ), "YES", "NO" )',
+          'consentToHIN',
+          false
+        );
         $select->add_column(
           'IF( IFNULL( blood_consent.accept, true ), "YES", "NO" )',
           'consentToDrawBlood',
-          false );
+          false
+        );
         $select->add_column(
           'IF( IFNULL( urine_consent.accept, true ), "YES", "NO" )',
           'consentToTakeUrine',
-          false );
+          false
+        );
 
+        // provide HIN access consent
+        $modifier->join(
+          'participant_last_consent',
+          'participant.id',
+          'participant_last_hin_consent.participant_id',
+          '', // regular join type
+          'participant_last_hin_consent'
+        );
+        $modifier->join(
+          'consent_type',
+          'participant_last_hin_consent.consent_type_id',
+          'hin_consent_type.id',
+          '', // regular join type
+          'hin_consent_type'
+        );
+        $modifier->left_join(
+          'consent',
+          'participant_last_hin_consent.consent_id',
+          'hin_consent.id',
+          'hin_consent'
+        );
+        $modifier->where( 'hin_consent_type.name', '=', 'HIN access' );
+
+        // provide blood consent
         $modifier->join(
           'participant_last_consent',
           'participant.id',
           'participant_last_blood_consent.participant_id',
           '', // regular join type
-          'participant_last_blood_consent' );
+          'participant_last_blood_consent'
+        );
         $modifier->join(
           'consent_type',
           'participant_last_blood_consent.consent_type_id',
           'blood_consent_type.id',
           '', // regular join type
-          'blood_consent_type' );
+          'blood_consent_type'
+        );
         $modifier->left_join(
           'consent',
           'participant_last_blood_consent.consent_id',
           'blood_consent.id',
-          'blood_consent' );
+          'blood_consent'
+        );
         $modifier->where( 'blood_consent_type.name', '=', 'draw blood' );
 
+        // provide urine consent
         $modifier->join(
           'participant_last_consent',
           'participant.id',
           'participant_last_urine_consent.participant_id',
           '', // regular join type
-          'participant_last_urine_consent' );
+          'participant_last_urine_consent'
+        );
         $modifier->join(
           'consent_type',
           'participant_last_urine_consent.consent_type_id',
           'urine_consent_type.id',
           '', // regular join type
-          'urine_consent_type' );
+          'urine_consent_type'
+        );
         $modifier->left_join(
           'consent',
           'participant_last_urine_consent.consent_id',
           'urine_consent.id',
-          'urine_consent' );
+          'urine_consent'
+        );
         $modifier->where( 'urine_consent_type.name', '=', 'take urine' );
       }
 
