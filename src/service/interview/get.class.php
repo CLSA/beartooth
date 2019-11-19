@@ -31,7 +31,7 @@ class get extends \cenozo\service\get
         $cenozo_manager = lib::create( 'business\cenozo_manager', $db_application->get_previous_application() );
         try
         {
-          $data = $cenozo_manager->send( sprintf(
+          $data = $cenozo_manager->get( sprintf(
             'participant/uid=%s/interview/qnaire_rank=%d?select={"column":["note"]}',
             $db_interview->get_participant()->uid,
             $db_interview->get_qnaire()->rank
