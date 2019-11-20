@@ -37,7 +37,7 @@ define( function() {
       column: 'qnaire.rank',
       title: 'Rank',
       type: 'rank',
-      constant: 'view'
+      isConstant: 'view'
     },
     name: {
       title: 'Name',
@@ -46,7 +46,7 @@ define( function() {
     type: {
       title: 'Type',
       type: 'enum',
-      constant: 'view'
+      isConstant: 'view'
     },
     delay: {
       title: 'Delay (weeks)',
@@ -57,7 +57,7 @@ define( function() {
     completed_event_type_id: {
       title: 'Completed Event Type',
       type: 'enum',
-      constant: true,
+      isConstant: true,
       help: 'The event type which is added to a participant\'s event list when this questionnaire is completed'
     },
     prev_event_type_id: {

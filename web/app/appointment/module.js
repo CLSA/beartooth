@@ -63,15 +63,15 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       column: 'participant.uid',
       title: 'Participant',
       type: 'string',
-      exclude: 'add',
-      constant: true
+      isExcluded: 'add',
+      isConstant: true
     },
     qnaire: {
       column: 'qnaire.name',
       title: 'Questionnaire',
       type: 'string',
-      exclude: 'add',
-      constant: true
+      isExcluded: 'add',
+      isConstant: true
     },
     user_id: {
       column: 'appointment.user_id',
@@ -92,14 +92,14 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     state: {
       title: 'State',
       type: 'string',
-      exclude: 'add',
-      constant: true,
+      isExcluded: 'add',
+      isConstant: true,
       help: 'One of upcoming, passed, completed or cancelled'
     },
     appointment_type_id: {
       title: 'Special Type',
       type: 'enum',
-      exclude: 'view',
+      isExcluded: 'view',
       help: 'Identified whether this is a special appointment type.  If blank then it is considered ' +
             'a "regular" appointment.'
     },
@@ -107,8 +107,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       column: 'appointment_type.name',
       title: 'Special Type',
       type: 'string',
-      exclude: 'add',
-      constant: true,
+      isExcluded: 'add',
+      isConstant: true,
       help: 'Identified whether this is a special appointment type.  If blank then it is considered ' +
             'a "regular" appointment.'
     },

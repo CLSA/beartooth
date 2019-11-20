@@ -49,7 +49,7 @@ define( function() {
       title: 'Password',
       type: 'string',
       regex: '^((?!(password)).){8,}$', // length >= 8 and can't have "password"
-      exclude: 'view',
+      isExcluded: 'view',
       help: 'Passwords must be at least 8 characters long and cannot contain the word "password"'
     },
     interviewer_user_id: {
