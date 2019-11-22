@@ -90,24 +90,44 @@ class appointment extends \cenozo\database\record
     $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
     $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
 
+    $cenozo_manager = lib::create( 'business\cenozo_manager', 'pine' );
+
     $old_survey_sid = $survey_class_name::get_sid();
     $old_token_sid = $tokens_class_name::get_sid();
 
     $db_interview = $this->get_interview();
+    $db_participant = $db_interview->get_participant();
 
     $script_sel = lib::create( 'database\select' );
     $script_sel->add_column( 'sid' );
+    $script_sel->add_column( 'pine_qnaire_id' );
     $script_sel->add_column( 'repeated' );
     $completed = true;
     foreach( $db_interview->get_qnaire()->get_script_list( $script_sel ) as $row )
     {
-      $survey_class_name::set_sid( $row['sid'] );
-      $survey_mod = lib::create( 'database\modifier' );
-      $tokens_class_name::where_token( $survey_mod, $db_interview->get_participant(), $row['repeated'] );
-      if( 0 == $survey_class_name::count( $survey_mod ) )
+      if( !is_null( $row['pine_qnaire_id'] ) )
       {
-        $completed = false;
-        break;
+        $response = $cenozo_manager->get( sprintf(
+          'qnaire/%d/response/participant_id=%d?no_activity=1&select={"column":["submitted"]}',
+          $row['pine_qnaire_id'],
+          $db_participant->id
+        ) );
+        if( !$response->submitted )
+        {
+          $completed = false;
+          break;
+        }
+      }
+      else if( !is_null( $row['sid'] ) )
+      {
+        $survey_class_name::set_sid( $row['sid'] );
+        $survey_mod = lib::create( 'database\modifier' );
+        $tokens_class_name::where_token( $survey_mod, $db_participant, $row['repeated'] );
+        if( 0 == $survey_class_name::count( $survey_mod ) )
+        {
+          $completed = false;
+          break;
+        }
       }
     }
 
