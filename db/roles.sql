@@ -13,7 +13,4 @@ INSERT IGNORE INTO cenozo.role( name, tier ) VALUES
 ( "interviewer+", 1, false ),
 ( "onyx", 1, false );
 
--- add states to roles
--- TODO
-
 COMMIT;
