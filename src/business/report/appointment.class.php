@@ -112,6 +112,9 @@ class appointment extends \cenozo\business\report\base_report
             false );
         }
 
+        $select->add_column( $this->get_datetime_column( 'event.datetime', 'date' ), 'Home Appointment Date', false );
+        $select->add_column( 'DATEDIFF( appointment.datetime, event.datetime )', 'Days Since Home', false );
+
         $modifier->left_join( 'qnaire', 'qnaire.rank', 'prev_qnaire.rank + 1', 'prev_qnaire' );
         $join_mod = lib::create( 'database\modifier' );
         $join_mod->where(
