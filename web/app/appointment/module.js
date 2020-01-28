@@ -103,6 +103,12 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       help: 'Identified whether this is a special appointment type.  If blank then it is considered ' +
             'a "regular" appointment.'
     },
+    disable_mail: {
+      title: 'Disable Email Reminder(s)',
+      type: 'boolean',
+      isExcluded: 'view',
+      help: 'If selected then no automatic email reminders will be created for this appointment.'
+    },
     appointment_type: {
       column: 'appointment_type.name',
       title: 'Special Type',
@@ -357,8 +363,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentView', [
-    'CnAppointmentModelFactory', 'CnSession', 'CnHttpFactory',
-    function( CnAppointmentModelFactory, CnSession, CnHttpFactory ) {
+    'CnAppointmentModelFactory', 'CnSession',
+    function( CnAppointmentModelFactory, CnSession ) {
       return {
         templateUrl: module.getFileUrl( 'view.tpl.html' ),
         restrict: 'E',

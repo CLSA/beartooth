@@ -179,6 +179,8 @@ class module extends \cenozo\service\base_calendar_module
     if( $select->has_table_columns( 'effective_site' ) )
       $modifier->join( 'site', 'participant_site.site_id', 'effective_site.id', 'left', 'effective_site' );
 
+    if( $select->has_column( 'disable_mail' ) ) $select->add_constant( false, 'disable_mail', 'boolean' );
+
     // onyx roles need to be treated specially
     if( 'onyx' == $db_role->name )
     {
