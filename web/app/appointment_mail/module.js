@@ -37,7 +37,7 @@ define( [ 'trace' ].reduce( function( list, name ) {
         title: 'Delay (days)'
       },
       title: {
-        title: 'Title'
+        title: 'Subject'
       }
     },
     defaultOrder: {
@@ -94,7 +94,7 @@ define( [ 'trace' ].reduce( function( list, name ) {
       format: 'integer'
     },
     title: {
-      title: 'Title',
+      title: 'Subject',
       type: 'string'
     },
     body: {
