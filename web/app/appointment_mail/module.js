@@ -195,11 +195,30 @@ define( [ 'trace' ].reduce( function( list, name ) {
   ] );
 
   /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnAppointmentMailListFactory', [
-    'CnBaseListFactory',
-    function( CnBaseListFactory ) {
-      var object = function( parentModel ) { CnBaseListFactory.construct( this, parentModel ); };
-      return { instance: function( parentModel ) { return new object( parentModel ); } };
+  cenozo.providers.factory( 'CnAppointmentMailViewFactory', [
+    'CnBaseViewFactory', 'CnSession', 'CnHttpFactory', 'CnModalMessageFactory',
+    function( CnBaseViewFactory, CnSession, CnHttpFactory, CnModalMessageFactory ) {
+      var object = function( parentModel, root ) {
+        var self = this;
+        CnBaseViewFactory.construct( this, parentModel, root );
+
+        this.preview = function() {
+          return CnHttpFactory.instance( {
+            path: 'application/' + CnSession.application.id,
+            data: { select: { column: [ 'mail_header', 'mail_footer' ] } }
+          } ).get().then( function( response ) {
+            var body = self.record.body;
+            if( null != response.data.mail_header ) body = response.data.mail_header + "\n" + body;
+            if( null != response.data.mail_footer ) body = body + "\n" + response.data.mail_footer;
+            return CnModalMessageFactory.instance( {
+              title: 'Mail Preview',
+              message: body,
+              html: true
+            } ).show();
+          } );
+        };
+      };
+      return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
     }
   ] );
 
