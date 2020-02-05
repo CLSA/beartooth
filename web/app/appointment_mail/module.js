@@ -195,6 +195,15 @@ define( [ 'trace' ].reduce( function( list, name ) {
   ] );
 
   /* ######################################################################################################## */
+  cenozo.providers.factory( 'CnAppointmentMailListFactory', [
+    'CnBaseListFactory',
+    function( CnBaseListFactory ) {
+      var object = function( parentModel ) { CnBaseListFactory.construct( this, parentModel ); };
+      return { instance: function( parentModel ) { return new object( parentModel ); } };
+    }
+  ] );
+
+  /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAppointmentMailViewFactory', [
     'CnBaseViewFactory', 'CnSession', 'CnHttpFactory', 'CnModalMessageFactory',
     function( CnBaseViewFactory, CnSession, CnHttpFactory, CnModalMessageFactory ) {
