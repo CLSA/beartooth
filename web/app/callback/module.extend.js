@@ -33,7 +33,6 @@ define( [ cenozoApp.module( 'callback' ).getFileUrl( 'module.js' ) ], function()
                   item.color = 'home' == participants[item.title] ? 'green' : 'default';
                 } );
                 angular.element( 'div.calendar' ).fullCalendar( 'refetchEvents' );
-                console.log( participantIdList.length );
               } );
             }
           } );
