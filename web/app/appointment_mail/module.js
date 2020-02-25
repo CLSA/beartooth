@@ -103,6 +103,11 @@ define( [ 'trace' ].reduce( function( list, name ) {
     }
   } );
 
+  module.addExtraOperation( 'view', {
+    title: 'Preview',
+    operation: function( $state, model ) { model.viewModel.preview(); }
+  } );
+
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentMailAdd', [
     'CnAppointmentMailModelFactory',
@@ -227,15 +232,6 @@ define( [ 'trace' ].reduce( function( list, name ) {
           } );
         };
       };
-      return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnAppointmentMailViewFactory', [
-    'CnBaseViewFactory',
-    function( CnBaseViewFactory ) {
-      var object = function( parentModel, root ) { CnBaseViewFactory.construct( this, parentModel, root ); };
       return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
     }
   ] );
