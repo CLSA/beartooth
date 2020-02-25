@@ -439,9 +439,9 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_table_column( 'user', 'name', 'username' );
 
       // add the address "summary" column if needed
+      $modifier->left_join( 'address', 'appointment.address_id', 'address.id' );
       if( $select->has_column( 'address_summary' ) )
       {
-        $modifier->left_join( 'address', 'appointment.address_id', 'address.id' );
         $modifier->left_join( 'region', 'address.region_id', 'region.id' );
         $select->add_column(
           'CONCAT_WS( ", ", address1, address2, city, region.name )', 'address_summary', false );

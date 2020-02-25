@@ -188,6 +188,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
       var event = {
         getIdentifier: function() { return identifier; },
         title: ( appointment.uid ? appointment.uid : 'new appointment' ) +
+               ( angular.isDefined( appointment.postcode ) ? ' [' + appointment.postcode.substr( 0, 3 ) + ']' : '' ) +
                ( appointment.username ? ' (' + appointment.username + ')' : '' ),
         start: moment( appointment.datetime ).subtract( offset, 'minutes' ),
         end: moment( appointment.datetime ).subtract( offset, 'minutes' ).add( appointment.duration, 'minute' ),
@@ -633,6 +634,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 table: 'appointment_type',
                 column: 'color'
               } ] };
+
+              if( 'home' == self.type ) {
+                data.select.column.push( { table: 'address', column: 'postcode' } );
+              }
             }
           }
           return data;
