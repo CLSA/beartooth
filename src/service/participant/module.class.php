@@ -22,6 +22,14 @@ class module extends \cenozo\service\participant\module
 
     $session = lib::create( 'business\session' );
 
+    if( $select->has_column( 'qnaire_type' ) )
+    {
+      $modifier->join( 'participant_last_interview', 'participant.id', 'participant_last_interview.participant_id' );
+      $modifier->join( 'interview', 'participant_last_interview.interview_id', 'interview.id' );
+      $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
+      $select->add_column( 'qnaire.type', 'qnaire_type', false );
+    }
+
     if( $this->get_argument( 'assignment', false ) )
     {
       // remove hold/proxy/trace/exclusion joins for efficiency
