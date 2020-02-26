@@ -127,6 +127,7 @@ define( [ 'trace' ].reduce( function( list, name ) {
               var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
 
               // always start with an empty appointment type list
+              $scope.record = {};
               $scope.model.addModel.onNew( $scope.record ).then( function() {
                 inputArray[appointmentTypeIndex].enumList = [ { value: undefined, name: '(empty)' } ];
               } );
