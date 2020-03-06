@@ -208,9 +208,11 @@ class appointment extends \cenozo\database\record
   public function add_mail()
   {
     $db_site = lib::create( 'business\session' )->get_site();
+    $db_interview = $this->get_interview();
     $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'qnaire_id', '=', $db_interview->qnaire_id );
     $modifier->where( 'appointment_type_id', '=', $this->appointment_type_id );
-    $modifier->where( 'language_id', '=', $this->get_interview()->get_participant()->language_id );
+    $modifier->where( 'language_id', '=', $db_interview->get_participant()->language_id );
     foreach( $db_site->get_appointment_mail_object_list( $modifier ) as $db_appointment_mail )
       $db_appointment_mail->add_mail( $this );
   }

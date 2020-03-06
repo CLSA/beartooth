@@ -30,7 +30,7 @@ define( [ cenozoApp.module( 'callback' ).getFileUrl( 'module.js' ) ], function()
                   return object;
                 }, {} );
                 object.cache.filter( item => angular.isUndefined( item.color ) ).forEach( function( item ) {
-                  item.color = 'home' == participants[item.title] ? 'green' : 'default';
+                  item.color = 'site' == participants[item.title] ? 'default' : 'green';
                 } );
                 angular.element( 'div.calendar' ).fullCalendar( 'refetchEvents' );
               } );
