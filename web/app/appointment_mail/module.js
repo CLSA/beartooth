@@ -108,6 +108,11 @@ define( [ 'trace' ].reduce( function( list, name ) {
     operation: function( $state, model ) { model.viewModel.preview(); }
   } );
 
+  module.addExtraOperation( 'view', {
+    title: 'Validate',
+    operation: function( $state, model ) { model.viewModel.validate(); }
+  } );
+
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentMailAdd', [
     'CnAppointmentMailModelFactory',
@@ -247,6 +252,27 @@ define( [ 'trace' ].reduce( function( list, name ) {
             } ).show();
           } );
         };
+
+        this.validate = function() {
+          return CnHttpFactory.instance( {
+            path: this.parentModel.getServiceResourcePath(),
+            data: { select: { column: 'validate' } }
+          } ).get().then( function( response ) {
+            var result = JSON.parse( response.data.validate );
+
+            var message = 'The subject contains ';
+            message += null == result || angular.isUndefined( result.subject )
+                     ? 'no errors.\n'
+                     : 'the invalid variable $' + result.subject + '$.';
+
+            message += 'The body contains ';
+            message += null == result || angular.isUndefined( result.body )
+                     ? 'no errors.\n'
+                     : 'the invalid variable $' + result.body + '$.';
+
+            return CnModalMessageFactory.instance( { title: 'Validation Result', message: message } ).show();
+          } );
+        };
       };
       return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
     }
@@ -264,7 +290,7 @@ define( [ 'trace' ].reduce( function( list, name ) {
         this.addModel = CnAppointmentMailAddFactory.instance( this );
         this.listModel = CnAppointmentMailListFactory.instance( this );
         this.viewModel = CnAppointmentMailViewFactory.instance( this, root );
-        
+
         this.hasAllSites = function() { return CnSession.role.allSites; };
 
         // extend getMetadata
