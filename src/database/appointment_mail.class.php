@@ -58,6 +58,9 @@ class appointment_mail extends \cenozo\database\record
     $mail_class_name = lib::get_class_name( 'database\mail' );
 
     $db_participant = $db_appointment->get_interview()->get_participant();
+    $db_site = $db_participant->get_effective_site();
+    $datetime = clone $db_appointment->datetime;
+    $datetime->setTimezone( $db_site->get_timezone_object() );
 
     if( !is_null( $db_participant->email ) )
     {
@@ -85,8 +88,8 @@ class appointment_mail extends \cenozo\database\record
         $db_mail->cc_address = $this->cc_address;
         $db_mail->bcc_address = $this->bcc_address;
         $db_mail->schedule_datetime = $schedule_datetime;
-        $db_mail->subject = $this->compile_text( $this->subject, $db_participant, $db_appointment->datetime );
-        $db_mail->body = $this->compile_text( $this->body, $db_participant, $db_appointment->datetime );
+        $db_mail->subject = $this->compile_text( $this->subject, $db_participant, $datetime );
+        $db_mail->body = $this->compile_text( $this->body, $db_participant, $datetime );
         $db_mail->note = 'Automatically added from an appointment mail template.';
         $db_mail->save();
 
