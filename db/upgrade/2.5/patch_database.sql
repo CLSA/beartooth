@@ -6,6 +6,7 @@ SOURCE service.sql
 SOURCE role_has_service.sql
 SOURCE appointment_mail.sql
 SOURCE appointment_has_mail.sql
+SOURCE setting.sql
 
 SOURCE update_version_number.sql
 
