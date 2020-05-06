@@ -364,8 +364,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentView', [
-    'CnAppointmentModelFactory', 'CnSession',
-    function( CnAppointmentModelFactory, CnSession ) {
+    'CnAppointmentModelFactory', 'CnSession', 'CnModalConfirmFactory',
+    function( CnAppointmentModelFactory, CnSession, CnModalConfirmFactory ) {
       return {
         templateUrl: module.getFileUrl( 'view.tpl.html' ),
         restrict: 'E',
@@ -389,14 +389,20 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 if( !datetime.isAfter( moment() ) ) datetime.hour( moment().hour() + 1 );
 
                 if( !datetime.isSame( moment( $scope.model.viewModel.record.datetime ) ) ) {
-                  $scope.model.viewModel.record.datetime = datetime.format();
-                  $scope.model.viewModel.formattedRecord.datetime =
-                    CnSession.formatValue( datetime, 'datetime', true );
-                  $scope.$apply(); // needed otherwise the new datetime takes seconds before it appears
-                  cnRecordViewScope.patch( 'datetime' );
+                  var formattedDatetime = CnSession.formatValue( datetime, 'datetime', true );
+                  CnModalConfirmFactory.instance( {
+                    title: 'Change Appointment',
+                    message: 'Are you sure you wish to change the appointment to ' + formattedDatetime + '?'
+                  } ).show().then( function( response ) {
+                    if( response ) {
+                      $scope.model.viewModel.record.datetime = datetime.format();
+                      $scope.model.viewModel.formattedRecord.datetime = formattedDatetime;
+                      cnRecordViewScope.patch( 'datetime' );
 
-                  // update the calendar
-                  $element.find( 'div.calendar' ).fullCalendar( 'refetchEvents' );
+                      // update the calendar
+                      $element.find( 'div.calendar' ).fullCalendar( 'refetchEvents' );
+                    }
+                  } );
                 }
               }
             };
