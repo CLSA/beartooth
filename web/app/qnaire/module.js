@@ -58,6 +58,7 @@ define( function() {
       title: 'Completed Event Type',
       type: 'enum',
       isConstant: true,
+      isExcluded: 'add',
       help: 'The event type which is added to a participant\'s event list when this questionnaire is completed'
     },
     prev_event_type_id: {
