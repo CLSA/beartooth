@@ -380,8 +380,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           // connect the calendar's day click callback to the appointment's datetime
           if( $scope.model.getEditEnabled() ) {
             $scope.model.calendarModel.settings.dayClick = function( date ) {
-              // make sure date is no earlier than today
-              if( !date.isBefore( moment(), 'day' ) ) {
+              // make sure we're viewing an appointment and the date is no earlier than today
+              if( 'appointment' == $scope.model.getSubjectFromState() &&
+                  'view' == $scope.model.getActionFromState() &&
+                  !date.isBefore( moment(), 'day' ) ) {
                 var dateString = date.format( 'YYYY-MM-DD' ) + 'T12:00:00';
                 var datetime = moment.tz( dateString, CnSession.user.timezone ).tz( 'UTC' );
 
