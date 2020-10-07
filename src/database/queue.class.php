@@ -671,11 +671,6 @@ class queue extends \cenozo\database\record
     // make sure there is no row in qnaire_has_collection
     $modifier->where( 'collection_has_participant.participant_id', '=', NULL );
 
-    $join_mod = lib::create( 'database\modifier' );
-    $join_mod->where( 'qnaire_has_site.qnaire_id', '=', 'effective_qnaire_id', false );
-    $join_mod->where( 'qnaire_has_site.site_id', '=', 'participant_site_id', false );
-    $modifier->join_modifier( 'qnaire_has_site', $join_mod, 'left' );
-
     if( 'quota disabled' == $queue )
     {
       // who belong to a quota which is disabled (row in qnaire_has_quota found)
