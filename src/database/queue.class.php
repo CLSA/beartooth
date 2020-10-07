@@ -486,14 +486,24 @@ class queue extends \cenozo\database\record
       return;
     }
 
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'qnaire_has_hold_type.qnaire_id', '=', 'effective_qnaire_id', false );
+    $join_mod->where( 'qnaire_has_hold_type.hold_type_id', '=', 'last_hold_type_id', false );
+    $modifier->join_modifier( 'qnaire_has_hold_type', $join_mod, 'left' );
+
     // effective_qnaire_id is the either the next qnaire to work on or the one in progress
     $modifier->where( 'effective_qnaire_id', '!=', NULL );
     if( 'ineligible' == $queue )
     {
-      // ineligible means either not enrolled or in a hold, trace or proxy
+      // ineligible means either not enrolled or in a hold, trace or proxy (unless the hold-type is overridden)
       $modifier->where_bracket( true );
       $modifier->where( 'participant_exclusion_id', '!=', NULL );
-      $modifier->or_where( 'last_hold_type_type', '!=', NULL );
+
+      $modifier->where_bracket( true, true );
+      $modifier->where( 'qnaire_has_hold_type.hold_type_id', '=', NULL );
+      $modifier->where( 'last_hold_type_type', '!=', NULL );
+      $modifier->where_bracket( false );
+
       $modifier->or_where( 'last_trace_type_name', '!=', NULL );
       $modifier->or_where( 'last_proxy_type_name', '!=', NULL );
       $modifier->where_bracket( false );
@@ -509,6 +519,7 @@ class queue extends \cenozo\database\record
     if( 'final hold' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
+      $modifier->where( 'qnaire_has_hold_type.hold_type_id', '=', NULL );
       $modifier->where( 'last_hold_type_type', '=', 'final' );
       return;
     }
@@ -516,7 +527,10 @@ class queue extends \cenozo\database\record
     if( 'tracing' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
-      $modifier->where( 'IFNULL( last_hold_type_type, "" )', '!=', 'final' );
+      $modifier->where_bracket( true );
+      $modifier->where( 'qnaire_has_hold_type.hold_type_id', '!=', NULL );
+      $modifier->or_where( 'IFNULL( last_hold_type_type, "" )', '!=', 'final' );
+      $modifier->where_bracket( false );
       $modifier->where( 'last_trace_type_name', '!=', NULL );
       return;
     }
@@ -525,6 +539,7 @@ class queue extends \cenozo\database\record
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
       $modifier->where( 'last_trace_type_name', '=', NULL );
+      $modifier->where( 'qnaire_has_hold_type.hold_type_id', '=', NULL );
       $modifier->where( 'last_hold_type_type', '=', 'temporary' );
       return;
     }
@@ -533,7 +548,10 @@ class queue extends \cenozo\database\record
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
       $modifier->where( 'last_trace_type_name', '=', NULL );
-      $modifier->where( 'last_hold_type_type', '=', NULL );
+      $modifier->where_bracket( true );
+      $modifier->where( 'qnaire_has_hold_type.hold_type_id', '!=', NULL );
+      $modifier->or_where( 'last_hold_type_type', '=', NULL );
+      $modifier->where_bracket( false );
       $modifier->where( 'last_proxy_type_name', '!=', NULL );
       return;
     }
@@ -542,7 +560,10 @@ class queue extends \cenozo\database\record
     {
       // enrolled participant who is not in a hold, trace or hold
       $modifier->where( 'participant_exclusion_id', '=', NULL );
-      $modifier->where( 'last_hold_type_type', '=', NULL );
+      $modifier->where_bracket( true );
+      $modifier->where( 'qnaire_has_hold_type.hold_type_id', '!=', NULL );
+      $modifier->or_where( 'last_hold_type_type', '=', NULL );
+      $modifier->where_bracket( false );
       $modifier->where( 'last_trace_type_name', '=', NULL );
       $modifier->where( 'last_proxy_type_name', '=', NULL );
       return;
@@ -631,6 +652,29 @@ class queue extends \cenozo\database\record
 
     // make sure the participant has a site
     $modifier->where( 'participant_site_id', '!=', NULL );
+
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'qnaire_has_collection.qnaire_id', '=', 'effective_qnaire_id', false );
+    $modifier->join_modifier( 'qnaire_has_collection', $join_mod, 'left' );
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'qnaire_has_collection.collection_id', '=', 'collection_has_participant.collection_id', false );
+    $join_mod->where( 'temp_participant.id', '=', 'collection_has_participant.participant_id', false );
+    $modifier->join_modifier( 'collection_has_participant', $join_mod, 'left' );
+
+    if( 'collection disabled' == $queue )
+    {
+      // make sure there is a row in collection_has_participant
+      $modifier->where( 'collection_has_participant.participant_id', '!=', NULL );
+      return;
+    }
+
+    // make sure there is no row in qnaire_has_collection
+    $modifier->where( 'collection_has_participant.participant_id', '=', NULL );
+
+    $join_mod = lib::create( 'database\modifier' );
+    $join_mod->where( 'qnaire_has_site.qnaire_id', '=', 'effective_qnaire_id', false );
+    $join_mod->where( 'qnaire_has_site.site_id', '=', 'participant_site_id', false );
+    $modifier->join_modifier( 'qnaire_has_site', $join_mod, 'left' );
 
     if( 'quota disabled' == $queue )
     {
@@ -853,6 +897,7 @@ participant.override_quota AS participant_override_quota,
 source.override_quota AS source_override_quota,
 primary_region.id AS primary_region_id,
 first_address.id AS first_address_id,
+last_hold_type.id AS last_hold_type_id,
 last_hold_type.type AS last_hold_type_type,
 last_trace_type.name AS last_trace_type_name,
 last_proxy_type.name AS last_proxy_type_name,

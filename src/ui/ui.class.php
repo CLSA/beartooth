@@ -64,6 +64,8 @@ class ui extends \cenozo\ui\ui
     if( !is_null( $module ) )
     {
       $module->add_child( 'appointment_type' );
+      $module->add_choose( 'collection' );
+      $module->add_choose( 'hold_type' );
       $module->add_choose( 'script' );
       $module->add_choose( 'quota' );
     }
