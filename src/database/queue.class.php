@@ -495,9 +495,10 @@ class queue extends \cenozo\database\record
     $modifier->where( 'effective_qnaire_id', '!=', NULL );
     if( 'ineligible' == $queue )
     {
-      // ineligible means either not enrolled or in a hold, trace or proxy (unless the hold-type is overridden)
+      // ineligible means either not enrolled, not participating, in a hold, trace or proxy (unless the hold-type is overridden)
       $modifier->where_bracket( true );
       $modifier->where( 'participant_exclusion_id', '!=', NULL );
+      $modifier->or_where( 'IFNULL( study_consent_accept, true )', '=', false );
 
       $modifier->where_bracket( true, true );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '=', NULL );
@@ -516,9 +517,17 @@ class queue extends \cenozo\database\record
       return;
     }
 
+    if( 'not participating' == $queue )
+    {
+      $modifier->where( 'participant_exclusion_id', '=', NULL );
+      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', false );
+      return;
+    }
+
     if( 'final hold' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
+      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', true );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '=', NULL );
       $modifier->where( 'last_hold_type_type', '=', 'final' );
       return;
@@ -527,6 +536,7 @@ class queue extends \cenozo\database\record
     if( 'tracing' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
+      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', true );
       $modifier->where_bracket( true );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '!=', NULL );
       $modifier->or_where( 'IFNULL( last_hold_type_type, "" )', '!=', 'final' );
@@ -538,6 +548,7 @@ class queue extends \cenozo\database\record
     if( 'temporary hold' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
+      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', true );
       $modifier->where( 'last_trace_type_name', '=', NULL );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '=', NULL );
       $modifier->where( 'last_hold_type_type', '=', 'temporary' );
@@ -547,6 +558,7 @@ class queue extends \cenozo\database\record
     if( 'proxy' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
+      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', true );
       $modifier->where( 'last_trace_type_name', '=', NULL );
       $modifier->where_bracket( true );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '!=', NULL );
@@ -560,6 +572,7 @@ class queue extends \cenozo\database\record
     {
       // enrolled participant who is not in a hold, trace or hold
       $modifier->where( 'participant_exclusion_id', '=', NULL );
+      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', true );
       $modifier->where_bracket( true );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '!=', NULL );
       $modifier->or_where( 'last_hold_type_type', '=', NULL );
@@ -890,6 +903,7 @@ participant.sex AS participant_sex,
 participant.age_group_id AS participant_age_group_id,
 participant.override_quota AS participant_override_quota,
 source.override_quota AS source_override_quota,
+study_consent.accept AS study_consent_accept,
 primary_region.id AS primary_region_id,
 first_address.id AS first_address_id,
 last_hold_type.id AS last_hold_type_id,
@@ -927,6 +941,13 @@ AND application_has_participant.datetime IS NOT NULL
 JOIN application
 ON application_has_participant.application_id = application.id
 AND application.id = %s
+
+LEFT JOIN study_phase ON application.study_phase_id = study_phase.id
+LEFT JOIN study ON study_phase.study_id = study.id
+LEFT JOIN participant_last_consent
+ON participant.id = participant_last_consent.participant_id
+AND study.consent_type_id = participant_last_consent.consent_type_id
+LEFT JOIN consent AS study_consent ON participant_last_consent.consent_id = study_consent.id
 
 JOIN source
 ON participant.source_id = source.id
