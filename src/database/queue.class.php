@@ -498,7 +498,7 @@ class queue extends \cenozo\database\record
       // ineligible means either not enrolled, not participating, in a hold, trace or proxy (unless the hold-type is overridden)
       $modifier->where_bracket( true );
       $modifier->where( 'participant_exclusion_id', '!=', NULL );
-      $modifier->or_where( 'IFNULL( study_consent_accept, true )', '=', false );
+      $modifier->or_where( 'study_consent_accept', '=', false );
 
       $modifier->where_bracket( true, true );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '=', NULL );
@@ -520,14 +520,14 @@ class queue extends \cenozo\database\record
     if( 'not participating' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
-      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', false );
+      $modifier->where( 'study_consent_accept', '=', false );
       return;
     }
 
     if( 'final hold' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
-      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', true );
+      $modifier->where( 'study_consent_accept', '=', true );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '=', NULL );
       $modifier->where( 'last_hold_type_type', '=', 'final' );
       return;
@@ -536,7 +536,7 @@ class queue extends \cenozo\database\record
     if( 'tracing' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
-      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', true );
+      $modifier->where( 'study_consent_accept', '=', true );
       $modifier->where_bracket( true );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '!=', NULL );
       $modifier->or_where( 'IFNULL( last_hold_type_type, "" )', '!=', 'final' );
@@ -548,7 +548,7 @@ class queue extends \cenozo\database\record
     if( 'temporary hold' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
-      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', true );
+      $modifier->where( 'study_consent_accept', '=', true );
       $modifier->where( 'last_trace_type_name', '=', NULL );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '=', NULL );
       $modifier->where( 'last_hold_type_type', '=', 'temporary' );
@@ -558,7 +558,7 @@ class queue extends \cenozo\database\record
     if( 'proxy' == $queue )
     {
       $modifier->where( 'participant_exclusion_id', '=', NULL );
-      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', true );
+      $modifier->where( 'study_consent_accept', '=', true );
       $modifier->where( 'last_trace_type_name', '=', NULL );
       $modifier->where_bracket( true );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '!=', NULL );
@@ -572,7 +572,7 @@ class queue extends \cenozo\database\record
     {
       // enrolled participant who is not in a hold, trace or hold
       $modifier->where( 'participant_exclusion_id', '=', NULL );
-      $modifier->where( 'IFNULL( study_consent_accept, true )', '=', true );
+      $modifier->where( 'study_consent_accept', '=', true );
       $modifier->where_bracket( true );
       $modifier->where( 'qnaire_has_hold_type.hold_type_id', '!=', NULL );
       $modifier->or_where( 'last_hold_type_type', '=', NULL );
@@ -903,7 +903,7 @@ participant.sex AS participant_sex,
 participant.age_group_id AS participant_age_group_id,
 participant.override_quota AS participant_override_quota,
 source.override_quota AS source_override_quota,
-study_consent.accept AS study_consent_accept,
+IFNULL( study_consent.accept, application.allow_missing_consent ) AS study_consent_accept,
 primary_region.id AS primary_region_id,
 first_address.id AS first_address_id,
 last_hold_type.id AS last_hold_type_id,
