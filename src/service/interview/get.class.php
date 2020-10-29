@@ -22,13 +22,13 @@ class get extends \cenozo\service\get
     {
       $note = NULL;
 
-      // get the interview notes from the previous application
+      // get the interview notes from the previous application (but ignore if previous beartooth version is out of date)
       $db_application = lib::create( 'business\session' )->get_application();
       $db_prev_application = $db_application->get_previous_application();
-      if( $db_prev_application->version == $db_application->version )
+      if( !is_null( $db_prev_application ) && $db_prev_application->version == $db_application->version )
       {
         $db_interview = $this->get_leaf_record();
-        $cenozo_manager = lib::create( 'business\cenozo_manager', $db_application->get_previous_application() );
+        $cenozo_manager = lib::create( 'business\cenozo_manager', $db_prev_application );
         try
         {
           $data = $cenozo_manager->get( sprintf(
