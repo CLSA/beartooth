@@ -1,6 +1,6 @@
 <?php
 /**
- * quota.class.php
+ * stratum.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  */
@@ -9,9 +9,9 @@ namespace beartooth\database;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * quota: record
+ * stratum: record
  */
-class quota extends \cenozo\database\quota
+class stratum extends \cenozo\database\stratum
 {
   /**
    * Extend parent method
