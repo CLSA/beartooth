@@ -61,7 +61,13 @@ define( [ 'trace' ].reduce( function( list, name ) {
     appointment_type_id: {
       title: 'Special Type',
       type: 'enum',
-      isConstant: 'view'
+      isConstant: 'view',
+      isExcluded: function( $state, model ) {
+        return angular.isUndefined( model.metadata.columnList ) ||
+               angular.isUndefined( model.metadata.columnList.appointment_type_id ) ||
+               angular.isUndefined( model.metadata.columnList.appointment_type_id.qnaireList ) ||
+               0 == Object.keys( model.metadata.columnList.appointment_type_id.qnaireList ).length;
+      }
     },
     language_id: {
       title: 'Language',
@@ -148,14 +154,16 @@ define( [ 'trace' ].reduce( function( list, name ) {
                   // reset the selected appointment type
                   cnRecordAddScope.record.appointment_type_id = undefined;
 
-                  // set the appointment type enum list based on the qnaire_id
-                  inputArray[appointmentTypeIndex].enumList = [];
-                  if( cnRecordAddScope.record.qnaire_id ) {
-                    inputArray[appointmentTypeIndex].enumList = angular.copy(
-                      $scope.model.metadata.columnList.appointment_type_id.qnaireList[cnRecordAddScope.record.qnaire_id]
-                    );
+                  if( 0 < Object.keys( $scope.model.metadata.columnList.appointment_type_id.qnaireList ).length ) {
+                    // set the appointment type enum list based on the qnaire_id
+                    inputArray[appointmentTypeIndex].enumList = [];
+                    if( cnRecordAddScope.record.qnaire_id ) {
+                      inputArray[appointmentTypeIndex].enumList = angular.copy(
+                        $scope.model.metadata.columnList.appointment_type_id.qnaireList[cnRecordAddScope.record.qnaire_id]
+                      );
+                    }
+                    inputArray[appointmentTypeIndex].enumList.unshift( { value: undefined, name: '(empty)' } );
                   }
-                  inputArray[appointmentTypeIndex].enumList.unshift( { value: undefined, name: '(empty)' } );
                 }
               };
             } );
