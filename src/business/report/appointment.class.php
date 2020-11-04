@@ -80,7 +80,17 @@ class appointment extends \cenozo\business\report\base_report
     $modifier->where( 'consent_type.name', '=', 'participation' );
     $modifier->where( 'consent.accept', '=', true );
 
-    if( !is_null( $db_qnaire ) )
+    if( is_null( $db_qnaire ) )
+    {
+      if( $is_interviewer )
+      {
+        throw lib::create( 'exception\notice',
+          'Interviewer tried to generate appointment report without specifying a questionnaire.',
+          __METHOD__
+        );
+      }
+    }
+    else
     {
       if( 'home' == $db_qnaire->type )
       {
@@ -124,11 +134,8 @@ class appointment extends \cenozo\business\report\base_report
         $modifier->left_join( 'event', 'participant_last_event.event_id', 'event.id' );
         $modifier->left_join( 'user', 'event.user_id', 'user.id' );
       }
-    }
 
-    if( $is_interviewer )
-    {
-      $modifier->where( 'user.id', '=', $this->db_user->id );
+      if( $is_interviewer ) $modifier->where( 'user.id', '=', $this->db_user->id );
     }
 
     $this->apply_restrictions( $modifier );
