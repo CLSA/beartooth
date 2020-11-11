@@ -21,10 +21,6 @@ define( function() {
         title: 'Type',
         type: 'string'
       },
-      web_version: {
-        title: 'Web Version',
-        type: 'boolean'
-      },
       delay_offset: {
         title: 'Delay Offset',
         type: 'number'
