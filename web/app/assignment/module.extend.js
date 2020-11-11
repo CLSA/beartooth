@@ -318,7 +318,7 @@ define( [ 'participant' ].reduce( function( list, name ) {
                     CnHttpFactory.instance( {
                       path: 'qnaire',
                       data: {
-                        select: { column: ['id', 'rank', 'delay'] },
+                        select: { column: ['id', 'rank', 'delay_offset', 'delay_unit'] },
                         modifier: { order: 'rank' }
                       }
                     } ).query().then( function( response ) {

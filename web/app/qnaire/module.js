@@ -25,9 +25,13 @@ define( function() {
         title: 'Web Version',
         type: 'boolean'
       },
-      delay: {
-        title: 'Delay',
+      delay_offset: {
+        title: 'Delay Offset',
         type: 'number'
+      },
+      delay_unit: {
+        title: 'Delay Unit',
+        type: 'string'
       }
     },
     defaultOrder: {
@@ -57,11 +61,15 @@ define( function() {
       type: 'boolean',
       help: 'This field determines whether or not a participant should be allowed to proceed with the questionnaire when they are missing the extra consent record specified by the study.'
     },
-    delay: {
-      title: 'Delay (weeks)',
+    delay_offset: {
+      title: 'Delay Offset',
       type: 'string',
       format: 'integer',
       minValue: 0
+    },
+    delay_unit: {
+      title: 'Delay Unit',
+      type: 'enum'
     },
     completed_event_type_id: {
       title: 'Completed Event Type',
