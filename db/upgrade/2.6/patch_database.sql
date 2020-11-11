@@ -4,6 +4,7 @@ SET AUTOCOMMIT=0;
 
 SOURCE service.sql
 SOURCE role_has_service.sql
+SOURCE qnaire.sql
 SOURCE qnaire_has_collection.sql
 SOURCE qnaire_has_hold_type.sql
 SOURCE queue.sql

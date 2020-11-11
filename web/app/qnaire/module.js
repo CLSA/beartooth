@@ -21,6 +21,10 @@ define( function() {
         title: 'Type',
         type: 'string'
       },
+      web_version: {
+        title: 'Web Version',
+        type: 'boolean'
+      },
       delay: {
         title: 'Delay',
         type: 'number'
@@ -47,6 +51,11 @@ define( function() {
       title: 'Type',
       type: 'enum',
       isConstant: 'view'
+    },
+    allow_missing_consent: {
+      title: 'Allow Missing Consent',
+      type: 'boolean',
+      help: 'This field determines whether or not a participant should be allowed to proceed with the questionnaire when they are missing the extra consent record specified by the study.'
     },
     delay: {
       title: 'Delay (weeks)',
