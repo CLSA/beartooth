@@ -587,6 +587,7 @@ class queue extends \cenozo\database\record
 
     if( 'qnaire' == $queue )
     {
+    \cenozo\database\database::$debug = true;
       // no additional modifications needed
       return;
     }
@@ -932,7 +933,7 @@ participant.exclusion_id AS participant_exclusion_id,
 participant.sex AS participant_sex,
 participant.override_stratum AS participant_override_stratum,
 source.override_stratum AS source_override_stratum,
-IFNULL( study_consent.accept, current_qnaire.allow_missing_consent ) AS study_consent_accept,
+IFNULL( study_consent.accept, IFNULL( current_qnaire.allow_missing_consent, true ) ) AS study_consent_accept,
 primary_region.id AS primary_region_id,
 first_address.id AS first_address_id,
 last_hold_type.id AS last_hold_type_id,
