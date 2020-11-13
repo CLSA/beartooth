@@ -587,7 +587,6 @@ class queue extends \cenozo\database\record
 
     if( 'qnaire' == $queue )
     {
-    \cenozo\database\database::$debug = true;
       // no additional modifications needed
       return;
     }
