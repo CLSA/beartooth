@@ -140,7 +140,7 @@ define( function() {
     function( CnBaseViewFactory, CnModalPasswordFactory, CnModalMessageFactory, CnHttpFactory ) {
       var object = function( parentModel, root ) {
         var self = this;
-        CnBaseViewFactory.construct( this, parentModel, root );
+        CnBaseViewFactory.construct( this, parentModel, root, 'activity' );
 
         // custom operation
         this.setPassword = function() {
