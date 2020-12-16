@@ -6,6 +6,6 @@
      class="vertical-spacer">
   <cn-record-list ng-switch-when="participant"
                   remove-columns="cohort source"
-                  model="model.viewModelParticipant"></cn-record-list>
+                  model="model.viewModel.participantModel"></cn-record-list>
   <cn-record-list ng-switch-default model="model.viewModel[child.subject.camel+'Model']"></cn-record-list>
 </div>
