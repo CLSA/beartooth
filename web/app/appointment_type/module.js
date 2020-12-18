@@ -141,7 +141,7 @@ define( function() {
               path: 'qnaire',
               data: {
                 select: { column: [ 'id', 'name' ] },
-                modifier: { order: 'rank' }
+                modifier: { order: 'rank', limit: 1000 }
               }
             } ).query().then( function success( response ) {
               self.metadata.columnList.qnaire_id.enumList = [];

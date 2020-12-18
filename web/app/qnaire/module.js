@@ -185,7 +185,7 @@ define( function() {
               path: 'event_type',
               data: {
                 select: { column: [ 'id', 'name' ] },
-                modifier: { order: { name: false } }
+                modifier: { order: 'name', limit: 1000 }
               }
             } ).query().then( function success( response ) {
               self.metadata.columnList.completed_event_type_id.enumList = [];

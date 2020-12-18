@@ -745,7 +745,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
               path: 'appointment_type',
               data: {
                 select: { column: [ 'id', 'name', 'qnaire_id' ] },
-                modifier: { order: 'name' }
+                modifier: { order: 'name', limit: 1000 }
               }
             } ).query().then( function success( response ) {
               // store the appointment types in a special array with qnaire_id as indeces:

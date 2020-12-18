@@ -310,7 +310,7 @@ define( [ 'trace' ].reduce( function( list, name ) {
                 path: 'site',
                 data: {
                   select: { column: [ 'id', 'name' ] },
-                  modifier: { order: 'name' }
+                  modifier: { order: 'name', limit: 1000 }
                 }
               } ).query().then( function success( response ) {
                 self.metadata.columnList.site_id.enumList = [];
@@ -323,7 +323,7 @@ define( [ 'trace' ].reduce( function( list, name ) {
                 path: 'qnaire',
                 data: {
                   select: { column: [ 'id', 'type' ] },
-                  modifier: { order: 'rank' }
+                  modifier: { order: 'rank', limit: 1000 }
                 }
               } ).query().then( function success( response ) {
                 self.metadata.columnList.qnaire_id.enumList = [];
@@ -336,7 +336,7 @@ define( [ 'trace' ].reduce( function( list, name ) {
                 path: 'appointment_type',
                 data: {
                   select: { column: [ 'id', 'name', 'qnaire_id' ] },
-                  modifier: { order: 'name' }
+                  modifier: { order: 'name', limit: 1000 }
                 }
               } ).query().then( function success( response ) {
                 // store the appointment types in a special array with qnaire_id as indices
@@ -357,7 +357,8 @@ define( [ 'trace' ].reduce( function( list, name ) {
                   select: { column: [ 'id', 'name' ] },
                   modifier: {
                     where: { column: 'active', operator: '=', value: true },
-                    order: 'name'
+                    order: 'name',
+                    limit: 1000
                   }
                 }
               } ).query().then( function success( response ) {
