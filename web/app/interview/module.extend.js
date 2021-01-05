@@ -94,6 +94,9 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
       $delegate.instance = function( parentModel, root ) {
         var object = instance( parentModel, root );
 
+        // force the default tab to be "appointment"
+        object.defaultTab = 'appointment';
+
         function getAppointmentEnabled( type ) {
           var completed = null !== object.record.end_datetime;
           var participating = false !== object.record.last_participation_consent;
