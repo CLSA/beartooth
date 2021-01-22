@@ -27,7 +27,7 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
     override_stratum: {
       title: 'Override Stratum',
       type: 'boolean',
-      isConstant: function( $state, model ) { return !model.isAdministrator(); }
+      isConstant: function( $state, model ) { return !model.isRole( 'administrator' ); }
     }
   } );
 
@@ -210,8 +210,6 @@ define( [ cenozoApp.module( 'participant' ).getFileUrl( 'module.js' ) ], functio
   cenozo.providers.decorator( 'CnParticipantModelFactory', [
     '$delegate', 'CnSession',
     function( $delegate, CnSession ) {
-      $delegate.root.isAdministrator = function() { return 'administrator' == CnSession.role.name; };
-
       // only allow tier-3 roles to see next-of-kin information
       if( CnSession.application.nextOfKin || 3 <= CnSession.role.tier ) {
         $delegate.root.module.addInputGroup( 'Next of Kin', {
