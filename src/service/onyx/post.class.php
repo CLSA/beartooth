@@ -420,9 +420,7 @@ class post extends \cenozo\service\service
     $member = 'Admin.Participant.gender';
     if( property_exists( $object, $member ) )
       $db_participant->sex = 0 == strcasecmp( 'f', substr( $object->$member, 0, 1 ) ) ? 'female' : 'male';
-    $member = 'Admin.Participant.birthDate';
-    if( property_exists( $object, $member ) )
-      $db_participant->date_of_birth = util::get_datetime_object( $object->$member )->format( 'Y-m-d' );
+    // note that we'll ignore the Admin.Participant.birthDate property, even if it exists
     $db_participant->save();
 
     // consent information
