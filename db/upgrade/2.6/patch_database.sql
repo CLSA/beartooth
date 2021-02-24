@@ -12,6 +12,9 @@ SOURCE qnaire_has_quota.sql
 SOURCE qnaire_has_stratum.sql
 SOURCE jurisdiction.sql
 SOURCE region_site.sql
+SOURCE onyx_instance.sql
+SOURCE role.sql
+SOURCE user.sql
 
 SOURCE update_version_number.sql
 

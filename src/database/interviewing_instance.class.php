@@ -1,6 +1,6 @@
 <?php
 /**
- * onyx_instance.class.php
+ * interviewing_instance.class.php
  * 
  * @author Patrick Emond <emondpd@mcmaster.ca>
  */
@@ -9,9 +9,9 @@ namespace beartooth\database;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
- * onyx_instance: record
+ * interviewing_instance: record
  */
-class onyx_instance extends \cenozo\database\record
+class interviewing_instance extends \cenozo\database\record
 {
   /**
    * Returns the user record associated with the interviewer_user_id

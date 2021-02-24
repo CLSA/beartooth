@@ -369,22 +369,22 @@ class post extends \cenozo\service\service
   {
     if( 1 >= count( get_object_vars( $object ) ) ) return;
 
-    $onyx_instance_class_name = lib::get_class_name( 'database\onyx_instance' );
+    $interviewing_instance_class_name = lib::get_class_name( 'database\interviewing_instance' );
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
 
     // get the onyx instance to tell whether this is a home or site instance
     $db_user = lib::create( 'business\session' )->get_user();
-    $db_onyx_instance = $onyx_instance_class_name::get_unique_record( 'user_id', $db_user->id );
-    if( is_null( $db_onyx_instance ) )
+    $db_interviewing_instance = $interviewing_instance_class_name::get_unique_record( 'user_id', $db_user->id );
+    if( is_null( $db_interviewing_instance ) )
     {
       throw lib::create( 'exception\runtime',
-        sprintf( 'Onyx user "%s" is not linked to any onyx instance.', $db_user->name ),
+        sprintf( 'Onyx user "%s" is not linked to any interviewing instance.', $db_user->name ),
         __METHOD__
       );
     }
 
     // get the interview corresponding with this export
-    $interview_type = is_null( $db_onyx_instance->interviewer_user_id ) ? 'site' : 'home';
+    $interview_type = is_null( $db_interviewing_instance->interviewer_user_id ) ? 'site' : 'home';
     $interview_sel = lib::create( 'database\select' );
     $interview_sel->from( 'interview' );
     $interview_sel->add_column( 'id' );
@@ -510,7 +510,7 @@ class post extends \cenozo\service\service
 
     // general_proxy form information (send to mastodon for processing)
     $form_data = array(
-      'from_onyx' => true,
+      'from_instance' => 'onyx',
       'date' => $datetime_obj->format( 'Y-m-d' ),
       'user_id' => $session->get_user()->id,
       'uid' => $db_participant->uid
@@ -703,7 +703,7 @@ class post extends \cenozo\service\service
 
     // proxy form information (send to mastodon for processing)
     $form_data = array(
-      'from_onyx' => true,
+      'from_instance' => 'onyx',
       'date' => $datetime_obj->format( 'Y-m-d' ),
       'user_id' => $session->get_user()->id,
       'uid' => $db_participant->uid

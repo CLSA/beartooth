@@ -34,12 +34,12 @@ class module extends \cenozo\service\base_calendar_module
     $db_site = $session->get_site();
     $db_role = $session->get_role();
 
-    // return specific values for min_date and max_date for the onyx role
-    if( 'min_date' == $name && 'onyx' == $db_role->name )
+    // return specific values for min_date and max_date for the interviewing role
+    if( 'min_date' == $name && 'machine' == $db_role->name )
     {
       return util::get_datetime_object()->format( 'Y-m-d' );
     }
-    else if( 'max_date' == $name && 'onyx' == $db_role->name )
+    else if( 'max_date' == $name && 'machine' == $db_role->name )
     {
       $db_setting = $db_site->get_setting();
       $date_obj = util::get_datetime_object();
@@ -181,16 +181,18 @@ class module extends \cenozo\service\base_calendar_module
 
     if( $select->has_column( 'disable_mail' ) ) $select->add_constant( false, 'disable_mail', 'boolean' );
 
-    // onyx roles need to be treated specially
-    if( 'onyx' == $db_role->name )
+    // interviewing roles need to be treated specially
+    if( 'machine' == $db_role->name )
     {
-      $onyx_instance_class_name = lib::create( 'database\onyx_instance' );
+      $interviewing_instance_class_name = lib::create( 'database\interviewing_instance' );
       $appointment_type_class_name = lib::create( 'database\appointment_type' );
       $form_type_class_name = lib::create( 'database\form_type' );
 
       // add specific columns
       $select->remove_column();
       $select->add_table_column( 'participant', 'uid' );
+      $select->add_table_column( 'cohort', 'name', 'cohort' );
+      $select->add_table_column( 'language', 'code', 'language' );
       $select->add_table_column( 'participant', 'honorific' );
       $select->add_table_column( 'participant', 'first_name' );
       $select->add_column( 'IFNULL( participant.other_name, "" )', 'otherName', false );
@@ -208,6 +210,9 @@ class module extends \cenozo\service\base_calendar_module
         'ask_proxy',
         false
       );
+
+      $modifier->join( 'cohort', 'participant.cohort_id', 'cohort.id' );
+      $modifier->join( 'language', 'participant.language_id', 'language.id' );
 
       // make sure the participant has consented to participate
       $modifier->join( 'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );
@@ -250,15 +255,15 @@ class module extends \cenozo\service\base_calendar_module
         'proxy_form.participant_id'
       );
 
-      // restrict by onyx instance
-      $db_onyx_instance = $onyx_instance_class_name::get_unique_record( 'user_id', $db_user->id );
-      if( is_null( $db_onyx_instance ) )
+      // restrict by interviewing instance
+      $db_interviewing_instance = $interviewing_instance_class_name::get_unique_record( 'user_id', $db_user->id );
+      if( is_null( $db_interviewing_instance ) )
         throw lib::create( 'exception\runtime',
-          sprintf( 'Tried to get appointment list for onyx user "%s" that has no onyx instance record.',
+          sprintf( 'Tried to get appointment list for interviewing instance user "%s" that has no interviewing instance record.',
                    $db_user->name ),
           __METHOD__ );
 
-      $db_interviewer_user = $db_onyx_instance->get_interviewer_user();
+      $db_interviewer_user = $db_interviewing_instance->get_interviewer_user();
       if( !is_null( $db_interviewer_user ) )
       {
         // home interview
@@ -379,7 +384,7 @@ class module extends \cenozo\service\base_calendar_module
             if( is_null( $db_appointment_type ) )
             {
               log::warning( sprintf(
-                'Tried to get onyx appointment list by undefined appointment type "%s".', $type ) );
+                'Tried to get interviewing_instance appointment list by undefined appointment type "%s".', $type ) );
             }
             else
             {

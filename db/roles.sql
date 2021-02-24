@@ -11,6 +11,6 @@ INSERT IGNORE INTO cenozo.role( name, tier ) VALUES
 ( "helpline", 2, true ),
 ( "interviewer", 1, false ),
 ( "interviewer+", 1, false ),
-( "onyx", 1, false );
+( "interviewing_instance", 1, false );
 
 COMMIT;

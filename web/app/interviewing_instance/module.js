@@ -1,16 +1,20 @@
 define( function() {
   'use strict';
 
-  try { var module = cenozoApp.module( 'onyx_instance', true ); } catch( err ) { console.warn( err ); return; }
+  try { var module = cenozoApp.module( 'interviewing_instance', true ); } catch( err ) { console.warn( err ); return; }
   angular.extend( module, {
     identifier: {}, // standard
     name: {
-      singular: 'onyx instance',
-      plural: 'onyx instances',
-      possessive: 'onyx instance\'s',
+      singular: 'interviewing instance',
+      plural: 'interviewing instances',
+      possessive: 'interviewing instance\'s',
       friendlyColumn: 'username'
     },
     columnList: {
+      type: {
+        column: 'interviewing_instance.type',
+        title: 'Type'
+      },
       name: {
         column: 'user.name',
         title: 'Name'
@@ -18,7 +22,7 @@ define( function() {
       interviewer: {
         column: 'interviewer.name',
         title: 'Interviewer',
-        help: 'Blank for site onyx-instances.'
+        help: 'Blank for site-based interviewing instances.'
       },
       active: {
         column: 'user.active',
@@ -40,6 +44,10 @@ define( function() {
     active: {
       title: 'Active',
       type: 'boolean'
+    },
+    type: {
+      title: 'Type',
+      type: 'enum'
     },
     username: {
       title: 'Username',
@@ -72,52 +80,52 @@ define( function() {
   }
 
   /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnOnyxInstanceAdd', [
-    'CnOnyxInstanceModelFactory',
-    function( CnOnyxInstanceModelFactory ) {
+  cenozo.providers.directive( 'cnInterviewingInstanceAdd', [
+    'CnInterviewingInstanceModelFactory',
+    function( CnInterviewingInstanceModelFactory ) {
       return {
         templateUrl: module.getFileUrl( 'add.tpl.html' ),
         restrict: 'E',
         scope: { model: '=?' },
         controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnOnyxInstanceModelFactory.root;
+          if( angular.isUndefined( $scope.model ) ) $scope.model = CnInterviewingInstanceModelFactory.root;
         }
       };
     }
   ] );
 
   /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnOnyxInstanceList', [
-    'CnOnyxInstanceModelFactory',
-    function( CnOnyxInstanceModelFactory ) {
+  cenozo.providers.directive( 'cnInterviewingInstanceList', [
+    'CnInterviewingInstanceModelFactory',
+    function( CnInterviewingInstanceModelFactory ) {
       return {
         templateUrl: module.getFileUrl( 'list.tpl.html' ),
         restrict: 'E',
         scope: { model: '=?' },
         controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnOnyxInstanceModelFactory.root;
+          if( angular.isUndefined( $scope.model ) ) $scope.model = CnInterviewingInstanceModelFactory.root;
         }
       };
     }
   ] );
 
   /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnOnyxInstanceView', [
-    'CnOnyxInstanceModelFactory',
-    function( CnOnyxInstanceModelFactory ) {
+  cenozo.providers.directive( 'cnInterviewingInstanceView', [
+    'CnInterviewingInstanceModelFactory',
+    function( CnInterviewingInstanceModelFactory ) {
       return {
         templateUrl: module.getFileUrl( 'view.tpl.html' ),
         restrict: 'E',
         scope: { model: '=?' },
         controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnOnyxInstanceModelFactory.root;
+          if( angular.isUndefined( $scope.model ) ) $scope.model = CnInterviewingInstanceModelFactory.root;
         }
       };
     }
   ] );
 
   /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnOnyxInstanceAddFactory', [
+  cenozo.providers.factory( 'CnInterviewingInstanceAddFactory', [
     'CnBaseAddFactory',
     function( CnBaseAddFactory ) {
       var object = function( parentModel ) { CnBaseAddFactory.construct( this, parentModel ); };
@@ -126,7 +134,7 @@ define( function() {
   ] );
 
   /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnOnyxInstanceListFactory', [
+  cenozo.providers.factory( 'CnInterviewingInstanceListFactory', [
     'CnBaseListFactory',
     function( CnBaseListFactory ) {
       var object = function( parentModel ) { CnBaseListFactory.construct( this, parentModel ); };
@@ -135,7 +143,7 @@ define( function() {
   ] );
 
   /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnOnyxInstanceViewFactory', [
+  cenozo.providers.factory( 'CnInterviewingInstanceViewFactory', [
     'CnBaseViewFactory', 'CnModalPasswordFactory', 'CnModalMessageFactory', 'CnHttpFactory',
     function( CnBaseViewFactory, CnModalPasswordFactory, CnModalMessageFactory, CnHttpFactory ) {
       var object = function( parentModel, root ) {
@@ -150,13 +158,13 @@ define( function() {
           } ).show().then( function( response ) {
             if( angular.isObject( response ) ) {
               CnHttpFactory.instance( {
-                path: 'onyx_instance/' + self.record.getIdentifier(),
+                path: 'interviewing_instance/' + self.record.getIdentifier(),
                 data: { password: response.requestedPass },
                 onError: function( response ) {
                   if( 403 == response.status ) {
                     CnModalMessageFactory.instance( {
                       title: 'Unable To Change Password',
-                      message: 'Sorry, you do not have access to resetting the password for this onyx instance.',
+                      message: 'Sorry, you do not have access to resetting the password for this interviewing instance.',
                       error: true
                     } ).show();
                   } else { CnModalMessageFactory.httpError( response ); }
@@ -176,19 +184,19 @@ define( function() {
   ] );
 
   /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnOnyxInstanceModelFactory', [
+  cenozo.providers.factory( 'CnInterviewingInstanceModelFactory', [
     'CnBaseModelFactory',
-    'CnOnyxInstanceAddFactory', 'CnOnyxInstanceListFactory', 'CnOnyxInstanceViewFactory',
+    'CnInterviewingInstanceAddFactory', 'CnInterviewingInstanceListFactory', 'CnInterviewingInstanceViewFactory',
     'CnHttpFactory',
     function( CnBaseModelFactory,
-              CnOnyxInstanceAddFactory, CnOnyxInstanceListFactory, CnOnyxInstanceViewFactory,
+              CnInterviewingInstanceAddFactory, CnInterviewingInstanceListFactory, CnInterviewingInstanceViewFactory,
               CnHttpFactory ) {
       var object = function( root ) {
         var self = this;
         CnBaseModelFactory.construct( this, module );
-        this.addModel = CnOnyxInstanceAddFactory.instance( this );
-        this.listModel = CnOnyxInstanceListFactory.instance( this );
-        this.viewModel = CnOnyxInstanceViewFactory.instance( this, root );
+        this.addModel = CnInterviewingInstanceAddFactory.instance( this );
+        this.listModel = CnInterviewingInstanceListFactory.instance( this );
+        this.viewModel = CnInterviewingInstanceViewFactory.instance( this, root );
       };
 
       return {

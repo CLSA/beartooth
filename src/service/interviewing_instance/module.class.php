@@ -5,7 +5,7 @@
  * @author Patrick Emond <emondpd@mcmaster.ca>
  */
 
-namespace beartooth\service\onyx_instance;
+namespace beartooth\service\interviewing_instance;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 /**
@@ -22,26 +22,26 @@ class module extends \cenozo\service\site_restricted_module
 
     // restrict by site
     $db_restrict_site = $this->get_restricted_site();
-    if( !is_null( $db_restrict_site ) ) $modifier->where( 'onyx_instance.site_id', '=', $db_restrict_site->id );
+    if( !is_null( $db_restrict_site ) ) $modifier->where( 'interviewing_instance.site_id', '=', $db_restrict_site->id );
 
-    // add empty values for password (they are only used when adding new onyx instances so they will be ignored)
+    // add empty values for password (they are only used when adding new interviewing instances so they will be ignored)
     if( $select->has_column( 'password' ) ) $select->add_constant( NULL, 'password' );
 
     if( $select->has_table_columns( 'participant' ) )
     {
-      $modifier->join( 'interview', 'onyx_instance.interview_id', 'interview.id' );
+      $modifier->join( 'interview', 'interviewing_instance.interview_id', 'interview.id' );
       $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
     }
 
-    // add the onyx_instance's user
+    // add the interviewing_instance's user
     if( $select->has_alias( 'username' ) || $select->has_alias( 'active' ) )
     {
-      $modifier->join( 'user', 'onyx_instance.user_id', 'user.id' );
+      $modifier->join( 'user', 'interviewing_instance.user_id', 'user.id' );
       if( $select->has_alias( 'active' ) ) $select->add_table_column( 'user', 'active', 'active' );
       if( $select->has_alias( 'username' ) ) $select->add_table_column( 'user', 'name', 'username' );
     }
 
-    $modifier->left_join( 'user', 'onyx_instance.interviewer_user_id', 'interviewer.id', 'interviewer' );
+    $modifier->left_join( 'user', 'interviewing_instance.interviewer_user_id', 'interviewer.id', 'interviewer' );
 
     if( !is_null( $this->get_resource() ) )
     {
@@ -52,7 +52,7 @@ class module extends \cenozo\service\site_restricted_module
         false );
     }
 
-    // add the onyx_instance's last access column
+    // add the interviewing_instance's last access column
     if( $select->has_alias( 'last_access_datetime' ) )
     {
       $join_sel = lib::create( 'database\select' );
@@ -65,7 +65,7 @@ class module extends \cenozo\service\site_restricted_module
 
       $modifier->left_join(
         sprintf( '( %s %s ) AS user_join_access', $join_sel->get_sql(), $join_mod->get_sql() ),
-        'onyx_instance.user_id',
+        'interviewing_instance.user_id',
         'user_join_access.user_id' );
 
       $select->add_column( 'user_join_access.last_access_datetime', 'last_access_datetime', false );

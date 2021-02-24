@@ -50,7 +50,7 @@ class ui extends \cenozo\ui\ui
       $module->add_child( 'appointment', 0 );
     }
 
-    $module = $this->get_module( 'onyx_instance' );
+    $module = $this->get_module( 'interviewing_instance' );
     if( !is_null( $module ) )
     {
       $module->add_child( 'activity' );
@@ -107,7 +107,7 @@ class ui extends \cenozo\ui\ui
     }
 
     // add application-specific states to the base list
-    $this->add_listitem( 'Onyx Instances', 'onyx_instance' );
+    $this->add_listitem( 'Interviewing Instances', 'interviewing_instance' );
     $this->add_listitem( 'Questionnaires', 'qnaire' );
     $this->add_listitem( 'Queues', 'queue' );
   }

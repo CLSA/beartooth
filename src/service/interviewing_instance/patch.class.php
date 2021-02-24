@@ -5,7 +5,7 @@
  * @author Patrick Emond <emondpd@mcmaster.ca>
  */
 
-namespace beartooth\service\onyx_instance;
+namespace beartooth\service\interviewing_instance;
 use cenozo\lib, cenozo\log, beartooth\util;
 
 class patch extends \cenozo\service\patch
