@@ -99,6 +99,7 @@ class sample extends \cenozo\business\report\base_report
     $select->from( 'participant' );
     $select->add_column( 'uid', 'UID' );
     if( $this->db_role->all_sites ) $select->add_column( 'IFNULL( site.name, "(none)" )', 'Site', false );
+    $select->add_column( 'TIMESTAMPDIFF( YEAR, participant.date_of_birth, CURDATE() )', 'Age', false );
     $select->add_column( 'IF( blood_consent.accept, "Yes", "No" )', 'Blood', false );
     $select->add_column( 'IFNULL( language.name, "(none)" )', 'Language', false );
     $select->add_column(
