@@ -4,9 +4,9 @@ var cenozo = angular.module( 'cenozo' );
 
 cenozo.controller( 'HeaderCtrl', [
   '$scope', '$state', 'CnBaseHeader', 'CnSession', 'CnHttpFactory', 'CnModalMessageFactory',
-  function( $scope, $state, CnBaseHeader, CnSession, CnHttpFactory, CnModalMessageFactory ) {
+  async function( $scope, $state, CnBaseHeader, CnSession, CnHttpFactory, CnModalMessageFactory ) {
     // copy all properties from the base header
-    CnBaseHeader.construct( $scope );
+    await CnBaseHeader.construct( $scope );
 
     // add custom operations here by adding a new property to $scope.operationList
 

@@ -454,13 +454,21 @@ define( [ 'participant' ].reduce( function( list, name ) {
           return $q.all( promiseList ).then( function() { self.isScriptListLoading = false; } );
         };
 
-        this.launchScript = function( script ) {
-          this.scriptLauncher = CnScriptLauncherFactory.instance( {
-            script: script,
-            identifier: 'uid=' + self.participant.uid,
-            lang: self.participant.language_code
-          } );
-          this.scriptLauncher.launch().then( function() { self.loadScriptList(); } );
+        this.launchingScript = false;
+        this.launchScript = async function( script ) {
+          try {
+            this.launchingScript = true;
+            this.scriptLauncher = CnScriptLauncherFactory.instance( {
+              script: script,
+              identifier: 'uid=' + this.participant.uid,
+              lang: this.participant.language_code
+            } );
+            await this.scriptLauncher.initialize();
+            await this.scriptLauncher.launch()
+            this.loadScriptList();
+          } finally {
+            this.launchingScript = false;
+          }
 
           // check for when the window gets focus back and update the participant details
           if( null != script.name.match( /withdraw|proxy/i ) ) {
