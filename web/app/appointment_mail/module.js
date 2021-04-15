@@ -111,12 +111,12 @@ define( [ 'trace' ].reduce( function( list, name ) {
 
   module.addExtraOperation( 'view', {
     title: 'Preview',
-    operation: function( $state, model ) { model.viewModel.preview(); }
+    operation: async function( $state, model ) { await model.viewModel.preview(); }
   } );
 
   module.addExtraOperation( 'view', {
     title: 'Validate',
-    operation: function( $state, model ) { model.viewModel.validate(); }
+    operation: async function( $state, model ) { await model.viewModel.validate(); }
   } );
 
   /* ######################################################################################################## */
@@ -131,42 +131,41 @@ define( [ 'trace' ].reduce( function( list, name ) {
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentMailModelFactory.root;
 
           // get the child cn-record-add's scope
-          $scope.$on( 'cnRecordAdd ready', function( event, data ) {
-            $scope.model.metadata.getPromise().then( function() {
-              var cnRecordAddScope = data;
-              var inputArray = cnRecordAddScope.dataArray[0].inputArray;
-              var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
+          $scope.$on( 'cnRecordAdd ready', async function( event, data ) {
+            await $scope.model.metadata.getPromise();
 
-              // always start with an empty appointment type list
-              $scope.record = {};
-              $scope.model.addModel.onNew( $scope.record ).then( function() {
-                inputArray[appointmentTypeIndex].enumList = [ { value: undefined, name: '(empty)' } ];
-              } );
+            var cnRecordAddScope = data;
+            var inputArray = cnRecordAddScope.dataArray[0].inputArray;
+            var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
 
-              // Override the check function so that the appointment type list can be updated based on which qnaire
-              // has been selected
-              var checkFunction = cnRecordAddScope.check;
-              cnRecordAddScope.check = function( property ) {
-                // run the original check function first
-                checkFunction( property );
+            // Override the check function so that the appointment type list can be updated based on which qnaire
+            // has been selected
+            var checkFunction = cnRecordAddScope.check;
+            cnRecordAddScope.check = function( property ) {
+              // run the original check function first
+              checkFunction( property );
 
-                if( 'qnaire_id' == property ) {
-                  // reset the selected appointment type
-                  cnRecordAddScope.record.appointment_type_id = undefined;
+              if( 'qnaire_id' == property ) {
+                // reset the selected appointment type
+                cnRecordAddScope.record.appointment_type_id = undefined;
 
-                  if( 0 < Object.keys( $scope.model.metadata.columnList.appointment_type_id.qnaireList ).length ) {
-                    // set the appointment type enum list based on the qnaire_id
-                    inputArray[appointmentTypeIndex].enumList = [];
-                    if( cnRecordAddScope.record.qnaire_id ) {
-                      inputArray[appointmentTypeIndex].enumList = angular.copy(
-                        $scope.model.metadata.columnList.appointment_type_id.qnaireList[cnRecordAddScope.record.qnaire_id]
-                      );
-                    }
-                    inputArray[appointmentTypeIndex].enumList.unshift( { value: undefined, name: '(empty)' } );
+                if( 0 < Object.keys( $scope.model.metadata.columnList.appointment_type_id.qnaireList ).length ) {
+                  // set the appointment type enum list based on the qnaire_id
+                  inputArray[appointmentTypeIndex].enumList = [];
+                  if( cnRecordAddScope.record.qnaire_id ) {
+                    inputArray[appointmentTypeIndex].enumList = angular.copy(
+                      $scope.model.metadata.columnList.appointment_type_id.qnaireList[cnRecordAddScope.record.qnaire_id]
+                    );
                   }
+                  inputArray[appointmentTypeIndex].enumList.unshift( { value: undefined, name: '(empty)' } );
                 }
-              };
-            } );
+              }
+            };
+
+            // always start with an empty appointment type list
+            $scope.record = {};
+            await $scope.model.addModel.onNew( $scope.record )
+            inputArray[appointmentTypeIndex].enumList = [ { value: undefined, name: '(empty)' } ];
           } );
         }
       };
@@ -208,20 +207,19 @@ define( [ 'trace' ].reduce( function( list, name ) {
     'CnBaseAddFactory', 'CnHttpFactory',
     function( CnBaseAddFactory, CnHttpFactory ) {
       var object = function( parentModel ) {
-        var self = this;
         CnBaseAddFactory.construct( this, parentModel );
 
-        this.onNew = function( record ) {
-          return this.$$onNew( record ).then( function() {
-            var parent = self.parentModel.getParentIdentifier();
-            return CnHttpFactory.instance( {
-              path: 'application/0',
-              data: { select: { column: [ 'mail_name', 'mail_address' ] } }
-            } ).get().then( function( response ) {
-              record.from_name = response.data.mail_name;
-              record.from_address = response.data.mail_address;
-            } );
-          } );
+        this.onNew = async function( record ) {
+          await this.$$onNew( record );
+
+          var parent = this.parentModel.getParentIdentifier();
+          var response = await CnHttpFactory.instance( {
+            path: 'application/0',
+            data: { select: { column: [ 'mail_name', 'mail_address' ] } }
+          } ).get();
+
+          record.from_name = response.data.mail_name;
+          record.from_address = response.data.mail_address;
         };
       };
       return { instance: function( parentModel ) { return new object( parentModel ); } };
@@ -242,44 +240,43 @@ define( [ 'trace' ].reduce( function( list, name ) {
     'CnBaseViewFactory', 'CnSession', 'CnHttpFactory', 'CnModalMessageFactory',
     function( CnBaseViewFactory, CnSession, CnHttpFactory, CnModalMessageFactory ) {
       var object = function( parentModel, root ) {
-        var self = this;
         CnBaseViewFactory.construct( this, parentModel, root );
 
-        this.preview = function() {
-          return CnHttpFactory.instance( {
+        this.preview = async function() {
+          var response = await CnHttpFactory.instance( {
             path: 'application/' + CnSession.application.id,
             data: { select: { column: [ 'mail_header', 'mail_footer' ] } }
-          } ).get().then( function( response ) {
-            var body = self.record.body;
-            if( null != response.data.mail_header ) body = response.data.mail_header + "\n" + body;
-            if( null != response.data.mail_footer ) body = body + "\n" + response.data.mail_footer;
-            return CnModalMessageFactory.instance( {
-              title: 'Mail Preview',
-              message: body,
-              html: true
-            } ).show();
-          } );
+          } ).get();
+
+          var body = this.record.body;
+          if( null != response.data.mail_header ) body = response.data.mail_header + "\n" + body;
+          if( null != response.data.mail_footer ) body = body + "\n" + response.data.mail_footer;
+          await CnModalMessageFactory.instance( {
+            title: 'Mail Preview',
+            message: body,
+            html: true
+          } ).show();
         };
 
-        this.validate = function() {
-          return CnHttpFactory.instance( {
+        this.validate = async function() {
+          var response = await CnHttpFactory.instance( {
             path: this.parentModel.getServiceResourcePath(),
             data: { select: { column: 'validate' } }
-          } ).get().then( function( response ) {
-            var result = JSON.parse( response.data.validate );
+          } ).get();
 
-            var message = 'The subject contains ';
-            message += null == result || angular.isUndefined( result.subject )
-                     ? 'no errors.\n'
-                     : 'the invalid variable $' + result.subject + '$.';
+          var result = JSON.parse( response.data.validate );
 
-            message += 'The body contains ';
-            message += null == result || angular.isUndefined( result.body )
-                     ? 'no errors.\n'
-                     : 'the invalid variable $' + result.body + '$.';
+          var message = 'The subject contains ';
+          message += null == result || angular.isUndefined( result.subject )
+                   ? 'no errors.\n'
+                   : 'the invalid variable $' + result.subject + '$.';
 
-            return CnModalMessageFactory.instance( { title: 'Validation Result', message: message } ).show();
-          } );
+          message += 'The body contains ';
+          message += null == result || angular.isUndefined( result.body )
+                   ? 'no errors.\n'
+                   : 'the invalid variable $' + result.body + '$.';
+
+          await CnModalMessageFactory.instance( { title: 'Validation Result', message: message } ).show();
         };
       };
       return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
@@ -289,11 +286,10 @@ define( [ 'trace' ].reduce( function( list, name ) {
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAppointmentMailModelFactory', [
     'CnBaseModelFactory', 'CnAppointmentMailListFactory', 'CnAppointmentMailAddFactory', 'CnAppointmentMailViewFactory',
-    'CnSession', 'CnHttpFactory', '$q',
+    'CnSession', 'CnHttpFactory',
     function( CnBaseModelFactory, CnAppointmentMailListFactory, CnAppointmentMailAddFactory, CnAppointmentMailViewFactory,
-              CnSession, CnHttpFactory, $q ) {
+              CnSession, CnHttpFactory ) {
       var object = function( root ) {
-        var self = this;
         CnBaseModelFactory.construct( this, module );
         this.addModel = CnAppointmentMailAddFactory.instance( this );
         this.listModel = CnAppointmentMailListFactory.instance( this );
@@ -302,73 +298,66 @@ define( [ 'trace' ].reduce( function( list, name ) {
         this.hasAllSites = function() { return CnSession.role.allSites; };
 
         // extend getMetadata
-        this.getMetadata = function() {
-          return this.$$getMetadata().then( function() {
-            return $q.all( [
+        this.getMetadata = async function() {
+          var self = this;
+          await this.$$getMetadata();
 
-              CnHttpFactory.instance( {
-                path: 'site',
-                data: {
-                  select: { column: [ 'id', 'name' ] },
-                  modifier: { order: 'name', limit: 1000 }
-                }
-              } ).query().then( function success( response ) {
-                self.metadata.columnList.site_id.enumList = [];
-                response.data.forEach( function( item ) {
-                  self.metadata.columnList.site_id.enumList.push( { value: item.id, name: item.name } );
-                } );
-              } ),
+          var response = await CnHttpFactory.instance( {
+            path: 'site',
+            data: {
+              select: { column: [ 'id', 'name' ] },
+              modifier: { order: 'name', limit: 1000 }
+            }
+          } ).query();
+          this.metadata.columnList.site_id.enumList = [];
+          response.data.forEach( function( item ) {
+            self.metadata.columnList.site_id.enumList.push( { value: item.id, name: item.name } );
+          } );
 
-              CnHttpFactory.instance( {
-                path: 'qnaire',
-                data: {
-                  select: { column: [ 'id', 'type' ] },
-                  modifier: { order: 'rank', limit: 1000 }
-                }
-              } ).query().then( function success( response ) {
-                self.metadata.columnList.qnaire_id.enumList = [];
-                response.data.forEach( function( item ) {
-                  self.metadata.columnList.qnaire_id.enumList.push( { value: item.id, name: item.type } );
-                } );
-              } ),
+          var response = await CnHttpFactory.instance( {
+            path: 'qnaire',
+            data: {
+              select: { column: [ 'id', 'type' ] },
+              modifier: { order: 'rank', limit: 1000 }
+            }
+          } ).query();
+          this.metadata.columnList.qnaire_id.enumList = [];
+          response.data.forEach( function( item ) {
+            self.metadata.columnList.qnaire_id.enumList.push( { value: item.id, name: item.type } );
+          } );
 
-              CnHttpFactory.instance( {
-                path: 'appointment_type',
-                data: {
-                  select: { column: [ 'id', 'name', 'qnaire_id' ] },
-                  modifier: { order: 'name', limit: 1000 }
-                }
-              } ).query().then( function success( response ) {
-                // store the appointment types in a special array with qnaire_id as indices
-                self.metadata.columnList.appointment_type_id.enumList = [ { value: '', name: '(empty)' } ];
-                var qnaireList = {};
-                response.data.forEach( function( item ) {
-                  self.metadata.columnList.appointment_type_id.enumList.push( { value: item.id, name: item.name } );
+          var response = await CnHttpFactory.instance( {
+            path: 'appointment_type',
+            data: {
+              select: { column: [ 'id', 'name', 'qnaire_id' ] },
+              modifier: { order: 'name', limit: 1000 }
+            }
+          } ).query();
+          // store the appointment types in a special array with qnaire_id as indices
+          this.metadata.columnList.appointment_type_id.enumList = [ { value: '', name: '(empty)' } ];
+          var qnaireList = {};
+          response.data.forEach( function( item ) {
+            self.metadata.columnList.appointment_type_id.enumList.push( { value: item.id, name: item.name } );
 
-                  if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
-                  qnaireList[item.qnaire_id].push( { value: item.id, name: item.name } );
-                } );
-                self.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
-              } ),
+            if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
+            qnaireList[item.qnaire_id].push( { value: item.id, name: item.name } );
+          } );
+          this.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
 
-              CnHttpFactory.instance( {
-                path: 'language',
-                data: {
-                  select: { column: [ 'id', 'name' ] },
-                  modifier: {
-                    where: { column: 'active', operator: '=', value: true },
-                    order: 'name',
-                    limit: 1000
-                  }
-                }
-              } ).query().then( function success( response ) {
-                self.metadata.columnList.language_id.enumList = [];
-                response.data.forEach( function( item ) {
-                  self.metadata.columnList.language_id.enumList.push( { value: item.id, name: item.name } );
-                } );
-              } )
-
-            ] );
+          var response = await CnHttpFactory.instance( {
+            path: 'language',
+            data: {
+              select: { column: [ 'id', 'name' ] },
+              modifier: {
+                where: { column: 'active', operator: '=', value: true },
+                order: 'name',
+                limit: 1000
+              }
+            }
+          } ).query();
+          this.metadata.columnList.language_id.enumList = [];
+          response.data.forEach( function( item ) {
+            self.metadata.columnList.language_id.enumList.push( { value: item.id, name: item.name } );
           } );
         };
       };

@@ -124,8 +124,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
   if( angular.isDefined( cenozoApp.module( 'participant' ).actions.notes ) ) {
     module.addExtraOperation( 'view', {
       title: 'Notes',
-      operation: function( $state, model ) {
-        $state.go( 'participant.notes', { identifier: 'uid=' + model.viewModel.record.participant } );
+      operation: async function( $state, model ) {
+        await $state.go( 'participant.notes', { identifier: 'uid=' + model.viewModel.record.participant } );
       }
     } );
   }
@@ -135,8 +135,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     module.addExtraOperation( 'calendar', {
       id: 'home-appointment-button',
       title: 'Home Appointment',
-      operation: function( $state, model ) {
-        $state.go( 'appointment.calendar', { type: 'home', identifier: model.site.getIdentifier() } );
+      operation: async function( $state, model ) {
+        await $state.go( 'appointment.calendar', { type: 'home', identifier: model.site.getIdentifier() } );
       },
       classes: 'home-appointment-button'
     } );
@@ -146,8 +146,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     module.addExtraOperation( 'calendar', {
       id: 'site-appointment-button',
       title: 'Site Appointment',
-      operation: function( $state, model ) {
-        $state.go( 'appointment.calendar', { type: 'site', identifier: model.site.getIdentifier() } );
+      operation: async function( $state, model ) {
+        await $state.go( 'appointment.calendar', { type: 'site', identifier: model.site.getIdentifier() } );
       },
       classes: 'site-appointment-button'
     } );
@@ -156,19 +156,18 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
   if( angular.isDefined( module.actions.calendar ) ) {
     module.addExtraOperation( 'view', {
       title: 'Appointment Calendar',
-      operation: function( $state, model ) {
-        $state.go( 'appointment.calendar', { type: model.type, identifier: model.site.getIdentifier() } );
+      operation: async function( $state, model ) {
+        await $state.go( 'appointment.calendar', { type: model.type, identifier: model.site.getIdentifier() } );
       }
     } );
   }
 
   module.addExtraOperation( 'view', {
     title: 'Cancel Appointment',
-    isDisabled: function( $state, model ) {
-      return 'passed' != model.viewModel.record.state;
-    },
-    operation: function( $state, model ) {
-      model.viewModel.cancelAppointment().then( function() { model.viewModel.onView(); } );
+    isDisabled: function( $state, model ) { return 'passed' != model.viewModel.record.state; },
+    operation: async function( $state, model ) {
+      await model.viewModel.cancelAppointment();
+      await model.viewModel.onView();
     }
   } );
 
@@ -207,8 +206,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentAdd', [
-    'CnAppointmentModelFactory', 'CnSession', 'CnHttpFactory', 'CnModalConfirmFactory', '$q',
-    function( CnAppointmentModelFactory, CnSession, CnHttpFactory, CnModalConfirmFactory, $q ) {
+    'CnAppointmentModelFactory', 'CnSession', 'CnHttpFactory', 'CnModalConfirmFactory',
+    function( CnAppointmentModelFactory, CnSession, CnHttpFactory, CnModalConfirmFactory ) {
       return {
         templateUrl: module.getFileUrl( 'add.tpl.html' ),
         restrict: 'E',
@@ -232,69 +231,67 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
             }
           };
 
-          $scope.model.addModel.afterNew( function() {
+          $scope.model.addModel.afterNew( async function() {
             // warn if old appointment will be cancelled
             console.log( cnRecordAddScope );
             var saveFn = cnRecordAddScope.save;
-            cnRecordAddScope.save = function() {
-              CnHttpFactory.instance( {
+            cnRecordAddScope.save = async function() {
+              var response = await CnHttpFactory.instance( {
                 path: 'interview/' + $scope.model.getParentIdentifier().identifier,
                 data: { select: { column: [ 'missed_appointment' ] } }
-              } ).get().then( function( response ) {
-                var proceed = false;
-                var promise =
-                  response.data.missed_appointment ?
-                  CnModalConfirmFactory.instance( {
-                    title: 'Cancel Missed Appointment?',
-                    message: 'There already exists a passed appointment for this interview, ' +
-                             'do you wish to cancel it and create a new one?'
-                  } ).show().then( function( response ) { proceed = response; } ) :
-                  $q.all().then( function() { proceed = true; } );
+              } ).get();
 
-                // proceed with the usual save function if we are told to proceed
-                promise.then( function() { if( proceed ) saveFn(); } );
-              } );
+              var proceed = true;
+              if( response.data.missed_appointment ) {
+                var proceed = await CnModalConfirmFactory.instance( {
+                  title: 'Cancel Missed Appointment?',
+                  message: 'There already exists a passed appointment for this interview, ' +
+                           'do you wish to cancel it and create a new one?'
+                } ).show();
+              }
+
+              if( proceed ) await saveFn();
             };
 
             // make sure the metadata has been created
-            $scope.model.metadata.getPromise().then( function() {
-              $scope.model.addModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
-              var inputArray = cnRecordAddScope.dataArray[0].inputArray;
+            await $scope.model.metadata.getPromise();
 
-              // show/hide user and address columns based on the type
-              inputArray.findByProperty( 'key', 'user_id' ).type =
-                'home' == $scope.model.type ? 'lookup-typeahead' : 'hidden';
-              inputArray.findByProperty( 'key', 'address_id' ).type =
-                'home' == $scope.model.type ? 'enum' : 'hidden';
+            $scope.model.addModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
+            var inputArray = cnRecordAddScope.dataArray[0].inputArray;
 
-              var identifier = $scope.model.getParentIdentifier();
-              if( angular.isDefined( identifier.subject ) && angular.isDefined( identifier.identifier ) ) {
-                CnHttpFactory.instance( {
-                  path: identifier.subject + '/' + identifier.identifier,
-                  data: { select: { column: [ 'qnaire_id' ] } }
-                } ).get().then( function( response ) {
-                  var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
+            // show/hide user and address columns based on the type
+            inputArray.findByProperty( 'key', 'user_id' ).type =
+              'home' == $scope.model.type ? 'lookup-typeahead' : 'hidden';
+            inputArray.findByProperty( 'key', 'address_id' ).type =
+              'home' == $scope.model.type ? 'enum' : 'hidden';
 
-                  // set the appointment type enum list based on the qnaire_id
-                  inputArray[appointmentTypeIndex].enumList = angular.copy(
-                    $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
-                  );
+            var identifier = $scope.model.getParentIdentifier();
+            if( angular.isDefined( identifier.subject ) && angular.isDefined( identifier.identifier ) ) {
+              var response = await CnHttpFactory.instance( {
+                path: identifier.subject + '/' + identifier.identifier,
+                data: { select: { column: [ 'qnaire_id' ] } }
+              } ).get();
 
-                  // we must also manually add the empty entry
-                  if( angular.isUndefined( inputArray[appointmentTypeIndex].enumList ) )
-                    inputArray[appointmentTypeIndex].enumList = [];
-                  var emptyIndex = inputArray[appointmentTypeIndex]
-                                     .enumList
-                                     .findIndexByProperty( 'name', '(empty)' );
-                  if( null == emptyIndex ) {
-                    inputArray[appointmentTypeIndex].enumList.unshift( {
-                      value: 'cnRecordAdd' == cnRecordAddScope.directive ? undefined : '',
-                      name: '(empty)'
-                    } );
-                  }
+              var appointmentTypeIndex = inputArray.findIndexByProperty( 'key', 'appointment_type_id' );
+
+              // set the appointment type enum list based on the qnaire_id
+              inputArray[appointmentTypeIndex].enumList = angular.copy(
+                $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
+              );
+
+              // we must also manually add the empty entry
+              if( angular.isUndefined( inputArray[appointmentTypeIndex].enumList ) )
+                inputArray[appointmentTypeIndex].enumList = [];
+              var emptyIndex = inputArray[appointmentTypeIndex]
+                                 .enumList
+                                 .findIndexByProperty( 'name', '(empty)' );
+              if( null == emptyIndex ) {
+                inputArray[appointmentTypeIndex].enumList.unshift( {
+                  value: 'cnRecordAdd' == cnRecordAddScope.directive ? undefined : '',
+                  name: '(empty)'
                 } );
               }
-            } );
+            }
           } );
         }
       };
@@ -380,7 +377,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
           // connect the calendar's day click callback to the appointment's datetime
           if( $scope.model.getEditEnabled() ) {
-            $scope.model.calendarModel.settings.dayClick = function( date ) {
+            $scope.model.calendarModel.settings.dayClick = async function( date ) {
               // make sure we're viewing an appointment and the date is no earlier than today
               if( 'appointment' == $scope.model.getSubjectFromState() &&
                   'view' == $scope.model.getActionFromState() &&
@@ -393,36 +390,35 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
                 if( !datetime.isSame( moment( $scope.model.viewModel.record.datetime ) ) ) {
                   var formattedDatetime = CnSession.formatValue( datetime, 'datetime', true );
-                  CnModalConfirmFactory.instance( {
+                  var response = await CnModalConfirmFactory.instance( {
                     title: 'Change Appointment',
                     message: 'Are you sure you wish to change the appointment to ' + formattedDatetime + '?'
-                  } ).show().then( function( response ) {
-                    if( response ) {
-                      $scope.model.viewModel.record.datetime = datetime.format();
-                      $scope.model.viewModel.formattedRecord.datetime = formattedDatetime;
-                      cnRecordViewScope.patch( 'datetime' );
+                  } ).show();
 
-                      // update the calendar
-                      $element.find( 'div.calendar' ).fullCalendar( 'refetchEvents' );
-                    }
-                  } );
+                  if( response ) {
+                    $scope.model.viewModel.record.datetime = datetime.format();
+                    $scope.model.viewModel.formattedRecord.datetime = formattedDatetime;
+                    cnRecordViewScope.patch( 'datetime' );
+
+                    // update the calendar
+                    $element.find( 'div.calendar' ).fullCalendar( 'refetchEvents' );
+                  }
                 }
               }
             };
           }
 
-          $scope.model.viewModel.afterView( function() {
-            // make sure the metadata has been created
-            $scope.model.metadata.getPromise().then( function() {
-              $scope.model.viewModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
-            } );
-
+          $scope.model.viewModel.afterView( async function() {
             // show/hide user and address columns based on the type
             var inputArray = cnRecordViewScope.dataArray[0].inputArray;
             inputArray.findByProperty( 'key', 'user_id' ).type =
               'home' == $scope.model.type ? 'lookup-typeahead' : 'hidden';
             inputArray.findByProperty( 'key', 'address_id' ).type =
               'home' == $scope.model.type ? 'enum' : 'hidden';
+
+            // make sure the metadata has been created
+            await $scope.model.metadata.getPromise();
+            $scope.model.viewModel.heading = $scope.model.type.ucWords() + ' Appointment Details';
           } );
         }
       };
@@ -434,39 +430,38 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     'CnBaseAddFactory', 'CnSession', 'CnHttpFactory', '$injector',
     function( CnBaseAddFactory, CnSession, CnHttpFactory, $injector ) {
       var object = function( parentModel ) {
-        var self = this;
         CnBaseAddFactory.construct( this, parentModel );
 
-        this.onNew = function( record ) {
+        this.onNew = async function( record ) {
           // update the address list based on the parent interview
           var parent = parentModel.getParentIdentifier();
-          return CnHttpFactory.instance( {
+          var response = await CnHttpFactory.instance( {
             path: [ parent.subject, parent.identifier ].join( '/' ),
             data: { select: { column: { column: 'participant_id' } } }
-          } ).query().then( function( response ) {
-            // get the participant's address list
-            return CnHttpFactory.instance( {
-              path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
-              data: {
-                select: { column: [ 'id', 'rank', 'summary' ] },
-                modifier: {
-                  where: { column: 'address.active', operator: '=', value: true },
-                  order: { rank: false }
-                }
+          } ).query();
+
+          // get the participant's address list
+          var response = await CnHttpFactory.instance( {
+            path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
+            data: {
+              select: { column: [ 'id', 'rank', 'summary' ] },
+              modifier: {
+                where: { column: 'address.active', operator: '=', value: true },
+                order: { rank: false }
               }
-            } ).query().then( function( response ) {
-              return parentModel.metadata.getPromise().then( function() {
-                parentModel.metadata.columnList.address_id.enumList = [];
-                response.data.forEach( function( item ) {
-                  parentModel.metadata.columnList.address_id.enumList.push( {
-                    value: item.id,
-                    name: item.summary
-                  } );
-                } );
-                return self.$$onNew( record );
-              } );
+            }
+          } ).query();
+
+          await parentModel.metadata.getPromise();
+          parentModel.metadata.columnList.address_id.enumList = [];
+          response.data.forEach( function( item ) {
+            parentModel.metadata.columnList.address_id.enumList.push( {
+              value: item.id,
+              name: item.summary
             } );
           } );
+
+          await this.$$onNew( record );
         };
 
         // add the new appointment's events to the calendar cache
@@ -486,7 +481,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     'CnBaseCalendarFactory', 'CnSession',
     function( CnBaseCalendarFactory, CnSession ) {
       var object = function( parentModel ) {
-        var self = this;
         CnBaseCalendarFactory.construct( this, parentModel );
 
         // default to month view
@@ -496,18 +490,17 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         delete this.settings.dayClick;
 
         // extend onCalendar to transform templates into events
-        this.onCalendar = function( replace, minDate, maxDate, ignoreParent ) {
+        this.onCalendar = async function( replace, minDate, maxDate, ignoreParent ) {
           // due to a design flaw (home vs site instances which cannot be determined in the base model's instance
           // method) we have to always replace events
           replace = true;
 
           // we must get the load dates before calling $$onCalendar
-          var loadMinDate = self.getLoadMinDate( replace, minDate );
-          var loadMaxDate = self.getLoadMaxDate( replace, maxDate );
-          return self.$$onCalendar( replace, minDate, maxDate, true ).then( function() {
-            self.cache.forEach( function( item, index, array ) {
-              array[index] = getEventFromAppointment( item, CnSession.user.timezone );
-            } );
+          var loadMinDate = this.getLoadMinDate( replace, minDate );
+          var loadMaxDate = this.getLoadMaxDate( replace, maxDate );
+          await this.$$onCalendar( replace, minDate, maxDate, true );
+          this.cache.forEach( function( item, index, array ) {
+            array[index] = getEventFromAppointment( item, CnSession.user.timezone );
           } );
         };
       };
@@ -521,15 +514,13 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     'CnBaseListFactory',
     function( CnBaseListFactory ) {
       var object = function( parentModel ) {
-        var self = this;
         CnBaseListFactory.construct( this, parentModel );
 
         // override onDelete
-        this.onDelete = function( record ) {
-          return this.$$onDelete( record ).then( function() {
-            parentModel.calendarModel.cache = parentModel.calendarModel.cache.filter( function( e ) {
-              return e.getIdentifier() != record.getIdentifier();
-            } );
+        this.onDelete = async function( record ) {
+          await this.$$onDelete( record );
+          parentModel.calendarModel.cache = parentModel.calendarModel.cache.filter( function( e ) {
+            return e.getIdentifier() != record.getIdentifier();
           } );
         };
       };
@@ -542,10 +533,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     'CnBaseViewFactory', 'CnSession', 'CnHttpFactory', 'CnModalMessageFactory', '$injector',
     function( CnBaseViewFactory, CnSession, CnHttpFactory, CnModalMessageFactory, $injector ) {
       var object = function( parentModel, root ) {
-        var self = this;
         CnBaseViewFactory.construct( this, parentModel, root );
 
-        this.cancelAppointment = function() {
+        this.cancelAppointment = async function() {
           var modal = CnModalMessageFactory.instance( {
             title: 'Please Wait',
             message: 'The appointment is being cancelled, please wait.',
@@ -553,48 +543,51 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           } );
           modal.show();
 
-          return CnHttpFactory.instance( {
-            path: this.parentModel.getServiceResourcePath( this.record.getIdentifier() ),
-            data: { outcome: 'cancelled' }
-          } ).patch().finally( function() { modal.close(); } );
+          try {
+            await CnHttpFactory.instance( {
+              path: this.parentModel.getServiceResourcePath( this.record.getIdentifier() ),
+              data: { outcome: 'cancelled' }
+            } ).patch();
+          } finally {
+            modal.close();
+          }
         };
 
-        this.onView = function( force ) {
-          return self.$$onView( force ).then( function() {
-            var upcoming = moment().isBefore( self.record.datetime, 'minute' );
-            parentModel.getDeleteEnabled = function() { return parentModel.$$getDeleteEnabled() && upcoming; };
-            parentModel.getEditEnabled = function() { return parentModel.$$getEditEnabled() && upcoming; };
+        this.onView = async function( force ) {
+          await this.$$onView( force );
 
-            if( 'home' == self.record.type ) {
-              // update the address list based on the parent interview
-              return CnHttpFactory.instance( {
-                path: 'interview/' + self.record.interview_id,
-                data: { select: { column: { column: 'participant_id' } } }
-              } ).query().then( function( response ) {
-                // get the participant's address list
-                return CnHttpFactory.instance( {
-                  path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
-                  data: {
-                    select: { column: [ 'id', 'rank', 'summary' ] },
-                    modifier: {
-                      where: { column: 'address.active', operator: '=', value: true },
-                      order: { rank: false }
-                    }
-                  }
-                } ).query().then( function( response ) {
-                  return parentModel.metadata.getPromise().then( function() {
-                    parentModel.metadata.columnList.address_id.enumList = [];
-                    response.data.forEach( function( item ) {
-                      parentModel.metadata.columnList.address_id.enumList.push( {
-                        value: item.id,
-                        name: item.summary
-                      } );
-                    } );
-                  } );
-                } );
+          var upcoming = moment().isBefore( this.record.datetime, 'minute' );
+          parentModel.getDeleteEnabled = function() { return parentModel.$$getDeleteEnabled() && upcoming; };
+          parentModel.getEditEnabled = function() { return parentModel.$$getEditEnabled() && upcoming; };
+
+          if( 'home' == this.record.type ) {
+            // update the address list based on the parent interview
+            var response = await CnHttpFactory.instance( {
+              path: 'interview/' + this.record.interview_id,
+              data: { select: { column: { column: 'participant_id' } } }
+            } ).query();
+
+            // get the participant's address list
+            var response = await CnHttpFactory.instance( {
+              path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
+              data: {
+                select: { column: [ 'id', 'rank', 'summary' ] },
+                modifier: {
+                  where: { column: 'address.active', operator: '=', value: true },
+                  order: { rank: false }
+                }
+              }
+            } ).query();
+
+            await parentModel.metadata.getPromise()
+            parentModel.metadata.columnList.address_id.enumList = [];
+            response.data.forEach( function( item ) {
+              parentModel.metadata.columnList.address_id.enumList.push( {
+                value: item.id,
+                name: item.summary
               } );
-            }
-          } );
+            } );
+          }
         };
       }
       return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
@@ -615,8 +608,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         if( !angular.isObject( site ) || angular.isUndefined( site.id ) )
           throw new Error( 'Tried to create CnAppointmentModel without specifying the site.' );
 
-        var self = this;
-
         CnBaseModelFactory.construct( this, module );
         this.addModel = CnAppointmentAddFactory.instance( this );
         this.calendarModel = CnAppointmentCalendarFactory.instance( this );
@@ -636,15 +627,15 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           this.type = $state.params.type;
           var data = this.$$getServiceData( type, columnRestrictLists );
           if( 'calendar' == type || 'list' == type ) {
-            if( 'appointment' == self.getSubjectFromState() ) data.restricted_site_id = self.site.id;
-            data.type = self.type;
+            if( 'appointment' == this.getSubjectFromState() ) data.restricted_site_id = this.site.id;
+            data.type = this.type;
             if( 'calendar' == type ) {
               data.select = { column: [ 'datetime', 'outcome', {
                 table: 'appointment_type',
                 column: 'color'
               } ] };
 
-              if( 'home' == self.type ) {
+              if( 'home' == this.type ) {
                 data.select.column.push( { table: 'address', column: 'postcode' } );
               }
             }
@@ -658,69 +649,69 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         };
 
         // pass type/site when transitioning to list state
-        this.transitionToParentListState = function( subject ) {
+        this.transitionToParentListState = async function( subject ) {
           this.type = $state.params.type;
           if( angular.isUndefined( subject ) ) subject = '^';
-          return $state.go(
+          await $state.go(
             subject + '.list',
             { type: this.type, identifier: this.site.getIdentifier() }
           );
         };
 
         // pass type when transitioning to add state
-        this.transitionToAddState = function() {
+        this.transitionToAddState = async function() {
           this.type = $state.params.type;
           var params = { type: this.type, parentIdentifier: $state.params.identifier };
 
           // get the participant's primary site (assuming the current state is an interview)
-          return CnHttpFactory.instance( {
+          var response = await CnHttpFactory.instance( {
             path: 'interview/' + $state.params.identifier,
             data: { select: { column: [ { table: 'effective_site', column: 'name' } ] } }
-          } ).get().then( function( response ) {
-            if( response.data.name ) params.site = 'name=' + response.data.name;
-            return $state.go( '^.add_' + self.module.subject.snake, params );
-          } );
+          } ).get();
+
+          if( response.data.name ) params.site = 'name=' + response.data.name;
+          await $state.go( '^.add_' + this.module.subject.snake, params );
         };
 
         // pass type/site when transitioning to list state
-        this.transitionToListState = function( record ) {
+        this.transitionToListState = async function( record ) {
           this.type = $state.params.type;
-          return $state.go(
+          await $state.go(
             this.module.subject.snake + '.list',
             { type: this.type, identifier: this.site.getIdentifier() }
           );
         };
 
         // pass type when transitioning to view state
-        this.transitionToViewState = function( record ) {
+        this.transitionToViewState = async function( record ) {
           this.type = $state.params.type;
           var params = { type: this.type, identifier: record.getIdentifier() };
 
           // get the participant's primary site (assuming the current state is an interview)
-          return CnHttpFactory.instance( {
+          var response = await CnHttpFactory.instance( {
             path: 'appointment/' + record.getIdentifier(),
             data: { select: { column: [ { table: 'effective_site', column: 'name' } ] } }
-          } ).get().then( function( response ) {
-            if( response.data.name ) params.site = 'name=' + response.data.name;
-            return $state.go( self.module.subject.snake + '.view', params );
-          } );
+          } ).get();
+
+          if( response.data.name ) params.site = 'name=' + response.data.name;
+          await $state.go( this.module.subject.snake + '.view', params );
         };
 
         // pass type when transitioning to last state
-        this.transitionToLastState = function() {
+        this.transitionToLastState = async function() {
           this.type = $state.params.type;
           var parent = this.getParentIdentifier();
-          return $state.go(
+          await $state.go(
             parent.subject + '.view',
             { type: this.type, identifier: parent.identifier }
           );
         };
 
-        this.transitionToParentViewState = function( subject, identifier ) {
+        this.transitionToParentViewState = async function( subject, identifier ) {
           this.type = $state.params.type;
           var params = { identifier: identifier };
           if( 'interview' == subject ) params.type = this.type;
-          return $state.go( subject + '.view', params );
+          await $state.go( subject + '.view', params );
         };
 
         // extend getBreadcrumbTitle
@@ -736,31 +727,31 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         };
 
         // extend getMetadata
-        this.getMetadata = function() {
-          return this.$$getMetadata().then( function() {
-            // Force the user and address columns to be mandatory (this will only affect home appointments)
-            self.metadata.columnList.user_id.required = true;
-            self.metadata.columnList.address_id.required = true;
+        this.getMetadata = async function() {
+          await this.$$getMetadata();
 
-            return CnHttpFactory.instance( {
-              path: 'appointment_type',
-              data: {
-                select: { column: [ 'id', 'name', 'qnaire_id' ] },
-                modifier: { order: 'name', limit: 1000 }
-              }
-            } ).query().then( function success( response ) {
-              // store the appointment types in a special array with qnaire_id as indeces:
-              var qnaireList = {};
-              response.data.forEach( function( item ) {
-                if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
-                qnaireList[item.qnaire_id].push( { value: item.id, name: item.name, } );
-              } );
-              self.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
+          // Force the user and address columns to be mandatory (this will only affect home appointments)
+          this.metadata.columnList.user_id.required = true;
+          this.metadata.columnList.address_id.required = true;
 
-              // and leave the enum list empty for now, it will be set by the view/add services
-              self.metadata.columnList.appointment_type_id.enumList = [];
-            } );
+          var response = await CnHttpFactory.instance( {
+            path: 'appointment_type',
+            data: {
+              select: { column: [ 'id', 'name', 'qnaire_id' ] },
+              modifier: { order: 'name', limit: 1000 }
+            }
+          } ).query();
+
+          // store the appointment types in a special array with qnaire_id as indeces:
+          var qnaireList = {};
+          response.data.forEach( function( item ) {
+            if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
+            qnaireList[item.qnaire_id].push( { value: item.id, name: item.name, } );
           } );
+          this.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
+
+          // and leave the enum list empty for now, it will be set by the view/add services
+          this.metadata.columnList.appointment_type_id.enumList = [];
         };
 
         // extend getTypeaheadData

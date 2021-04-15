@@ -150,16 +150,19 @@ define( function() {
     'CnBaseViewFactory',
     function( CnBaseViewFactory ) {
       var object = function( parentModel, root ) {
-        var self = this;
         CnBaseViewFactory.construct( this, parentModel, root, 'script' );
 
-        this.deferred.promise.then( function() {
+        var self = this;
+        async function init() {
+          await self.deferred.promise;
           if( angular.isDefined( self.collectionModel ) ) self.collectionModel.listModel.heading = 'Disabled Collection List';
           if( angular.isDefined( self.holdTypeModel ) ) self.holdTypeModel.listModel.heading = 'Overridden Hold Type List';
           if( angular.isDefined( self.scriptModel ) ) self.scriptModel.listModel.heading = 'Mandatory Script List';
           if( angular.isDefined( self.siteModel ) ) self.siteModel.listModel.heading = 'Disabled Site List';
           if( angular.isDefined( self.stratumModel ) ) self.stratumModel.listModel.heading = 'Disabled Stratum List';
-        } );
+        }
+
+        init();
       }
       return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
     }
@@ -172,34 +175,34 @@ define( function() {
     function( CnBaseModelFactory, CnQnaireAddFactory, CnQnaireListFactory, CnQnaireViewFactory,
               CnSession, CnHttpFactory ) {
       var object = function( root ) {
-        var self = this;
         CnBaseModelFactory.construct( this, module );
         this.addModel = CnQnaireAddFactory.instance( this );
         this.listModel = CnQnaireListFactory.instance( this );
         this.viewModel = CnQnaireViewFactory.instance( this, root );
 
         // extend getMetadata
-        this.getMetadata = function() {
-          return this.$$getMetadata().then( function() {
-            return CnHttpFactory.instance( {
-              path: 'event_type',
-              data: {
-                select: { column: [ 'id', 'name' ] },
-                modifier: { order: 'name', limit: 1000 }
-              }
-            } ).query().then( function success( response ) {
-              self.metadata.columnList.completed_event_type_id.enumList = [];
-              self.metadata.columnList.prev_event_type_id.enumList = [];
-              response.data.forEach( function( item ) {
-                self.metadata.columnList.completed_event_type_id.enumList.push( {
-                  value: item.id,
-                  name: item.name
-                } );
-                self.metadata.columnList.prev_event_type_id.enumList.push( {
-                  value: item.id,
-                  name: item.name
-                } );
-              } );
+        this.getMetadata = async function() {
+          await this.$$getMetadata();
+
+          var response = await CnHttpFactory.instance( {
+            path: 'event_type',
+            data: {
+              select: { column: [ 'id', 'name' ] },
+              modifier: { order: 'name', limit: 1000 }
+            }
+          } ).query();
+
+          this.metadata.columnList.completed_event_type_id.enumList = [];
+          this.metadata.columnList.prev_event_type_id.enumList = [];
+          var self = this;
+          response.data.forEach( function( item ) {
+            self.metadata.columnList.completed_event_type_id.enumList.push( {
+              value: item.id,
+              name: item.name
+            } );
+            self.metadata.columnList.prev_event_type_id.enumList.push( {
+              value: item.id,
+              name: item.name
             } );
           } );
         };

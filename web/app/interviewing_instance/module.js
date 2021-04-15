@@ -75,7 +75,7 @@ define( function() {
   if( angular.isDefined( module.actions.edit ) ) {
     module.addExtraOperation( 'view', {
       title: 'Set Password',
-      operation: function( $state, model ) { model.viewModel.setPassword(); }
+      operation: async function( $state, model ) { await model.viewModel.setPassword(); }
     } );
   }
 
@@ -147,36 +147,35 @@ define( function() {
     'CnBaseViewFactory', 'CnModalPasswordFactory', 'CnModalMessageFactory', 'CnHttpFactory',
     function( CnBaseViewFactory, CnModalPasswordFactory, CnModalMessageFactory, CnHttpFactory ) {
       var object = function( parentModel, root ) {
-        var self = this;
         CnBaseViewFactory.construct( this, parentModel, root, 'activity' );
 
         // custom operation
-        this.setPassword = function() {
-          CnModalPasswordFactory.instance( {
+        this.setPassword = async function() {
+          var response = await CnModalPasswordFactory.instance( {
             confirm: false,
             showCancel: true
-          } ).show().then( function( response ) {
-            if( angular.isObject( response ) ) {
-              CnHttpFactory.instance( {
-                path: 'interviewing_instance/' + self.record.getIdentifier(),
-                data: { password: response.requestedPass },
-                onError: function( response ) {
-                  if( 403 == response.status ) {
-                    CnModalMessageFactory.instance( {
-                      title: 'Unable To Change Password',
-                      message: 'Sorry, you do not have access to resetting the password for this interviewing instance.',
-                      error: true
-                    } ).show();
-                  } else { CnModalMessageFactory.httpError( response ); }
-                }
-              } ).patch().then( function() {
-                CnModalMessageFactory.instance( {
-                  title: 'Password Reset',
-                  message: 'The password has been successfully changed.'
-                } ).show();
-              } );
-            }
-          } );
+          } ).show();
+
+          if( angular.isObject( response ) ) {
+            await CnHttpFactory.instance( {
+              path: 'interviewing_instance/' + this.record.getIdentifier(),
+              data: { password: response.requestedPass },
+              onError: function( error ) {
+                if( 403 == error.status ) {
+                  CnModalMessageFactory.instance( {
+                    title: 'Unable To Change Password',
+                    message: 'Sorry, you do not have access to resetting the password for this interviewing instance.',
+                    error: true
+                  } ).show();
+                } else { CnModalMessageFactory.httpError( error ); }
+              }
+            } ).patch();
+
+            await CnModalMessageFactory.instance( {
+              title: 'Password Reset',
+              message: 'The password has been successfully changed.'
+            } ).show();
+          }
         };
       }
       return { instance: function( parentModel, root ) { return new object( parentModel, root ); } };
@@ -187,12 +186,9 @@ define( function() {
   cenozo.providers.factory( 'CnInterviewingInstanceModelFactory', [
     'CnBaseModelFactory',
     'CnInterviewingInstanceAddFactory', 'CnInterviewingInstanceListFactory', 'CnInterviewingInstanceViewFactory',
-    'CnHttpFactory',
     function( CnBaseModelFactory,
-              CnInterviewingInstanceAddFactory, CnInterviewingInstanceListFactory, CnInterviewingInstanceViewFactory,
-              CnHttpFactory ) {
+              CnInterviewingInstanceAddFactory, CnInterviewingInstanceListFactory, CnInterviewingInstanceViewFactory ) {
       var object = function( root ) {
-        var self = this;
         CnBaseModelFactory.construct( this, module );
         this.addModel = CnInterviewingInstanceAddFactory.instance( this );
         this.listModel = CnInterviewingInstanceListFactory.instance( this );

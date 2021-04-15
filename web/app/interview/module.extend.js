@@ -30,7 +30,7 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
         //   1) the interview list's parent is a participant model
         //   2) all interviews are complete for this participant
         //   3) another qnaire is available for this participant
-        object.afterList( function() {
+        object.afterList( async function() {
           object.parentModel.getAddEnabled = function() { return false; };
 
           var path = object.parentModel.getServiceCollectionPath();
@@ -41,42 +41,42 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
             var lastInterview = null;
 
             // get the participant's last interview
-            CnHttpFactory.instance( {
+            var response = await CnHttpFactory.instance( {
               path: path,
               data: {
                 modifier: { order: { 'qnaire.rank': true }, limit: 1 },
                 select: { column: [ { table: 'qnaire', column: 'rank' }, 'end_datetime' ] }
               },
-              onError: function( response ) {} // ignore errors
-            } ).query().then( function( response ) {
-              if( 0 < response.data.length ) lastInterview = response.data[0];
+              onError: function() {} // ignore errors
+            } ).query();
 
-              // get the participant's current queue rank
-              return CnHttpFactory.instance( {
-                path: path.replace( '/interview', '' ),
-                data: {
-                  select: { column: [
-                    { table: 'queue', column: 'rank', alias: 'queueRank' },
-                    { table: 'qnaire', column: 'rank', alias: 'qnaireRank' }
-                  ] }
-                },
-                onError: function( response ) {} // ignore errors
-              } ).query().then( function( response ) {
-                queueRank = response.data.queueRank;
-                qnaireRank = response.data.qnaireRank;
-              } );
-            } ).then( function( response ) {
-              object.parentModel.getAddEnabled = function() {
-                return object.parentModel.$$getAddEnabled() &&
-                       null != queueRank &&
-                       null != qnaireRank && (
-                         null == lastInterview || (
-                           null != lastInterview.end_datetime &&
-                           lastInterview.rank != qnaireRank
-                         )
-                       );
-              };
-            } );
+            if( 0 < response.data.length ) lastInterview = response.data[0];
+
+            // get the participant's current queue rank
+            var response = await CnHttpFactory.instance( {
+              path: path.replace( '/interview', '' ),
+              data: {
+                select: { column: [
+                  { table: 'queue', column: 'rank', alias: 'queueRank' },
+                  { table: 'qnaire', column: 'rank', alias: 'qnaireRank' }
+                ] }
+              },
+              onError: function() {} // ignore errors
+            } ).query();
+
+            queueRank = response.data.queueRank;
+            qnaireRank = response.data.qnaireRank;
+
+            object.parentModel.getAddEnabled = function() {
+              return object.parentModel.$$getAddEnabled() &&
+                     null != queueRank &&
+                     null != qnaireRank && (
+                       null == lastInterview || (
+                         null != lastInterview.end_datetime &&
+                         lastInterview.rank != qnaireRank
+                       )
+                     );
+            };
           }
         } );
 
@@ -116,29 +116,32 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
         }
 
         // override onView
-        object.onView = function( force ) {
-          return object.$$onView( force ).then( function() {
-            // check that the state type matches the interview's type
-            if( $state.params.type != object.record.type ) {
-              $state.go( 'error.404' );
-              throw new Error( 'Interview type does not match state parameters, redirecting to 404.' );
-            }
+        object.onView = async function( force ) {
+          await object.$$onView( force );
 
-            // set the correct type and refresh the list
-            if( angular.isDefined( object.appointmentModel ) ) updateEnableFunctions();
-          } );
+          // check that the state type matches the interview's type
+          if( $state.params.type != object.record.type ) {
+            await $state.go( 'error.404' );
+            throw new Error( 'Interview type does not match state parameters, redirecting to 404.' );
+          }
+
+          // set the correct type and refresh the list
+          if( angular.isDefined( object.appointmentModel ) ) updateEnableFunctions();
         };
 
-        // override appointment list's onDelete
-        object.deferred.promise.then( function() {
+        async function init() {
+          // override appointment list's onDelete
+          await object.deferred.promise;
+
           if( angular.isDefined( object.appointmentModel ) ) {
-            object.appointmentModel.listModel.onDelete = function( record ) {
-              return object.appointmentModel.listModel.$$onDelete( record ).then( function() {
-                object.onView();
-              } );
+            object.appointmentModel.listModel.onDelete = async function( record ) {
+              await object.appointmentModel.listModel.$$onDelete( record );
+              await object.onView();
             };
           }
-        } );
+        }
+
+        init();
 
         return object;
       };
@@ -164,28 +167,28 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
           },
 
           // pass type when transitioning to view state
-          transitionToViewState: function( record ) {
-            return $state.go(
+          transitionToViewState: async function( record ) {
+            await $state.go(
               object.module.subject.snake + '.view',
               { type: record.type, identifier: record.getIdentifier() }
             );
           },
 
           // extend getMetadata
-          getMetadata: function() {
-            return object.$$getMetadata().then( function() {
-              return CnHttpFactory.instance( {
-                path: 'qnaire',
-                data: {
-                  select: { column: [ 'id', 'name' ] },
-                  modifier: { order: 'rank' }
-                }
-              } ).query().then( function success( response ) {
-                object.metadata.columnList.qnaire_id.enumList = [];
-                response.data.forEach( function( item ) {
-                  object.metadata.columnList.qnaire_id.enumList.push( { value: item.id, name: item.name } );
-                } );
-              } );
+          getMetadata: async function() {
+            await object.$$getMetadata();
+
+            var response = await CnHttpFactory.instance( {
+              path: 'qnaire',
+              data: {
+                select: { column: [ 'id', 'name' ] },
+                modifier: { order: 'rank' }
+              }
+            } ).query();
+
+            object.metadata.columnList.qnaire_id.enumList = [];
+            response.data.forEach( function( item ) {
+              object.metadata.columnList.qnaire_id.enumList.push( { value: item.id, name: item.name } );
             } );
           }
         } );
