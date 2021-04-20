@@ -159,6 +159,27 @@ class appointment_mail extends \cenozo\database\record
       {
         $replace = util::convert_datetime_language( $datetime->format( $time_format ), $db_language );
       }
+      else if( preg_match( '/^interviewer\.*/', $value ) )
+      {
+        $db_interview = $db_participant->get_effective_interview();
+        $db_appointment = is_null( $db_interview ) ? NULL : $db_interview->get_last_appointment();
+        $db_user = is_null( $db_appointment ) ? NULL : $db_appointment->get_user();
+
+        if( is_null( $db_user ) ) log::warning( 'Appointment mail text references appointment user but no user exists.' );
+        if( 'interviewer.first_name' == $value )
+        {
+          $replace = is_null( $db_user ) ? '' : $db_user->first_name;
+        }
+        else if( 'interviewer.last_name' == $value )
+        {
+          $replace = is_null( $db_user ) ? '' : $db_user->last_name;
+        }
+        else if( 'interviewer.full_name' == $value )
+        {
+          $replace = is_null( $db_user ) ? '' : sprintf( '%s %s', $db_user->first_name, $db_user->last_name );
+        }
+        else log::error( sprintf( 'Invalid variable in appointment mail template: "%s"', $value ) );
+      }
       else
       {
         $replace = 0 === strpos( $value, 'participant.' )
