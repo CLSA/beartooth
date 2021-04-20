@@ -48,4 +48,28 @@ class interview extends \cenozo\database\interview
       $db_appointment->save();
     }
   }
+
+  /**
+   * Get the interview's last (most recent) appointment.
+   * @return appointment
+   * @access public
+   */
+  public function get_last_appointment()
+  {
+    // check the last key value
+    if( is_null( $this->id ) )
+    {
+      log::warning( 'Tried to query interview with no primary key.' );
+      return NULL;
+    }
+
+    $select = lib::create( 'database\select' );
+    $select->from( 'interview_last_appointment' );
+    $select->add_column( 'appointment_id' );
+    $modifier = lib::create( 'database\modifier' );
+    $modifier->where( 'interview_id', '=', $this->id );
+
+    $appointment_id = static::db()->get_one( sprintf( '%s %s', $select->get_sql(), $modifier->get_sql() ) );
+    return $appointment_id ? lib::create( 'database\appointment', $appointment_id ) : NULL;
+  }
 }
