@@ -234,7 +234,6 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
           $scope.model.addModel.afterNew( function() {
             // warn if old appointment will be cancelled
-            console.log( cnRecordAddScope );
             var saveFn = cnRecordAddScope.save;
             cnRecordAddScope.save = function() {
               CnHttpFactory.instance( {
