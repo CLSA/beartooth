@@ -433,32 +433,38 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
         this.onNew = async function( record ) {
           // update the address list based on the parent interview
+          // Note that we only do this if there is a parent, otherwise we're not in the right state and we don't
+          // need to update the address list as it will be done the next time we ARE in the right state (ie:
+          // looking to create a new appointment)
           var parent = parentModel.getParentIdentifier();
-          var response = await CnHttpFactory.instance( {
-            path: [ parent.subject, parent.identifier ].join( '/' ),
-            data: { select: { column: { column: 'participant_id' } } }
-          } ).query();
+          if( angular.isDefined( parent.subject ) && angular.isDefined( parent.identifier ) ) {
+            var response = await CnHttpFactory.instance( {
+              path: [ parent.subject, parent.identifier ].join( '/' ),
+              data: { select: { column: { column: 'participant_id' } } }
+            } ).query();
+            var participant_id = response.data.participant_id;
 
-          // get the participant's address list
-          var response = await CnHttpFactory.instance( {
-            path: ['participant', response.data.participant_id, 'address' ].join( '/' ),
-            data: {
-              select: { column: [ 'id', 'rank', 'summary' ] },
-              modifier: {
-                where: { column: 'address.active', operator: '=', value: true },
-                order: { rank: false }
+            // get the participant's address list
+            var response = await CnHttpFactory.instance( {
+              path: ['participant', participant_id, 'address' ].join( '/' ),
+              data: {
+                select: { column: [ 'id', 'rank', 'summary' ] },
+                modifier: {
+                  where: { column: 'address.active', operator: '=', value: true },
+                  order: { rank: false }
+                }
               }
-            }
-          } ).query();
+            } ).query();
 
-          await parentModel.metadata.getPromise();
-          parentModel.metadata.columnList.address_id.enumList = [];
-          response.data.forEach( function( item ) {
-            parentModel.metadata.columnList.address_id.enumList.push( {
-              value: item.id,
-              name: item.summary
+            await parentModel.metadata.getPromise();
+            parentModel.metadata.columnList.address_id.enumList = [];
+            response.data.forEach( function( item ) {
+              parentModel.metadata.columnList.address_id.enumList.push( {
+                value: item.id,
+                name: item.summary
+              } );
             } );
-          } );
+          }
 
           await this.$$onNew( record );
         };
@@ -554,6 +560,9 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
         this.onView = async function( force ) {
           await this.$$onView( force );
+
+          // convert null appointment types to something more user-friendly
+          if( null == this.record.appointment_type ) this.record.appointment_type = '(none)';
 
           var upcoming = moment().isBefore( this.record.datetime, 'minute' );
           parentModel.getDeleteEnabled = function() { return parentModel.$$getDeleteEnabled() && upcoming; };
