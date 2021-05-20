@@ -233,7 +233,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
           $scope.model.addModel.afterNew( async function() {
             // warn if old appointment will be cancelled
-            var saveFn = cnRecordAddScope.save;
+            cnRecordAddScope.baseSaveFn = cnRecordAddScope.save;
             cnRecordAddScope.save = async function() {
               var response = await CnHttpFactory.instance( {
                 path: 'interview/' + $scope.model.getParentIdentifier().identifier,
@@ -249,7 +249,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
                 } ).show();
               }
 
-              if( proceed ) await saveFn();
+              if( proceed ) await cnRecordAddScope.baseSaveFn();
             };
 
             // make sure the metadata has been created

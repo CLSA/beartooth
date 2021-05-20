@@ -10,9 +10,10 @@ define( [ cenozoApp.module( 'callback' ).getFileUrl( 'module.js' ) ], function()
       var instance = $delegate.instance;
       $delegate.instance = function( parentModel, site ) {
         var object = instance( parentModel, site );
-        var onCalendar = object.onCalendar;
+        object.baseOnCalendarFn = object.onCalendar;
+
         object.onCalendar = async function( replace, minDate, maxDate, ignoreParent ) {
-          await onCalendar( replace, minDate, maxDate, ignoreParent );
+          await object.baseOnCalendarFn( replace, minDate, maxDate, ignoreParent );
 
           // get a list of all participants callbacks that aren't coloured yet
           var participantIdList = object.cache.filter( item => angular.isUndefined( item.color ) )
