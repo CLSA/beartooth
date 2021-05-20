@@ -501,10 +501,11 @@ define( [ 'participant' ].reduce( function( list, name ) {
 
           // check for when the window gets focus back and update the participant details
           if( null != script.name.match( /withdraw|proxy/i ) ) {
+            var self = this;
             var win = angular.element( $window ).on( 'focus', async function() {
               // the following will process the withdraw or proxy script (in case it was finished)
-              await CnHttpFactory.instance( { path: 'script/' + script.id + '/token/uid=' + this.participant.uid } ).get();
-              await this.loadScriptList();
+              await CnHttpFactory.instance( { path: 'script/' + script.id + '/token/uid=' + self.participant.uid } ).get();
+              await self.loadScriptList();
               win.off( 'focus' );
             } );
           }
