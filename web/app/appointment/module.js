@@ -785,7 +785,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         forSite: function( site ) {
           if( !angular.isObject( site ) ) {
             $state.go( 'error.404' );
-            throw new Error( 'Cannot find site matching identifier "' + site + '", redirecting to 404.' );
+            throw 'Cannot find site matching identifier "' + site + '", redirecting to 404.';
           }
           if( angular.isUndefined( this.siteInstanceList[site.id] ) )
             this.siteInstanceList[site.id] = new object( site );

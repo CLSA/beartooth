@@ -122,7 +122,7 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
           // check that the state type matches the interview's type
           if( $state.params.type != object.record.type ) {
             await $state.go( 'error.404' );
-            throw new Error( 'Interview type does not match state parameters, redirecting to 404.' );
+            throw 'Interview type does not match state parameters, redirecting to 404.';
           }
 
           // set the correct type and refresh the list

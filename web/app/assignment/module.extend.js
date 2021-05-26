@@ -112,7 +112,10 @@ define( [ 'participant' ].reduce( function( list, name ) {
         if( 'assignment.home_control' == $state.current.name ) this.type = 'home';
         else if( 'assignment.site_control' == $state.current.name ) this.type = 'site';
         if( null == this.type ) {
-          if( 'home' != $state.params.type && 'site' != $state.params.type ) $state.go( 'error.404' );
+          if( 'home' != $state.params.type && 'site' != $state.params.type ) {
+            $state.go( 'error.404' );
+            throw 'Cannot find user matching assignment type "' + $state.params.type + '", redirecting to 404.';
+          }
           this.type = $state.params.type;
         }
 
