@@ -346,8 +346,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.directive( 'cnAppointmentList', [
-    'CnAppointmentModelFactory', 'CnSession',
-    function( CnAppointmentModelFactory, CnSession ) {
+    'CnAppointmentModelFactory',
+    function( CnAppointmentModelFactory ) {
       return {
         templateUrl: module.getFileUrl( 'list.tpl.html' ),
         restrict: 'E',
@@ -426,8 +426,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAppointmentAddFactory', [
-    'CnBaseAddFactory', 'CnSession', 'CnHttpFactory', '$injector',
-    function( CnBaseAddFactory, CnSession, CnHttpFactory, $injector ) {
+    'CnBaseAddFactory', 'CnHttpFactory',
+    function( CnBaseAddFactory, CnHttpFactory ) {
       var object = function( parentModel ) {
         CnBaseAddFactory.construct( this, parentModel );
 
@@ -535,8 +535,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
 
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAppointmentViewFactory', [
-    'CnBaseViewFactory', 'CnSession', 'CnHttpFactory', 'CnModalMessageFactory', '$injector',
-    function( CnBaseViewFactory, CnSession, CnHttpFactory, CnModalMessageFactory, $injector ) {
+    'CnBaseViewFactory', 'CnHttpFactory', 'CnModalMessageFactory',
+    function( CnBaseViewFactory, CnHttpFactory, CnModalMessageFactory ) {
       var object = function( parentModel, root ) {
         CnBaseViewFactory.construct( this, parentModel, root );
 
