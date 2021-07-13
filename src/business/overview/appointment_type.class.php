@@ -46,6 +46,11 @@ class appointment_type extends \cenozo\business\overview\base_overview
       $site_node_list[$site['name']] = $node;
     }
 
+    // add the not-site entry
+    $node = $this->add_root_item( 'No Site' );
+    foreach( $atype_list as $atype ) $this->add_item( $node, $atype, 0 );
+    $site_node_list['No Site'] = $node;
+
     // now fill in the count values
     $appointment_mod = lib::create( 'database\modifier' );
     $appointment_mod->join( 'appointment_type', 'appointment.appointment_type_id', 'appointment_type.id' );
@@ -70,7 +75,8 @@ class appointment_type extends \cenozo\business\overview\base_overview
 
     foreach( $appointment_class_name::select( $appointment_sel, $appointment_mod ) as $row )
     {
-      $node = $site_node_list[$row['site']]->find_node( $row['atype'] );
+      $site = is_null( $row['site'] ) ? 'No Site' : $row['site'];
+      $node = $site_node_list[$site]->find_node( $row['atype'] );
       $node->set_value( $row['total'] );
     }
 
