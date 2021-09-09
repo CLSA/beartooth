@@ -42,7 +42,7 @@ class post extends \cenozo\service\service
 
       // make sure all participants exist
       $input_list = array();
-      foreach( $data as $respondent ) $input_list[$respondent->uid] = $respondent->object;
+      foreach( $data as $respondent ) $input_list[$respondent->uid] = $respondent;
       ksort( $input_list );
 
       // match all UIDs for participants belonging to the correct site and application
@@ -68,7 +68,7 @@ class post extends \cenozo\service\service
       {
         $this->object_list[$db_participant->uid] = array(
           'participant' => $db_participant,
-          'object' => $input_list[$db_participant->uid] );
+          'data' => $input_list[$db_participant->uid] );
       }
 
       // search for missing uids in the object list
@@ -87,8 +87,8 @@ class post extends \cenozo\service\service
    */
   protected function execute()
   {
-    foreach( $this->object_list as $data )
-      $this->process_participant( $data['participant'], $data['object'] );
+    foreach( $this->object_list as $object )
+      $this->process_participant( $object['participant'], $object['data'] );
 
     if( is_null( $this->status->get_code() ) ) $this->status->set_code( 201 );
   }
@@ -97,16 +97,19 @@ class post extends \cenozo\service\service
    * Processes the pine/participants service
    * 
    * @param database\participant $db_participant The participant being exported to
-   * @param stdClass $object The data sent by Pine
+   * @param stdClass $data The data sent by Pine
    * @access private
    */
-  private function process_participant( $db_participant, $object )
+  private function process_participant( $db_participant, $data )
   {
     $interviewing_instance_class_name = lib::get_class_name( 'database\interviewing_instance' );
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
 
+    $session = lib::create( 'business\session' );
+    $db_application = $session->get_application();
+    $db_user = $session->get_user();
+
     // get the pine instance to tell whether this is a home or site instance
-    $db_user = lib::create( 'business\session' )->get_user();
     $db_interviewing_instance = $interviewing_instance_class_name::get_unique_record( 'user_id', $db_user->id );
     if( is_null( $db_interviewing_instance ) )
     {
@@ -124,7 +127,6 @@ class post extends \cenozo\service\service
     $interview_mod = lib::create( 'database\modifier' );
     $interview_mod->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
     $interview_mod->where( 'qnaire.type', '=', $interview_type );
-    $interview_mod->where( 'interview.end_datetime', '=', NULL );
     $interview_mod->order_desc( 'interview.start_datetime' );
     $interview_list = $db_participant->get_interview_object_list( $interview_mod );
     if( 0 == count( $interview_list ) )
@@ -135,13 +137,74 @@ class post extends \cenozo\service\service
       );
     }
     $db_interview = current( $interview_list );
+    $db_qnaire = $db_interview->get_qnaire();
 
-    $member = 'end_datetime';
-    $datetime_obj = util::get_datetime_object( property_exists( $object, $member ) ? $object->$member : NULL );
+    if( property_exists( $data, 'participant' ) )
+    {
+      foreach( $data->participant as $column => $value ) $db_participant->$column = $value;
+      $db_participant->save();
+    }
 
-    // interview and appointment status
-    $db_interview->complete( NULL, $datetime_obj );
-    $db_participant->repopulate_queue( false );
+    if( property_exists( $data, 'address' ) )
+    {
+      $db_address = $db_participant->get_primary_address();
+      foreach( $data->address as $column => $value ) $db_address->$column = $value;
+      $db_address->save();
+    }
+
+    if( property_exists( $data, 'consent_list' ) )
+    {
+      foreach( $data->consent_list as $consent )
+      {
+        $db_consent_type = $consent_type_class_name::get_unique_record( 'name', $consent->name );
+        if( !is_null( $db_consent_type ) )
+        {
+          $write_consent = true;
+
+          // don't write a new consent record if the consent status hasn't changed
+          $db_consent = $db_participant->get_last_consent( $db_consent_type );
+          if( !is_null( $db_consent ) && $db_consent->accept == $consent->accept ) $write_consent = false;
+
+          if( $write_consent )
+          {
+            $db_consent = lib::create( 'database\consent' );
+            $db_consent->participant_id = $db_participant->id;
+            $db_consent->consent_type_id = $db_consent_type->id;
+            $db_consent->accept = $consent->accept;
+            $db_consent->datetime = $consent->datetime;
+            $db_consent->note = sprintf(
+              'Received from an exported Pine questionnaire from the %s %s interview.',
+              $db_application->title,
+              $db_qnaire->type
+            );
+            $db_consent->save();
+          }
+        }
+      }
+    }
+
+    if( property_exists( $data, 'interview' ) )
+    {
+      $datetime_obj = util::get_datetime_object( $data->interview->datetime );
+      if( is_null( $db_interview->end_datetime ) )
+      {
+        // interview and appointment status
+        $db_interview->complete( NULL, $datetime_obj );
+        $db_participant->repopulate_queue( false );
+      }
+      else
+      {
+        // already complete, so just update the interview end datetime
+        $db_interview->end_datetime = $datetime_obj;
+        $db_interview->save();
+      }
+
+      if( property_exists( $data->interview, 'comment_list' ) )
+      {
+        $db_interview->note = implode( "\n\n", $data->comment_list );
+        $db_interview->save();
+      }
+    }
   }
 
   /**
