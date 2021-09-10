@@ -161,9 +161,12 @@ class post extends \cenozo\service\service
         {
           $write_consent = true;
 
-          // don't write a new consent record if the consent status hasn't changed
-          $db_consent = $db_participant->get_last_consent( $db_consent_type );
-          if( !is_null( $db_consent ) && $db_consent->accept == $consent->accept ) $write_consent = false;
+          // don't write a new consent record if the consent status hasn't changed (and we are confirming, not triggering)
+          if( 'confirm' == $consent->type )
+          {
+            $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
+            if( !is_null( $db_last_consent ) && $db_last_consent->accept == $consent->accept ) $write_consent = false;
+          }
 
           if( $write_consent )
           {
@@ -201,7 +204,7 @@ class post extends \cenozo\service\service
 
       if( property_exists( $data->interview, 'comment_list' ) )
       {
-        $db_interview->note = implode( "\n\n", $data->comment_list );
+        $db_interview->note = implode( "\n\n", $data->interview->comment_list );
         $db_interview->save();
       }
     }
