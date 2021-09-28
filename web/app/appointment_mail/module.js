@@ -302,41 +302,58 @@ define( [ 'trace' ].reduce( function( list, name ) {
           var self = this;
           await this.$$getMetadata();
 
-          var response = await CnHttpFactory.instance( {
-            path: 'site',
-            data: {
-              select: { column: [ 'id', 'name' ] },
-              modifier: { order: 'name', limit: 1000 }
-            }
-          } ).query();
+          var [siteResponse, qnaireResponse, appointmentTypeResponse, languageResponse] = await Promise.all( [
+            CnHttpFactory.instance( {
+              path: 'site',
+              data: {
+                select: { column: [ 'id', 'name' ] },
+                modifier: { order: 'name', limit: 1000 }
+              }
+            } ).query(),
+
+            CnHttpFactory.instance( {
+              path: 'qnaire',
+              data: {
+                select: { column: [ 'id', 'type' ] },
+                modifier: { order: 'rank', limit: 1000 }
+              }
+            } ).query(),
+
+            CnHttpFactory.instance( {
+              path: 'appointment_type',
+              data: {
+                select: { column: [ 'id', 'name', 'qnaire_id' ] },
+                modifier: { order: 'name', limit: 1000 }
+              }
+            } ).query(),
+
+            CnHttpFactory.instance( {
+              path: 'language',
+              data: {
+                select: { column: [ 'id', 'name' ] },
+                modifier: {
+                  where: { column: 'active', operator: '=', value: true },
+                  order: 'name',
+                  limit: 1000
+                }
+              }
+            } ).query()
+          ] );
+
           this.metadata.columnList.site_id.enumList = [];
-          response.data.forEach( function( item ) {
+          siteResponse.data.forEach( function( item ) {
             self.metadata.columnList.site_id.enumList.push( { value: item.id, name: item.name } );
           } );
-
-          var response = await CnHttpFactory.instance( {
-            path: 'qnaire',
-            data: {
-              select: { column: [ 'id', 'type' ] },
-              modifier: { order: 'rank', limit: 1000 }
-            }
-          } ).query();
+          
           this.metadata.columnList.qnaire_id.enumList = [];
-          response.data.forEach( function( item ) {
+          qnaireResponse.data.forEach( function( item ) {
             self.metadata.columnList.qnaire_id.enumList.push( { value: item.id, name: item.type } );
           } );
-
-          var response = await CnHttpFactory.instance( {
-            path: 'appointment_type',
-            data: {
-              select: { column: [ 'id', 'name', 'qnaire_id' ] },
-              modifier: { order: 'name', limit: 1000 }
-            }
-          } ).query();
+          
           // store the appointment types in a special array with qnaire_id as indices
           this.metadata.columnList.appointment_type_id.enumList = [ { value: '', name: '(empty)' } ];
           var qnaireList = {};
-          response.data.forEach( function( item ) {
+          appointmentTypeResponse.data.forEach( function( item ) {
             self.metadata.columnList.appointment_type_id.enumList.push( { value: item.id, name: item.name } );
 
             if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
@@ -344,19 +361,8 @@ define( [ 'trace' ].reduce( function( list, name ) {
           } );
           this.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
 
-          var response = await CnHttpFactory.instance( {
-            path: 'language',
-            data: {
-              select: { column: [ 'id', 'name' ] },
-              modifier: {
-                where: { column: 'active', operator: '=', value: true },
-                order: 'name',
-                limit: 1000
-              }
-            }
-          } ).query();
           this.metadata.columnList.language_id.enumList = [];
-          response.data.forEach( function( item ) {
+          languageResponse.data.forEach( function( item ) {
             self.metadata.columnList.language_id.enumList.push( { value: item.id, name: item.name } );
           } );
         };
