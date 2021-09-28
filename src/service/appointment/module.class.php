@@ -184,9 +184,20 @@ class module extends \cenozo\service\base_calendar_module
     // interviewing roles need to be treated specially
     if( 'machine' == $db_role->name )
     {
+      // always include all appointments
+      $modifier->limit( 10000000 );
+
       $interviewing_instance_class_name = lib::create( 'database\interviewing_instance' );
       $appointment_type_class_name = lib::create( 'database\appointment_type' );
       $form_type_class_name = lib::create( 'database\form_type' );
+
+      $db_interviewing_instance = $interviewing_instance_class_name::get_unique_record( 'user_id', $db_user->id );
+      if( is_null( $db_interviewing_instance ) )
+        throw lib::create( 'exception\runtime',
+          sprintf( 'Tried to get appointment list for interviewing instance user "%s" that has no interviewing instance record.',
+                   $db_user->name ),
+          __METHOD__ );
+      $db_interviewer_user = $db_interviewing_instance->get_interviewer_user();
 
       // add specific columns
       $select->remove_column();
@@ -195,21 +206,34 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_table_column( 'language', 'code', 'language' );
       $select->add_table_column( 'participant', 'honorific' );
       $select->add_table_column( 'participant', 'first_name' );
-      $select->add_column( 'IFNULL( participant.other_name, "" )', 'otherName', false );
-      $select->add_table_column( 'participant', 'last_name' );
-      $select->add_column( 'IFNULL( participant.date_of_birth, "" )', 'dob', false );
-      $select->add_table_column( 'participant', 'sex', 'gender' );
-      $select->add_column( 'datetime' );
-      $select->add_table_column( 'address', 'address1', 'street' );
-      $select->add_table_column( 'address', 'city' );
-      $select->add_table_column( 'region', 'name', 'province' );
-      $select->add_table_column( 'address', 'postcode' );
-      $select->add_table_column( 'participant', 'IFNULL( email, "" )', 'email', false );
       $select->add_column(
-        'IF( 70 <= TIMESTAMPDIFF( YEAR, date_of_birth, CURDATE() ) AND proxy_form.total = 0, 1, 0 )',
-        'ask_proxy',
+        'IFNULL( participant.other_name, "" )',
+        'onyx' == $db_interviewing_instance->type ? 'otherName' : 'other_name',
         false
       );
+      $select->add_table_column( 'participant', 'last_name' );
+      $select->add_column(
+        'IFNULL( participant.date_of_birth, "" )',
+        'onyx' == $db_interviewing_instance->type ? 'dob' : 'date_of_birth',
+        false
+      );
+      $select->add_table_column( 'participant', 'sex', 'onyx' == $db_interviewing_instance->type ? 'gender' : 'sex' );
+      if( 'onyx' != $db_interviewing_instance->type ) $select->add_table_column( 'participant', 'current_sex' );
+      $select->add_column( 'datetime' );
+      $select->add_table_column( 'address', 'address1', 'onyx' == $db_interviewing_instance->type ? 'street' : 'address1' );
+      if( 'onyx' != $db_interviewing_instance->type ) $select->add_table_column( 'address', 'address2' );
+      $select->add_table_column( 'address', 'city' );
+      $select->add_table_column( 'region', 'name', 'onyx' == $db_interviewing_instance->type ? 'province' : 'region' );
+      $select->add_table_column( 'address', 'postcode' );
+      $select->add_table_column( 'participant', 'IFNULL( email, "" )', 'email', false );
+      if( 'onyx' == $db_interviewing_instance->type )
+      {
+        $select->add_column(
+          'IF( 70 <= TIMESTAMPDIFF( YEAR, date_of_birth, CURDATE() ) AND proxy_form.total = 0, 1, 0 )',
+          'ask_proxy',
+          false
+        );
+      }
 
       $modifier->join( 'cohort', 'participant.cohort_id', 'cohort.id' );
       $modifier->join( 'language', 'participant.language_id', 'language.id' );
@@ -255,15 +279,6 @@ class module extends \cenozo\service\base_calendar_module
         'proxy_form.participant_id'
       );
 
-      // restrict by interviewing instance
-      $db_interviewing_instance = $interviewing_instance_class_name::get_unique_record( 'user_id', $db_user->id );
-      if( is_null( $db_interviewing_instance ) )
-        throw lib::create( 'exception\runtime',
-          sprintf( 'Tried to get appointment list for interviewing instance user "%s" that has no interviewing instance record.',
-                   $db_user->name ),
-          __METHOD__ );
-
-      $db_interviewer_user = $db_interviewing_instance->get_interviewer_user();
       if( !is_null( $db_interviewer_user ) )
       {
         // home interview
@@ -274,90 +289,126 @@ class module extends \cenozo\service\base_calendar_module
         // site interview
         $modifier->where( 'appointment.user_id', '=', NULL );
 
-        $select->add_column(
-          'IF( IFNULL( hin_consent.accept, false ), "YES", "NO" )',
-          'consentToHIN',
-          false
-        );
-        $select->add_column(
-          'IF( IFNULL( blood_consent.accept, true ), "YES", "NO" )',
-          'consentToDrawBlood',
-          false
-        );
-        $select->add_column(
-          'IF( IFNULL( urine_consent.accept, true ), "YES", "NO" )',
-          'consentToTakeUrine',
-          false
-        );
+        // consent status is passed to onyx in a customized way (pine consent is done below)
+        if( 'onyx' == $db_interviewing_instance->type )
+        {
+          $select->add_column(
+            'IF( IFNULL( hin_consent.accept, false ), "YES", "NO" )',
+            'consentToHIN',
+            false
+          );
+          $select->add_column(
+            'IF( IFNULL( blood_consent.accept, true ), "YES", "NO" )',
+            'consentToDrawBlood',
+            false
+          );
+          $select->add_column(
+            'IF( IFNULL( urine_consent.accept, true ), "YES", "NO" )',
+            'consentToTakeUrine',
+            false
+          );
 
-        // provide HIN access consent
+          // provide HIN access consent
+          $modifier->join(
+            'participant_last_consent',
+            'participant.id',
+            'participant_last_hin_consent.participant_id',
+            '', // regular join type
+            'participant_last_hin_consent'
+          );
+          $modifier->join(
+            'consent_type',
+            'participant_last_hin_consent.consent_type_id',
+            'hin_consent_type.id',
+            '', // regular join type
+            'hin_consent_type'
+          );
+          $modifier->left_join(
+            'consent',
+            'participant_last_hin_consent.consent_id',
+            'hin_consent.id',
+            'hin_consent'
+          );
+          $modifier->where( 'hin_consent_type.name', '=', 'HIN access' );
+
+          // provide blood consent
+          $modifier->join(
+            'participant_last_consent',
+            'participant.id',
+            'participant_last_blood_consent.participant_id',
+            '', // regular join type
+            'participant_last_blood_consent'
+          );
+          $modifier->join(
+            'consent_type',
+            'participant_last_blood_consent.consent_type_id',
+            'blood_consent_type.id',
+            '', // regular join type
+            'blood_consent_type'
+          );
+          $modifier->left_join(
+            'consent',
+            'participant_last_blood_consent.consent_id',
+            'blood_consent.id',
+            'blood_consent'
+          );
+          $modifier->where( 'blood_consent_type.name', '=', 'draw blood' );
+
+          // provide urine consent
+          $modifier->join(
+            'participant_last_consent',
+            'participant.id',
+            'participant_last_urine_consent.participant_id',
+            '', // regular join type
+            'participant_last_urine_consent'
+          );
+          $modifier->join(
+            'consent_type',
+            'participant_last_urine_consent.consent_type_id',
+            'urine_consent_type.id',
+            '', // regular join type
+            'urine_consent_type'
+          );
+          $modifier->left_join(
+            'consent',
+            'participant_last_urine_consent.consent_id',
+            'urine_consent.id',
+            'urine_consent'
+          );
+          $modifier->where( 'urine_consent_type.name', '=', 'take urine' );
+        }
+      }
+
+      // send pine a list of all consent statuses
+      if( 'pine' == $db_interviewing_instance->type )
+      {
         $modifier->join(
           'participant_last_consent',
-          'participant.id',
-          'participant_last_hin_consent.participant_id',
-          '', // regular join type
-          'participant_last_hin_consent'
+          'interview.participant_id',
+          'full_participant_last_consent.participant_id',
+          '',
+          'full_participant_last_consent'
         );
-        $modifier->join(
+        $modifier->left_join(
           'consent_type',
-          'participant_last_hin_consent.consent_type_id',
-          'hin_consent_type.id',
-          '', // regular join type
-          'hin_consent_type'
+          'full_participant_last_consent.consent_type_id',
+          'full_consent_type.id',
+          'full_consent_type'
         );
         $modifier->left_join(
           'consent',
-          'participant_last_hin_consent.consent_id',
-          'hin_consent.id',
-          'hin_consent'
+          'full_participant_last_consent.consent_id',
+          'full_consent.id',
+          'full_consent'
         );
-        $modifier->where( 'hin_consent_type.name', '=', 'HIN access' );
+        $modifier->group( 'appointment.id' );
 
-        // provide blood consent
-        $modifier->join(
-          'participant_last_consent',
-          'participant.id',
-          'participant_last_blood_consent.participant_id',
-          '', // regular join type
-          'participant_last_blood_consent'
+        $select->add_column(
+          'GROUP_CONCAT( CONCAT_WS( "$", full_consent_type.name, full_consent.accept, full_consent.datetime ) SEPARATOR ";" )',
+          'consent_list',
+          false
         );
-        $modifier->join(
-          'consent_type',
-          'participant_last_blood_consent.consent_type_id',
-          'blood_consent_type.id',
-          '', // regular join type
-          'blood_consent_type'
-        );
-        $modifier->left_join(
-          'consent',
-          'participant_last_blood_consent.consent_id',
-          'blood_consent.id',
-          'blood_consent'
-        );
-        $modifier->where( 'blood_consent_type.name', '=', 'draw blood' );
-
-        // provide urine consent
-        $modifier->join(
-          'participant_last_consent',
-          'participant.id',
-          'participant_last_urine_consent.participant_id',
-          '', // regular join type
-          'participant_last_urine_consent'
-        );
-        $modifier->join(
-          'consent_type',
-          'participant_last_urine_consent.consent_type_id',
-          'urine_consent_type.id',
-          '', // regular join type
-          'urine_consent_type'
-        );
-        $modifier->left_join(
-          'consent',
-          'participant_last_urine_consent.consent_id',
-          'urine_consent.id',
-          'urine_consent'
-        );
-        $modifier->where( 'urine_consent_type.name', '=', 'take urine' );
+        \cenozo\database\database::$debug = true;
       }
 
       // restrict by appointment type
