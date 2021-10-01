@@ -397,7 +397,11 @@ class post extends \cenozo\service\service
     if( 0 == count( $interview_list ) )
     {
       throw lib::create( 'exception\runtime',
-        sprintf( 'Trying to export Onyx interview but no matching %s interview can be found.', $interview_type ),
+        sprintf(
+          'Trying to export Onyx interview for %s but no matching %s interview can be found.',
+          $db_participant->uid,
+          $interview_type
+        ),
         __METHOD__
       );
     }
