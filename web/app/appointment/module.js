@@ -1,7 +1,5 @@
-define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
-  'use strict';
+cenozoApp.defineModule( { name: 'appointment', dependencies: 'site', models: ['add', 'list', 'view'], create: module => {
 
-  try { var module = cenozoApp.module( 'appointment', true ); } catch( err ) { console.warn( err ); return; }
   angular.extend( module, {
     identifier: {
       parent: [ {
@@ -353,6 +351,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         restrict: 'E',
         scope: { model: '=?' },
         controller: function( $scope ) {
+          // note that instead of attaching the model to the root we need to reference an instance instead
           if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentModelFactory.instance();
         }
       };
@@ -457,13 +456,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
             } ).query();
 
             await parentModel.metadata.getPromise();
-            parentModel.metadata.columnList.address_id.enumList = [];
-            response.data.forEach( function( item ) {
-              parentModel.metadata.columnList.address_id.enumList.push( {
-                value: item.id,
-                name: item.summary
-              } );
-            } );
+            parentModel.metadata.columnList.address_id.enumList = response.data.reduce( ( list, item ) => {
+              list.push( { value: item.id, name: item.summary } );
+              return list;
+            }, [] );
           }
 
           await this.$$onNew( record );
@@ -504,7 +500,7 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           var loadMinDate = this.getLoadMinDate( replace, minDate );
           var loadMaxDate = this.getLoadMaxDate( replace, maxDate );
           await this.$$onCalendar( replace, minDate, maxDate, true );
-          this.cache.forEach( function( item, index, array ) {
+          this.cache.forEach( ( item, index, array ) => {
             array[index] = getEventFromAppointment( item, CnSession.user.timezone );
           } );
         };
@@ -524,9 +520,8 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
         // override onDelete
         this.onDelete = async function( record ) {
           await this.$$onDelete( record );
-          parentModel.calendarModel.cache = parentModel.calendarModel.cache.filter( function( e ) {
-            return e.getIdentifier() != record.getIdentifier();
-          } );
+          parentModel.calendarModel.cache =
+            parentModel.calendarModel.cache.filter( e => e.getIdentifier() != record.getIdentifier() );
         };
       };
       return { instance: function( parentModel ) { return new object( parentModel ); } };
@@ -588,13 +583,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
             } ).query();
 
             await parentModel.metadata.getPromise()
-            parentModel.metadata.columnList.address_id.enumList = [];
-            response.data.forEach( function( item ) {
-              parentModel.metadata.columnList.address_id.enumList.push( {
-                value: item.id,
-                name: item.summary
-              } );
-            } );
+            parentModel.metadata.columnList.address_id.enumList = response.data.reduce( ( list, item ) => {
+              list.push( { value: item.id, name: item.summary } );
+              return list;
+            }, [] );
           }
         };
       }
@@ -605,12 +597,10 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
   /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAppointmentModelFactory', [
     'CnBaseModelFactory',
-    'CnAppointmentAddFactory', 'CnAppointmentCalendarFactory',
-    'CnAppointmentListFactory', 'CnAppointmentViewFactory',
+    'CnAppointmentAddFactory', 'CnAppointmentCalendarFactory', 'CnAppointmentListFactory', 'CnAppointmentViewFactory',
     'CnSession', 'CnHttpFactory', '$state',
     function( CnBaseModelFactory,
-              CnAppointmentAddFactory, CnAppointmentCalendarFactory,
-              CnAppointmentListFactory, CnAppointmentViewFactory,
+              CnAppointmentAddFactory, CnAppointmentCalendarFactory, CnAppointmentListFactory, CnAppointmentViewFactory,
               CnSession, CnHttpFactory, $state ) {
       var object = function( site ) {
         if( !angular.isObject( site ) || angular.isUndefined( site.id ) )
@@ -751,12 +741,11 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
           } ).query();
 
           // store the appointment types in a special array with qnaire_id as indeces:
-          var qnaireList = {};
-          response.data.forEach( function( item ) {
-            if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
-            qnaireList[item.qnaire_id].push( { value: item.id, name: item.name, } );
-          } );
-          this.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
+          this.metadata.columnList.appointment_type_id.qnaireList = response.data.reduce( ( list, item ) => {
+            if( angular.isUndefined( list[item.qnaire_id] ) ) list[item.qnaire_id] = [];
+            list[item.qnaire_id].push( { value: item.id, name: item.name, } );
+            return list;
+          }, {} );
 
           // and leave the enum list empty for now, it will be set by the view/add services
           this.metadata.columnList.appointment_type_id.enumList = [];
@@ -818,4 +807,4 @@ define( cenozoApp.module( 'site' ).getRequiredFiles(), function() {
     }
   ] );
 
-} );
+} } );

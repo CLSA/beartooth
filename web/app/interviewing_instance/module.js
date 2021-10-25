@@ -1,7 +1,5 @@
-define( function() {
-  'use strict';
+cenozoApp.defineModule( { name: 'interviewing_instance', models: ['add', 'list', 'view'], create: module => {
 
-  try { var module = cenozoApp.module( 'interviewing_instance', true ); } catch( err ) { console.warn( err ); return; }
   angular.extend( module, {
     identifier: {}, // standard
     name: {
@@ -80,69 +78,6 @@ define( function() {
   }
 
   /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnInterviewingInstanceAdd', [
-    'CnInterviewingInstanceModelFactory',
-    function( CnInterviewingInstanceModelFactory ) {
-      return {
-        templateUrl: module.getFileUrl( 'add.tpl.html' ),
-        restrict: 'E',
-        scope: { model: '=?' },
-        controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnInterviewingInstanceModelFactory.root;
-        }
-      };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnInterviewingInstanceList', [
-    'CnInterviewingInstanceModelFactory',
-    function( CnInterviewingInstanceModelFactory ) {
-      return {
-        templateUrl: module.getFileUrl( 'list.tpl.html' ),
-        restrict: 'E',
-        scope: { model: '=?' },
-        controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnInterviewingInstanceModelFactory.root;
-        }
-      };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnInterviewingInstanceView', [
-    'CnInterviewingInstanceModelFactory',
-    function( CnInterviewingInstanceModelFactory ) {
-      return {
-        templateUrl: module.getFileUrl( 'view.tpl.html' ),
-        restrict: 'E',
-        scope: { model: '=?' },
-        controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnInterviewingInstanceModelFactory.root;
-        }
-      };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnInterviewingInstanceAddFactory', [
-    'CnBaseAddFactory',
-    function( CnBaseAddFactory ) {
-      var object = function( parentModel ) { CnBaseAddFactory.construct( this, parentModel ); };
-      return { instance: function( parentModel ) { return new object( parentModel ); } };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnInterviewingInstanceListFactory', [
-    'CnBaseListFactory',
-    function( CnBaseListFactory ) {
-      var object = function( parentModel ) { CnBaseListFactory.construct( this, parentModel ); };
-      return { instance: function( parentModel ) { return new object( parentModel ); } };
-    }
-  ] );
-
-  /* ######################################################################################################## */
   cenozo.providers.factory( 'CnInterviewingInstanceViewFactory', [
     'CnBaseViewFactory', 'CnModalPasswordFactory', 'CnModalMessageFactory', 'CnHttpFactory',
     function( CnBaseViewFactory, CnModalPasswordFactory, CnModalMessageFactory, CnHttpFactory ) {
@@ -182,24 +117,4 @@ define( function() {
     }
   ] );
 
-  /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnInterviewingInstanceModelFactory', [
-    'CnBaseModelFactory',
-    'CnInterviewingInstanceAddFactory', 'CnInterviewingInstanceListFactory', 'CnInterviewingInstanceViewFactory',
-    function( CnBaseModelFactory,
-              CnInterviewingInstanceAddFactory, CnInterviewingInstanceListFactory, CnInterviewingInstanceViewFactory ) {
-      var object = function( root ) {
-        CnBaseModelFactory.construct( this, module );
-        this.addModel = CnInterviewingInstanceAddFactory.instance( this );
-        this.listModel = CnInterviewingInstanceListFactory.instance( this );
-        this.viewModel = CnInterviewingInstanceViewFactory.instance( this, root );
-      };
-
-      return {
-        root: new object( true ),
-        instance: function() { return new object( false ); }
-      };
-    }
-  ] );
-
-} );
+} } );

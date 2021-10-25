@@ -1,9 +1,5 @@
-define( [ 'trace' ].reduce( function( list, name ) {
-  return list.concat( cenozoApp.module( name ).getRequiredFiles() );
-}, [] ), function() {
-  'use strict';
+cenozoApp.defineModule( { name: 'appointment_mail', dependencies: 'trace', models: ['add', 'list', 'view'], create: module => {
 
-  try { var module = cenozoApp.module( 'appointment_mail', true ); } catch( err ) { console.warn( err ); return; }
   angular.extend( module, {
     identifier: {
       parent: {
@@ -173,36 +169,6 @@ define( [ 'trace' ].reduce( function( list, name ) {
   ] );
 
   /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnAppointmentMailList', [
-    'CnAppointmentMailModelFactory',
-    function( CnAppointmentMailModelFactory ) {
-      return {
-        templateUrl: module.getFileUrl( 'list.tpl.html' ),
-        restrict: 'E',
-        scope: { model: '=?' },
-        controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentMailModelFactory.root;
-        }
-      };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.directive( 'cnAppointmentMailView', [
-    'CnAppointmentMailModelFactory',
-    function( CnAppointmentMailModelFactory ) {
-      return {
-        templateUrl: module.getFileUrl( 'view.tpl.html' ),
-        restrict: 'E',
-        scope: { model: '=?' },
-        controller: function( $scope ) {
-          if( angular.isUndefined( $scope.model ) ) $scope.model = CnAppointmentMailModelFactory.root;
-        }
-      };
-    }
-  ] );
-
-  /* ######################################################################################################## */
   cenozo.providers.factory( 'CnAppointmentMailAddFactory', [
     'CnBaseAddFactory', 'CnHttpFactory',
     function( CnBaseAddFactory, CnHttpFactory ) {
@@ -222,15 +188,6 @@ define( [ 'trace' ].reduce( function( list, name ) {
           record.from_address = response.data.mail_address;
         };
       };
-      return { instance: function( parentModel ) { return new object( parentModel ); } };
-    }
-  ] );
-
-  /* ######################################################################################################## */
-  cenozo.providers.factory( 'CnAppointmentMailListFactory', [
-    'CnBaseListFactory',
-    function( CnBaseListFactory ) {
-      var object = function( parentModel ) { CnBaseListFactory.construct( this, parentModel ); };
       return { instance: function( parentModel ) { return new object( parentModel ); } };
     }
   ] );
@@ -299,7 +256,6 @@ define( [ 'trace' ].reduce( function( list, name ) {
 
         // extend getMetadata
         this.getMetadata = async function() {
-          var self = this;
           await this.$$getMetadata();
 
           var [siteResponse, qnaireResponse, appointmentTypeResponse, languageResponse] = await Promise.all( [
@@ -340,31 +296,32 @@ define( [ 'trace' ].reduce( function( list, name ) {
             } ).query()
           ] );
 
-          this.metadata.columnList.site_id.enumList = [];
-          siteResponse.data.forEach( function( item ) {
-            self.metadata.columnList.site_id.enumList.push( { value: item.id, name: item.name } );
-          } );
+          this.metadata.columnList.site_id.enumList = siteResponse.data.reduce( ( list, item ) => {
+            list.push( { value: item.id, name: item.name } );
+            return list;
+          }, [] );
           
-          this.metadata.columnList.qnaire_id.enumList = [];
-          qnaireResponse.data.forEach( function( item ) {
-            self.metadata.columnList.qnaire_id.enumList.push( { value: item.id, name: item.type } );
-          } );
+          this.metadata.columnList.qnaire_id.enumList = qnaireResponse.data.reduce( ( list, item ) => {
+            list.push( { value: item.id, name: item.type } );
+            return list;
+          }, [] );
           
           // store the appointment types in a special array with qnaire_id as indices
-          this.metadata.columnList.appointment_type_id.enumList = [ { value: '', name: '(empty)' } ];
           var qnaireList = {};
-          appointmentTypeResponse.data.forEach( function( item ) {
-            self.metadata.columnList.appointment_type_id.enumList.push( { value: item.id, name: item.name } );
-
+          this.metadata.columnList.appointment_type_id.enumList = appointmentTypeResponse.data.reduce( ( list, item ) => {
             if( angular.isUndefined( qnaireList[item.qnaire_id] ) ) qnaireList[item.qnaire_id] = [];
             qnaireList[item.qnaire_id].push( { value: item.id, name: item.name } );
-          } );
+
+            list.push( { value: item.id, name: item.name } );
+            return list;
+          }, [ { value: '', name: '(empty)' } ] );
+
           this.metadata.columnList.appointment_type_id.qnaireList = qnaireList;
 
-          this.metadata.columnList.language_id.enumList = [];
-          languageResponse.data.forEach( function( item ) {
-            self.metadata.columnList.language_id.enumList.push( { value: item.id, name: item.name } );
-          } );
+          this.metadata.columnList.language_id.enumList = languageResponse.data.reduce( ( list, item ) => {
+            list.push( { value: item.id, name: item.name } );
+            return list;
+          }, [] );
         };
       };
 
@@ -375,4 +332,4 @@ define( [ 'trace' ].reduce( function( list, name ) {
     }
   ] );
 
-} );
+} } );
