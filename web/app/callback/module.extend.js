@@ -1,7 +1,4 @@
-define( [ cenozoApp.module( 'callback' ).getFileUrl( 'module.js' ) ], function() {
-  'use strict';
-
-  var module = cenozoApp.module( 'callback' );
+cenozoApp.extendModule( { name: 'callback', create: module => {
 
   // extend the model factory so that callback events are coloured green when the next interview is at home
   cenozo.providers.decorator( 'CnCallbackCalendarFactory', [
@@ -44,4 +41,4 @@ define( [ cenozoApp.module( 'callback' ).getFileUrl( 'module.js' ) ], function()
     }
   ] );
 
-} );
+} } );

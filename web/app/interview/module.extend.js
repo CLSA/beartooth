@@ -1,8 +1,4 @@
-// extend the framework's module
-define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function() {
-  'use strict';
-
-  var module = cenozoApp.module( 'interview' );
+cenozoApp.extendModule( { name: 'interview', create: module => {
 
   cenozo.insertPropertyAfter( module.columnList, 'uid', 'qnaire', {
     column: 'qnaire.name',
@@ -206,4 +202,4 @@ define( [ cenozoApp.module( 'interview' ).getFileUrl( 'module.js' ) ], function(
     }
   ] );
 
-} );
+} } );
