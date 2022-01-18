@@ -619,18 +619,25 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
 
         this.reset();
 
-        // add additional columns to the model
-        this.participantModel.addColumn( 'rank', { title: 'Rank', column: 'queue.rank', type: 'rank' }, 0 );
-        this.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 1 );
-        this.participantModel.addColumn( 'availability', { title: 'Availability', column: 'availability_type.name' } );
-        if( 'home' == this.type ) {
-          this.participantModel.addColumn( 'prev_event_user', { title: 'Previous Interviewer' } );
-          this.participantModel.addColumn( 'address_summary', { title: 'Address' } );
-        } else { // 'site' == this.type
-          this.participantModel.addColumn( 'blood', { title: 'Blood', type: 'boolean' } );
-          this.participantModel.addColumn( 'prev_event_site', { title: 'Previous Site' } );
-          this.participantModel.addColumn( 'last_completed_datetime', { title: 'Home Completed', type: 'datetime' } );
+        async function init( object ){
+          await CnSession.promise;
+          object.application = CnSession.application.title;
+
+          // add additional columns to the model
+          object.participantModel.addColumn( 'rank', { title: 'Rank', column: 'queue.rank', type: 'rank' }, 0 );
+          object.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 1 );
+          object.participantModel.addColumn( 'availability', { title: 'Availability', column: 'availability_type.name' } );
+          if( 'home' == object.type ) {
+            object.participantModel.addColumn( 'prev_event_user', { title: 'Previous Interviewer' } );
+            object.participantModel.addColumn( 'address_summary', { title: 'Address' } );
+          } else { // 'site' == object.type
+            object.participantModel.addColumn( 'blood', { title: 'Blood', type: 'boolean' } );
+            object.participantModel.addColumn( 'prev_event_site', { title: 'Previous Site' } );
+            object.participantModel.addColumn( 'last_completed_datetime', { title: 'Home Completed', type: 'datetime' } );
+          }
         }
+
+        init( this );
       };
 
       return { instance: function() { return new object( false ); } };
