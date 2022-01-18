@@ -34,9 +34,11 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
       },
       link: function( scope ) {
         // update the script list whenever we regain focus since there may have been script activity
-        var focusFn = function() { if( null != scope.model.assignment ) scope.model.loadScriptList(); };
-        var win = angular.element( $window ).on( 'focus', focusFn );
-        scope.$on( '$destroy', function() { win.off( 'focus', focusFn ); } );
+        var win = angular.element( $window ).on( 'focus', async () => {
+          await scope.model.updateLimesurveyToken();
+          scope.model.loadScriptList();
+        } );
+        scope.$on( '$destroy', function() { win.off( 'focus' ); } );
 
         // close the session's script window whenever this page is unloaded (refreshed or closed)
         $window.onunload = function() { CnSession.closeScript(); };
@@ -99,7 +101,6 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
               CnParticipantModelFactory, CnScriptLauncherFactory, CnModalMessageFactory, CnModalConfirmFactory ) {
       var object = function( root ) {
         var self = this;
-        this.scriptLauncher = null;
 
         // need to 404 if state is undefined or not home/site
         this.type = null;
@@ -113,325 +114,257 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
           this.type = $state.params.type;
         }
 
-        this.reset = function() {
-          this.assignment = null;
-          this.prevAssignment = null;
-          this.participant = null;
-          this.phoneList = null;
-          this.activePhoneCall = false;
-          this.qnaireList = null;
-          this.activeQnaire = null;
-          this.lastQnaire = null;
-          this.scriptList = null;
-          this.activeScript = null;
-          this.phoneCallStatusList = null;
-          this.phoneCallList = null;
-          this.isForbidden = false;
-          this.isWrongType = false;
-          this.isScriptListLoading = false;
-          this.isAssignmentLoading = false;
-          this.isPrevAssignmentLoading = false;
-        };
+        angular.extend( this, {
+          scriptLauncher: null,
 
-        this.application = CnSession.application.title;
-        this.participantModel = CnParticipantModelFactory.instance();
+          reset: function() {
+            this.assignment = null;
+            this.prevAssignment = null;
+            this.participant = null;
+            this.phoneList = null;
+            this.activePhoneCall = false;
+            this.qnaireList = null;
+            this.activeQnaire = null;
+            this.lastQnaire = null;
+            this.scriptList = null;
+            this.activeScript = null;
+            this.phoneCallStatusList = null;
+            this.phoneCallList = null;
+            this.isForbidden = false;
+            this.isWrongType = false;
+            this.isScriptListLoading = false;
+            this.isAssignmentLoading = false;
+            this.isPrevAssignmentLoading = false;
+          },
 
-        // map assignment-control query parameters to participant-list
-        this.participantModel.queryParameterSubject = 'assignment';
+          application: CnSession.application.title,
+          participantModel: CnParticipantModelFactory.instance(),
 
-        // override the default column order for the participant list to rank
-        this.participantModel.listModel.order = { column: 'rank', reverse: false };
+          onLoad: async function( closeScript ) {
+            if( angular.isUndefined( closeScript ) ) closeScript = true;
+            this.reset();
 
-        this.reset();
+            if( closeScript ) CnSession.closeScript();
 
-        // add additional columns to the model
-        this.participantModel.addColumn( 'rank', { title: 'Rank', column: 'queue.rank', type: 'rank' }, 0 );
-        this.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 1 );
-        this.participantModel.addColumn(
-          'availability', { title: 'Availability', column: 'availability_type.name' } );
-        if( 'home' == this.type ) {
-          this.participantModel.addColumn( 'prev_event_user', { title: 'Previous Interviewer' } );
-          this.participantModel.addColumn( 'address_summary', { title: 'Address' } );
-        } else { // 'site' == this.type
-          this.participantModel.addColumn( 'blood', { title: 'Blood', type: 'boolean' } );
-          this.participantModel.addColumn( 'prev_event_site', { title: 'Previous Site' } );
-          this.participantModel.addColumn( 'last_completed_datetime', {
-            title: 'Home Completed',
-            type: 'datetime'
-          } );
-        }
+            var column = [ 'id', 'interview_id', 'start_datetime',
+              { table: 'participant', column: 'id', alias: 'participant_id' },
+              { table: 'qnaire', column: 'id', alias: 'qnaire_id' },
+              { table: 'qnaire', column: 'name', alias: 'qnaire' },
+              { table: 'qnaire', column: 'type', alias: 'type' },
+              { table: 'queue', column: 'title', alias: 'queue' }
+            ];
 
-        // override the default order and set the heading
-        this.participantModel.listModel.heading = 'Participant Selection List';
+            if( CnSession.application.checkForMissingHin ) column.push( 'missing_hin' );
 
-        // override model functions
-        this.participantModel.getServiceCollectionPath = function() { return 'participant'; }
-        this.participantModel.getServiceData = function( type, columnRestrictLists ) {
-          var data = self.participantModel.$$getServiceData( type, columnRestrictLists );
-          if( angular.isUndefined( data.modifier.where ) ) data.modifier.where = [];
-          data.modifier.where.push( {
-            column: 'qnaire.type',
-            operator: '=',
-            value: self.type
-          } );
-          data.assignment = true;
-          return data;
-        };
+            try {
+              this.isAssignmentLoading = true;
+              this.isPrevAssignmentLoading = true;
 
-        // override the onChoose function
-        this.participantModel.listModel.onSelect = async function( record ) {
-          // attempt to assign the participant to the user
-          var response = await CnModalConfirmFactory.instance( {
-            title: 'Begin Assignment',
-            message: 'Are you sure you wish to start a new assignment with participant ' + record.uid + '?'
-          } ).show();
+              var response = await CnHttpFactory.instance( {
+                path: 'assignment/0',
+                data: { select: { column: column } },
+                onError: async function( error ) {
+                  await CnSession.updateData();
 
-          if( response ) {
-            self.isAssignmentLoading = true; // show loading screen right away
-            await CnHttpFactory.instance( {
-              path: 'assignment?operation=open',
-              data: { participant_id: record.id },
-              onError: async function( error ) {
-                self.isAssignmentLoading = false;
-                if( 409 == error.status ) {
-                  // 409 means there is a conflict (the assignment can't be made)
-                  await CnModalMessageFactory.instance( {
-                    title: 'Unable to start assignment with ' + record.uid,
-                    message: error.data,
-                    error: true
-                  } ).show();
-                  await self.onLoad();
-                } else { CnModalMessageFactory.httpError( error ); }
-              }
-            } ).post();
-            await self.onLoad();
-          }
-        };
+                  self.assignment = null;
+                  self.participant = null;
+                  self.isForbidden = false;
+                  if( 307 == error.status ) {
+                    // 307 means the user has no active assignment, so load the participant select list
+                    CnSession.alertHeader = undefined;
+                    self.participantModel.listModel.afterList( function() {
+                      CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: 'Select' } ] );
+                    } );
+                  } else if( 403 == error.status ) {
+                    CnSession.alertHeader = 'You are currently in a ' + self.type + ' assignment';
+                    CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: 'Wrong Site' } ] );
+                    self.isForbidden = true;
+                  } else { CnModalMessageFactory.httpError( error ); }
+                }
+              } ).get();
 
-        this.onLoad = async function( closeScript ) {
-          if( angular.isUndefined( closeScript ) ) closeScript = true;
-          this.reset();
+              await CnSession.updateData();
 
-          if( closeScript ) CnSession.closeScript();
+              this.assignment = response.data;
+              CnSession.alertHeader = 'You are currently in a ' + this.type + ' assignment';
 
-          var column = [ 'id', 'interview_id', 'start_datetime',
-            { table: 'participant', column: 'id', alias: 'participant_id' },
-            { table: 'qnaire', column: 'id', alias: 'qnaire_id' },
-            { table: 'qnaire', column: 'name', alias: 'qnaire' },
-            { table: 'qnaire', column: 'type', alias: 'type' },
-            { table: 'queue', column: 'title', alias: 'queue' }
-          ];
-
-          if( CnSession.application.checkForMissingHin ) column.push( 'missing_hin' );
-
-          try {
-            this.isAssignmentLoading = true;
-            this.isPrevAssignmentLoading = true;
-
-            var response = await CnHttpFactory.instance( {
-              path: 'assignment/0',
-              data: { select: { column: column } },
-              onError: async function( error ) {
-                await CnSession.updateData();
-
-                self.assignment = null;
-                self.participant = null;
-                self.isForbidden = false;
-                if( 307 == error.status ) {
-                  // 307 means the user has no active assignment, so load the participant select list
-                  CnSession.alertHeader = undefined;
-                  self.participantModel.listModel.afterList( function() {
-                    CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: 'Select' } ] );
-                  } );
-                } else if( 403 == error.status ) {
-                  CnSession.alertHeader = 'You are currently in a ' + self.type + ' assignment';
-                  CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: 'Wrong Site' } ] );
-                  self.isForbidden = true;
-                } else { CnModalMessageFactory.httpError( error ); }
-              }
-            } ).get();
-
-            await CnSession.updateData();
-
-            this.assignment = response.data;
-            CnSession.alertHeader = 'You are currently in a ' + this.type + ' assignment';
-
-            // show a popup if the participant is missing HIN data
-            // Note: this will only show if the participant has consented to provide HIN but hasn't provided an HIN number
-            if( CnSession.application.checkForMissingHin && this.assignment.missing_hin ) {
-              CnModalMessageFactory.instance( {
-                title: 'Missing HIN',
-                message:
-                  'The participant has consented to provide their Health Insurance Number (HIN) but their number is not on file.\n\n' +
-                  'Please ask the participant to provide their HIN number.  The details can be added in the participant\'s file ' +
-                  'under the "HIN List" section.'
-              } ).show();
-            }
-
-            // first make sure that we're looking at the right assignment type
-            if( this.assignment.type != this.type ) {
-              this.isWrongType = this.type;
-              this.isAssignmentLoading = false;
-              CnSession.setBreadcrumbTrail( [ { title: 'Assignment' } ] );
-            } else {
-              this.isWrongType = false;
-
-              // get notes from the last interview
-              try {
-                var response = await CnHttpFactory.instance( {
-                  path: 'interview/' + this.assignment.interview_id + '?last_interview_note=1'
-                } ).get()
-                this.last_interview_note = response.data;
-              } catch( error ) {
-                console.error( 'Failed to get the last interview\'s note' );
+              // show a popup if the participant is missing HIN data
+              // Note: this will only show if the participant has consented to provide HIN but hasn't provided an HIN number
+              if( CnSession.application.checkForMissingHin && this.assignment.missing_hin ) {
+                CnModalMessageFactory.instance( {
+                  title: 'Missing HIN',
+                  message:
+                    'The participant has consented to provide their Health Insurance Number (HIN) but their number is not on file.\n\n' +
+                    'Please ask the participant to provide their HIN number.  The details can be added in the participant\'s file ' +
+                    'under the "HIN List" section.'
+                } ).show();
               }
 
-              // get the assigned participant's details
-              try {
-                var response = await CnHttpFactory.instance( {
-                  path: 'participant/' + this.assignment.participant_id,
-                  data: { select: { column: [
-                    'id', 'uid', 'honorific', 'first_name', 'other_name', 'last_name', 'global_note',
-                    { table: 'language', column: 'code', alias: 'language_code' },
-                    { table: 'language', column: 'name', alias: 'language' }
-                  ] } }
-                } ).get();
-
-                this.participant = response.data;
-                this.participant.getIdentifier = function() {
-                  return self.participantModel.getIdentifierFromRecord( self.participant );
-                };
-                CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: this.participant.uid } ] );
-              } catch( error ) {
-                console.error( 'Failed to get participant\'s details' );
-              } finally {
+              // first make sure that we're looking at the right assignment type
+              if( this.assignment.type != this.type ) {
+                this.isWrongType = this.type;
                 this.isAssignmentLoading = false;
-              }
+                CnSession.setBreadcrumbTrail( [ { title: 'Assignment' } ] );
+              } else {
+                this.isWrongType = false;
 
-              try {
-                var response = await CnHttpFactory.instance( {
-                  path: 'assignment/0/phone_call',
-                  data: { select: { column: [ 'end_datetime', 'status',
-                    { table: 'phone', column: 'rank' },
-                    { table: 'phone', column: 'type' },
-                    { table: 'phone', column: 'number' }
-                  ] } }
-                } ).query();
-
-                this.phoneCallList = response.data;
-                var len = this.phoneCallList.length
-                this.activePhoneCall = 0 < len && null === this.phoneCallList[len-1].end_datetime
-                                     ? this.phoneCallList[len-1]
-                                     : null;
-              } catch( error ) {
-                console.error( 'Failed to get phone call information' );
-              }
-
-              if( null === this.qnaireList ) {
+                // get notes from the last interview
                 try {
-                  // get the qnaire list and store the current and last qnaires
                   var response = await CnHttpFactory.instance( {
-                    path: 'qnaire',
+                    path: 'interview/' + this.assignment.interview_id + '?last_interview_note=1'
+                  } ).get()
+                  this.last_interview_note = response.data;
+                } catch( error ) {
+                  console.error( 'Failed to get the last interview\'s note' );
+                }
+
+                // get the assigned participant's details
+                try {
+                  var response = await CnHttpFactory.instance( {
+                    path: 'participant/' + this.assignment.participant_id,
+                    data: { select: { column: [
+                      'id', 'uid', 'honorific', 'first_name', 'other_name', 'last_name', 'global_note',
+                      { table: 'language', column: 'code', alias: 'language_code' },
+                      { table: 'language', column: 'name', alias: 'language' }
+                    ] } }
+                  } ).get();
+
+                  this.participant = response.data;
+                  this.participant.getIdentifier = function() {
+                    return self.participantModel.getIdentifierFromRecord( self.participant );
+                  };
+                  CnSession.setBreadcrumbTrail( [ { title: 'Assignment' }, { title: this.participant.uid } ] );
+                } catch( error ) {
+                  console.error( 'Failed to get participant\'s details' );
+                } finally {
+                  this.isAssignmentLoading = false;
+                }
+
+                try {
+                  var response = await CnHttpFactory.instance( {
+                    path: 'assignment/0/phone_call',
+                    data: { select: { column: [ 'end_datetime', 'status',
+                      { table: 'phone', column: 'rank' },
+                      { table: 'phone', column: 'type' },
+                      { table: 'phone', column: 'number' }
+                    ] } }
+                  } ).query();
+
+                  this.phoneCallList = response.data;
+                  var len = this.phoneCallList.length
+                  this.activePhoneCall = 0 < len && null === this.phoneCallList[len-1].end_datetime
+                                       ? this.phoneCallList[len-1]
+                                       : null;
+                } catch( error ) {
+                  console.error( 'Failed to get phone call information' );
+                }
+
+                if( null === this.qnaireList ) {
+                  try {
+                    // get the qnaire list and store the current and last qnaires
+                    var response = await CnHttpFactory.instance( {
+                      path: 'qnaire',
+                      data: {
+                        select: { column: ['id', 'rank', 'delay_offset', 'delay_unit'] },
+                        modifier: { order: 'rank' }
+                      }
+                    } ).query();
+
+                    this.qnaireList = response.data;
+                    var len = this.qnaireList.length;
+                    if( 0 < len ) {
+                      this.activeQnaire = this.qnaireList.findByProperty( 'id', this.assignment.qnaire_id );
+                      this.lastQnaire = this.qnaireList[len-1];
+                    }
+                    this.loadScriptList(); // now load the script list
+                  } catch( error ) {
+                    console.error( 'Failed to get questionnaire list' );
+                  }
+                }
+
+                try {
+                  var response = await CnHttpFactory.instance( {
+                    path: 'participant/' + this.assignment.participant_id +
+                          '/interview/' + this.assignment.interview_id + '/assignment',
                     data: {
-                      select: { column: ['id', 'rank', 'delay_offset', 'delay_unit'] },
-                      modifier: { order: 'rank' }
+                      select: {
+                        column: [
+                          'start_datetime',
+                          'end_datetime',
+                          'phone_call_count',
+                          { table: 'last_phone_call', column: 'status' },
+                          { table: 'user', column: 'first_name' },
+                          { table: 'user', column: 'last_name' },
+                          { table: 'user', column: 'name' }
+                        ]
+                      },
+                      modifier: { order: { start_datetime: true }, offset: 1, limit: 1 }
                     }
                   } ).query();
 
-                  this.qnaireList = response.data;
-                  var len = this.qnaireList.length;
-                  if( 0 < len ) {
-                    this.activeQnaire = this.qnaireList.findByProperty( 'id', this.assignment.qnaire_id );
-                    this.lastQnaire = this.qnaireList[len-1];
-                  }
-                  this.loadScriptList(); // now load the script list
+                  this.prevAssignment = 1 == response.data.length ? response.data[0] : null;
                 } catch( error ) {
-                  console.error( 'Failed to get questionnaire list' );
+                  console.error( 'Failed to get previous assignment information' );
+                } finally {
+                  this.isPrevAssignmentLoading = false;
+                }
+
+                try {
+                  var response = await CnHttpFactory.instance( {
+                    path: 'participant/' + this.assignment.participant_id + '/phone',
+                    data: {
+                      select: { column: [ 'id', 'rank', 'type', 'number', 'international', 'note' ] },
+                      modifier: {
+                        where: { column: 'phone.active', operator: '=', value: true },
+                        order: 'rank'
+                      }
+                    }
+                  } ).query();
+
+                  this.phoneList = response.data;
+                } catch( error ) {
+                  console.error( 'Failed to get participant\'s phone list' );
+                }
+
+                try {
+                  var response = await CnHttpFactory.instance( { path: 'phone_call' } ).head();
+                  this.phoneCallStatusList = cenozo.parseEnumList( angular.fromJson( response.headers( 'Columns' ) ).status );
+                } catch( error ) {
+                  console.error( 'Failed to get database metadata' );
                 }
               }
-
-              try {
-                var response = await CnHttpFactory.instance( {
-                  path: 'participant/' + this.assignment.participant_id +
-                        '/interview/' + this.assignment.interview_id + '/assignment',
-                  data: {
-                    select: {
-                      column: [
-                        'start_datetime',
-                        'end_datetime',
-                        'phone_call_count',
-                        { table: 'last_phone_call', column: 'status' },
-                        { table: 'user', column: 'first_name' },
-                        { table: 'user', column: 'last_name' },
-                        { table: 'user', column: 'name' }
-                      ]
-                    },
-                    modifier: { order: { start_datetime: true }, offset: 1, limit: 1 }
-                  }
-                } ).query();
-
-                this.prevAssignment = 1 == response.data.length ? response.data[0] : null;
-              } catch( error ) {
-                console.error( 'Failed to get previous assignment information' );
-              } finally {
-                this.isPrevAssignmentLoading = false;
-              }
-
-              try {
-                var response = await CnHttpFactory.instance( {
-                  path: 'participant/' + this.assignment.participant_id + '/phone',
-                  data: {
-                    select: { column: [ 'id', 'rank', 'type', 'number', 'international', 'note' ] },
-                    modifier: {
-                      where: { column: 'phone.active', operator: '=', value: true },
-                      order: 'rank'
-                    }
-                  }
-                } ).query();
-
-                this.phoneList = response.data;
-              } catch( error ) {
-                console.error( 'Failed to get participant\'s phone list' );
-              }
-
-              try {
-                var response = await CnHttpFactory.instance( { path: 'phone_call' } ).head();
-                this.phoneCallStatusList = cenozo.parseEnumList( angular.fromJson( response.headers( 'Columns' ) ).status );
-              } catch( error ) {
-                console.error( 'Failed to get database metadata' );
-              }
+            } catch( error ) {
+              // ignore since the http onError function catches this error above
+            } finally {
+              self.isAssignmentLoading = false;
+              self.isPrevAssignmentLoading = false;
             }
-          } catch( error ) {
-            // ignore since the http onError function catches this error above
-          } finally {
-            self.isAssignmentLoading = false;
-            self.isPrevAssignmentLoading = false;
-          }
-        };
+          },
 
-        this.changeSiteRole = function() { CnSession.showSiteRoleModal(); };
+          changeSiteRole: function() { CnSession.showSiteRoleModal(); },
 
-        this.openNotes = async function() {
-          if( null != this.participant )
-            await $state.go( 'participant.notes', { identifier: this.participant.getIdentifier() } );
-        };
+          openNotes: async function() {
+            if( null != this.participant )
+              await $state.go( 'participant.notes', { identifier: this.participant.getIdentifier() } );
+          },
 
-        this.openHistory = async function() {
-          if( null != this.participant )
-            await $state.go( 'participant.history', { identifier: this.participant.getIdentifier() } );
-        };
+          openHistory: async function() {
+            if( null != this.participant )
+              await $state.go( 'participant.history', { identifier: this.participant.getIdentifier() } );
+          },
 
-        this.useTimezone = async function() {
-          if( null != this.participant ) {
-            await CnSession.setTimezone( { 'participant_id': this.participant.id } );
-            await $state.go( 'self.wait' );
-            $window.location.reload();
-          }
-        };
+          useTimezone: async function() {
+            if( null != this.participant ) {
+              await CnSession.setTimezone( { 'participant_id': this.participant.id } );
+              await $state.go( 'self.wait' );
+              $window.location.reload();
+            }
+          },
 
-        this.loadScriptList = async function() {
-          try {
-            if( null != this.assignment ) {
+          loadScriptList: async function() {
+            if( null == this.assignment ) return;
+
+            try {
               this.isScriptListLoading = true;
 
               var response = await CnHttpFactory.instance( {
@@ -474,146 +407,230 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
                   } );
                 }
               }
+            } finally {
+              this.isScriptListLoading = false;
             }
-          } finally {
-            this.isScriptListLoading = false;
-          }
-        };
+          },
 
-        this.launchingScript = false;
-        this.launchScript = async function( script ) {
-          try {
-            this.launchingScript = true;
-            this.scriptLauncher = CnScriptLauncherFactory.instance( {
-              script: script,
-              identifier: 'uid=' + this.participant.uid,
-              lang: this.participant.language_code
-            } );
-            await this.scriptLauncher.initialize();
-            await this.scriptLauncher.launch()
-            await this.loadScriptList();
-          } finally {
-            this.launchingScript = false;
-          }
+          scriptLauncherBusy: false,
+          launchScript: async function( script ) {
+            try {
+              this.scriptLauncherBusy = true;
+              this.scriptLauncher = CnScriptLauncherFactory.instance( {
+                script: script,
+                identifier: 'uid=' + this.participant.uid,
+                lang: this.participant.language_code
+              } );
+              await this.scriptLauncher.initialize();
+              await this.scriptLauncher.launch( { show_hidden: 1 } );
+              await this.loadScriptList();
+            } finally {
+              this.scriptLauncherBusy = false;
+            }
 
-          // check for when the window gets focus back and update the participant details
-          if( null != script.name.match( /withdraw|proxy/i ) ) {
-            var self = this;
-            var win = angular.element( $window ).on( 'focus', async function() {
+            // check for when the window gets focus back and update the participant details
+            if( null != script.name.match( /withdraw|proxy/i ) ) {
+              this.updateLimesurveyTokenScriptId = script.id;
+            }
+          },
+
+          updateLimesurveyTokenScriptId: null,
+          updateLimesurveyToken: async function() {
+            if( null == this.assignment ) {
+              this.updateLimesurveyTokenScriptId = null;
+              return;
+            }
+
+            if( this.updateLimesurveyTokenScriptId ) {
+              var url = 'script/' + this.updateLimesurveyTokenScriptId + '/token/uid=' + this.participant.uid;
+              this.updateLimesurveyTokenScriptId = null;
+
               // the following will process the withdraw or proxy script (in case it was finished)
-              await CnHttpFactory.instance( { path: 'script/' + script.id + '/token/uid=' + self.participant.uid } ).get();
-              await self.loadScriptList();
-              win.off( 'focus' );
-            } );
-          }
-        };
+              try {
+                this.scriptLauncherBusy = true;
+                await CnHttpFactory.instance( { path: url } ).get();
+              } finally {
+                this.scriptLauncherBusy = false;
+              }
+            }
+          },
 
-        this.startCall = async function( phone ) {
-          async function postCall() {
-            await CnHttpFactory.instance( { path: 'phone_call?operation=open', data: { phone_id: phone.id } } ).post();
-            await self.onLoad();
-          }
+          startCall: async function( phone ) {
+            async function postCall() {
+              await CnHttpFactory.instance( { path: 'phone_call?operation=open', data: { phone_id: phone.id } } ).post();
+              await self.onLoad();
+            }
 
-          // start by updating the voip status
-          try {
-            await CnSession.updateVoip();
-          } finally {
-            if( !CnSession.voip.enabled ) {
-              await postCall();
-            } else {
-              if( !CnSession.voip.info ) {
-                if( !CnSession.setting.callWithoutWebphone ) {
-                  await CnModalMessageFactory.instance( {
-                    title: 'Webphone Not Found',
-                    message: 'You cannot start a call without a webphone connection. ' +
-                             'To use the built-in telephone system click on the "Webphone" link under the ' +
-                             '"Utilities" submenu and make sure the webphone client is connected.',
-                    error: true
-                  } ).show();
-                } else if( !phone.international ) {
-                  var response = await CnModalConfirmFactory.instance( {
-                    title: 'Webphone Not Found',
-                    message: 'You are about to place a call with no webphone connection. ' +
-                             'If you choose to proceed you will have to contact the participant without the use ' +
-                             'of the software-based telephone system. ' +
-                             'If you wish to use the built-in telephone system click "No", then click on the ' +
-                             '"Webphone" link under the "Utilities" submenu to connect to the webphone.\n\n' +
-                             'Do you wish to proceed without a webphone connection?',
-                  } ).show();
-                  if( response ) await postCall();
-                }
+            // start by updating the voip status
+            try {
+              await CnSession.updateVoip();
+            } finally {
+              if( !CnSession.voip.enabled ) {
+                await postCall();
               } else {
-                if( phone.international ) {
-                  var response = await CnModalConfirmFactory.instance( {
-                    title: 'International Phone Number',
-                    message: 'The phone number you are about to call is international. ' +
-                             'The VoIP system cannot place international calls so if you choose to proceed you ' +
-                             'will have to contact the participant without the use of the software-based ' +
-                             'telephone system.\n\n' +
-                             'Do you wish to proceed without a webphone connection?',
-                  } ).show();
-                  if( response ) await postCall();
-                } else {
-                  var response = await CnHttpFactory.instance( {
-                    path: 'voip',
-                    data: { action: 'call', phone_id: phone.id }
-                  } ).post();
-
-                  if( 201 == response.status ) {
-                    await postCall();
-                  } else {
-                    CnModalMessageFactory.instance( {
-                      title: 'Webphone Error',
-                      message: 'The webphone was unable to place your call, please try again. ' +
-                               'If this problem persists then please contact support.',
+                if( !CnSession.voip.info ) {
+                  if( !CnSession.setting.callWithoutWebphone ) {
+                    await CnModalMessageFactory.instance( {
+                      title: 'Webphone Not Found',
+                      message: 'You cannot start a call without a webphone connection. ' +
+                               'To use the built-in telephone system click on the "Webphone" link under the ' +
+                               '"Utilities" submenu and make sure the webphone client is connected.',
                       error: true
                     } ).show();
+                  } else if( !phone.international ) {
+                    var response = await CnModalConfirmFactory.instance( {
+                      title: 'Webphone Not Found',
+                      message: 'You are about to place a call with no webphone connection. ' +
+                               'If you choose to proceed you will have to contact the participant without the use ' +
+                               'of the software-based telephone system. ' +
+                               'If you wish to use the built-in telephone system click "No", then click on the ' +
+                               '"Webphone" link under the "Utilities" submenu to connect to the webphone.\n\n' +
+                               'Do you wish to proceed without a webphone connection?',
+                    } ).show();
+                    if( response ) await postCall();
+                  }
+                } else {
+                  if( phone.international ) {
+                    var response = await CnModalConfirmFactory.instance( {
+                      title: 'International Phone Number',
+                      message: 'The phone number you are about to call is international. ' +
+                               'The VoIP system cannot place international calls so if you choose to proceed you ' +
+                               'will have to contact the participant without the use of the software-based ' +
+                               'telephone system.\n\n' +
+                               'Do you wish to proceed without a webphone connection?',
+                    } ).show();
+                    if( response ) await postCall();
+                  } else {
+                    var response = await CnHttpFactory.instance( {
+                      path: 'voip',
+                      data: { action: 'call', phone_id: phone.id }
+                    } ).post();
+
+                    if( 201 == response.status ) {
+                      await postCall();
+                    } else {
+                      CnModalMessageFactory.instance( {
+                        title: 'Webphone Error',
+                        message: 'The webphone was unable to place your call, please try again. ' +
+                                 'If this problem persists then please contact support.',
+                        error: true
+                      } ).show();
+                    }
                   }
                 }
               }
             }
-          }
-        };
+          },
 
-        this.endCall = async function( status ) {
-          if( CnSession.voip.enabled && CnSession.voip.info && !this.activePhoneCall.international ) {
-            try {
-              await CnHttpFactory.instance( {
-                path: 'voip/0',
-                onError: function( error ) {
-                  if( 404 == error.status ) {
-                    // ignore 404 errors, it just means there was no phone call found to hang up
+          endCall: async function( status ) {
+            if( CnSession.voip.enabled && CnSession.voip.info && !this.activePhoneCall.international ) {
+              try {
+                await CnHttpFactory.instance( {
+                  path: 'voip/0',
+                  onError: function( error ) {
+                    if( 404 == error.status ) {
+                      // ignore 404 errors, it just means there was no phone call found to hang up
+                    } else { CnModalMessageFactory.httpError( error ); }
+                  }
+                } ).delete();
+              } catch( error ) {
+                // handled by onError above
+              }
+            }
+
+            await CnHttpFactory.instance( {
+              path: 'phone_call/0?operation=close',
+              data: { status: status }
+            } ).patch();
+            await self.onLoad();
+          },
+
+          endAssignment: async function() {
+            if( null != this.assignment ) {
+              var response = await CnHttpFactory.instance( {
+                path: 'assignment/0',
+                onError: async function( error ) {
+                  if( 307 == error.status ) {
+                    // 307 means the user has no active assignment, so just refresh the page data
+                    await self.onLoad();
                   } else { CnModalMessageFactory.httpError( error ); }
                 }
-              } ).delete();
-            } catch( error ) {
-              // handled by onError above
+              } ).get();
+
+              await CnHttpFactory.instance( { path: 'assignment/0?operation=close', data: {} } ).patch();
+              await this.onLoad();
             }
           }
+        } );
 
-          await CnHttpFactory.instance( {
-            path: 'phone_call/0?operation=close',
-            data: { status: status }
-          } ).patch();
-          await self.onLoad();
-        };
+        angular.extend( this.participantModel, {
+          // map assignment-control query parameters to participant-list
+          queryParameterSubject: 'assignment',
 
-        this.endAssignment = async function() {
-          if( null != this.assignment ) {
-            var response = await CnHttpFactory.instance( {
-              path: 'assignment/0',
-              onError: async function( error ) {
-                if( 307 == error.status ) {
-                  // 307 means the user has no active assignment, so just refresh the page data
-                  await self.onLoad();
-                } else { CnModalMessageFactory.httpError( error ); }
-              }
-            } ).get();
+          // override model functions
+          getServiceCollectionPath: function() { return 'participant'; },
 
-            await CnHttpFactory.instance( { path: 'assignment/0?operation=close', data: {} } ).patch();
-            await this.onLoad();
+          getServiceData: function( type, columnRestrictLists ) {
+            var data = self.participantModel.$$getServiceData( type, columnRestrictLists );
+            if( angular.isUndefined( data.modifier.where ) ) data.modifier.where = [];
+            data.modifier.where.push( { column: 'qnaire.type', operator: '=', value: self.type } );
+            data.assignment = true;
+            return data;
           }
-        };
+        } );
+
+        angular.extend( this.participantModel.listModel, {
+          // override the default column order for the participant list to rank
+          order: { column: 'rank', reverse: false },
+
+          // override the default order and set the heading
+          heading: 'Participant Selection List',
+
+          // override the onChoose function
+          onSelect: async function( record ) {
+            // attempt to assign the participant to the user
+            var response = await CnModalConfirmFactory.instance( {
+              title: 'Begin Assignment',
+              message: 'Are you sure you wish to start a new assignment with participant ' + record.uid + '?'
+            } ).show();
+
+            if( response ) {
+              self.isAssignmentLoading = true; // show loading screen right away
+              await CnHttpFactory.instance( {
+                path: 'assignment?operation=open',
+                data: { participant_id: record.id },
+                onError: async function( error ) {
+                  self.isAssignmentLoading = false;
+                  if( 409 == error.status ) {
+                    // 409 means there is a conflict (the assignment can't be made)
+                    await CnModalMessageFactory.instance( {
+                      title: 'Unable to start assignment with ' + record.uid,
+                      message: error.data,
+                      error: true
+                    } ).show();
+                    await self.onLoad();
+                  } else { CnModalMessageFactory.httpError( error ); }
+                }
+              } ).post();
+              await self.onLoad();
+            }
+          }
+        } );
+
+        this.reset();
+
+        // add additional columns to the model
+        this.participantModel.addColumn( 'rank', { title: 'Rank', column: 'queue.rank', type: 'rank' }, 0 );
+        this.participantModel.addColumn( 'language', { title: 'Language', column: 'language.name' }, 1 );
+        this.participantModel.addColumn( 'availability', { title: 'Availability', column: 'availability_type.name' } );
+        if( 'home' == this.type ) {
+          this.participantModel.addColumn( 'prev_event_user', { title: 'Previous Interviewer' } );
+          this.participantModel.addColumn( 'address_summary', { title: 'Address' } );
+        } else { // 'site' == this.type
+          this.participantModel.addColumn( 'blood', { title: 'Blood', type: 'boolean' } );
+          this.participantModel.addColumn( 'prev_event_site', { title: 'Previous Site' } );
+          this.participantModel.addColumn( 'last_completed_datetime', { title: 'Home Completed', type: 'datetime' } );
+        }
       };
 
       return { instance: function() { return new object( false ); } };
