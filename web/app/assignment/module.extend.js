@@ -100,8 +100,6 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
     function( $q, $state, $window, CnSession, CnHttpFactory,
               CnParticipantModelFactory, CnScriptLauncherFactory, CnModalMessageFactory, CnModalConfirmFactory ) {
       var object = function( root ) {
-        var self = this;
-
         // need to 404 if state is undefined or not home/site
         this.type = null;
         if( 'assignment.home_control' == $state.current.name ) this.type = 'home';
@@ -160,6 +158,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
               this.isAssignmentLoading = true;
               this.isPrevAssignmentLoading = true;
 
+              var self = this;
               var response = await CnHttpFactory.instance( {
                 path: 'assignment/0',
                 data: { select: { column: column } },
@@ -228,8 +227,9 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
                       { table: 'language', column: 'name', alias: 'language' }
                     ] } }
                   } ).get();
-
                   this.participant = response.data;
+
+                  var self = this;
                   this.participant.getIdentifier = function() {
                     return self.participantModel.getIdentifierFromRecord( self.participant );
                   };
@@ -336,8 +336,8 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
             } catch( error ) {
               // ignore since the http onError function catches this error above
             } finally {
-              self.isAssignmentLoading = false;
-              self.isPrevAssignmentLoading = false;
+              this.isAssignmentLoading = false;
+              this.isPrevAssignmentLoading = false;
             }
           },
 
@@ -402,9 +402,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
                   this.activeScript = this.scriptList[0];
                 } else {
                   var activeScriptName = this.activeScript.name;
-                  this.scriptList.forEach( function( item ) {
-                    if( activeScriptName == item.name ) self.activeScript = item;
-                  } );
+                  this.scriptList.forEach( item => { if( activeScriptName == item.name ) this.activeScript = item; } );
                 }
               }
             } finally {
@@ -456,17 +454,14 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
           },
 
           startCall: async function( phone ) {
-            async function postCall() {
-              await CnHttpFactory.instance( { path: 'phone_call?operation=open', data: { phone_id: phone.id } } ).post();
-              await self.onLoad();
-            }
-
             // start by updating the voip status
             try {
               await CnSession.updateVoip();
             } finally {
+              var call = false;
+
               if( !CnSession.voip.enabled ) {
-                await postCall();
+                call = true;
               } else {
                 if( !CnSession.voip.info ) {
                   if( !CnSession.setting.callWithoutWebphone ) {
@@ -487,7 +482,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
                                '"Webphone" link under the "Utilities" submenu to connect to the webphone.\n\n' +
                                'Do you wish to proceed without a webphone connection?',
                     } ).show();
-                    if( response ) await postCall();
+                    call = response;
                   }
                 } else {
                   if( phone.international ) {
@@ -499,7 +494,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
                                'telephone system.\n\n' +
                                'Do you wish to proceed without a webphone connection?',
                     } ).show();
-                    if( response ) await postCall();
+                    call = response;
                   } else {
                     var response = await CnHttpFactory.instance( {
                       path: 'voip',
@@ -507,7 +502,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
                     } ).post();
 
                     if( 201 == response.status ) {
-                      await postCall();
+                      call = true;
                     } else {
                       CnModalMessageFactory.instance( {
                         title: 'Webphone Error',
@@ -518,6 +513,11 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
                     }
                   }
                 }
+              }
+
+              if( call ) {
+                await CnHttpFactory.instance( { path: 'phone_call?operation=open', data: { phone_id: phone.id } } ).post();
+                await this.onLoad();
               }
             }
           },
@@ -538,15 +538,13 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
               }
             }
 
-            await CnHttpFactory.instance( {
-              path: 'phone_call/0?operation=close',
-              data: { status: status }
-            } ).patch();
-            await self.onLoad();
+            await CnHttpFactory.instance( { path: 'phone_call/0?operation=close', data: { status: status } } ).patch();
+            await this.onLoad();
           },
 
           endAssignment: async function() {
             if( null != this.assignment ) {
+              var self = this;
               var response = await CnHttpFactory.instance( {
                 path: 'assignment/0',
                 onError: async function( error ) {
@@ -563,6 +561,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
           }
         } );
 
+        var self = this;
         angular.extend( this.participantModel, {
           // map assignment-control query parameters to participant-list
           queryParameterSubject: 'assignment',
@@ -571,7 +570,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
           getServiceCollectionPath: function() { return 'participant'; },
 
           getServiceData: function( type, columnRestrictLists ) {
-            var data = self.participantModel.$$getServiceData( type, columnRestrictLists );
+            var data = this.$$getServiceData( type, columnRestrictLists );
             if( angular.isUndefined( data.modifier.where ) ) data.modifier.where = [];
             data.modifier.where.push( { column: 'qnaire.type', operator: '=', value: self.type } );
             data.assignment = true;
@@ -579,6 +578,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
           }
         } );
 
+        var self = this;
         angular.extend( this.participantModel.listModel, {
           // override the default column order for the participant list to rank
           order: { column: 'rank', reverse: false },
