@@ -120,7 +120,7 @@ class appointment extends \cenozo\database\record
       if( !is_null( $row['pine_qnaire_id'] ) )
       {
         $response = $cenozo_manager->get( sprintf(
-          'qnaire/%d/response/participant_id=%d?no_activity=1&select={"column":["submitted"]}',
+          'qnaire/%d/respondent/participant_id=%d?no_activity=1&select={"column":{"table":"response","column":"submitted"}}',
           $row['pine_qnaire_id'],
           $db_participant->id
         ) );
