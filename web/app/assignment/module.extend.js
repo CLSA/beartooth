@@ -581,7 +581,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
         var self = this;
         angular.extend( this.participantModel.listModel, {
           // override the default column order for the participant list to rank
-          order: { column: 'rank', reverse: false },
+          order: { column: 'queue.rank', reverse: false },
 
           // override the default order and set the heading
           heading: 'Participant Selection List',
