@@ -119,13 +119,22 @@ class appointment extends \cenozo\database\record
     {
       if( !is_null( $row['pine_qnaire_id'] ) )
       {
-        $response = $cenozo_manager->get( sprintf(
-          'qnaire/%d/respondent/participant_id=%d?no_activity=1&select={"column":{"table":"response","column":"submitted"}}',
-          $row['pine_qnaire_id'],
-          $db_participant->id
-        ) );
-        if( !$response->submitted )
+        try
         {
+          $response = $cenozo_manager->get( sprintf(
+            'qnaire/%d/respondent/participant_id=%d?no_activity=1&select={"column":{"table":"response","column":"submitted"}}',
+            $row['pine_qnaire_id'],
+            $db_participant->id
+          ) );
+          if( !$response->submitted )
+          {
+            $completed = false;
+            break;
+          }
+        }
+        catch( \cenozo\exception\runtime $e )
+        {
+          if( 'Got response code 404 when trying GET request to Pine.' != $e->get_raw_message() ) throw $e;
           $completed = false;
           break;
         }
