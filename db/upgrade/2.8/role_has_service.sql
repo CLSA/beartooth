@@ -29,7 +29,7 @@ CREATE PROCEDURE patch_role_has_service()
       "INSERT IGNORE INTO role_has_service( role_id, service_id ) ",
       "SELECT role.id, service.id ",
       "FROM ", @cenozo, ".role, service ",
-      "WHERE role.name IN( 'administrator', 'curator', 'helpline', 'operator', 'operator+', 'supervisor' ) ",
+      "WHERE role.name IN( 'administrator', 'coordinator', 'curator', 'helpline', 'interviewer', 'interviewer+' ) ",
       "AND service.subject = 'pine_response' ",
       "AND service.restricted = 1"
     );

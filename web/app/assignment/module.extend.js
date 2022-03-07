@@ -419,7 +419,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
                 identifier: 'uid=' + this.participant.uid,
                 lang: this.participant.language_code
               } );
-              await this.scriptLauncher.initialize();
+              //await this.scriptLauncher.initialize();
               await this.scriptLauncher.launch( { show_hidden: 1 } );
               await this.loadScriptList();
             } finally {
@@ -427,7 +427,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
             }
 
             // check for when the window gets focus back and update the participant details
-            if( null != script.name.match( /withdraw|proxy/i ) ) {
+            if( 'pine' != script.application && null != script.name.match( /withdraw|proxy/i ) ) {
               this.updateLimesurveyTokenScriptId = script.id;
             }
           },
