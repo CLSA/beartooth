@@ -419,7 +419,7 @@ cenozoApp.extendModule( { name: 'assignment', dependencies: 'participant', creat
                 identifier: 'uid=' + this.participant.uid,
                 lang: this.participant.language_code
               } );
-              //await this.scriptLauncher.initialize();
+              if( 'limesurvey' == script.application ) await this.scriptLauncher.initialize();
               await this.scriptLauncher.launch( { show_hidden: 1 } );
               await this.loadScriptList();
             } finally {

@@ -102,7 +102,7 @@ class appointment extends \cenozo\database\record
     $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
     $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
 
-    $cenozo_manager = lib::create( 'business\cenozo_manager', 'pine' );
+    $cenozo_manager = lib::create( 'business\cenozo_manager', lib::create( 'business\session' )->get_pine_application() );
 
     $old_survey_sid = $survey_class_name::get_sid();
     $old_token_sid = $tokens_class_name::get_sid();
