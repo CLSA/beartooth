@@ -234,6 +234,15 @@ class module extends \cenozo\service\base_calendar_module
           false
         );
       }
+      else
+      {
+        $select->add_table_column( 'participant', 'override_stratum' );
+        $select->add_table_column( 'participant', 'mass_email' );
+        $select->add_table_column( 'participant', 'delink' );
+        $select->add_table_column( 'participant', 'withdraw_third_party' );
+        $select->add_table_column( 'participant', 'out_of_area' );
+        $select->add_table_column( 'participant', 'low_education' );
+      }
 
       $modifier->join( 'cohort', 'participant.cohort_id', 'cohort.id' );
       $modifier->join( 'language', 'participant.language_id', 'language.id' );
