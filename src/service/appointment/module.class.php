@@ -408,7 +408,6 @@ class module extends \cenozo\service\base_calendar_module
           'consent_list',
           false
         );
-        \cenozo\database\database::$debug = true;
       }
 
       // restrict by appointment type
