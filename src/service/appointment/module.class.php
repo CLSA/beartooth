@@ -388,6 +388,17 @@ class module extends \cenozo\service\base_calendar_module
         }
       }
 
+      // send pine a list of all eligible studies
+      $modifier->left_join( 'study_has_participant', 'participant.id', 'study_has_participant.participant_id' );
+      $modifier->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
+      $modifier->group( 'appointment.id' );
+
+      $select->add_column(
+        'GROUP_CONCAT( study.name )',
+        'study_list',
+        false
+      );
+
       // send pine a list of all consent statuses
       if( 'pine' == $db_interviewing_instance->type )
       {
@@ -410,7 +421,6 @@ class module extends \cenozo\service\base_calendar_module
           'full_consent.id',
           'full_consent'
         );
-        $modifier->group( 'appointment.id' );
 
         $select->add_column(
           'GROUP_CONCAT( CONCAT_WS( "$", full_consent_type.name, full_consent.accept, full_consent.datetime ) SEPARATOR ";" )',
