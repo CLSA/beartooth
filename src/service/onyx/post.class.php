@@ -427,48 +427,34 @@ class post extends \cenozo\service\service
     // note that we'll ignore the Admin.Participant.birthDate property, even if it exists
     $db_participant->save();
 
-    // consent information
-    $member = 'Admin.Participant.consentToDrawBlood';
-    if( property_exists( $object, $member ) )
+    // consent information: list of member name (from Onyx) and consent type (in database)
+    $consent_variable_name_list = [
+      array( 'member' => 'Admin.Participant.consentToDrawBlood', 'consent_type' => 'draw blood' ),
+      array( 'member' => 'Admin.Participant.consentToTakeUrine', 'consent_type' => 'take urine' )
+    ];
+
+    foreach( $consent_variable_name_list as $consent_data )
     {
-      $value = $object->$member;
-      if( is_string( $value ) ) $value = 1 === preg_match( '/y|yes|true|1/i', $value );
-      else $value = (bool) $value;
-
-      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'draw blood' );
-      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
+      $member = $consent_data['member'];
+      if( property_exists( $object, $member ) )
       {
-        $db_consent = lib::create( 'database\consent' );
-        $db_consent->participant_id = $db_participant->id;
-        $db_consent->consent_type_id = $db_consent_type->id;
-        $db_consent->accept = $value;
-        $db_consent->written = true;
-        $db_consent->datetime = $datetime_obj;
-        $db_consent->note = 'Provided by Onyx.';
-        $db_consent->save();
-      }
-    }
+        $value = $object->$member;
+        if( is_string( $value ) ) $value = 1 === preg_match( '/y|yes|true|1/i', $value );
+        else $value = (bool) $value;
 
-    $member = 'Admin.Participant.consentToTakeUrine';
-    if( property_exists( $object, $member ) )
-    {
-      $value = $object->$member;
-      if( is_string( $value ) ) $value = 1 === preg_match( '/y|yes|true|1/i', $value );
-      else $value = (bool) $value;
-
-      $db_consent_type = $consent_type_class_name::get_unique_record( 'name', 'take urine' );
-      $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-      if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
-      {
-        $db_consent = lib::create( 'database\consent' );
-        $db_consent->participant_id = $db_participant->id;
-        $db_consent->consent_type_id = $db_consent_type->id;
-        $db_consent->accept = $value;
-        $db_consent->written = true;
-        $db_consent->datetime = $datetime_obj;
-        $db_consent->note = 'Provided by Onyx.';
-        $db_consent->save();
+        $db_consent_type = $consent_type_class_name::get_unique_record( 'name', $consent_data['consent_type'] );
+        $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
+        if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
+        {
+          $db_consent = lib::create( 'database\consent' );
+          $db_consent->participant_id = $db_participant->id;
+          $db_consent->consent_type_id = $db_consent_type->id;
+          $db_consent->accept = $value;
+          $db_consent->written = true;
+          $db_consent->datetime = $datetime_obj;
+          $db_consent->note = 'Provided by Onyx.';
+          $db_consent->save();
+        }
       }
     }
 
