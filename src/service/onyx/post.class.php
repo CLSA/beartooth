@@ -430,7 +430,11 @@ class post extends \cenozo\service\service
     // consent information: list of member name (from Onyx) and consent type (in database)
     $consent_variable_name_list = [
       array( 'member' => 'Admin.Participant.consentToDrawBlood', 'consent_type' => 'draw blood' ),
-      array( 'member' => 'Admin.Participant.consentToTakeUrine', 'consent_type' => 'take urine' )
+      array( 'member' => 'Admin.Participant.consentToTakeUrine', 'consent_type' => 'take urine' ),
+      array( 'member' => 'Admin.Participant.f3_stool', 'consent_type' => 'F3 Stool' ),
+      array( 'member' => 'Admin.Participant.f3_mobility_trackers', 'consent_type' => 'F3 Mobility Trackers' ),
+      array( 'member' => 'Admin.Participant.f3_sleep_trackers', 'consent_type' => 'F3 Sleep Trackers' ),
+      array( 'member' => 'Admin.Participant.weston_hbha_study', 'consent_type' => 'Weston HBHA Study' )
     ];
 
     foreach( $consent_variable_name_list as $consent_data )
