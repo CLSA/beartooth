@@ -190,6 +190,7 @@ class module extends \cenozo\service\base_calendar_module
       $interviewing_instance_class_name = lib::create( 'database\interviewing_instance' );
       $appointment_type_class_name = lib::create( 'database\appointment_type' );
       $form_type_class_name = lib::create( 'database\form_type' );
+      $identifier_class_name = lib::create( 'database\identifier' );
 
       $db_interviewing_instance = $interviewing_instance_class_name::get_unique_record( 'user_id', $db_user->id );
       if( is_null( $db_interviewing_instance ) )
@@ -388,7 +389,7 @@ class module extends \cenozo\service\base_calendar_module
         }
       }
 
-      // send pine a list of all eligible studies
+      // send a list of all eligible studies
       $modifier->left_join( 'study_has_participant', 'participant.id', 'study_has_participant.participant_id' );
       $modifier->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
       $modifier->group( 'appointment.id' );
@@ -398,6 +399,17 @@ class module extends \cenozo\service\base_calendar_module
         'study_list',
         false
       );
+
+      // send a list of all participant identifiers
+      foreach( $identifier_class_name::select_objects() as $db_identifier )
+      {
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where( 'participant.id', '=', 'participant_identifier.participant_id', false );
+        $join_mod->where( 'participant_identifier_id', '=', $db_identifier->id );
+        $modifier->join_modifier( 'participant_identifier', $join_mod, 'left' );
+        $modifier->left_join( 'identifier', 'participant_identifier.identifier_id', 'identifier.id' );
+        $modifier->add_table_column( 'identifier', 'value', $db_identifier->name );
+      }
 
       // send pine a list of all consent statuses
       if( 'pine' == $db_interviewing_instance->type )
