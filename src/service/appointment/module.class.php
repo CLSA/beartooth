@@ -406,10 +406,14 @@ class module extends \cenozo\service\base_calendar_module
       {
         $join_mod = lib::create( 'database\modifier' );
         $join_mod->where( 'participant.id', '=', 'participant_identifier.participant_id', false );
-        $join_mod->where( 'participant_identifier_id', '=', $db_identifier->id );
+        $join_mod->where( 'participant_identifier.identifier_id', '=', $db_identifier->id );
         $modifier->join_modifier( 'participant_identifier', $join_mod, 'left' );
         $modifier->left_join( 'identifier', 'participant_identifier.identifier_id', 'identifier.id' );
-        $modifier->add_table_column( 'identifier', 'value', $db_identifier->name );
+        $select->add_table_column(
+          'participant_identifier',
+          'value',
+          sprintf( 'identifier %s', $db_identifier->name )
+        );
       }
 
       // send pine a list of all consent statuses
@@ -593,9 +597,9 @@ class module extends \cenozo\service\base_calendar_module
       $join_mod->where( 'qnaire_has_consent_type.consent_type_id', '=', 'consent_type.id', false );
       $modifier->join_modifier( 'consent_type', $join_mod, 'left' );
 
-      // restrict by type
-      $type = $this->get_argument( 'type', NULL );
-      if( !is_null( $type ) ) $modifier->where( 'qnaire.type', '=', $type );
+      // restrict by qnaire type
+      $qnaire_type = $this->get_argument( 'qnaire_type', NULL );
+      if( !is_null( $qnaire_type ) ) $modifier->where( 'qnaire.type', '=', $qnaire_type );
     }
   }
 }

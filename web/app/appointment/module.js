@@ -821,7 +821,7 @@ cenozoApp.defineModule({
             if ("calendar" == type || "list" == type) {
               if ("appointment" == this.getSubjectFromState())
                 data.restricted_site_id = this.site.id;
-              data.type = this.type;
+              data.qnaire_type = this.type;
               if ("calendar" == type) {
                 data.select = {
                   column: [
