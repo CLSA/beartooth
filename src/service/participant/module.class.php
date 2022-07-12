@@ -30,8 +30,12 @@ class module extends \cenozo\service\participant\module
       $select->add_column( 'qnaire.type', 'qnaire_type', false );
     }
 
-    if( $this->get_argument( 'assignment', false ) )
+    $qnaire_type = $this->get_argument( 'assignment', false );
+    if( $qnaire_type )
     {
+      // the assignment argument will either be "home" or "site"; we need to restrict to that qnaire type
+      $modifier->where( 'qnaire.type', '=', $qnaire_type );
+
       // remove hold/proxy/trace/exclusion joins for efficiency
       $modifier->remove_join( 'exclusion' );
       $modifier->remove_join( 'participant_last_hold' );
@@ -50,14 +54,74 @@ class module extends \cenozo\service\participant\module
       $modifier->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
       $modifier->where( 'queue.rank', '!=', NULL );
 
-      if( $select->has_column( 'blood' ) )
+      if( $select->has_column( 'coi_list' ) )
       {
-        $modifier->join( 'participant_last_consent', 'participant.id', 'participant_last_consent.participant_id' );
-        $modifier->join( 'consent_type', 'participant_last_consent.consent_type_id', 'consent_type.id' );
-        $modifier->left_join(
-          'consent', 'participant_last_consent.consent_id', 'blood_consent.id', 'blood_consent' );
-        $modifier->where( 'consent_type.name', '=', 'draw blood' );
-        $select->add_table_column( 'blood_consent', 'accept', 'blood', true, 'boolean' );
+        // NOTE: we can't use the parent::add_list_column method because there is a special relationship
+        $coi_sel = lib::create( 'database\select' );
+        $coi_sel->FROM( 'queue' );
+        $coi_sel->add_table_column( 'queue_has_participant', 'participant_id' );
+        $coi_sel->add_column( 'GROUP_CONCAT( consent_type.name ORDER BY consent_type.name )', 'coi_list', false );
+
+        $coi_mod = lib::create( 'database\modifier' );
+        $coi_mod->join( 'queue_has_participant', 'queue.id', 'queue_has_participant.queue_id' );
+        $coi_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
+        $coi_mod->left_join( 'qnaire_has_consent_type', 'qnaire.id', 'qnaire_has_consent_type.qnaire_id' );
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where(
+          'qnaire_has_consent_type.consent_type_id',
+          '=',
+          'participant_last_consent.consent_type_id',
+          false
+        );
+        $join_mod->where(
+          'queue_has_participant.participant_id',
+          '=',
+          'participant_last_consent.participant_id',
+          false
+        );
+        $coi_mod->join_modifier( 'participant_last_consent', $join_mod );
+
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where( 'participant_last_consent.consent_id', '=', 'consent.id', false );
+        $join_mod->where( 'consent.accept', '=', true );
+        $coi_mod->join_modifier( 'consent', $join_mod, 'left' );
+
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where( 'consent.consent_type_id', '=', 'consent.consent_type_id', false );
+        $join_mod->where( 'qnaire_has_consent_type.consent_type_id', '=', 'consent_type.id', false );
+        $coi_mod->join_modifier( 'consent_type', $join_mod, 'left' );
+
+        $coi_mod->where( 'queue.rank', '!=', NULL );
+        $coi_mod->where( 'qnaire.type', '=', $qnaire_type );
+        $coi_mod->group( 'queue_has_participant.participant_id' );
+
+        $modifier->join(
+          sprintf( '( %s %s ) AS participant_coi', $coi_sel->get_sql(), $coi_mod->get_sql() ),
+          'participant.id',
+          'participant_coi.participant_id'
+        );
+
+        $select->add_table_column( 'participant_coi', 'coi_list' );
+        \cenozo\database\database::$debug = true;
+
+
+        /*
+        $modifier->left_join( 'qnaire_has_consent_type', 'qnaire.id', 'qnaire_has_consent_type.qnaire_id' );
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where(
+          'qnaire_has_consent_type.consent_type_id',
+          '=',
+          'participant_last_consent.consent_type_id',
+          false
+        );
+        $join_mod->where( 'participant.id', '=', 'participant_last_consent.participant_id', false );
+        $modifier->join_modifier( 'participant_last_consent', $join_mod, 'left' );
+        $modifier->left_join( 'consent', 'participant_last_consent.consent_id', 'consent.id' );
+        $modifier->left_join( 'consent_type', 'consent.consent_type_id', 'consent_type.id' );
+        $select->add_column( 'GROUP_CONCAT( consent_type.name )', 'consent_of_interest', false );
+        */
+
+
       }
 
       if( $select->has_column( 'address_summary' ) )
@@ -118,6 +182,9 @@ class module extends \cenozo\service\participant\module
           $queue_class_name::repopulate_time();
         }
       }
+
+      // add all consent records of interest
+      $modifier->group( 'participant.id' );
     }
     else
     {

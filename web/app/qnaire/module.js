@@ -98,6 +98,9 @@ cenozoApp.defineModule({
             if (angular.isDefined(object.holdTypeModel))
               object.holdTypeModel.listModel.heading =
                 "Overridden Hold Type List";
+            if (angular.isDefined(object.consentTypeModel))
+              object.consentTypeModel.listModel.heading =
+                "Consent Type of Interest List";
             if (angular.isDefined(object.scriptModel))
               object.scriptModel.listModel.heading = "Mandatory Script List";
             if (angular.isDefined(object.siteModel))

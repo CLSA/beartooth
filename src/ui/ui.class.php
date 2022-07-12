@@ -67,6 +67,7 @@ class ui extends \cenozo\ui\ui
       $module->add_choose( 'script' );
       $module->add_choose( 'collection' );
       $module->add_choose( 'hold_type' );
+      $module->add_choose( 'consent_type' );
       $module->add_choose( 'stratum' );
     }
 

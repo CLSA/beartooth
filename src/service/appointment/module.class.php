@@ -169,6 +169,7 @@ class module extends \cenozo\service\base_calendar_module
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
     $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
+
     $participant_site_join_mod = lib::create( 'database\modifier' );
     $participant_site_join_mod->where(
       'interview.participant_id', '=', 'participant_site.participant_id', false );
@@ -180,6 +181,7 @@ class module extends \cenozo\service\base_calendar_module
       $modifier->join( 'site', 'participant_site.site_id', 'effective_site.id', 'left', 'effective_site' );
 
     if( $select->has_column( 'disable_mail' ) ) $select->add_constant( false, 'disable_mail', 'boolean' );
+    $modifier->group( 'appointment.id' );
 
     // interviewing roles need to be treated specially
     if( 'machine' == $db_role->name )
@@ -392,7 +394,6 @@ class module extends \cenozo\service\base_calendar_module
       // send a list of all eligible studies
       $modifier->left_join( 'study_has_participant', 'participant.id', 'study_has_participant.participant_id' );
       $modifier->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
-      $modifier->group( 'appointment.id' );
 
       $select->add_column(
         'GROUP_CONCAT( study.name )',
@@ -541,11 +542,13 @@ class module extends \cenozo\service\base_calendar_module
         'CONCAT( '.
           'participant.first_name, " ", participant.last_name, " (", language.name, ")", '.
           'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
+          'IF( qnaire_has_consent_type.consent_type_id IS NOT NULL, CONCAT( "\nConsents of Interest: ", GROUP_CONCAT( consent_type.name ORDER BY consent_type.name ) ), "" ), '.
           'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
         ')',
         'help',
         false
       );
+
       // restrict by site
       $db_restricted_site = $this->get_restricted_site();
       if( !is_null( $db_restricted_site ) )
@@ -569,6 +572,26 @@ class module extends \cenozo\service\base_calendar_module
 
         $select->add_column( $sql, 'state', false );
       }
+
+      // add the list of consents of interest
+      $modifier->left_join( 'qnaire_has_consent_type', 'qnaire.id', 'qnaire_has_consent_type.qnaire_id' );
+      $join_mod = lib::create( 'database\modifier' );
+      $join_mod->where(
+        'qnaire_has_consent_type.consent_type_id',
+        '=',
+        'participant_last_consent.consent_type_id',
+        false
+      );
+      $join_mod->where( 'participant.id', '=', 'participant_last_consent.participant_id', false );
+      $modifier->join_modifier( 'participant_last_consent', $join_mod );
+      $join_mod = lib::create( 'database\modifier' );
+      $join_mod->where( 'participant_last_consent.consent_id', '=', 'consent.id', false );
+      $join_mod->where( 'consent.accept', '=', true );
+      $modifier->join_modifier( 'consent', $join_mod, 'left' );
+      $join_mod = lib::create( 'database\modifier' );
+      $join_mod->where( 'consent.consent_type_id', '=', 'consent.consent_type_id', false );
+      $join_mod->where( 'qnaire_has_consent_type.consent_type_id', '=', 'consent_type.id', false );
+      $modifier->join_modifier( 'consent_type', $join_mod, 'left' );
 
       // restrict by type
       $type = $this->get_argument( 'type', NULL );

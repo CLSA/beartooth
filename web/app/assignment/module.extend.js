@@ -751,16 +751,8 @@ cenozoApp.extendModule({
             },
 
             getServiceData: function (type, columnRestrictLists) {
-              var data = this.$$getServiceData(type, columnRestrictLists);
-              if (angular.isUndefined(data.modifier.where))
-                data.modifier.where = [];
-              data.modifier.where.push({
-                column: "qnaire.type",
-                operator: "=",
-                value: self.type,
-              });
-              data.assignment = true;
-              return data;
+              // add the assignment type to the service data
+              return { ...this.$$getServiceData(type, columnRestrictLists), assignment: self.type };
             },
           });
 
@@ -829,6 +821,28 @@ cenozoApp.extendModule({
               title: "Availability",
               column: "availability_type.name",
             });
+
+            const response = await CnHttpFactory.instance( {
+              path: 'qnaire',
+              data: {
+                modifier: {
+                  'join': {
+                      table: 'qnaire_has_consent_type',
+                      onleft: 'qnaire.id',
+                      onright: 'qnaire_has_consent_type.qnaire_id'
+                  },
+                  'where': { column: 'qnaire.type', operator: '=', value: object.type }
+                }
+              }
+            } ).count();
+
+            // only include the COI if the qnaire has at least one
+            if(0 < parseInt(response.headers('Total'))) {
+              object.participantModel.addColumn("coi_list", {
+                title: 'Consent of Interest',
+              });
+            }
+
             if ("home" == object.type) {
               object.participantModel.addColumn("prev_event_user", {
                 title: "Previous Interviewer",
@@ -838,10 +852,6 @@ cenozoApp.extendModule({
               });
             } else {
               // 'site' == object.type
-              object.participantModel.addColumn("blood", {
-                title: "Blood",
-                type: "boolean",
-              });
               object.participantModel.addColumn("prev_event_site", {
                 title: "Previous Site",
               });
