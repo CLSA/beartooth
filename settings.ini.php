@@ -22,6 +22,7 @@ $SETTINGS['general']['next_of_kin'] = false;
 $SETTINGS['path']['APPLICATION'] = str_replace( '/settings.ini.php', '', __FILE__ );
 
 // add modules used by the application
+$SETTINGS['module']['equipment'] = true;
 $SETTINGS['module']['interview'] = true;
 $SETTINGS['module']['script'] = true;
 $SETTINGS['module']['voip'] = true;
