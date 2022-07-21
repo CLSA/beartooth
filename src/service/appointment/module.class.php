@@ -18,6 +18,7 @@ class module extends \cenozo\service\base_calendar_module
    */
   public function __construct( $index, $service )
   {
+    \cenozo\database\database::$debug = true;
     parent::__construct( $index, $service );
     $db_user = lib::create( 'business\session' )->get_user();
     $date_string = sprintf( 'DATE( CONVERT_TZ( appointment.datetime, "UTC", "%s" ) )', $db_user->timezone );
@@ -587,7 +588,7 @@ class module extends \cenozo\service\base_calendar_module
         false
       );
       $join_mod->where( 'participant.id', '=', 'participant_last_consent.participant_id', false );
-      $modifier->join_modifier( 'participant_last_consent', $join_mod );
+      $modifier->join_modifier( 'participant_last_consent', $join_mod, 'left' );
       $join_mod = lib::create( 'database\modifier' );
       $join_mod->where( 'participant_last_consent.consent_id', '=', 'consent.id', false );
       $join_mod->where( 'consent.accept', '=', true );
