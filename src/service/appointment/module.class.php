@@ -18,7 +18,6 @@ class module extends \cenozo\service\base_calendar_module
    */
   public function __construct( $index, $service )
   {
-    \cenozo\database\database::$debug = true;
     parent::__construct( $index, $service );
     $db_user = lib::create( 'business\session' )->get_user();
     $date_string = sprintf( 'DATE( CONVERT_TZ( appointment.datetime, "UTC", "%s" ) )', $db_user->timezone );
