@@ -102,26 +102,6 @@ class module extends \cenozo\service\participant\module
         );
 
         $select->add_table_column( 'participant_coi', 'coi_list' );
-        \cenozo\database\database::$debug = true;
-
-
-        /*
-        $modifier->left_join( 'qnaire_has_consent_type', 'qnaire.id', 'qnaire_has_consent_type.qnaire_id' );
-        $join_mod = lib::create( 'database\modifier' );
-        $join_mod->where(
-          'qnaire_has_consent_type.consent_type_id',
-          '=',
-          'participant_last_consent.consent_type_id',
-          false
-        );
-        $join_mod->where( 'participant.id', '=', 'participant_last_consent.participant_id', false );
-        $modifier->join_modifier( 'participant_last_consent', $join_mod, 'left' );
-        $modifier->left_join( 'consent', 'participant_last_consent.consent_id', 'consent.id' );
-        $modifier->left_join( 'consent_type', 'consent.consent_type_id', 'consent_type.id' );
-        $select->add_column( 'GROUP_CONCAT( consent_type.name )', 'consent_of_interest', false );
-        */
-
-
       }
 
       if( $select->has_column( 'address_summary' ) )
