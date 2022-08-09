@@ -57,7 +57,7 @@ class module extends \cenozo\service\base_calendar_module
   {
     parent::validate();
 
-    if( 300 > $this->get_status()->get_code() )
+    if( $this->service->may_continue() )
     {
       $service_class_name = lib::get_class_name( 'service\service' );
       $db_appointment = $this->get_resource();

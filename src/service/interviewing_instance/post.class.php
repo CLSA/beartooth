@@ -74,7 +74,7 @@ class post extends \cenozo\service\post
 
     $role_class_name = lib::get_class_name( 'database\role' );
 
-    if( 300 > $this->status->get_code() )
+    if( $this->may_continue() )
     {
       $db_user = $this->get_leaf_record()->get_user();
 

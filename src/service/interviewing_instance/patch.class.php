@@ -78,7 +78,7 @@ class patch extends \cenozo\service\patch
           }
         }
 
-        if( 300 > $this->status->get_code() )
+        if( $this->may_continue() )
         {
           try
           {

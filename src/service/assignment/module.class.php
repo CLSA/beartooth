@@ -20,7 +20,7 @@ class module extends \cenozo\service\assignment\module
   {
     parent::validate();
 
-    if( 300 > $this->get_status()->get_code() )
+    if( $this->service->may_continue() )
     {
       if( 'POST' == $this->get_method() )
       {

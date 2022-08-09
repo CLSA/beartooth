@@ -30,7 +30,7 @@ class post extends \cenozo\service\service
   {
     parent::validate();
 
-    if( 300 > $this->status->get_code() )
+    if( $this->may_continue() )
     {
       $participant_class_name = lib::get_class_name( 'database\participant' );
 
