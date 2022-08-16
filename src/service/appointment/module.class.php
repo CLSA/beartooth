@@ -14,18 +14,6 @@ use cenozo\lib, cenozo\log, beartooth\util;
 class module extends \cenozo\service\base_calendar_module
 {
   /**
-   * Contructor
-   */
-  public function __construct( $index, $service )
-  {
-    parent::__construct( $index, $service );
-    $db_user = lib::create( 'business\session' )->get_user();
-    $date_string = sprintf( 'DATE( CONVERT_TZ( appointment.datetime, "UTC", "%s" ) )', $db_user->timezone );
-    $this->lower_date = array( 'null' => false, 'column' => $date_string );
-    $this->upper_date = array( 'null' => false, 'column' => $date_string );
-  }
-
-  /**
    * Extend parent method
    */
   protected function get_argument( $name, $default = NULL )
@@ -157,13 +145,18 @@ class module extends \cenozo\service\base_calendar_module
    */
   public function prepare_read( $select, $modifier )
   {
-    parent::prepare_read( $select, $modifier );
-
     $session = lib::create( 'business\session' );
     $db_application = $session->get_application();
     $db_user = $session->get_user();
     $db_site = $session->get_site();
     $db_role = $session->get_role();
+
+    // make sure to define the lower and upper date before calling the parent method
+    $date_string = sprintf( 'DATE( CONVERT_TZ( appointment.datetime, "UTC", "%s" ) )', $db_user->timezone );
+    $this->lower_date = array( 'null' => false, 'column' => $date_string );
+    $this->upper_date = array( 'null' => false, 'column' => $date_string );
+
+    parent::prepare_read( $select, $modifier );
 
     $modifier->left_join( 'appointment_type', 'appointment.appointment_type_id', 'appointment_type.id' );
     $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
