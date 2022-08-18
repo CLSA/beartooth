@@ -134,7 +134,8 @@ class appointment extends \cenozo\database\record
         }
         catch( \cenozo\exception\runtime $e )
         {
-          if( 'Got response code 404 when trying GET request to Pine.' != $e->get_raw_message() ) throw $e;
+          log::debug( $e->get_raw_message() );
+          if( false === strpos( $e->get_raw_message(), ' 404 ' ) ) throw $e;
           $completed = false;
           break;
         }
