@@ -21,6 +21,14 @@ $SETTINGS['general']['next_of_kin'] = false;
 // the location of beartooth internal path
 $SETTINGS['path']['APPLICATION'] = str_replace( '/settings.ini.php', '', __FILE__ );
 
+// default CANTAB settings
+$SETTINGS['cantab']['enabled'] = false;
+$SETTINGS['cantab']['url'] = '';
+$SETTINGS['cantab']['username'] = '';
+$SETTINGS['cantab']['password'] = '';
+$SETTINGS['cantab']['organisation'] = '';
+$SETTINGS['cantab']['consent_type_name'] = '';
+
 // add modules used by the application
 $SETTINGS['module']['equipment'] = true;
 $SETTINGS['module']['interview'] = true;
