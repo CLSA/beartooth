@@ -55,7 +55,7 @@ class patch extends \cenozo\service\patch
           try
           {
             $db_user->active = $this->original_patch_array['active'];
-            $this->status->set_code( 204 );
+            $this->status->set_code( 200 );
           }
           catch( \cenozo\exception\argument $e )
           {
@@ -69,7 +69,7 @@ class patch extends \cenozo\service\patch
           try
           {
             $db_user->name = $this->original_patch_array['username'];
-            $this->status->set_code( 204 );
+            $this->status->set_code( 200 );
           }
           catch( \cenozo\exception\argument $e )
           {
