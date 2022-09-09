@@ -507,7 +507,12 @@ class post extends \cenozo\service\service
       'from_instance' => 'onyx',
       'date' => $datetime_obj->format( 'Y-m-d' ),
       'user_id' => $session->get_user()->id,
-      'uid' => $db_participant->uid
+      'uid' => $db_participant->uid,
+      // onyx never sends international contact information
+      'proxy_international_address' => false,
+      'proxy_international_phone' => false,
+      'informant_international_address' => false,
+      'informant_international_phone' => false
     );
 
     $member = 'ICF_ANSW_COM';
