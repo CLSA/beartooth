@@ -21,34 +21,7 @@ class cantab_manager extends \cenozo\base_object
    */
   public function __construct()
   {
-    $study_class_name = lib::get_class_name( 'database\study' );
-    $study_phase_class_name = lib::get_class_name( 'database\study_phase' );
-
     $setting_manager = lib::create( 'business\setting_manager' );
-    $study_name = $setting_manager->get_setting( 'cantab', 'study_name' );
-    $study_phase_name = $setting_manager->get_setting( 'cantab', 'study_phase_name' );
-
-    $this->db_study = $study_class_name::get_unique_record( 'name', $study_name );
-    if( is_null( $this->db_study ) )
-    {
-      throw lib::create( 'exception\runtime',
-        sprintf( 'CANTAB manager has been enabled with invalid study name "%s".', $study_name ),
-        __METHOD__
-      );
-    }
-
-    $this->db_study_phase = $study_phase_class_name::get_unique_record(
-      array( 'study_id', 'name' ),
-      array( $this->db_study->id, $study_phase_name )
-    );
-    if( is_null( $this->db_study_phase ) )
-    {
-      throw lib::create( 'exception\runtime',
-        sprintf( 'CANTAB manager has been enabled with invalid study phase name "%s".', $study_phase_name ),
-        __METHOD__
-      );
-    }
-
     $this->enabled = $setting_manager->get_setting( 'cantab', 'enabled' );
     $this->url = $setting_manager->get_setting( 'cantab', 'url' );
     $this->username = $setting_manager->get_setting( 'cantab', 'username' );
@@ -60,7 +33,37 @@ class cantab_manager extends \cenozo\base_object
       'site_list' => array()
     );
 
-    if( $this->get_enabled() ) $this->get_identifiers();
+    if( $this->get_enabled() )
+    {
+      $study_class_name = lib::get_class_name( 'database\study' );
+      $study_phase_class_name = lib::get_class_name( 'database\study_phase' );
+
+      $study_name = $setting_manager->get_setting( 'cantab', 'study_name' );
+      $study_phase_name = $setting_manager->get_setting( 'cantab', 'study_phase_name' );
+
+      $this->db_study = $study_class_name::get_unique_record( 'name', $study_name );
+      if( is_null( $this->db_study ) )
+      {
+        throw lib::create( 'exception\runtime',
+          sprintf( 'CANTAB manager has been enabled with invalid study name "%s".', $study_name ),
+          __METHOD__
+        );
+      }
+
+      $this->db_study_phase = $study_phase_class_name::get_unique_record(
+        array( 'study_id', 'name' ),
+        array( $this->db_study->id, $study_phase_name )
+      );
+      if( is_null( $this->db_study_phase ) )
+      {
+        throw lib::create( 'exception\runtime',
+          sprintf( 'CANTAB manager has been enabled with invalid study phase name "%s".', $study_phase_name ),
+          __METHOD__
+        );
+      }
+
+      $this->get_identifiers();
+    }
   }
 
   /**
