@@ -19,10 +19,36 @@ class cantab_manager extends \cenozo\base_object
    * @param database\study The study
    * @access public
    */
-  public function __construct( $db_study_phase )
+  public function __construct()
   {
+    $study_class_name = lib::get_class_name( 'database\study' );
+    $study_phase_class_name = lib::get_class_name( 'database\study_phase' );
+
     $setting_manager = lib::create( 'business\setting_manager' );
-    $this->db_study_phase = $db_study_phase;
+    $study_name = $setting_manager->get_setting( 'cantab', 'study_name' );
+    $study_phase_name = $setting_manager->get_setting( 'cantab', 'study_phase_name' );
+
+    $this->db_study = $study_class_name::get_unique_record( 'name', $study_name );
+    if( is_null( $this->db_study ) )
+    {
+      throw lib::create( 'exception\runtime',
+        sprintf( 'CANTAB manager has been enabled with invalid study name "%s".', $study_name ),
+        __METHOD__
+      );
+    }
+
+    $this->db_study_phase = $study_phase_class_name::get_unique_record(
+      array( 'study_id', 'name' ),
+      array( $this->db_study->id, $study_phase_name )
+    );
+    if( is_null( $this->db_study_phase ) )
+    {
+      throw lib::create( 'exception\runtime',
+        sprintf( 'CANTAB manager has been enabled with invalid study phase name "%s".', $study_phase_name ),
+        __METHOD__
+      );
+    }
+
     $this->enabled = $setting_manager->get_setting( 'cantab', 'enabled' );
     $this->url = $setting_manager->get_setting( 'cantab', 'url' );
     $this->username = $setting_manager->get_setting( 'cantab', 'username' );
@@ -63,7 +89,7 @@ class cantab_manager extends \cenozo\base_object
         sprintf(
           'Tried to add participant %s to CANTAB for study phase "%s %s" which has no identifier.',
           $db_participant->uid,
-          $this->db_study_phase->get_study()->name,
+          $this->db_study->name,
           $this->db_study_phase->name
         ),
         __METHOD__
@@ -81,7 +107,7 @@ class cantab_manager extends \cenozo\base_object
         sprintf(
           'Tried to add participant %s to CANTAB for study phase "%s %s" but the participant has no identifier.',
           $db_participant->uid,
-          $this->db_study_phase->get_study()->name,
+          $this->db_study->name,
           $this->db_study_phase->name
         ),
         __METHOD__
@@ -193,7 +219,7 @@ class cantab_manager extends \cenozo\base_object
   }
 
   /**
-   * TODO: document
+   * Gets all CANTAB identifiers from the API to be used when adding new participants
    */
   protected function get_identifiers()
   {
@@ -208,10 +234,9 @@ class cantab_manager extends \cenozo\base_object
     }
 
     // get the study ID
-    $db_study = $this->db_study_phase->get_study();
     foreach( $this->get( 'study?limit=10' )->records as $study )
     {
-      if( $db_study->name === $study->description )
+      if( $this->db_study->name === $study->description )
       {
         $this->identifiers['study'] = $study->id;
         break;
@@ -376,7 +401,14 @@ class cantab_manager extends \cenozo\base_object
   }
 
   /**
-   * Which study-phase to interact with in the CANTAB application
+   * Which study to interact with in the CANTAB application
+   * @var database\study_phase $db_study
+   * @access protected
+   */
+  protected $db_study = NULL;
+
+  /**
+   * Which study-phase to get the identifier type from
    * @var database\study_phase $db_study_phase
    * @access protected
    */

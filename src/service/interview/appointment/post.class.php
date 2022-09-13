@@ -35,6 +35,7 @@ class post extends \cenozo\service\post
    */
   protected function execute()
   {
+    $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
     $setting_manager = lib::create( 'business\setting_manager' );
     $session = lib::create( 'business\session' );
 
@@ -64,7 +65,7 @@ class post extends \cenozo\service\post
         $db_study_phase = $session->get_application()->get_study_phase();
         if( !is_null( $db_study_phase ) && !is_null( $db_consent ) && $db_consent->accept )
         {
-          $cantab_manager = lib::create( 'business\cantab', $db_study_phase );
+          $cantab_manager = lib::create( 'business\cantab_manager', $db_study_phase );
           if( $cantab_manager->get_enabled() )
           {
             $cantab_manager->add_participant( $db_participant );

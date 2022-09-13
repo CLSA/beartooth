@@ -27,6 +27,8 @@ $SETTINGS['cantab']['url'] = '';
 $SETTINGS['cantab']['username'] = '';
 $SETTINGS['cantab']['password'] = '';
 $SETTINGS['cantab']['organisation'] = '';
+$SETTINGS['cantab']['study_name'] = '';
+$SETTINGS['cantab']['study_phase_name'] = '';
 $SETTINGS['cantab']['consent_type_name'] = '';
 
 // add modules used by the application
