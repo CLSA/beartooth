@@ -508,11 +508,9 @@ class post extends \cenozo\service\service
       'date' => $datetime_obj->format( 'Y-m-d' ),
       'user_id' => $session->get_user()->id,
       'uid' => $db_participant->uid,
-      // onyx never sends international contact information
+      // onyx never sends international contact information (proxy is always sent)
       'proxy_address_international' => false,
-      'proxy_phone_international' => false,
-      'informant_address_international' => false,
-      'informant_phone_international' => false
+      'proxy_phone_international' => false
     );
 
     $member = 'ICF_ANSW_COM';
@@ -583,6 +581,13 @@ class post extends \cenozo\service\service
     $member = 'ICF_PRXINFSM_COM';
     $form_data['same_as_proxy'] =
       property_exists( $object, $member ) && 1 == preg_match( '/y|yes|true|1/i', $object->$member ) ? 1 : 0;
+
+    if( !$form_data['same_as_proxy'] )
+    {
+      // onyx never sends international contact information (only include this if informant isn't the same as proxy)
+      $form_data['informant_address_international'] = false;
+      $form_data['informant_phone_international'] = false;
+    }
 
     $member = 'ICF_INFFIRSTNAME_COM';
     if( property_exists( $object, $member ) && 0 < strlen( $object->$member ) )
