@@ -509,10 +509,10 @@ class post extends \cenozo\service\service
       'user_id' => $session->get_user()->id,
       'uid' => $db_participant->uid,
       // onyx never sends international contact information
-      'proxy_international_address' => false,
-      'proxy_international_phone' => false,
-      'informant_international_address' => false,
-      'informant_international_phone' => false
+      'proxy_address_international' => false,
+      'proxy_phone_international' => false,
+      'informant_address_international' => false,
+      'informant_phone_international' => false
     );
 
     $member = 'ICF_ANSW_COM';
