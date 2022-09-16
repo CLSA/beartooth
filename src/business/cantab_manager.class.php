@@ -142,6 +142,41 @@ class cantab_manager extends \cenozo\base_object
 
     $site_identifiers = $this->identifiers['site_list'][$db_site->name];
 
+    // get the participant's level of education from opal
+    $data_manager = lib::create( 'business\data_manager' );
+    $loe = $data_manager->get_participant_value(
+      $db_participant,
+      'participant.opal.clsa-sac-releases.60minQ_CoPv7_Baseline.ED_UDR11_COM'
+    );
+
+    // The loe in opal is defined as follows:
+    // 1) grade 8 or lower
+    // 2) grade 9-10 (age 14-15)
+    // 3) grade 11-13 (age 16-18)
+    // 4) secondary school graduate
+    // 5) some post secondary education
+    // 6) trade certificate or diploma
+    // 7) non-university certificate or diploma
+    // 8) university certificate below batchelor
+    // 9) batchelor's degree
+    // 10) university degree above batchelor
+    // 11) other post secondary education
+    // 99) required question(s) not answered (not available)
+
+    // The loe in CANTAB is defined as follows:
+    // LOE_1: left formal education before age 16
+    // LOE_2: left formal education at age 16
+    // LOE_3: left formal education at age 17-18
+    // LOE_4: undergraduate degree or equivalent
+    // LOE_5: master's degree or equivalent
+    // LOE_6: PhD or equivalent
+
+    $cantab_loe = NULL;
+    if( 1 == $loe || 2 == $loe ) $cantab_loe = 'LOE_1';
+    else if( ( 3 <= $loe && $loe <= 8 ) || 11 == $loe ) $cantab_loe = 'LOE_3';
+    else if( 9 == $loe ) $cantab_loe = 'LOE_4';
+    else if( 10 == $loe ) $cantab_loe = 'LOE_5';
+
     // post the participant's details
     $response = $this->post(
       'subject',
@@ -184,7 +219,7 @@ class cantab_manager extends \cenozo\base_object
           array(
             'subjectItemDef' => $site_identifiers['item_def_list']['Level of Education'],
             'date' => NULL,
-            'text' => 'LOE_1', // TODO: do we get this from Opal?
+            'text' => $cantab_loe,
             'locale' => NULL,
             'integer' => NULL,
             'multiText' => NULL,
@@ -194,31 +229,43 @@ class cantab_manager extends \cenozo\base_object
       )
     );
 
-    $added = false;
-    if( $response )
+    // ignore duplicate errors
+    if( false === $response &&
+        400 == $this->last_api_code &&
+        strpos( $this->last_error_message, 'duplicate.subject.id' ) )
     {
-      $subject = current( $response->records );
-
-      // post the stimuli
-      $response = $this->post(
-        'stimuliAllocation',
-        array(
-          'subject' => $subject->id,
-          'clientId' => NULL,
-          'version' => 0,
-          'allocations' => NULL,
-          // note that org, study, site, etc, do not need to be provided
-          'organisation' => NULL,
-          'study' => NULL,
-          'site' => NULL,
-          'studyDef' => NULL,
-          'groupDef' => NULL
-        )
-      );
-      if( $response ) $added = true;
+      // the participant already exists
+      return false;
+    }
+    else
+    {
+      // throw a notice if there is an error
+      $this->on_response_error( $response, 'Unable to send participant data to CANTAB service.' );
     }
 
-    return $added;
+    $subject = current( $response->records );
+
+    // post the stimuli
+    $response = $this->post(
+      'stimuliAllocation',
+      array(
+        'subject' => $subject->id,
+        'clientId' => NULL,
+        'version' => 0,
+        'allocations' => NULL,
+        // note that org, study, site, etc, do not need to be provided
+        'organisation' => NULL,
+        'study' => NULL,
+        'site' => NULL,
+        'studyDef' => NULL,
+        'groupDef' => NULL
+      )
+    );
+
+    // throw a notice if there is an error
+    $this->on_response_error( $response, 'Unable to load stimuli allocation data to CANTAB service.' );
+
+    return true;
   }
 
   /**
@@ -226,8 +273,10 @@ class cantab_manager extends \cenozo\base_object
    */
   protected function get_identifiers()
   {
-    // get the organisation ID
-    foreach( $this->get( 'organisation?limit=10' )->records as $organisation )
+    // get the organisation ID (throws a notice if there is an error)
+    $response = $this->get( 'organisation?limit=10' );
+    $this->on_response_error( $response, 'Unable to get organisation data from CANTAB service.' );
+    foreach( $response->records as $organisation )
     {
       if( $this->organisation === $organisation->name )
       {
@@ -236,8 +285,11 @@ class cantab_manager extends \cenozo\base_object
       }
     }
 
-    // get the study ID
-    foreach( $this->get( 'study?limit=10' )->records as $study )
+    // get the study ID (throws a notice if there is an error)
+    $response = $this->get( 'study?limit=10' );
+    $this->on_response_error( $response, 'Unable to get study data from CANTAB service.' );
+
+    foreach( $response->records as $study )
     {
       if( $this->db_study->name === $study->description )
       {
@@ -246,9 +298,11 @@ class cantab_manager extends \cenozo\base_object
       }
     }
 
-    // get the list of all site IDs, studyDef IDs, and groupDef IDs
+    // get the list of all site IDs, studyDef IDs, and groupDef IDs (throws a notice if there is an error)
     $study_def_list = array();
     $object = $this->get( sprintf( 'site?limit=50&filter={"study":"%s"}', $this->identifiers['study'] ) );
+    $this->on_response_error( $object, 'Unable to get site data from CANTAB service.' );
+
     foreach( $object->records as $site )
     {
       $this->identifiers['site_list'][$site->name] = array(
@@ -261,10 +315,12 @@ class cantab_manager extends \cenozo\base_object
       // the study/group def IDs are likely the same for all sites, so use a cache
       if( !array_key_exists( $site->activeStudyDef, $study_def_list ) )
       {
+        // get study/group def IDs (throws a notice if there is an error)
         $study_def_object = $this->get( sprintf(
           'studyDef?limit=10&filter={"study":"%s"}',
           $this->identifiers['study']
         ) );
+        $this->on_response_error( $study_def_object, 'Unable to get study definition data from CANTAB service.' );
 
         foreach( $study_def_object->records as $study_def )
         {
@@ -295,6 +351,27 @@ class cantab_manager extends \cenozo\base_object
   }
 
   /**
+   * 
+   */
+  protected function on_response_error( $response, $message )
+  {
+    if( false === $response )
+    {
+      throw lib::create( 'exception\notice',
+        sprintf(
+          '%s%s%s',
+          $message,
+          false === strpos( $this->last_error_message, "\n" ) ?
+            sprintf( "\nServer responded with: \"%s\"", $this->last_error_message ) : '',
+          $this->last_api_code ?
+            sprintf( "\nResponse code: %s", $this->last_api_code ) : ''
+        ),
+        __METHOD__
+      );
+    }
+  }
+
+  /**
    * Sends a curl GET request to the CANTAB application
    * 
    * @param string $api_path The CANTAB endpoint (not including base url)
@@ -317,25 +394,16 @@ class cantab_manager extends \cenozo\base_object
   protected function post( $api_path, $data = NULL )
   {
     $response = false;
-    try
-    {
-      if( is_null( $data ) ) $data = new \stdClass;
-      $response = $this->send( $api_path, 'POST', $data );
-    }
-    catch( \cenozo\exception\runtime $e )
-    {
-      // ignore duplicate errors
-      if( false === strpos( $e->get_message(), 'duplicate.subject.id' ) ) throw $e;
-    }
 
-    return $response;
+    if( is_null( $data ) ) $data = new \stdClass;
+    return $this->send( $api_path, 'POST', $data );
   }
 
   /**
    * Sends curl requests
    * 
    * @param string $api_path The CANTAB endpoint (not including base url)
-   * @return curl resource
+   * @return curl resource (or false if there was an error)
    * @access public
    */
   private function send( $api_path, $method = 'GET', $data = NULL )
@@ -350,7 +418,8 @@ class cantab_manager extends \cenozo\base_object
       'Accept: application/json'
     );
 
-    $code = 0;
+    $this->last_api_code = NULL;
+    $this->last_error_message = NULL;
 
     // prepare cURL request
     $url = sprintf( '%s/%s', $this->url, $api_path );
@@ -373,31 +442,15 @@ class cantab_manager extends \cenozo\base_object
     $response = curl_exec( $curl );
     if( curl_errno( $curl ) )
     {
-      throw lib::create( 'exception\runtime',
-        sprintf(
-          'Got error code %s when trying %s:%s request to CANTAB API.  Message: %s',
-          curl_errno( $curl ),
-          $method,
-          $api_path,
-          curl_error( $curl )
-        ),
-        __METHOD__
-      );
+      $this->last_error_message = curl_error( $curl );
+      return false;
     }
 
-    $code = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-    if( 300 <= $code )
+    $this->last_api_code = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
+    if( 300 <= $this->last_api_code )
     {
-      throw lib::create( 'exception\runtime',
-        sprintf(
-          'Got response code %s when trying %s:%s request to CANTAB API.  Response %s',
-          $code,
-          $method,
-          $api_path,
-          $response
-        ),
-        __METHOD__
-      );
+      $this->last_error_message = $response;
+      return false;
     }
 
     return util::json_decode( $response );
@@ -465,4 +518,18 @@ class cantab_manager extends \cenozo\base_object
    * @access protected
    */
   protected $identifiers = NULL;
+
+  /**
+   * The HTML response code resulting from the last call to the CANTAB API
+   * @var integer
+   * @access private
+   */
+  private $last_api_code = NULL;
+
+  /**
+   * The error message from the last call to the CANTAB API
+   * @var string
+   * @access private
+   */
+  private $last_error_message = NULL;
 }
