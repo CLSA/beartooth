@@ -443,21 +443,24 @@ class post extends \cenozo\service\service
       if( property_exists( $object, $member ) )
       {
         $value = $object->$member;
-        if( is_string( $value ) ) $value = 1 === preg_match( '/y|yes|true|1/i', $value );
-        else $value = (bool) $value;
-
-        $db_consent_type = $consent_type_class_name::get_unique_record( 'name', $consent_data['consent_type'] );
-        $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-        if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
+        if( !is_null( $value ) ) // ignore NULL values, it means there is no consent record at all (skipped)
         {
-          $db_consent = lib::create( 'database\consent' );
-          $db_consent->participant_id = $db_participant->id;
-          $db_consent->consent_type_id = $db_consent_type->id;
-          $db_consent->accept = $value;
-          $db_consent->written = true;
-          $db_consent->datetime = $datetime_obj;
-          $db_consent->note = 'Provided by Onyx.';
-          $db_consent->save();
+          if( is_string( $value ) ) $value = 1 === preg_match( '/y|yes|true|1/i', $value );
+          else $value = (bool) $value;
+
+          $db_consent_type = $consent_type_class_name::get_unique_record( 'name', $consent_data['consent_type'] );
+          $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
+          if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
+          {
+            $db_consent = lib::create( 'database\consent' );
+            $db_consent->participant_id = $db_participant->id;
+            $db_consent->consent_type_id = $db_consent_type->id;
+            $db_consent->accept = $value;
+            $db_consent->written = false;
+            $db_consent->datetime = $datetime_obj;
+            $db_consent->note = 'Provided by Onyx.';
+            $db_consent->save();
+          }
         }
       }
     }
