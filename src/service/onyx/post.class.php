@@ -371,9 +371,12 @@ class post extends \cenozo\service\service
 
     $interviewing_instance_class_name = lib::get_class_name( 'database\interviewing_instance' );
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
+    $equipment_type_class_name = lib::get_class_name( 'database\equipment_type' );
+    $equipment_class_name = lib::get_class_name( 'database\equipment' );
 
     // get the onyx instance to tell whether this is a home or site instance
     $db_user = lib::create( 'business\session' )->get_user();
+    $db_site = lib::create( 'business\session' )->get_site();
     $db_interviewing_instance = $interviewing_instance_class_name::get_unique_record( 'user_id', $db_user->id );
     if( is_null( $db_interviewing_instance ) )
     {
@@ -442,13 +445,15 @@ class post extends \cenozo\service\service
       $member = $consent_data['member'];
       if( property_exists( $object, $member ) )
       {
+        $db_consent_type = $consent_type_class_name::get_unique_record( 'name', $consent_data['consent_type'] );
         $value = $object->$member;
-        if( !is_null( $value ) ) // ignore NULL values, it means there is no consent record at all (skipped)
+
+        // ignore NULL values, it means there is no consent record at all (skipped)
+        if( !is_null( $db_consent_type ) && !is_null( $value ) )
         {
           if( is_string( $value ) ) $value = 1 === preg_match( '/y|yes|true|1/i', $value );
           else $value = (bool) $value;
 
-          $db_consent_type = $consent_type_class_name::get_unique_record( 'name', $consent_data['consent_type'] );
           $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
           if( is_null( $db_last_consent ) || $db_last_consent->accept != $value || $db_last_consent->written != true )
           {
@@ -460,6 +465,112 @@ class post extends \cenozo\service\service
             $db_consent->datetime = $datetime_obj;
             $db_consent->note = 'Provided by Onyx.';
             $db_consent->save();
+          }
+        }
+      }
+    }
+
+    // equipment information: list of member name (from Onyx) and equipment type (in database)
+    $equipment_variable_name_list = [
+      array( 'member' => 'Actigraph', 'equipment_type' => 'Actigraph' ),
+      array( 'member' => 'MuseHeadband', 'equipment_type' => 'Muse Headband' ),
+      array( 'member' => 'MusePod', 'equipment_type' => 'Muse Pod' ),
+      array( 'member' => 'MuseTablet', 'equipment_type' => 'Muse Tablet' ),
+      array( 'member' => 'StoolKit', 'equipment_type' => 'Stool Kit' ),
+      array( 'member' => 'Ticwatch', 'equipment_type' => 'Ticwatch' ),
+    ];
+
+    foreach( $equipment_variable_name_list as $equipment_data )
+    {
+      $member = $equipment_data['member'];
+      if( property_exists( $object, $member ) )
+      {
+        $db_equipment_type = $equipment_type_class_name::get_unique_record(
+          'name',
+          $equipment_data['equipment_type']
+        );
+        $equipment_obj = $object->$member;
+
+        // the object must have a serial number and either sent or received properties
+        if( !is_null( $db_equipment_type ) &&
+            !is_null( $equipment_obj ) &&
+            is_object( $equipment_obj ) &&
+            property_exists( $equipment_obj, 'SerialNumber' ) &&
+            ( property_exists( $equipment_obj, 'Sent' ) || property_exists( $equipment_obj, 'Received' ) ) )
+        {
+          $serial_number = $equipment_obj->SerialNumber;
+          $sent = NULL;
+          $datetime_obj = NULL;
+          if( property_exists( $equipment_obj, 'Sent' ) )
+          {
+            $sent = true;
+            $datetime_obj = util::get_datetime_object( $equipment_obj->Sent );
+          }
+          else // received
+          {
+            $sent = false;
+            $datetime_obj = util::get_datetime_object( $equipment_obj->Received );
+          }
+
+          // create the equipment if it doesn't already exist
+          $db_equipment = $equipment_class_name::get_unique_record( 'serial_number', $serial_number );
+          if( is_null( $db_equipment ) )
+          {
+            $db_equipment = lib::create( 'database\equipment' );
+            $db_equipment->equipment_type_id = $db_equipment_type->id;
+            $db_equipment->site_id = $db_site->id;
+            $db_equipment->serial_number = $serial_number;
+            $db_equipment->note = 'Created by Onyx.';
+            $db_equipment->save();
+          }
+
+          if( $sent )
+          {
+            // if the equipment is marked as loaned then mark it as returned
+            $equipment_loan_mod = lib::create( 'database\modifier' );
+            $equipment_loan_mod->where( 'end_datetime', '=', NULL );
+            foreach( $db_equipment->get_equipment_loan_object_list( $equipment_loan_mod ) as $db_equipment_loan )
+            {
+              $db_equipment_loan->end_datetime = $datetime_obj;
+              $db_equipment_loan->note = 'Automatically setting end date because of new loan.';
+              $db_equipment_loan->save();
+            }
+
+            // and now create a new loan record
+            $db_equipment_loan = lib::create( 'database\equipment_loan' );
+            $db_equipment_loan->participant_id = $db_participant->id;
+            $db_equipment_loan->equipment_id = $db_equipment->id;
+            $db_equipment_loan->start_datetime = $datetime_obj;
+            $db_equipment_loan->save();
+          }
+          else // received
+          {
+            // try and find the participant's loan record
+            $equipment_loan_mod = lib::create( 'database\modifier' );
+            $equipment_loan_mod->where( 'participant_id', '=', $db_participant->id );
+            $equipment_loan_mod->order( '-end_datetime' ); // put null values first
+            $equipment_loan_list = $db_equipment->get_equipment_loan( $equipment_loan_mod );
+            if( 0 < count( $equipment_loan_list ) )
+            {
+              // if the loan record is found set the end date (if it isn't already set)
+              $db_equipment_loan = current( $equipment_loan_list );
+              if( is_null( $db_equipment_loan->end_datetime ) )
+              {
+                $db_equipment_loan->end_datetime = $datetime_obj;
+                $db_equipment_loan->save();
+              }
+            }
+            else
+            {
+              // create the loan record if it doesn't already exist
+              $db_equipment_loan = lib::create( 'database\equipment_loan' );
+              $db_equipment_loan->participant_id = $db_participant->id;
+              $db_equipment_loan->equipment_id = $db_equipment->id;
+              $db_equipment_loan->start_datetime = $datetime_obj;
+              $db_equipment_loan->end_datetime = $datetime_obj;
+              $db_equipment_loan->note = 'Automatically setting start date because loan was never created.';
+              $db_equipment_loan->save();
+            }
           }
         }
       }
