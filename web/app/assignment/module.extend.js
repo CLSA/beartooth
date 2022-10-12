@@ -168,6 +168,16 @@ cenozoApp.extendModule({
           }
 
           angular.extend(this, {
+            /**
+             * A convenience method that determines whether the current role is included in the provided list.
+             * For example: isRole( 'administrator', 'supervisor' ) will return true if the current user is logged
+             * in as an administrator or supervisor.
+             */
+            isRole: function (...args) {
+              console.log( args );
+              return args.some((role) => role == CnSession.role.name);
+            },
+
             scriptLauncher: null,
 
             reset: function () {
