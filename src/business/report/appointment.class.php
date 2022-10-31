@@ -34,6 +34,11 @@ class appointment extends \cenozo\business\report\base_report
     }
 
     $modifier = lib::create( 'database\modifier' );
+    $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
+    $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
+    if( !is_null( $db_qnaire ) ) $modifier->where( 'qnaire.id', '=', $db_qnaire->id );
+    $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
+
     $select = lib::create( 'database\select' );
     $select->from( $this->db_report->get_report_type()->subject );
     if( $this->db_role->all_sites ) $select->add_column( 'IFNULL( site.name, "(none)" )', 'Site', false );
@@ -43,6 +48,7 @@ class appointment extends \cenozo\business\report\base_report
       'Name',
       false );
     $select->add_column( 'participant.uid', 'UID', false );
+    $this->add_application_identifier_columns( $select, $modifier );
     if( is_null( $db_qnaire ) ) $select->add_column( 'qnaire.name', 'Questionnaire', false );
     $select->add_column( $this->get_datetime_column( 'appointment.datetime', 'date' ), 'Date', false );
     $select->add_column( $this->get_datetime_column( 'appointment.datetime', 'time' ), 'Time', false );
@@ -60,10 +66,6 @@ class appointment extends \cenozo\business\report\base_report
       false
     );
 
-    $modifier->join( 'interview', 'appointment.interview_id', 'interview.id' );
-    $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
-    if( !is_null( $db_qnaire ) ) $modifier->where( 'qnaire.id', '=', $db_qnaire->id );
-    $modifier->join( 'participant', 'interview.participant_id', 'participant.id' );
     $modifier->join( 'language', 'participant.language_id', 'language.id' );
     $join_mod = lib::create( 'database\modifier' );
     $join_mod->where( 'participant.id', '=', 'phone.participant_id', false );
