@@ -33,7 +33,7 @@ cenozoApp.defineModule({
           title: "Language",
         },
         delay: {
-          title: "Delay (days)",
+          title: "Delay",
         },
         subject: {
           title: "Subject",
@@ -104,10 +104,18 @@ cenozoApp.defineModule({
         type: "string",
         help: 'May be a comma-delimited list of appointment_mail addresses in the format "account@domain.name".',
       },
-      delay: {
+      delay_offset: {
         title: "Delay (days)",
         type: "string",
         format: "integer",
+        isExcluded: function ($state, model) {
+          // temporary until add scope is loaded
+          return "immediately" == model.viewModel.record.delay_unit ? true : "add";
+        },
+      },
+      delay_unit: {
+        title: "Delay Type",
+        type: "enum",
       },
       subject: {
         title: "Subject",
@@ -156,39 +164,50 @@ cenozoApp.defineModule({
                 "appointment_type_id"
               );
 
-              // Override the check function so that the appointment type list can be updated based on which qnaire
-              // has been selected
               var checkFunction = cnRecordAddScope.check;
-              cnRecordAddScope.check = function (property) {
-                // run the original check function first
-                checkFunction(property);
 
-                if ("qnaire_id" == property) {
-                  // reset the selected appointment type
-                  cnRecordAddScope.record.appointment_type_id = undefined;
+              angular.extend(cnRecordAddScope, {
+                // Only show the delay offset if the delay unit value is not "immediately"
+                updateDelayOffsetInputVisibility: function() {
+                  const group = this.model.module.inputGroupList.findByProperty( "title", "" );
+                  group.inputList.delay_offset.isExcluded = function($state, model) {
+                    return "view" == model.getActionFromState() ?
+                      "immediately" == model.viewModel.record.delay_unit :
+                      "immediately" == cnRecordAddScope.record.delay_unit;
+                  };
+                },
 
-                  if (
-                    0 <
-                    Object.keys(
-                      $scope.model.metadata.columnList.appointment_type_id
-                        .qnaireList
-                    ).length
-                  ) {
-                    // set the appointment type enum list based on the qnaire_id
-                    inputArray[appointmentTypeIndex].enumList = [];
-                    if (cnRecordAddScope.record.qnaire_id) {
-                      inputArray[appointmentTypeIndex].enumList = angular.copy(
-                        $scope.model.metadata.columnList.appointment_type_id
-                          .qnaireList[cnRecordAddScope.record.qnaire_id]
-                      );
+                check: function (property) {
+                  // run the original check function first
+                  checkFunction(property);
+
+                  if ("delay_unit" == property) {
+                    // Update whether the delay offset input is visible
+                    this.updateDelayOffsetInputVisibility();
+                  } else if ("qnaire_id" == property) {
+                    // Update the appointment type list based on which qnaire has been selected
+                    cnRecordAddScope.record.appointment_type_id = undefined;
+
+                    if( 0 < Object.keys($scope.model.metadata.columnList.appointment_type_id.qnaireList).length) {
+                      // set the appointment type enum list based on the qnaire_id
+                      inputArray[appointmentTypeIndex].enumList = [];
+                      if (cnRecordAddScope.record.qnaire_id) {
+                        inputArray[appointmentTypeIndex].enumList = angular.copy(
+                          $scope.model.metadata.columnList.appointment_type_id
+                            .qnaireList[cnRecordAddScope.record.qnaire_id]
+                        );
+                      }
+                      inputArray[appointmentTypeIndex].enumList.unshift({
+                        value: undefined,
+                        name: "(empty)",
+                      });
                     }
-                    inputArray[appointmentTypeIndex].enumList.unshift({
-                      value: undefined,
-                      name: "(empty)",
-                    });
                   }
-                }
-              };
+                },
+              });
+
+              // make sure to define whether or not to show the delay offset input
+              cnRecordAddScope.updateDelayOffsetInputVisibility();
 
               // always start with an empty appointment type list
               $scope.record = {};
@@ -246,49 +265,65 @@ cenozoApp.defineModule({
         var object = function (parentModel, root) {
           CnBaseViewFactory.construct(this, parentModel, root);
 
-          this.preview = async function () {
-            var response = await CnHttpFactory.instance({
-              path: "application/" + CnSession.application.id,
-              data: { select: { column: ["mail_header", "mail_footer"] } },
-            }).get();
+          angular.extend( this, {
+            onPatch: async function (data) {
+              await this.$$onPatch(data);
 
-            var body = this.record.body;
-            if (null != response.data.mail_header)
-              body = response.data.mail_header + "\n" + body;
-            if (null != response.data.mail_footer)
-              body = body + "\n" + response.data.mail_footer;
-            await CnModalMessageFactory.instance({
-              title: "Mail Preview",
-              message: body,
-              html: true,
-            }).show();
-          };
+              // The server-side will ensure that the delay_offset is empty when immediately is selected,
+              // and delay_offset is not empty (any integer) when days is selected, so reflect that here
+              if( angular.isDefined(data.delay_offset) || angular.isDefined(data.delay_unit) ) {
+                if( "immediately" == this.record.delay_unit && null != this.record.delay_offset ) {
+                  this.record.delay_offset = null;
+                } else if( "immediately" != this.record.delay_unit && null == this.record.delay_offset ) {
+                  this.record.delay_offset = 1;
+                } 
+              } 
+            },
 
-          this.validate = async function () {
-            var response = await CnHttpFactory.instance({
-              path: this.parentModel.getServiceResourcePath(),
-              data: { select: { column: "validate" } },
-            }).get();
+            preview: async function () {
+              var response = await CnHttpFactory.instance({
+                path: "application/" + CnSession.application.id,
+                data: { select: { column: ["mail_header", "mail_footer"] } },
+              }).get();
 
-            var result = JSON.parse(response.data.validate);
+              var body = this.record.body;
+              if (null != response.data.mail_header)
+                body = response.data.mail_header + "\n" + body;
+              if (null != response.data.mail_footer)
+                body = body + "\n" + response.data.mail_footer;
+              await CnModalMessageFactory.instance({
+                title: "Mail Preview",
+                message: body,
+                html: true,
+              }).show();
+            },
 
-            var message = "The subject contains ";
-            message +=
-              null == result || angular.isUndefined(result.subject)
-                ? "no errors.\n"
-                : "the invalid variable $" + result.subject + "$.";
+            validate: async function () {
+              var response = await CnHttpFactory.instance({
+                path: this.parentModel.getServiceResourcePath(),
+                data: { select: { column: "validate" } },
+              }).get();
 
-            message += "The body contains ";
-            message +=
-              null == result || angular.isUndefined(result.body)
-                ? "no errors.\n"
-                : "the invalid variable $" + result.body + "$.";
+              var result = JSON.parse(response.data.validate);
 
-            await CnModalMessageFactory.instance({
-              title: "Validation Result",
-              message: message,
-            }).show();
-          };
+              var message = "The subject contains ";
+              message +=
+                null == result || angular.isUndefined(result.subject)
+                  ? "no errors.\n"
+                  : "the invalid variable $" + result.subject + "$.";
+
+              message += "The body contains ";
+              message +=
+                null == result || angular.isUndefined(result.body)
+                  ? "no errors.\n"
+                  : "the invalid variable $" + result.body + "$.";
+
+              await CnModalMessageFactory.instance({
+                title: "Validation Result",
+                message: message,
+              }).show();
+            },
+          });
         };
         return {
           instance: function (parentModel, root) {

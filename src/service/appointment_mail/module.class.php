@@ -25,6 +25,23 @@ class module extends \cenozo\service\site_restricted_module
     $modifier->left_join( 'appointment_type', 'appointment_mail.appointment_type_id', 'appointment_type.id' );
     $modifier->join( 'language', 'appointment_mail.language_id', 'language.id' );
 
+    if( $select->has_column( 'delay' ) )
+    {
+      $select->add_column(
+        'IF( '.
+          '"immediately" = appointment_mail.delay_unit, '.
+          '"Immediately", '.
+          'IF( '.
+            '1 = appointment_mail.delay_offset, '.
+            '"1 Day", '.
+            'CONCAT( appointment_mail.delay_offset, " Days" ) '.
+          ') '.
+        ')',
+        'delay',
+        false
+      );
+    }
+
     $db_mail_template = $this->get_resource();
     if( !is_null( $db_mail_template ) )
     {
