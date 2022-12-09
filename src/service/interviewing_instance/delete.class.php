@@ -54,9 +54,9 @@ class delete extends \cenozo\service\delete
     }
     catch( \cenozo\exception\database $e )
     {
-      if( $e->is_constrained() )
+      if( $e->is_referenced() )
       {
-        $this->set_data( $e->get_failed_constraint_table() );
+        $this->set_data( $e->get_failed_reference_table() );
         $this->status->set_code( 409 );
       }
       else
