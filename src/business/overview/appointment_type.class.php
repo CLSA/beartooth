@@ -16,7 +16,7 @@ class appointment_type extends \cenozo\business\overview\base_overview
   /**
    * Implements abstract method
    */
-  protected function build()
+  protected function build( $modifier = NULL )
   {
     $session = lib::create( 'business\session' );
     $db_application = $session->get_application();

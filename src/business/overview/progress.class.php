@@ -16,7 +16,7 @@ class progress extends \cenozo\business\overview\base_overview
   /**
    * Implements abstract method
    */
-  protected function build()
+  protected function build( $modifier = NULL )
   {
     $hold_type_class_name = lib::get_class_name( 'database\hold_type' );
     $trace_type_class_name = lib::get_class_name( 'database\trace_type' );
@@ -58,6 +58,9 @@ class progress extends \cenozo\business\overview\base_overview
     $select->add_table_column( 'site', 'IFNULL( site.name, "(none)" )', 'site', false );
     $select->add_column( 'COUNT(*)', 'total', false );
 
+    // we need to add the input modifier's statements at the end, so rename it and merge it later
+    $input_modifier = $modifier;
+
     $modifier = lib::create( 'database\modifier' );
     $modifier->join( 'queue', 'queue_has_participant.queue_id', 'queue.id' );
     $modifier->left_join( 'site', 'queue_has_participant.site_id', 'site.id' );
@@ -65,6 +68,21 @@ class progress extends \cenozo\business\overview\base_overview
     if( !$db_role->all_sites ) $modifier->where( 'site.id', '=', $db_site->id );
     $modifier->group( 'queue_has_participant.site_id' );
     $modifier->order( 'site.name' );
+
+    if( !is_null( $input_modifier ) )
+    {
+      $modifier->join(
+        'study_has_participant',
+        'queue_has_participant.participant_id',
+        'study_has_participant.participant_id'
+      );
+      $modifier->join(
+        'study',
+        'study_has_participant.study_id',
+        'study.id'
+      );
+      $modifier->merge( $input_modifier );
+    }
 
     // start with the participant totals
     /////////////////////////////////////////////////////////////////////////////////////////////

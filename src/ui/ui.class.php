@@ -57,6 +57,13 @@ class ui extends \cenozo\ui\ui
       $module->add_child( 'writelog' );
     }
 
+    $module = $this->get_module( 'overview' );
+    if( !is_null( $module ) )
+    {
+      // add the study parameter (used by the progress review only)
+      $module->append_action_query( 'view', '?{study}' );
+    }
+
     $module = $this->get_module( 'participant' );
     if( !is_null( $module ) ) $module->append_action_query( 'history', '&{appointment}' );
 
