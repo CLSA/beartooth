@@ -99,61 +99,42 @@ class appointment extends \cenozo\database\record
    */
   public function are_scripts_complete()
   {
-    $survey_class_name = lib::get_class_name( 'database\limesurvey\survey' );
-    $tokens_class_name = lib::get_class_name( 'database\limesurvey\tokens' );
-
-    $cenozo_manager = lib::create( 'business\cenozo_manager', lib::create( 'business\session' )->get_pine_application() );
-
-    $old_survey_sid = $survey_class_name::get_sid();
-    $old_token_sid = $tokens_class_name::get_sid();
+    $cenozo_manager = lib::create(
+      'business\cenozo_manager',
+      lib::create( 'business\session' )->get_pine_application()
+    );
 
     $db_interview = $this->get_interview();
     $db_participant = $db_interview->get_participant();
 
     $script_sel = lib::create( 'database\select' );
-    $script_sel->add_column( 'sid' );
     $script_sel->add_column( 'pine_qnaire_id' );
     $script_sel->add_column( 'repeated' );
     $completed = true;
     foreach( $db_interview->get_qnaire()->get_script_list( $script_sel ) as $row )
     {
-      if( !is_null( $row['pine_qnaire_id'] ) )
+      try
       {
-        try
+        $response = $cenozo_manager->get( sprintf(
+          'qnaire/%d/respondent/participant_id=%d?'.
+            'no_activity=1&'.
+            'select={"column":{"table":"response","column":"submitted"}}',
+          $row['pine_qnaire_id'],
+          $db_participant->id
+        ) );
+        if( !$response->submitted )
         {
-          $response = $cenozo_manager->get( sprintf(
-            'qnaire/%d/respondent/participant_id=%d?no_activity=1&select={"column":{"table":"response","column":"submitted"}}',
-            $row['pine_qnaire_id'],
-            $db_participant->id
-          ) );
-          if( !$response->submitted )
-          {
-            $completed = false;
-            break;
-          }
-        }
-        catch( \cenozo\exception\runtime $e )
-        {
-          if( false === strpos( $e->get_raw_message(), ' 404 ' ) ) throw $e;
           $completed = false;
           break;
         }
       }
-      else if( !is_null( $row['sid'] ) )
+      catch( \cenozo\exception\runtime $e )
       {
-        $survey_class_name::set_sid( $row['sid'] );
-        $survey_mod = lib::create( 'database\modifier' );
-        $tokens_class_name::where_token( $survey_mod, $db_participant, $row['repeated'] );
-        if( 0 == $survey_class_name::count( $survey_mod ) )
-        {
-          $completed = false;
-          break;
-        }
+        if( false === strpos( $e->get_raw_message(), ' 404 ' ) ) throw $e;
+        $completed = false;
+        break;
       }
     }
-
-    $survey_class_name::set_sid( $old_survey_sid );
-    $tokens_class_name::set_sid( $old_token_sid );
 
     return $completed;
   }

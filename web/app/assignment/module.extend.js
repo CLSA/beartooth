@@ -612,8 +612,6 @@ cenozoApp.extendModule({
                   identifier: "uid=" + this.participant.uid,
                   lang: this.participant.language_code,
                 });
-                if ("limesurvey" == script.application)
-                  await this.scriptLauncher.initialize();
                 await this.scriptLauncher.launch({ show_hidden: 1 });
                 await this.loadScriptList();
               } finally {
