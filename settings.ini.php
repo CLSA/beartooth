@@ -12,7 +12,7 @@ global $SETTINGS;
 // tagged version
 $SETTINGS['general']['application_name'] = 'beartooth';
 $SETTINGS['general']['instance_name'] = $SETTINGS['general']['application_name'];
-$SETTINGS['general']['version'] = '2.8';
+$SETTINGS['general']['version'] = '2.9';
 $SETTINGS['general']['build'] = '5ffc1a6c';
 
 // determines whether users other than administrators can see next-of-kin data
