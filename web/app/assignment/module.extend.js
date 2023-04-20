@@ -612,7 +612,7 @@ cenozoApp.extendModule({
                   identifier: "uid=" + this.participant.uid,
                   lang: this.participant.language_code,
                 });
-                await this.scriptLauncher.launch({ show_hidden: 1 });
+                await this.scriptLauncher.launch({ show_hidden: 1, username: CnSession.user.name });
                 await this.loadScriptList();
               } finally {
                 this.scriptLauncherBusy = false;
