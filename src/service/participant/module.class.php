@@ -104,6 +104,97 @@ class module extends \cenozo\service\participant\module
         $select->add_table_column( 'participant_coi', 'coi_list' );
       }
 
+      if( $select->has_column( 'eoi_list' ) )
+      {
+        // NOTE: we can't use the parent::add_list_column method because there is a special relationship
+        $eoi_sel = lib::create( 'database\select' );
+        $eoi_sel->FROM( 'queue' );
+        $eoi_sel->add_table_column( 'queue_has_participant', 'participant_id' );
+        $eoi_sel->add_column( 'GROUP_CONCAT( event_type.name ORDER BY event_type.name )', 'eoi_list', false );
+
+        $eoi_mod = lib::create( 'database\modifier' );
+        $eoi_mod->join( 'queue_has_participant', 'queue.id', 'queue_has_participant.queue_id' );
+        $eoi_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
+        $eoi_mod->left_join( 'qnaire_has_event_type', 'qnaire.id', 'qnaire_has_event_type.qnaire_id' );
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where(
+          'qnaire_has_event_type.event_type_id',
+          '=',
+          'participant_last_event.event_type_id',
+          false
+        );
+        $join_mod->where(
+          'queue_has_participant.participant_id',
+          '=',
+          'participant_last_event.participant_id',
+          false
+        );
+        $eoi_mod->join_modifier( 'participant_last_event', $join_mod );
+
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where( 'participant_last_event.event_id', '=', 'event.id', false );
+        $eoi_mod->join_modifier( 'event', $join_mod, 'left' );
+
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where( 'event.event_type_id', '=', 'event.event_type_id', false );
+        $join_mod->where( 'qnaire_has_event_type.event_type_id', '=', 'event_type.id', false );
+        $eoi_mod->join_modifier( 'event_type', $join_mod, 'left' );
+
+        $eoi_mod->where( 'queue.rank', '!=', NULL );
+        $eoi_mod->where( 'qnaire.type', '=', $qnaire_type );
+        $eoi_mod->group( 'queue_has_participant.participant_id' );
+
+        $modifier->join(
+          sprintf( '( %s %s ) AS participant_eoi', $eoi_sel->get_sql(), $eoi_mod->get_sql() ),
+          'participant.id',
+          'participant_eoi.participant_id'
+        );
+
+        $select->add_table_column( 'participant_eoi', 'eoi_list' );
+      }
+
+      if( $select->has_column( 'soi_list' ) )
+      {
+        // NOTE: we can't use the parent::add_list_column method because there is a special relationship
+        $soi_sel = lib::create( 'database\select' );
+        $soi_sel->FROM( 'queue' );
+        $soi_sel->add_table_column( 'queue_has_participant', 'participant_id' );
+        $soi_sel->add_column( 'GROUP_CONCAT( study.name ORDER BY study.name )', 'soi_list', false );
+
+        $soi_mod = lib::create( 'database\modifier' );
+        $soi_mod->join( 'queue_has_participant', 'queue.id', 'queue_has_participant.queue_id' );
+        $soi_mod->join( 'qnaire', 'queue_has_participant.qnaire_id', 'qnaire.id' );
+        $soi_mod->left_join( 'qnaire_has_study', 'qnaire.id', 'qnaire_has_study.qnaire_id' );
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where(
+          'qnaire_has_study.study_id',
+          '=',
+          'study_has_participant.study_id',
+          false
+        );
+        $join_mod->where(
+          'queue_has_participant.participant_id',
+          '=',
+          'study_has_participant.participant_id',
+          false
+        );
+        $soi_mod->join_modifier( 'study_has_participant', $join_mod );
+
+        $soi_mod->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
+
+        $soi_mod->where( 'queue.rank', '!=', NULL );
+        $soi_mod->where( 'qnaire.type', '=', $qnaire_type );
+        $soi_mod->group( 'queue_has_participant.participant_id' );
+
+        $modifier->join(
+          sprintf( '( %s %s ) AS participant_soi', $soi_sel->get_sql(), $soi_mod->get_sql() ),
+          'participant.id',
+          'participant_soi.participant_id'
+        );
+
+        $select->add_table_column( 'participant_soi', 'soi_list' );
+      }
+
       if( $select->has_column( 'address_summary' ) )
       {
         $modifier->left_join( 'address', 'queue_has_participant.address_id', 'address.id' );

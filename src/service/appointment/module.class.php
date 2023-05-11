@@ -384,16 +384,6 @@ class module extends \cenozo\service\base_calendar_module
         }
       }
 
-      // send a list of all eligible studies
-      $modifier->left_join( 'study_has_participant', 'participant.id', 'study_has_participant.participant_id' );
-      $modifier->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
-
-      $select->add_column(
-        'GROUP_CONCAT( study.name )',
-        'study_list',
-        false
-      );
-
       // send a list of all participant identifiers
       foreach( $identifier_class_name::select_objects() as $db_identifier )
       {
@@ -539,7 +529,39 @@ class module extends \cenozo\service\base_calendar_module
         'CONCAT( '.
           'participant.first_name, " ", participant.last_name, " (", language.name, ")", '.
           'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
-          'IF( qnaire_has_consent_type.consent_type_id IS NOT NULL, CONCAT( "\nConsents of Interest: ", GROUP_CONCAT( consent_type.name ORDER BY consent_type.name ) ), "" ), '.
+          'IF( '.
+            'qnaire_has_consent_type.consent_type_id IS NOT NULL, '.
+            'CONCAT( "\nConsents of Interest: ", GROUP_CONCAT( consent_type.name ORDER BY consent_type.name ) ), '.
+            '"" '.
+          '), '.
+          'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
+        ')',
+        'help',
+        false
+      );
+      $select->add_column(
+        'CONCAT( '.
+          'participant.first_name, " ", participant.last_name, " (", language.name, ")", '.
+          'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
+          'IF( '.
+            'qnaire_has_event_type.event_type_id IS NOT NULL, '.
+            'CONCAT( "\nEvents of Interest: ", GROUP_CONCAT( event_type.name ORDER BY event_type.name ) ), '.
+            '"" '.
+          '), '.
+          'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
+        ')',
+        'help',
+        false
+      );
+      $select->add_column(
+        'CONCAT( '.
+          'participant.first_name, " ", participant.last_name, " (", language.name, ")", '.
+          'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
+          'IF( '.
+            'qnaire_has_study_type.study_type_id IS NOT NULL, '.
+            'CONCAT( "\nStudies of Interest: ", GROUP_CONCAT( study_type.name ORDER BY study_type.name ) ), '.
+            '"" '.
+          '), '.
           'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
         ')',
         'help',
@@ -589,6 +611,38 @@ class module extends \cenozo\service\base_calendar_module
       $join_mod->where( 'consent.consent_type_id', '=', 'consent.consent_type_id', false );
       $join_mod->where( 'qnaire_has_consent_type.consent_type_id', '=', 'consent_type.id', false );
       $modifier->join_modifier( 'consent_type', $join_mod, 'left' );
+
+      // add the list of events of interest
+      $modifier->left_join( 'qnaire_has_event_type', 'qnaire.id', 'qnaire_has_event_type.qnaire_id' );
+      $join_mod = lib::create( 'database\modifier' );
+      $join_mod->where(
+        'qnaire_has_event_type.event_type_id',
+        '=',
+        'participant_last_event.event_type_id',
+        false
+      );
+      $join_mod->where( 'participant.id', '=', 'participant_last_event.participant_id', false );
+      $modifier->join_modifier( 'participant_last_event', $join_mod, 'left' );
+      $join_mod = lib::create( 'database\modifier' );
+      $join_mod->where( 'participant_last_event.event_id', '=', 'event.id', false );
+      $modifier->join_modifier( 'event', $join_mod, 'left' );
+      $join_mod = lib::create( 'database\modifier' );
+      $join_mod->where( 'event.event_type_id', '=', 'event.event_type_id', false );
+      $join_mod->where( 'qnaire_has_event_type.event_type_id', '=', 'event_type.id', false );
+      $modifier->join_modifier( 'event_type', $join_mod, 'left' );
+
+      // add the list of studies of interest
+      $modifier->left_join( 'qnaire_has_study', 'qnaire.id', 'qnaire_has_study.qnaire_id' );
+      $join_mod = lib::create( 'database\modifier' );
+      $join_mod->where(
+        'qnaire_has_study.study_id',
+        '=',
+        'study_has_participant.study_id',
+        false
+      );
+      $join_mod->where( 'participant.id', '=', 'study_has_participant.participant_id', false );
+      $modifier->join_modifier( 'study_has_participant', $join_mod, 'left' );
+      $modifier->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
 
       // restrict by qnaire type
       $qnaire_type = $this->get_argument( 'qnaire_type', NULL );

@@ -836,7 +836,7 @@ cenozoApp.extendModule({
               column: "availability_type.name",
             });
 
-            const response = await CnHttpFactory.instance( {
+            var response = await CnHttpFactory.instance( {
               path: 'qnaire',
               data: {
                 modifier: {
@@ -854,6 +854,48 @@ cenozoApp.extendModule({
             if(0 < parseInt(response.headers('Total'))) {
               object.participantModel.addColumn("coi_list", {
                 title: 'Consent of Interest',
+              });
+            }
+
+            var response = await CnHttpFactory.instance( {
+              path: 'qnaire',
+              data: {
+                modifier: {
+                  'join': {
+                      table: 'qnaire_has_event_type',
+                      onleft: 'qnaire.id',
+                      onright: 'qnaire_has_event_type.qnaire_id'
+                  },
+                  'where': { column: 'qnaire.type', operator: '=', value: object.type }
+                }
+              }
+            } ).count();
+
+            // only include the EOI if the qnaire has at least one
+            if(0 < parseInt(response.headers('Total'))) {
+              object.participantModel.addColumn("eoi_list", {
+                title: 'Event of Interest',
+              });
+            }
+
+            var response = await CnHttpFactory.instance( {
+              path: 'qnaire',
+              data: {
+                modifier: {
+                  'join': {
+                      table: 'qnaire_has_study',
+                      onleft: 'qnaire.id',
+                      onright: 'qnaire_has_study.qnaire_id'
+                  },
+                  'where': { column: 'qnaire.type', operator: '=', value: object.type }
+                }
+              }
+            } ).count();
+
+            // only include the SOI if the qnaire has at least one
+            if(0 < parseInt(response.headers('Total'))) {
+              object.participantModel.addColumn("soi_list", {
+                title: 'Study of Interest',
               });
             }
 
