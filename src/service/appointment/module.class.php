@@ -384,6 +384,16 @@ class module extends \cenozo\service\base_calendar_module
         }
       }
 
+      // send a list of all eligible studies
+      $modifier->left_join( 'study_has_participant', 'participant.id', 'study_has_participant.participant_id' );
+      $modifier->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
+
+      $select->add_column(
+        'GROUP_CONCAT( study.name )',
+        'study_list',
+        false
+      );
+
       // send a list of all participant identifiers
       foreach( $identifier_class_name::select_objects() as $db_identifier )
       {
@@ -423,7 +433,14 @@ class module extends \cenozo\service\base_calendar_module
         );
 
         $select->add_column(
-          'GROUP_CONCAT( CONCAT_WS( "$", full_consent_type.name, full_consent.accept, full_consent.datetime ) SEPARATOR ";" )',
+          'GROUP_CONCAT( '.
+            'CONCAT_WS( '.
+              '"$", '.
+              'full_consent_type.name, '.
+              'full_consent.accept, '.
+              'full_consent.datetime '.
+            ') SEPARATOR ";" '.
+          ')',
           'consent_list',
           false
         );
@@ -462,18 +479,18 @@ class module extends \cenozo\service\base_calendar_module
           }
         }
 
-        if( $default && 0 < count( $appointment_type_id_list ) ) 
-        {   
+        if( $default && 0 < count( $appointment_type_id_list ) )
+        {
           $modifier->where_bracket( true );
           $modifier->where( 'appointment_type_id', '=', NULL );
           $modifier->or_where( 'appointment_type_id', 'IN', $appointment_type_id_list );
           $modifier->where_bracket( false );
-        }   
+        }
         else if( $default )
         {
           $modifier->where( 'appointment_type_id', '=', NULL );
         }
-        else if( 0 < count( $appointment_type_id_list ) ) 
+        else if( 0 < count( $appointment_type_id_list ) )
         {
           $modifier->where( 'appointment_type_id', 'IN', $appointment_type_id_list );
         }
@@ -531,7 +548,7 @@ class module extends \cenozo\service\base_calendar_module
           'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
           'IF( '.
             'qnaire_has_consent_type.consent_type_id IS NOT NULL, '.
-            'CONCAT( "\nConsents of Interest: ", GROUP_CONCAT( consent_type.name ORDER BY consent_type.name ) ), '.
+            'CONCAT( "\nConsent of Interest: ", GROUP_CONCAT( DISTINCT consent_type.name ORDER BY consent_type.name ) ), '.
             '"" '.
           '), '.
           'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
@@ -545,7 +562,7 @@ class module extends \cenozo\service\base_calendar_module
           'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
           'IF( '.
             'qnaire_has_event_type.event_type_id IS NOT NULL, '.
-            'CONCAT( "\nEvents of Interest: ", GROUP_CONCAT( event_type.name ORDER BY event_type.name ) ), '.
+            'CONCAT( "\nEvent of Interest: ", GROUP_CONCAT( DISTINCT event_type.name ORDER BY event_type.name ) ), '.
             '"" '.
           '), '.
           'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
@@ -558,8 +575,8 @@ class module extends \cenozo\service\base_calendar_module
           'participant.first_name, " ", participant.last_name, " (", language.name, ")", '.
           'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
           'IF( '.
-            'qnaire_has_study_type.study_type_id IS NOT NULL, '.
-            'CONCAT( "\nStudies of Interest: ", GROUP_CONCAT( study_type.name ORDER BY study_type.name ) ), '.
+            'qnaire_has_study.study_id IS NOT NULL, '.
+            'CONCAT( "\nStudy of Interest: ", GROUP_CONCAT( DISTINCT study.name ORDER BY study.name ) ), '.
             '"" '.
           '), '.
           'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
