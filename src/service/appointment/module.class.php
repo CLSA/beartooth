@@ -548,35 +548,26 @@ class module extends \cenozo\service\base_calendar_module
           'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
           'IF( '.
             'qnaire_has_consent_type.consent_type_id IS NOT NULL, '.
-            'CONCAT( "\nConsent of Interest: ", GROUP_CONCAT( DISTINCT consent_type.name ORDER BY consent_type.name ) ), '.
+            'CONCAT( '.
+              '"\nConsent of Interest: ", '.
+              'GROUP_CONCAT( DISTINCT consent_type.name ORDER BY consent_type.name ) '.
+            '), '.
             '"" '.
           '), '.
-          'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
-        ')',
-        'help',
-        false
-      );
-      $select->add_column(
-        'CONCAT( '.
-          'participant.first_name, " ", participant.last_name, " (", language.name, ")", '.
-          'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
           'IF( '.
             'qnaire_has_event_type.event_type_id IS NOT NULL, '.
-            'CONCAT( "\nEvent of Interest: ", GROUP_CONCAT( DISTINCT event_type.name ORDER BY event_type.name ) ), '.
+            'CONCAT( '.
+              '"\nEvent of Interest: ", '.
+              'GROUP_CONCAT( DISTINCT event_type.name ORDER BY event_type.name ) '.
+            '), '.
             '"" '.
           '), '.
-          'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
-        ')',
-        'help',
-        false
-      );
-      $select->add_column(
-        'CONCAT( '.
-          'participant.first_name, " ", participant.last_name, " (", language.name, ")", '.
-          'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
           'IF( '.
             'qnaire_has_study.study_id IS NOT NULL, '.
-            'CONCAT( "\nStudy of Interest: ", GROUP_CONCAT( DISTINCT study.name ORDER BY study.name ) ), '.
+            'CONCAT( '.
+              '"\nStudy of Interest: ", '.
+              'GROUP_CONCAT( DISTINCT study.name ORDER BY study.name ) '.
+            '), '.
             '"" '.
           '), '.
           'IF( participant.global_note IS NOT NULL, CONCAT( "\n", participant.global_note ), "" ) '.
