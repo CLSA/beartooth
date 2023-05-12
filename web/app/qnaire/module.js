@@ -90,6 +90,21 @@ cenozoApp.defineModule({
         var object = function (parentModel, root) {
           CnBaseViewFactory.construct(this, parentModel, root, "script");
 
+          this.getChildTitle = function (child) {
+            let title = this.$$getChildTitle(child);
+
+            // identify which children are items of interest
+            if ("consent_type" == child.subject.snake) {
+              title = "Consent of Interest";
+            } else if ("event_type" == child.subject.snake) {
+              title = "Event of Interest";
+            } else if ("study" == child.subject.snake) {
+              title = "Study of Interest";
+            }
+
+            return title;
+          };
+
           async function init(object) {
             await object.deferred.promise;
             if (angular.isDefined(object.collectionModel))
