@@ -107,21 +107,30 @@ cenozoApp.defineModule({
 
           async function init(object) {
             await object.deferred.promise;
-            if (angular.isDefined(object.collectionModel))
-              object.collectionModel.listModel.heading =
-                "Disabled Collection List";
-            if (angular.isDefined(object.holdTypeModel))
-              object.holdTypeModel.listModel.heading =
-                "Overridden Hold Type List";
-            if (angular.isDefined(object.consentTypeModel))
-              object.consentTypeModel.listModel.heading =
-                "Consent Type of Interest List";
-            if (angular.isDefined(object.scriptModel))
+            if (angular.isDefined(object.collectionModel)) {
+              object.collectionModel.listModel.heading = "Disabled Collection List";
+            }
+            if (angular.isDefined(object.holdTypeModel)) {
+              object.holdTypeModel.listModel.heading = "Overridden Hold Type List";
+            }
+            if (angular.isDefined(object.consentTypeModel)) {
+              object.consentTypeModel.listModel.heading = "Consent of Interest List";
+            }
+            if (angular.isDefined(object.eventTypeModel)) {
+              object.eventTypeModel.listModel.heading = "Event of Interest List";
+            }
+            if (angular.isDefined(object.studyModel)) {
+              object.studyModel.listModel.heading = "Study of Interest List";
+            }
+            if (angular.isDefined(object.scriptModel)) {
               object.scriptModel.listModel.heading = "Mandatory Script List";
-            if (angular.isDefined(object.siteModel))
+            }
+            if (angular.isDefined(object.siteModel)) {
               object.siteModel.listModel.heading = "Disabled Site List";
-            if (angular.isDefined(object.stratumModel))
+            }
+            if (angular.isDefined(object.stratumModel)) {
               object.stratumModel.listModel.heading = "Disabled Stratum List";
+            }
           }
 
           init(this);
