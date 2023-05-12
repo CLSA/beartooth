@@ -79,7 +79,7 @@ class module extends \cenozo\service\participant\module
           'participant_last_consent.participant_id',
           false
         );
-        $coi_mod->join_modifier( 'participant_last_consent', $join_mod );
+        $coi_mod->join_modifier( 'participant_last_consent', $join_mod, 'left' );
 
         $join_mod = lib::create( 'database\modifier' );
         $join_mod->where( 'participant_last_consent.consent_id', '=', 'consent.id', false );
@@ -129,7 +129,7 @@ class module extends \cenozo\service\participant\module
           'participant_last_event.participant_id',
           false
         );
-        $eoi_mod->join_modifier( 'participant_last_event', $join_mod );
+        $eoi_mod->join_modifier( 'participant_last_event', $join_mod, 'left' );
 
         $join_mod = lib::create( 'database\modifier' );
         $join_mod->where( 'participant_last_event.event_id', '=', 'event.id', false );
@@ -178,7 +178,7 @@ class module extends \cenozo\service\participant\module
           'study_has_participant.participant_id',
           false
         );
-        $soi_mod->join_modifier( 'study_has_participant', $join_mod );
+        $soi_mod->join_modifier( 'study_has_participant', $join_mod, 'left' );
 
         $soi_mod->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
 
