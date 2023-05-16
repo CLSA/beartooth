@@ -18,6 +18,8 @@ class module extends \cenozo\service\site_restricted_module
    */
   public function prepare_read( $select, $modifier )
   {
+    $modifier_class_name = lib::get_class_name( 'database\modifier' );
+
     // if the "full" parameter isn't included then only show ranked queues
     $full = $this->get_argument( 'full', false );
     if( !$full ) $modifier->where( 'queue.rank', '!=', NULL );
@@ -51,7 +53,7 @@ class module extends \cenozo\service\site_restricted_module
         $modifier->remove_where( 'date' );
         $modifier->remove_where( 'language_id' );
 
-        $mod_arg = util::json_decode( $this->get_argument( 'modifier' ) );
+        $mod_arg = $modifier_class_name::convert_keys( util::json_decode( $this->get_argument( 'modifier' ) ) );
 
         foreach( $mod_arg->where as $where )
         {
