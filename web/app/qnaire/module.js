@@ -95,11 +95,11 @@ cenozoApp.defineModule({
 
             // identify which children are items of interest
             if ("consent_type" == child.subject.snake) {
-              title = "Consent of Interest";
+              title = title.replace("Type", "of Interest" );
             } else if ("event_type" == child.subject.snake) {
-              title = "Event of Interest";
+              title = title.replace("Type", "of Interest" );
             } else if ("study" == child.subject.snake) {
-              title = "Study of Interest";
+              title = title.replace("Study", "Study of Interest" );
             }
 
             return title;

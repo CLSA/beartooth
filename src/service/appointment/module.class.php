@@ -550,7 +550,7 @@ class module extends \cenozo\service\base_calendar_module
             'qnaire_has_consent_type.consent_type_id IS NOT NULL, '.
             'CONCAT( '.
               '"\nConsent of Interest: ", '.
-              'GROUP_CONCAT( DISTINCT consent_type.name ORDER BY consent_type.name ) '.
+              'IFNULL( GROUP_CONCAT( DISTINCT consent_type.name ORDER BY consent_type.name ), "(none)" ) '.
             '), '.
             '"" '.
           '), '.
@@ -558,7 +558,7 @@ class module extends \cenozo\service\base_calendar_module
             'qnaire_has_event_type.event_type_id IS NOT NULL, '.
             'CONCAT( '.
               '"\nEvent of Interest: ", '.
-              'GROUP_CONCAT( DISTINCT event_type.name ORDER BY event_type.name ) '.
+              'IFNULL( GROUP_CONCAT( DISTINCT event_type.name ORDER BY event_type.name ), "(none)" ) '.
             '), '.
             '"" '.
           '), '.
@@ -566,7 +566,7 @@ class module extends \cenozo\service\base_calendar_module
             'qnaire_has_study.study_id IS NOT NULL, '.
             'CONCAT( '.
               '"\nStudy of Interest: ", '.
-              'GROUP_CONCAT( DISTINCT study.name ORDER BY study.name ) '.
+              'IFNULL( GROUP_CONCAT( DISTINCT study.name ORDER BY study.name ), "(none)" ) '.
             '), '.
             '"" '.
           '), '.
