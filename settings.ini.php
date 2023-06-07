@@ -34,5 +34,6 @@ $SETTINGS['cantab']['consent_type_name'] = '';
 // add modules used by the application
 $SETTINGS['module']['equipment'] = true;
 $SETTINGS['module']['interview'] = true;
+$SETTINGS['module']['relation'] = true;
 $SETTINGS['module']['script'] = true;
 $SETTINGS['module']['voip'] = true;
