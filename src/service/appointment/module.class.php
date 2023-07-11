@@ -409,9 +409,29 @@ class module extends \cenozo\service\base_calendar_module
         );
       }
 
-      // send pine a list of all consent statuses
+      // send pine a list of all participant identifier and consent records
       if( 'pine' == $db_interviewing_instance->type )
       {
+        $modifier->left_join(
+          'participant_identifier',
+          'participant.id',
+          'participant_identifier.participant_id'
+        );
+
+        $modifier->left_join( 'identifier', 'participant_identifier.identifier_id', 'identifier.id' );
+
+        $select->add_column(
+          'GROUP_CONCAT( '.
+            'CONCAT_WS( '.
+              '"$", '.
+              'identifier.name, '.
+              'participant_identifier.value '.
+            ') SEPARATOR ";" '.
+          ')',
+          'participant_identifier_list',
+          false
+        );
+
         $modifier->join(
           'participant_last_consent',
           'interview.participant_id',
