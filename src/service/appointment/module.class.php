@@ -198,6 +198,7 @@ class module extends \cenozo\service\base_calendar_module
       // add specific columns
       $select->remove_column();
       $select->add_table_column( 'participant', 'uid' );
+      $select->add_table_column( 'appointment', 'datetime' );
       $select->add_table_column( 'cohort', 'name', 'cohort' );
       $select->add_table_column( 'language', 'code', 'language' );
       $select->add_table_column( 'participant', 'honorific' );
