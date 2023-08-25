@@ -152,40 +152,6 @@ class post extends \cenozo\service\service
       $db_address->save();
     }
 
-    if( property_exists( $data, 'consent_list' ) )
-    {
-      foreach( $data->consent_list as $consent )
-      {
-        $db_consent_type = $consent_type_class_name::get_unique_record( 'name', $consent->name );
-        if( !is_null( $db_consent_type ) )
-        {
-          $write_consent = true;
-
-          // don't write a new consent record if the consent status hasn't changed (and we are confirming, not triggering)
-          if( 'confirm' == $consent->type )
-          {
-            $db_last_consent = $db_participant->get_last_consent( $db_consent_type );
-            if( !is_null( $db_last_consent ) && $db_last_consent->accept == $consent->accept ) $write_consent = false;
-          }
-
-          if( $write_consent )
-          {
-            $db_consent = lib::create( 'database\consent' );
-            $db_consent->participant_id = $db_participant->id;
-            $db_consent->consent_type_id = $db_consent_type->id;
-            $db_consent->accept = $consent->accept;
-            $db_consent->datetime = $consent->datetime;
-            $db_consent->note = sprintf(
-              'Received from an exported Pine questionnaire from the %s %s interview.',
-              $db_application->title,
-              $db_qnaire->type
-            );
-            $db_consent->save();
-          }
-        }
-      }
-    }
-
     if( property_exists( $data, 'interview' ) )
     {
       $datetime_obj = util::get_datetime_object( $data->interview->datetime );
