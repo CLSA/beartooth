@@ -2,6 +2,7 @@
 
 SET AUTOCOMMIT=0;
 
+SOURCE interview.sql;
 SOURCE qnaire_has_event_type.sql
 SOURCE qnaire_has_study.sql
 SOURCE service.sql

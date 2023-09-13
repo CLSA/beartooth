@@ -155,22 +155,21 @@ class post extends \cenozo\service\service
     if( property_exists( $data, 'interview' ) )
     {
       $datetime_obj = util::get_datetime_object( $data->interview->datetime );
+
+      $db_interview->interviewing_instance_id = $db_interviewing_instance->id;
+      if( property_exists( $data->interview, 'comment_list' ) )
+        $db_interview->note = implode( "\n\n", $data->interview->comment_list );
+        
       if( is_null( $db_interview->end_datetime ) )
       {
         // interview and appointment status
-        $db_interview->complete( NULL, $datetime_obj );
+        $db_interview->complete( NULL, $datetime_obj ); // this will save the interview record
         $db_participant->repopulate_queue( false );
       }
       else
       {
         // already complete, so just update the interview end datetime
         $db_interview->end_datetime = $datetime_obj;
-        $db_interview->save();
-      }
-
-      if( property_exists( $data->interview, 'comment_list' ) )
-      {
-        $db_interview->note = implode( "\n\n", $data->interview->comment_list );
         $db_interview->save();
       }
     }

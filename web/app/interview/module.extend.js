@@ -5,6 +5,9 @@ cenozoApp.extendModule({
       column: "qnaire.name",
       title: "Questionnaire",
     });
+    cenozo.insertPropertyAfter(module.columnList, "qnaire", "interviewing_instance", {
+      title: "Exporting Instance"
+    });
 
     // add future_appointment as a hidden input (to be used below)
     module.addInput("", "future_appointment", { type: "hidden" });
@@ -18,6 +21,16 @@ cenozoApp.extendModule({
         isConstant: true,
       },
       "participant"
+    );
+    module.addInput(
+      "",
+      "interviewing_instance",
+      {
+        title: "Exporting Instance",
+        type: "string",
+        isConstant: true,
+      },
+      "site_id"
     );
 
     // extend the list factory
@@ -209,16 +222,34 @@ cenozoApp.extendModule({
             getMetadata: async function () {
               await object.$$getMetadata();
 
-              var response = await CnHttpFactory.instance({
-                path: "qnaire",
-                data: {
-                  select: { column: ["id", "name"] },
-                  modifier: { order: "rank" },
-                },
-              }).query();
+              const [siteResponse, qnaireResponse] = await Promise.all([
+                CnHttpFactory.instance({
+                  path: "site",
+                  data: {
+                    select: { column: ["id", "name"] },
+                    modifier: { order: "name", limit: 1000 },
+                  },
+                }).query(),
+
+                CnHttpFactory.instance({
+                  path: "qnaire",
+                  data: {
+                    select: { column: ["id", "name"] },
+                    modifier: { order: "rank", limit: 1000 },
+                  },
+                }).query()
+              ]);
+
+              object.metadata.columnList.site_id.enumList = [];
+              siteResponse.data.forEach(function (item) {
+                object.metadata.columnList.site_id.enumList.push({
+                  value: item.id,
+                  name: item.name,
+                });
+              });
 
               object.metadata.columnList.qnaire_id.enumList = [];
-              response.data.forEach(function (item) {
+              qnaireResponse.data.forEach(function (item) {
                 object.metadata.columnList.qnaire_id.enumList.push({
                   value: item.id,
                   name: item.name,

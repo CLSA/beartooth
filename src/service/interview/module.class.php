@@ -20,6 +20,13 @@ class module extends \cenozo\service\interview\module
   {
     parent::prepare_read( $select, $modifier );
 
+    $modifier->left_join(
+      'interviewing_instance',
+      'interview.interviewing_instance_id',
+      'interviewing_instance.id'
+    );
+    $modifier->left_join( 'user', 'interviewing_instance.user_id', 'user.id' );
+
     if( $select->has_column( 'last_participation_consent' ) )
     {
       $join_mod = lib::create( 'database\modifier' );
@@ -67,6 +74,19 @@ class module extends \cenozo\service\interview\module
         'interview.id',
         'interview_join_appointment.interview_id' );
       $select->add_column( 'IFNULL( missed_appointment, false )', 'missed_appointment', false, 'boolean' );
+    }
+
+    if( $select->has_column( 'interviewing_instance' ) )
+    {
+      $select->add_column(
+        'IF( '.
+          'interview.end_datetime IS NOT NULL AND interviewing_instance.id IS NULL, '.
+          '"Unknown", '.
+          'CONCAT( user.name, " (", interviewing_instance.type, ")" ) '.
+        ')',
+        'interviewing_instance',
+        false
+      );
     }
 
     $modifier->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );

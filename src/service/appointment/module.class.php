@@ -294,6 +294,18 @@ class module extends \cenozo\service\base_calendar_module
       {
         // site interview
         $modifier->where( 'appointment.user_id', '=', NULL );
+        $modifier->where( 'qnaire.type', '=', 'site' );
+
+        // restrict by home instance type (if NULL then send to onyx)
+        $modifier->join( 'interview', 'participant.id', 'home_interview.participant_id', '', 'home_interview' );
+        $modifier->join( 'qnaire', 'home_interview.qnaire_id', 'home_qnaire.id', '', 'home_qnaire' );
+        $modifier->left_join(
+          'interviewing_instance',
+          'home_interview.interviewing_instance_id',
+          'interviewing_instance.id'
+        );
+        $modifier->where( 'home_qnaire.type', '=', 'home' );
+        $modifier->where( 'IFNULL( interviewing_instance.type, "onyx" )', '=', $db_interviewing_instance->type );
 
         // consent status is passed to onyx in a customized way (pine consent is done below)
         if( 'onyx' == $db_interviewing_instance->type )

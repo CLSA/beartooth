@@ -603,7 +603,8 @@ class post extends \cenozo\service\service
     $member = 'Admin.Interview.status';
     if( property_exists( $object, $member ) && 'completed' == strtolower( $object->$member ) )
     {
-      $db_interview->complete( NULL, $datetime_obj );
+      $db_interview->interviewing_instance_id = $db_interviewing_instance->id;
+      $db_interview->complete( NULL, $datetime_obj ); // this will save the interview record
       $db_participant->repopulate_queue( false );
     }
   }
