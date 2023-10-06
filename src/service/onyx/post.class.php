@@ -373,6 +373,7 @@ class post extends \cenozo\service\service
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
     $equipment_type_class_name = lib::get_class_name( 'database\equipment_type' );
     $equipment_class_name = lib::get_class_name( 'database\equipment' );
+    $equipment_loan_class_name = lib::get_class_name( 'database\equipment_loan' );
 
     // get the onyx instance to tell whether this is a home or site instance
     $db_user = lib::create( 'business\session' )->get_user();
@@ -541,22 +542,31 @@ class post extends \cenozo\service\service
 
         if( $sent )
         {
-          // if the equipment is marked as loaned then mark it as returned
-          $equipment_loan_mod = lib::create( 'database\modifier' );
-          $equipment_loan_mod->where( 'end_datetime', '=', NULL );
-          foreach( $db_equipment->get_equipment_loan_object_list( $equipment_loan_mod ) as $db_equipment_loan )
+          // create the equipment loan if it doesn't already exist
+          $db_equipment_loan = $equipment_loan_class_name::get_unique_record(
+            ['participant_id','equipment_id','start_datetime'],
+            [$db_participant->id, $db_equipment->id, $datetime_obj]
+          );
+
+          if( is_null( $db_equipment_loan ) )
           {
-            $db_equipment_loan->end_datetime = $datetime_obj;
-            $db_equipment_loan->note = 'Automatically setting end date because of new loan.';
+            // if the equipment is marked as loaned then mark it as returned
+            $equipment_loan_mod = lib::create( 'database\modifier' );
+            $equipment_loan_mod->where( 'end_datetime', '=', NULL );
+            foreach( $db_equipment->get_equipment_loan_object_list( $equipment_loan_mod ) as $db_equipment_loan )
+            {
+              $db_equipment_loan->end_datetime = $datetime_obj;
+              $db_equipment_loan->note = 'Automatically setting end date because of new loan.';
+              $db_equipment_loan->save();
+            }
+
+            // and now create a new loan record
+            $db_equipment_loan = lib::create( 'database\equipment_loan' );
+            $db_equipment_loan->participant_id = $db_participant->id;
+            $db_equipment_loan->equipment_id = $db_equipment->id;
+            $db_equipment_loan->start_datetime = $datetime_obj;
             $db_equipment_loan->save();
           }
-
-          // and now create a new loan record
-          $db_equipment_loan = lib::create( 'database\equipment_loan' );
-          $db_equipment_loan->participant_id = $db_participant->id;
-          $db_equipment_loan->equipment_id = $db_equipment->id;
-          $db_equipment_loan->start_datetime = $datetime_obj;
-          $db_equipment_loan->save();
         }
         else // received
         {
@@ -578,13 +588,21 @@ class post extends \cenozo\service\service
           else
           {
             // create the loan record if it doesn't already exist
-            $db_equipment_loan = lib::create( 'database\equipment_loan' );
-            $db_equipment_loan->participant_id = $db_participant->id;
-            $db_equipment_loan->equipment_id = $db_equipment->id;
-            $db_equipment_loan->start_datetime = $datetime_obj;
-            $db_equipment_loan->end_datetime = $datetime_obj;
-            $db_equipment_loan->note = 'Automatically setting start date because loan was never created.';
-            $db_equipment_loan->save();
+            $db_equipment_loan = $equipment_loan_class_name::get_unique_record(
+              ['participant_id','equipment_id','start_datetime'],
+              [$db_participant->id, $db_equipment->id, $datetime_obj]
+            );
+
+            if( is_null( $db_equipment_loan ) )
+            {
+              $db_equipment_loan = lib::create( 'database\equipment_loan' );
+              $db_equipment_loan->participant_id = $db_participant->id;
+              $db_equipment_loan->equipment_id = $db_equipment->id;
+              $db_equipment_loan->start_datetime = $datetime_obj;
+              $db_equipment_loan->end_datetime = $datetime_obj;
+              $db_equipment_loan->note = 'Automatically setting start date because loan was never created.';
+              $db_equipment_loan->save();
+            }
           }
         }
       }
