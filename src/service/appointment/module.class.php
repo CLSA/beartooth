@@ -531,6 +531,17 @@ class module extends \cenozo\service\base_calendar_module
     }
     else
     {
+      // explicitely join to the home interviewing instance
+      $modifier->join( 'interview', 'participant.id', 'home_interview.participant_id', '', 'home_interview' );
+      $modifier->join( 'qnaire', 'home_interview.qnaire_id', 'home_qnaire.id', '', 'home_qnaire' );
+      $modifier->where( 'home_qnaire.type', '=', 'home' );
+      $modifier->left_join(
+        'interviewing_instance',
+        'home_interview.interviewing_instance_id',
+        'home_interviewing_instance.id',
+        'home_interviewing_instance'
+      );
+
       // add the appointment's duration
       $modifier->left_join( 'setting', 'participant_site.site_id', 'setting.site_id' );
       $select->add_column(
@@ -578,6 +589,11 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_column(
         'CONCAT( '.
           'participant.first_name, " ", participant.last_name, " (", language.name, ")", '.
+          'IF( '.
+            'appointment.user_id IS NULL AND home_interviewing_instance.id IS NOT NULL, '.
+            'CONCAT( "\n", home_interviewing_instance.type, " interview" ), '.
+            '"" '.
+          '), '.
           'IF( phone.number IS NOT NULL, CONCAT( "\n", phone.number ), "" ), '.
           'IF( '.
             'qnaire_has_consent_type.consent_type_id IS NOT NULL, '.
