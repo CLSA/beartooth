@@ -53,7 +53,7 @@ cenozoApp.extendModule({
           var interviewResponse = await CnHttpFactory.instance({
             path: "participant/" + $state.params.identifier + "/interview",
             data: {
-              modifier: { order: { start_datetime: true } },
+              modifier: { order: { "interview.start_datetime": true } },
               select: { column: ["id"] },
             },
           }).query();
@@ -64,7 +64,7 @@ cenozoApp.extendModule({
               var response = await CnHttpFactory.instance({
                 path: "interview/" + item.id + "/appointment",
                 data: {
-                  modifier: { order: { start_datetime: true } },
+                  modifier: { order: { "interview.start_datetime": true } },
                   select: {
                     column: [
                       "datetime",
@@ -121,7 +121,7 @@ cenozoApp.extendModule({
               var response = await CnHttpFactory.instance({
                 path: "interview/" + item.id + "/assignment",
                 data: {
-                  modifier: { order: { start_datetime: true } },
+                  modifier: { order: { "assignment.start_datetime": true } },
                   select: {
                     column: [
                       "start_datetime",
