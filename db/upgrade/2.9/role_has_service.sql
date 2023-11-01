@@ -50,6 +50,23 @@ CREATE PROCEDURE patch_role_has_service()
     EXECUTE statement;
     DEALLOCATE PREPARE statement;
 
+    SELECT "Removing services from roles" AS "";
+
+    SET @sql = CONCAT(
+      "DELETE FROM role_has_service ",
+      "WHERE role_id = ( SELECT id FROM ", @cenozo, ".role WHERE name = 'coordinator' ) ",
+      "AND service_id = ( ",
+        "SELECT id ",
+        "FROM service ",
+        "WHERE subject = 'interviewing_instance' ",
+        "AND service.method = 'POST' ",
+      ")"
+    );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+
   END //
 DELIMITER ;
 

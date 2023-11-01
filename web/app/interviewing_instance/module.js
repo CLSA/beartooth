@@ -52,6 +52,9 @@ cenozoApp.defineModule({
       username: {
         title: "Username",
         type: "string",
+        isConstant: function($state, model) {
+          return !model.isRole("administrator");
+        }
       },
       password: {
         title: "Password",
