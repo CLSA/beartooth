@@ -165,7 +165,7 @@ class module extends \cenozo\service\base_calendar_module
 
     $participant_site_join_mod = lib::create( 'database\modifier' );
     $participant_site_join_mod->where(
-      'interview.participant_id', '=', 'participant_site.participant_id', false );
+      'participant.id', '=', 'participant_site.participant_id', false );
     $participant_site_join_mod->where(
       'participant_site.application_id', '=', $db_application->id );
     $modifier->join_modifier( 'participant_site', $participant_site_join_mod, 'left' );
@@ -401,11 +401,8 @@ class module extends \cenozo\service\base_calendar_module
       $modifier->left_join( 'study_has_participant', 'participant.id', 'study_has_participant.participant_id' );
       $modifier->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
 
-      $select->add_column(
-        'GROUP_CONCAT( study.name )',
-        'study_list',
-        false
-      );
+      // TODO: Only Onyx requires a comma-delimited study list, so once removed replace this with a ; delimiter
+      $select->add_column( 'GROUP_CONCAT( study.name )', 'study_list', false );
 
       // send a list of all participant identifiers
       foreach( $identifier_class_name::select_objects() as $db_identifier )
@@ -425,6 +422,9 @@ class module extends \cenozo\service\base_calendar_module
       // send pine a list of all participant identifier and consent records
       if( 'pine' == $db_interviewing_instance->type )
       {
+        // replace the above study name with a semicolin-delimited list
+        $select->add_column( 'GROUP_CONCAT( study.name SEPARATOR ";" )', 'study_list', false );
+
         $modifier->left_join(
           'participant_identifier',
           'participant.id',
@@ -445,9 +445,20 @@ class module extends \cenozo\service\base_calendar_module
           false
         );
 
+        // add a list of all collections the participant belongs to
+        $modifier->left_join(
+          'collection_has_participant',
+          'participant.id',
+          'collection_has_participant.participant_id'
+        );
+        $modifier->left_join( 'collection', 'collection_has_participant.collection_id', 'collection.id' );
+
+        $select->add_column( 'GROUP_CONCAT( collection.name SEPARATOR ";" )', 'collection_list', false );
+
+        // add a list of the participant's consent records
         $modifier->join(
           'participant_last_consent',
-          'interview.participant_id',
+          'participant.id',
           'full_participant_last_consent.participant_id',
           '',
           'full_participant_last_consent'
@@ -475,6 +486,39 @@ class module extends \cenozo\service\base_calendar_module
             ') SEPARATOR ";" '.
           ')',
           'consent_list',
+          false
+        );
+
+        // add a list of the participant's event records
+        $modifier->join(
+          'participant_last_event',
+          'participant.id',
+          'full_participant_last_event.participant_id',
+          '',
+          'full_participant_last_event'
+        );
+        $modifier->left_join(
+          'event_type',
+          'full_participant_last_event.event_type_id',
+          'full_event_type.id',
+          'full_event_type'
+        );
+        $modifier->left_join(
+          'event',
+          'full_participant_last_event.event_id',
+          'full_event.id',
+          'full_event'
+        );
+
+        $select->add_column(
+          'GROUP_CONCAT( '.
+            'CONCAT_WS( '.
+              '"$", '.
+              'full_event_type.name, '.
+              'full_event.datetime '.
+            ') SEPARATOR ";" '.
+          ')',
+          'event_list',
           false
         );
       }
