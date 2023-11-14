@@ -169,6 +169,7 @@ cenozoApp.extendModule({
 
           angular.extend(this, {
             scriptLauncher: null,
+            isInterfaceLoading: true,
 
             reset: function () {
               this.assignment = null;
@@ -186,7 +187,6 @@ cenozoApp.extendModule({
               this.isForbidden = false;
               this.isWrongType = false;
               this.isScriptListLoading = false;
-              this.isInterfaceLoading = true;
               this.isAssignmentLoading = false;
               this.isPrevAssignmentLoading = false;
             },
