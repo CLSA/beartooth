@@ -186,6 +186,7 @@ cenozoApp.extendModule({
               this.isForbidden = false;
               this.isWrongType = false;
               this.isScriptListLoading = false;
+              this.isInterfaceLoading = true;
               this.isAssignmentLoading = false;
               this.isPrevAssignmentLoading = false;
             },
@@ -910,6 +911,8 @@ cenozoApp.extendModule({
                 type: "datetime",
               });
             }
+
+            object.isInterfaceLoading = false;
           }
 
           init(this);
