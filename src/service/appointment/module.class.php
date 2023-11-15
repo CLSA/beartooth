@@ -165,7 +165,7 @@ class module extends \cenozo\service\base_calendar_module
 
     $participant_site_join_mod = lib::create( 'database\modifier' );
     $participant_site_join_mod->where(
-      'participant.id', '=', 'participant_site.participant_id', false );
+      'interview.participant_id', '=', 'participant_site.participant_id', false );
     $participant_site_join_mod->where(
       'participant_site.application_id', '=', $db_application->id );
     $modifier->join_modifier( 'participant_site', $participant_site_join_mod, 'left' );
@@ -398,129 +398,183 @@ class module extends \cenozo\service\base_calendar_module
       }
 
       // send a list of all eligible studies
-      $modifier->left_join( 'study_has_participant', 'participant.id', 'study_has_participant.participant_id' );
-      $modifier->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
+      $study_sel = lib::create( 'database\select' );
+      $study_sel->from( 'participant' );
+      $study_sel->add_column( 'id', 'participant_id' );
+      $study_sel->add_column(
+        sprintf(
+          'GROUP_CONCAT( study.name ORDER BY study.name SEPARATOR "%s" )',
+          'onyx' == $db_interviewing_instance->type ? ',' : ';'
+        ),
+        'list',
+        false
+      );
+      $study_mod = lib::create( 'database\modifier' );
+      $study_mod->left_join( 'study_has_participant', 'participant.id', 'study_has_participant.participant_id' );
+      $study_mod->left_join( 'study', 'study_has_participant.study_id', 'study.id' );
+      $study_mod->group( 'participant.id' );
 
-      // TODO: Only Onyx requires a comma-delimited study list, so once removed replace this with a ; delimiter
-      $select->add_column( 'GROUP_CONCAT( study.name )', 'study_list', false );
+      $sql = sprintf(
+        'CREATE TEMPORARY TABLE study_list %s %s',
+        $study_sel->get_sql(),
+        $study_mod->get_sql()
+      );
 
-      // send a list of all participant identifiers
-      foreach( $identifier_class_name::select_objects() as $db_identifier )
+      $identifier_class_name::db()->execute( 'DROP TABLE IF EXISTS study_list' );
+      $identifier_class_name::db()->execute( $sql );
+      $identifier_class_name::db()->execute( 'ALTER TABLE study_list ADD PRIMARY KEY (participant_id)' );
+
+      $modifier->join( 'study_list', 'participant.id', 'study_list.participant_id' );
+      $select->add_table_column( 'study_list', 'list', 'study_list' );
+
+      if( 'onyx' == $db_interviewing_instance->type )
       {
-        $join_mod = lib::create( 'database\modifier' );
-        $join_mod->where( 'participant.id', '=', 'participant_identifier.participant_id', false );
-        $join_mod->where( 'participant_identifier.identifier_id', '=', $db_identifier->id );
-        $modifier->join_modifier( 'participant_identifier', $join_mod, 'left' );
-        $modifier->left_join( 'identifier', 'participant_identifier.identifier_id', 'identifier.id' );
-        $select->add_table_column(
-          'participant_identifier',
-          'value',
-          sprintf( 'identifier %s', $db_identifier->name )
-        );
+        // send a list of all participant identifiers
+        foreach( $identifier_class_name::select_objects() as $db_identifier )
+        {
+          $join_mod = lib::create( 'database\modifier' );
+          $join_mod->where( 'participant.id', '=', 'participant_identifier.participant_id', false );
+          $join_mod->where( 'participant_identifier.identifier_id', '=', $db_identifier->id );
+          $modifier->join_modifier( 'participant_identifier', $join_mod, 'left' );
+          $modifier->left_join( 'identifier', 'participant_identifier.identifier_id', 'identifier.id' );
+          $select->add_table_column(
+            'participant_identifier',
+            'value',
+            sprintf( 'identifier %s', $db_identifier->name )
+          );
+        }
       }
 
       // send pine a list of all participant identifier and consent records
       if( 'pine' == $db_interviewing_instance->type )
       {
-        // replace the above study name with a semicolin-delimited list
-        $select->add_column( 'GROUP_CONCAT( study.name SEPARATOR ";" )', 'study_list', false );
-
-        $modifier->left_join(
+        // send a list of all identifiers
+        $identifier_sel = lib::create( 'database\select' );
+        $identifier_sel->from( 'participant' );
+        $identifier_sel->add_column( 'id', 'participant_id' );
+        $identifier_sel->add_column(
+          'GROUP_CONCAT( '.
+            'CONCAT_WS( "$", identifier.name, participant_identifier.value ) '.
+            'ORDER BY identifier.name '.
+            'SEPARATOR ";" '.
+          ')',
+          'list',
+          false
+        );
+        $identifier_mod = lib::create( 'database\modifier' );
+        $identifier_mod->left_join(
           'participant_identifier',
           'participant.id',
           'participant_identifier.participant_id'
         );
+        $identifier_mod->left_join( 'identifier', 'participant_identifier.identifier_id', 'identifier.id' );
+        $identifier_mod->group( 'participant.id' );
 
-        $modifier->left_join( 'identifier', 'participant_identifier.identifier_id', 'identifier.id' );
-
-        $select->add_column(
-          'GROUP_CONCAT( '.
-            'CONCAT_WS( '.
-              '"$", '.
-              'identifier.name, '.
-              'participant_identifier.value '.
-            ') SEPARATOR ";" '.
-          ')',
-          'participant_identifier_list',
-          false
+        $sql = sprintf(
+          'CREATE TEMPORARY TABLE identifier_list %s %s',
+          $identifier_sel->get_sql(),
+          $identifier_mod->get_sql()
         );
 
-        // add a list of all collections the participant belongs to
-        $modifier->left_join(
+        $identifier_class_name::db()->execute( 'DROP TABLE IF EXISTS identifier_list' );
+        $identifier_class_name::db()->execute( $sql );
+        $identifier_class_name::db()->execute( 'ALTER TABLE identifier_list ADD PRIMARY KEY (participant_id)' );
+
+        $modifier->join( 'identifier_list', 'participant.id', 'identifier_list.participant_id' );
+        $select->add_table_column( 'identifier_list', 'list', 'participant_identifier_list' );
+
+        // send a list of all eligible studies
+        $collection_sel = lib::create( 'database\select' );
+        $collection_sel->from( 'participant' );
+        $collection_sel->add_column( 'id', 'participant_id' );
+        $collection_sel->add_column(
+          'GROUP_CONCAT( collection.name ORDER BY collection.name SEPARATOR ";" )',
+          'list',
+          false
+        );
+        $collection_mod = lib::create( 'database\modifier' );
+        $collection_mod->join(
           'collection_has_participant',
           'participant.id',
           'collection_has_participant.participant_id'
         );
-        $modifier->left_join( 'collection', 'collection_has_participant.collection_id', 'collection.id' );
+        $collection_mod->join( 'collection', 'collection_has_participant.collection_id', 'collection.id' );
+        $collection_mod->group( 'participant.id' );
 
-        $select->add_column( 'GROUP_CONCAT( collection.name SEPARATOR ";" )', 'collection_list', false );
-
-        // add a list of the participant's consent records
-        $modifier->join(
-          'participant_last_consent',
-          'participant.id',
-          'full_participant_last_consent.participant_id',
-          '',
-          'full_participant_last_consent'
-        );
-        $modifier->left_join(
-          'consent_type',
-          'full_participant_last_consent.consent_type_id',
-          'full_consent_type.id',
-          'full_consent_type'
-        );
-        $modifier->left_join(
-          'consent',
-          'full_participant_last_consent.consent_id',
-          'full_consent.id',
-          'full_consent'
+        $sql = sprintf(
+          'CREATE TEMPORARY TABLE collection_list %s %s',
+          $collection_sel->get_sql(),
+          $collection_mod->get_sql()
         );
 
-        $select->add_column(
+        $identifier_class_name::db()->execute( 'DROP TABLE IF EXISTS collection_list' );
+        $identifier_class_name::db()->execute( $sql );
+        $identifier_class_name::db()->execute( 'ALTER TABLE collection_list ADD PRIMARY KEY (participant_id)' );
+
+        $modifier->left_join( 'collection_list', 'participant.id', 'collection_list.participant_id' );
+        $select->add_table_column( 'collection_list', 'list', 'collection_list' );
+
+        // send a list of all consent records
+        $consent_sel = lib::create( 'database\select' );
+        $consent_sel->from( 'participant' );
+        $consent_sel->add_column( 'id', 'participant_id' );
+        $consent_sel->add_column(
           'GROUP_CONCAT( '.
-            'CONCAT_WS( '.
-              '"$", '.
-              'full_consent_type.name, '.
-              'full_consent.accept, '.
-              'full_consent.datetime '.
-            ') SEPARATOR ";" '.
+            'CONCAT_WS( "$", consent_type.name, consent.accept, consent.datetime ) '.
+            'ORDER BY consent.id '.
+            'SEPARATOR ";" '.
           ')',
-          'consent_list',
+          'list',
           false
         );
+        $consent_mod = lib::create( 'database\modifier' );
+        $consent_mod->join( 'consent', 'participant.id', 'consent.participant_id' );
+        $consent_mod->join( 'consent_type', 'consent.consent_type_id', 'consent_type.id' );
+        $consent_mod->group( 'participant.id' );
 
-        // add a list of the participant's event records
-        $modifier->join(
-          'participant_last_event',
-          'participant.id',
-          'full_participant_last_event.participant_id',
-          '',
-          'full_participant_last_event'
-        );
-        $modifier->left_join(
-          'event_type',
-          'full_participant_last_event.event_type_id',
-          'full_event_type.id',
-          'full_event_type'
-        );
-        $modifier->left_join(
-          'event',
-          'full_participant_last_event.event_id',
-          'full_event.id',
-          'full_event'
+        $sql = sprintf(
+          'CREATE TEMPORARY TABLE consent_list %s %s',
+          $consent_sel->get_sql(),
+          $consent_mod->get_sql()
         );
 
-        $select->add_column(
+        $identifier_class_name::db()->execute( 'DROP TABLE IF EXISTS consent_list' );
+        $identifier_class_name::db()->execute( $sql );
+        $identifier_class_name::db()->execute( 'ALTER TABLE consent_list ADD PRIMARY KEY (participant_id)' );
+
+        $modifier->left_join( 'consent_list', 'participant.id', 'consent_list.participant_id' );
+        $select->add_table_column( 'consent_list', 'list', 'consent_list' );
+
+        // send a list of all event records
+        $event_sel = lib::create( 'database\select' );
+        $event_sel->from( 'participant' );
+        $event_sel->add_column( 'id', 'participant_id' );
+        $event_sel->add_column(
           'GROUP_CONCAT( '.
-            'CONCAT_WS( '.
-              '"$", '.
-              'full_event_type.name, '.
-              'full_event.datetime '.
-            ') SEPARATOR ";" '.
+            'CONCAT_WS( "$", event_type.name, event.datetime ) '.
+            'ORDER BY event.id '.
+            'SEPARATOR ";" '.
           ')',
-          'event_list',
+          'list',
           false
         );
+        $event_mod = lib::create( 'database\modifier' );
+        $event_mod->join( 'event', 'participant.id', 'event.participant_id' );
+        $event_mod->join( 'event_type', 'event.event_type_id', 'event_type.id' );
+        $event_mod->group( 'participant.id' );
+
+        $sql = sprintf(
+          'CREATE TEMPORARY TABLE event_list %s %s',
+          $event_sel->get_sql(),
+          $event_mod->get_sql()
+        );
+
+        $identifier_class_name::db()->execute( 'DROP TABLE IF EXISTS event_list' );
+        $identifier_class_name::db()->execute( $sql );
+        $identifier_class_name::db()->execute( 'ALTER TABLE event_list ADD PRIMARY KEY (participant_id)' );
+
+        $modifier->left_join( 'event_list', 'participant.id', 'event_list.participant_id' );
+        $select->add_table_column( 'event_list', 'list', 'event_list' );
       }
 
       // restrict by appointment type
