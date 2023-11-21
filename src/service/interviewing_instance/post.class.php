@@ -102,4 +102,55 @@ class post extends \cenozo\service\post
       }
     }
   }
+
+  /**
+   * Extends parent method
+   */
+  protected function finish()
+  {
+    parent::finish();
+
+    if( $this->may_continue() )
+    {
+      $session = lib::create( 'business\session' );
+      $db_interviewing_instance = $this->get_leaf_record();
+      $db_user = $db_interviewing_instance->get_user();
+
+      // if this is a pine instance then also grant the user machine access to pine
+      if( 'pine' == $db_interviewing_instance->type )
+      {
+        $db_pine_application = $session->get_pine_application();
+        if( !is_null( $db_pine_application ) )
+        {
+          $cenozo_manager = lib::create( 'business\cenozo_manager', $db_pine_application );
+          if( $cenozo_manager->exists() )
+          {
+            // we must complete the transaction (to create the user record) before giving role access to pine
+            $session->get_database()->complete_transaction();
+
+            try
+            {
+              // use the special argument to setup this instance in Pine
+              $cenozo_manager->post( sprintf( 'user/name=%s/access?interviewing_instance=1', $db_user->name ) );
+            }
+            catch( \cenozo\exception\runtime $e )
+            {
+              throw lib::create( 'exception\notice',
+                sprintf(
+                  'The interview instance was successfully created, however, there was an error while granting '.
+                  'the instance access to Pine.<br/><br/>'.
+                  'Please <a target="pine" href="%s/user/view/name=%s">click here</a> and make sure the user '.
+                  'has been granted the "machine" role.',
+                  $db_pine_application->url,
+                  $db_user->name
+                ),
+                __METHOD__,
+                $e
+              );
+            }
+          }
+        }
+      }
+    }
+  }
 }
