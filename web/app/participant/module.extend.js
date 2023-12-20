@@ -247,6 +247,8 @@ cenozoApp.extendModule({
       },
     ]);
 
+/* REMOVING NEXT-OF-KIN FOR NOW (AND MAYBE PERMANENTLY)
+    
     // extend the list factory
     cenozo.providers.decorator("CnParticipantModelFactory", [
       "$delegate",
@@ -301,5 +303,8 @@ cenozoApp.extendModule({
         return $delegate;
       },
     ]);
+
+*/
+
   },
 });
