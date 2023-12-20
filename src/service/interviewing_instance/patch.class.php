@@ -10,19 +10,7 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 class patch extends \cenozo\service\patch
 {
-  /**
-   * Extends parent method
-   */
-  public function get_file_as_array()
-  {
-    $patch_array = parent::get_file_as_array();
-
-    $this->original_patch_array = $patch_array;
-    if( array_key_exists( 'password', $patch_array ) ) unset( $patch_array['password'] );
-    if( array_key_exists( 'active', $patch_array ) ) unset( $patch_array['active'] );
-    if( array_key_exists( 'username', $patch_array ) ) unset( $patch_array['username'] );
-    return $patch_array;
-  }
+  protected static $extract_parameter_list = ['active', 'password', 'username'];
 
   /**
    * Extends parent method
@@ -31,30 +19,33 @@ class patch extends \cenozo\service\patch
   {
     parent::execute();
 
-    if( array_key_exists( 'password', $this->original_patch_array ) )
+    $active = $this->get_argument( 'active', NULL );
+    $password = $this->get_argument( 'password', NULL );
+    $username = $this->get_argument( 'username', NULL );
+
+    if( !is_null( $password ) )
     {
       $user_class_name = lib::get_class_name( 'database\user' );
       $db_user = $this->get_leaf_record()->get_user();
       $ldap_manager = lib::create( 'business\ldap_manager' );
-      $ldap_manager->set_user_password( $db_user->name, $this->original_patch_array['password'] );
+      $ldap_manager->set_user_password( $db_user->name, $password );
       if( $user_class_name::column_exists( 'password' ) )
       {
-        $db_user->password = util::encrypt( $this->original_patch_array['password'] );
+        $db_user->password = util::encrypt( $password );
         $db_user->save();
       }
     }
-    else if( array_key_exists( 'active', $this->original_patch_array ) ||
-        array_key_exists( 'username', $this->original_patch_array ) )
+    else if( !is_null( $active ) || !is_null( $username ) )
     {
       $leaf_record = $this->get_leaf_record();
       if( !is_null( $leaf_record ) )
       {
         $db_user = $leaf_record->get_user();
-        if( array_key_exists( 'active', $this->original_patch_array ) )
+        if( !is_null( $active ) )
         {
           try
           {
-            $db_user->active = $this->original_patch_array['active'];
+            $db_user->active = $active;
             $this->status->set_code( 200 );
           }
           catch( \cenozo\exception\argument $e )
@@ -64,11 +55,11 @@ class patch extends \cenozo\service\patch
           }
         }
 
-        if( array_key_exists( 'username', $this->original_patch_array ) )
+        if( !is_null( $username ) )
         {
           try
           {
-            $db_user->name = $this->original_patch_array['username'];
+            $db_user->name = $username;
             $this->status->set_code( 200 );
           }
           catch( \cenozo\exception\argument $e )
@@ -108,11 +99,4 @@ class patch extends \cenozo\service\patch
       }
     }
   }
-
-  /**
-   * The original, unedited, patch array
-   * @var array
-   * @access private
-   */
-  private $original_patch_array = NULL;
 }

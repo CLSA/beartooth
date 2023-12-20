@@ -16,18 +16,11 @@ class post extends \cenozo\service\post
   /**
    * Override parent method
    */
-  public function get_file_as_object()
+  protected function prepare()
   {
-    // store non-standard columns into temporary variables
-    $post_object = parent::get_file_as_object();
+    $this->extract_parameter_list[] = 'disable_mail';
 
-    if( property_exists( $post_object, 'disable_mail' ) )
-    {
-      $this->disable_mail = $post_object->disable_mail;
-      unset( $post_object->disable_mail );
-    }
-
-    return $post_object;
+    parent::prepare();
   }
 
   /**
@@ -78,11 +71,6 @@ class post extends \cenozo\service\post
     parent::execute();
 
     // create appointment mail
-    if( !$this->disable_mail ) $db_appointment->add_mail();
+    if( !$this->get_argument( 'disable_mail', false ) ) $db_appointment->add_mail();
   }
-
-  /**
-   * Caching variable
-   */
-  protected $disable_mail = false;
 }
