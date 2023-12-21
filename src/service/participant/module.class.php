@@ -207,12 +207,37 @@ class module extends \cenozo\service\participant\module
 
       if( $select->has_column( 'last_completed_datetime' ) )
       {
-        $modifier->left_join( 'qnaire', 'qnaire.rank', 'last_qnaire.rank + 1', 'last_qnaire' );
+        // join to the previous completed event
+        $modifier->left_join( 'qnaire', 'qnaire.rank', 'prev_qnaire.rank + 1', 'prev_qnaire' );
         $join_mod = lib::create( 'database\modifier' );
-        $join_mod->where( 'last_qnaire.completed_event_type_id', '=', 'completed_event.event_type_id', false );
+        $join_mod->where( 'prev_qnaire.completed_event_type_id', '=', 'completed_event.event_type_id', false );
         $join_mod->where( 'participant.id', '=', 'completed_event.participant_id', false );
         $modifier->join_modifier( 'event', $join_mod, 'left', 'completed_event' );
+
         $select->add_table_column( 'completed_event', 'datetime', 'last_completed_datetime' );
+      }
+
+      if( $select->has_column( 'prev_interview_type' ) )
+      {
+        // join to the previous interview, and interviewing instance
+        if( !$modifier->has_join( 'prev_qnaire' ) )
+          $modifier->left_join( 'qnaire', 'qnaire.rank', 'prev_qnaire.rank + 1', 'prev_qnaire' );
+        $join_mod = lib::create( 'database\modifier' );
+        $join_mod->where( 'prev_qnaire.id', '=', 'prev_interview.qnaire_id', false );
+        $join_mod->where( 'participant.id', '=', 'prev_interview.participant_id', false );
+        $modifier->join_modifier( 'interview', $join_mod, 'left', 'prev_interview' );
+        $modifier->left_join(
+          'interviewing_instance',
+          'prev_interview.interviewing_instance_id',
+          'prev_interviewing_instance.id',
+          'prev_interviewing_instance'
+        );
+
+        $select->add_column(
+          'IFNULL( prev_interviewing_instance.type, "onyx" )',
+          'prev_interview_type',
+          false
+        );
       }
 
       if( $select->has_column( 'prev_event_user' ) || $select->has_column( 'prev_event_site' ) )

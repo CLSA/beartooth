@@ -906,6 +906,9 @@ cenozoApp.extendModule({
               object.participantModel.addColumn("prev_event_site", {
                 title: "Previous Site",
               });
+              object.participantModel.addColumn("prev_interview_type", {
+                title: "Home Type",
+              });
               object.participantModel.addColumn("last_completed_datetime", {
                 title: "Home Completed",
                 type: "datetime",
