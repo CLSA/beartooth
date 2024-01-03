@@ -13,10 +13,7 @@ global $SETTINGS;
 $SETTINGS['general']['application_name'] = 'beartooth';
 $SETTINGS['general']['instance_name'] = $SETTINGS['general']['application_name'];
 $SETTINGS['general']['version'] = '2.9';
-$SETTINGS['general']['build'] = '6f9689ed';
-
-// determines whether users other than administrators can see next-of-kin data
-$SETTINGS['general']['next_of_kin'] = false;
+$SETTINGS['general']['build'] = '438b00fe';
 
 // the location of beartooth internal path
 $SETTINGS['path']['APPLICATION'] = str_replace( '/settings.ini.php', '', __FILE__ );
