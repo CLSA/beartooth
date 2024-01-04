@@ -92,6 +92,33 @@ CREATE PROCEDURE patch_role_has_service()
     EXECUTE statement;
     DEALLOCATE PREPARE statement;
 
+    -- these services used to be un-restricted, but the new readonly role makes it necessary to restrict them
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_service( role_id, service_id ) ",
+      "SELECT role.id, service.id ",
+      "FROM ", @cenozo, ".role, service ",
+      "WHERE role.name IN( 'administrator', 'coordinator', 'curator', 'helpline', 'interviewer', 'interviewer+', 'machine' ) ",
+      "AND ( ",
+        "( method IN ('PATCH', 'POST') AND subject IN( 'address', 'alternate', 'phone' ) ) OR ",
+        "( method = 'POST' AND subject IN( 'alternate_consent', 'consent', 'event', 'hin', 'interview', 'note' ) ) OR ",
+        "( method = 'PATCH' AND subject = 'participant' ) ",
+      ")"
+    );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
+
+    SET @sql = CONCAT(
+      "INSERT IGNORE INTO role_has_service( role_id, service_id ) ",
+      "SELECT role.id, service.id ",
+      "FROM ", @cenozo, ".role, service ",
+      "WHERE role.name = 'readonly' ",
+      "AND service.method = 'GET' ",
+      "AND service.restricted = 1"
+    );
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+    DEALLOCATE PREPARE statement;
 
   END //
 DELIMITER ;

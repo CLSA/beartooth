@@ -18,3 +18,12 @@ INSERT IGNORE INTO service ( subject, method, resource, restricted ) VALUES
 ( 'relation_type', 'GET', 1, 1 ),
 ( 'relation_type', 'PATCH', 1, 1 ),
 ( 'relation_type', 'POST', 0, 1 );
+
+-- these services used to be un-restricted, but the new readonly role makes it necessary to restrict them
+UPDATE service SET restricted = 1
+WHERE restricted = 0
+AND (
+  ( method IN ('PATCH', 'POST') AND subject IN( 'address', 'alternate', 'phone' ) ) OR
+  ( method = 'POST' AND subject IN( 'alternate_consent', 'consent', 'event', 'hin', 'interview', 'note' ) ) OR
+  ( method = 'PATCH' AND subject = 'participant' )
+);
