@@ -19,6 +19,8 @@ class patch extends \cenozo\service\patch
       $this->extract_parameter_list,
       ['active', 'password', 'username']
     );
+
+    parent::prepare();
   }
 
   /**
