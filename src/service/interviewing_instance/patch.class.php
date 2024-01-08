@@ -10,7 +10,16 @@ use cenozo\lib, cenozo\log, beartooth\util;
 
 class patch extends \cenozo\service\patch
 {
-  protected static $extract_parameter_list = ['active', 'password', 'username'];
+  /**
+   * Override parent method
+   */
+  protected function prepare()
+  {
+    $this->extract_parameter_list = array_merge(
+      $this->extract_parameter_list,
+      ['active', 'password', 'username']
+    );
+  }
 
   /**
    * Extends parent method
