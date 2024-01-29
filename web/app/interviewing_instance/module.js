@@ -15,6 +15,10 @@ cenozoApp.defineModule({
           column: "interviewing_instance.type",
           title: "Type",
         },
+        site: {
+          column: "site.name",
+          title: "Site",
+        },
         name: {
           column: "user.name",
           title: "Name",
@@ -49,12 +53,15 @@ cenozoApp.defineModule({
         title: "Type",
         type: "enum",
       },
+      site_id: {
+        title: "Site",
+        type: "enum",
+        isConstant: function($state, model) { return !model.isRole("administrator"); },
+      },
       username: {
         title: "Username",
         type: "string",
-        isConstant: function($state, model) {
-          return !model.isRole("administrator");
-        }
+        isConstant: function($state, model) { return !model.isRole("administrator"); },
       },
       password: {
         title: "Password",
@@ -139,5 +146,59 @@ cenozoApp.defineModule({
         };
       },
     ]);
+
+    /* ############################################################################################## */
+    cenozo.providers.factory("CnInterviewingInstanceModelFactory", [
+      "CnBaseModelFactory",
+      "CnInterviewingInstanceAddFactory",
+      "CnInterviewingInstanceListFactory",
+      "CnInterviewingInstanceViewFactory",
+      "CnHttpFactory",
+      function(
+        CnBaseModelFactory,
+        CnInterviewingInstanceAddFactory,
+        CnInterviewingInstanceListFactory,
+        CnInterviewingInstanceViewFactory,
+        CnHttpFactory
+      ) {
+        var object = function (root) {
+          CnBaseModelFactory.construct(this, module);
+          this.addModel = CnInterviewingInstanceAddFactory.instance(this);
+          this.listModel = CnInterviewingInstanceListFactory.instance(this);
+          this.viewModel = CnInterviewingInstanceViewFactory.instance(this, root);
+
+          // extend getMetadata
+          this.getMetadata = async function () {
+            await this.$$getMetadata();
+
+            var response = await CnHttpFactory.instance({
+              path: "site",
+              data: {
+                select: { column: ["id", "name"] },
+                modifier: { order: "name", limit: 1000 },
+              },
+            }).query();
+
+            this.metadata.columnList.site_id.enumList =
+              response.data.reduce((list, item) => {
+                list.push({ value: item.id, name: item.name });
+                return list;
+              }, []);
+          };        
+        };
+
+        return {
+          root: new object(true),
+          instance: function () {
+            return new object(false);
+          },
+        };
+      },
+    ]);
   },
 });
+
+
+
+
+

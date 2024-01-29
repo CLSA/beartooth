@@ -13,17 +13,6 @@ class post extends \cenozo\service\post
   /**
    * Extends parent method
    */
-  protected function prepare()
-  {
-    parent::prepare();
-
-    // force site_id
-    $this->get_leaf_record()->site_id = lib::create( 'business\session' )->get_site()->id;
-  }
-
-  /**
-   * Extends parent method
-   */
   protected function setup()
   {
     $user_class_name = lib::get_class_name( 'database\user' );
@@ -35,7 +24,7 @@ class post extends \cenozo\service\post
     { // create a user for this interviewing instance if it doesn't already exist
       $role_class_name = lib::get_class_name( 'database\role' );
 
-      $db_site = lib::create( 'business\session' )->get_site();
+      $db_site = $db_interviewing_instance->get_site();
       $db_role = $role_class_name::get_unique_record( 'name', 'machine' );
 
       $post_object = $this->get_file_as_object();
@@ -77,11 +66,12 @@ class post extends \cenozo\service\post
     if( $this->may_continue() )
     {
       $db_user = $this->get_leaf_record()->get_user();
+      $db_site = $this->get_leaf_record()->get_site();
 
       // add the interviewing role to the interviewing instance's user
       $db_access = lib::create( 'database\access' );
       $db_access->user_id = $db_user->id;
-      $db_access->site_id = lib::create( 'business\session' )->get_site()->id;
+      $db_access->site_id = $db_site->id;
       $db_access->role_id = $role_class_name::get_unique_record( 'name', 'machine' )->id;
       $db_access->save();
 
@@ -93,7 +83,8 @@ class post extends \cenozo\service\post
           $db_user->name,
           $db_user->first_name,
           $db_user->last_name,
-          $this->get_file_as_object()->password );
+          $this->get_file_as_object()->password
+        );
       }
       catch( \cenozo\exception\ldap $e )
       {

@@ -577,54 +577,61 @@ class module extends \cenozo\service\base_calendar_module
         $select->add_table_column( 'event_list', 'list', 'event_list' );
       }
 
-      // restrict by appointment type
-      $appointment_type = $this->get_argument( 'type', false );
-      if( !$appointment_type )
+      if( 'onyx' == $db_interviewing_instance->type )
       {
-        $modifier->where( 'appointment_type_id', '=', NULL );
-      }
-      else
-      {
-        $default = false;
-        $appointment_type_id_list = array();
-
-        foreach( explode( ';', $appointment_type ) as $type )
+        // restrict appointment for onyx by appointment type
+        $appointment_type = $this->get_argument( 'type', false );
+        if( !$appointment_type )
         {
-          $type = trim( $type );
-          if( 'default' == $type )
+          $modifier->where( 'appointment_type_id', '=', NULL );
+        }
+        else
+        {
+          $default = false;
+          $appointment_type_id_list = array();
+
+          foreach( explode( ';', $appointment_type ) as $type )
           {
-            $default = true;
-          }
-          else
-          {
-            $db_appointment_type = $appointment_type_class_name::get_unique_record( 'name', $type );
-            if( is_null( $db_appointment_type ) )
+            $type = trim( $type );
+            if( 'default' == $type )
             {
-              log::warning( sprintf(
-                'Tried to get interviewing_instance appointment list by undefined appointment type "%s".', $type ) );
+              $default = true;
             }
             else
             {
-              $appointment_type_id_list[] = $db_appointment_type->id;
+              $db_appointment_type = $appointment_type_class_name::get_unique_record( 'name', $type );
+              if( is_null( $db_appointment_type ) )
+              {
+                log::warning( sprintf(
+                  'Tried to get interviewing_instance appointment list by undefined appointment type "%s".', $type ) );
+              }
+              else
+              {
+                $appointment_type_id_list[] = $db_appointment_type->id;
+              }
             }
           }
-        }
 
-        if( $default && 0 < count( $appointment_type_id_list ) )
-        {
-          $modifier->where_bracket( true );
-          $modifier->where( 'appointment_type_id', '=', NULL );
-          $modifier->or_where( 'appointment_type_id', 'IN', $appointment_type_id_list );
-          $modifier->where_bracket( false );
+          if( $default && 0 < count( $appointment_type_id_list ) )
+          {
+            $modifier->where_bracket( true );
+            $modifier->where( 'appointment_type_id', '=', NULL );
+            $modifier->or_where( 'appointment_type_id', 'IN', $appointment_type_id_list );
+            $modifier->where_bracket( false );
+          }
+          else if( $default )
+          {
+            $modifier->where( 'appointment_type_id', '=', NULL );
+          }
+          else if( 0 < count( $appointment_type_id_list ) )
+          {
+            $modifier->where( 'appointment_type_id', 'IN', $appointment_type_id_list );
+          }
         }
-        else if( $default )
-        {
-          $modifier->where( 'appointment_type_id', '=', NULL );
-        }
-        else if( 0 < count( $appointment_type_id_list ) )
-        {
-          $modifier->where( 'appointment_type_id', 'IN', $appointment_type_id_list );
-        }
+      }
+      else // pine gets all appointments, but we need to specify the appointment type
+      {
+        $select->add_table_column( 'appointment_type', 'name', 'appointment_type' );
       }
     }
     else

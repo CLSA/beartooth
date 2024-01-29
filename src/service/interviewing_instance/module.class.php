@@ -20,11 +20,15 @@ class module extends \cenozo\service\site_restricted_module
   {
     parent::prepare_read( $select, $modifier );
 
+    $modifier->join( 'site', 'interviewing_instance.site_id', 'site.id' );
+
     // restrict by site
     $db_restrict_site = $this->get_restricted_site();
-    if( !is_null( $db_restrict_site ) ) $modifier->where( 'interviewing_instance.site_id', '=', $db_restrict_site->id );
+    if( !is_null( $db_restrict_site ) )
+      $modifier->where( 'interviewing_instance.site_id', '=', $db_restrict_site->id );
 
-    // add empty values for password (they are only used when adding new interviewing instances so they will be ignored)
+    // Add empty values for password
+    // (they are only used when adding new interviewing instances so they will be ignored)
     if( $select->has_column( 'password' ) ) $select->add_constant( NULL, 'password' );
 
     if( $select->has_table_columns( 'participant' ) )
