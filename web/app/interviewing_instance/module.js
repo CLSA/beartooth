@@ -184,7 +184,7 @@ cenozoApp.defineModule({
                 list.push({ value: item.id, name: item.name });
                 return list;
               }, []);
-          };        
+          };
         };
 
         return {
