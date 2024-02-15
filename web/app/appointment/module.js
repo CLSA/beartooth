@@ -218,9 +218,7 @@ cenozoApp.defineModule({
           },
           title:
             (appointment.uid ? appointment.uid : "new appointment") +
-            (angular.isDefined(appointment.postcode)
-              ? " [" + appointment.postcode.substr(0, 3) + "]"
-              : "") +
+            (!appointment.postcode ? " [" + appointment.postcode.substr(0, 3) + "]" : "") +
             (appointment.username ? " (" + appointment.username + ")" : ""),
           start: moment(appointment.datetime).subtract(offset, "minutes"),
           end: moment(appointment.datetime)
