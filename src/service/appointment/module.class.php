@@ -186,6 +186,8 @@ class module extends \cenozo\service\base_calendar_module
       $appointment_type_class_name = lib::create( 'database\appointment_type' );
       $form_type_class_name = lib::create( 'database\form_type' );
       $identifier_class_name = lib::create( 'database\identifier' );
+      $study_class_name = lib::create( 'database\study' );
+      $stratum_class_name = lib::create( 'database\stratum' );
 
       $db_interviewing_instance = $interviewing_instance_class_name::get_unique_record( 'user_id', $db_user->id );
       if( is_null( $db_interviewing_instance ) )
@@ -420,9 +422,9 @@ class module extends \cenozo\service\base_calendar_module
         $study_mod->get_sql()
       );
 
-      $identifier_class_name::db()->execute( 'DROP TABLE IF EXISTS study_list' );
-      $identifier_class_name::db()->execute( $sql );
-      $identifier_class_name::db()->execute( 'ALTER TABLE study_list ADD PRIMARY KEY (participant_id)' );
+      $study_class_name::db()->execute( 'DROP TABLE IF EXISTS study_list' );
+      $study_class_name::db()->execute( $sql );
+      $study_class_name::db()->execute( 'ALTER TABLE study_list ADD PRIMARY KEY (participant_id)' );
 
       $modifier->join( 'study_list', 'participant.id', 'study_list.participant_id' );
       $select->add_table_column( 'study_list', 'list', 'study_list' );
@@ -448,6 +450,41 @@ class module extends \cenozo\service\base_calendar_module
       // send pine a list of all participant identifier and consent records
       if( 'pine' == $db_interviewing_instance->type )
       {
+        // send a list of all strata
+        $stratum_sel = lib::create( 'database\select' );
+        $stratum_sel->from( 'participant' );
+        $stratum_sel->add_column( 'id', 'participant_id' );
+        $stratum_sel->add_column(
+          'GROUP_CONCAT( '.
+            'CONCAT_WS( "||", study.name, stratum.name ) '.
+            'ORDER BY study.name, stratum.name '.
+            'SEPARATOR ";" '.
+          ')',
+          'list',
+          false
+        );
+        $stratum_mod = lib::create( 'database\modifier' );
+        $stratum_mod->left_join(
+          'stratum_has_participant',
+          'participant.id',
+          'stratum_has_participant.participant_id'
+        );
+        $stratum_mod->left_join( 'stratum', 'stratum_has_participant.stratum_id', 'stratum.id' );
+        $stratum_mod->group( 'participant.id' );
+
+        $sql = sprintf(
+          'CREATE TEMPORARY TABLE stratum_list %s %s',
+          $stratum_sel->get_sql(),
+          $stratum_mod->get_sql()
+        );
+
+        $stratum_class_name::db()->execute( 'DROP TABLE IF EXISTS stratum_list' );
+        $stratum_class_name::db()->execute( $sql );
+        $stratum_class_name::db()->execute( 'ALTER TABLE stratum_list ADD PRIMARY KEY (participant_id)' );
+
+        $modifier->join( 'stratum_list', 'participant.id', 'stratum_list.participant_id' );
+        $select->add_table_column( 'stratum_list', 'list', 'stratum_list' );
+
         // send a list of all identifiers
         $identifier_sel = lib::create( 'database\select' );
         $identifier_sel->from( 'participant' );
