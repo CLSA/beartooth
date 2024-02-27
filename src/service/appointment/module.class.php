@@ -470,6 +470,7 @@ class module extends \cenozo\service\base_calendar_module
           'stratum_has_participant.participant_id'
         );
         $stratum_mod->left_join( 'stratum', 'stratum_has_participant.stratum_id', 'stratum.id' );
+        $stratum_mod->left_join( 'study', 'stratum.study_id', 'study.id' );
         $stratum_mod->group( 'participant.id' );
 
         $sql = sprintf(
