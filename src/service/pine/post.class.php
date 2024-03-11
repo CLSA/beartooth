@@ -90,7 +90,7 @@ class post extends \cenozo\service\service
   {
     foreach( $this->object_list as $object )
     {
-      $db_participant = $object['paticipant'];
+      $db_participant = $object['participant'];
       $data = $object['data'];
 
       $interviewing_instance_class_name = lib::get_class_name( 'database\interviewing_instance' );
@@ -173,15 +173,16 @@ class post extends \cenozo\service\service
       {
         foreach( $data->form_list as $form )
         {
-          if( 'CONSENT_GP' == $form['name'] )
+          if( 'CONSENT_GP' == $form->name )
           {
-            $object = $form['data']->results;
+            $json_data = util::json_decode( $form->data );
+            $object = current( $json_data->results );
             $paddress = explode( ' ', trim( $object->ProxyAddress ), 2 );
             $iaddress = explode( ' ', trim( $object->InformantAddress ), 2 );
 
             $form_data = array(
               'from_instance' => 'pine',
-              'date' => $form['data']->metadata->end_time,
+              'date' => $json_data->session->end_time,
               'user_id' => $session->get_user()->id,
               'uid' => $db_participant->uid,
               'continue_questionnaires' => $object->DCScontinue_mandatoryField ? 1 : 0,
@@ -197,7 +198,7 @@ class post extends \cenozo\service\service
               'proxy_address_other' => 0 < strlen( $object->ProxyAddress2 ) ? $object->ProxyAddress2 : NULL,
               'proxy_city' => 0 < strlen( $object->ProxyCity ) ? $object->ProxyCity : NULL,
               'already_identified' => $object->DMalready_mandatoryField ? 1 : 0,
-              'same_as_proxy' => informantIsProxy ? 1 : 0,
+              'same_as_proxy' => $object->informantIsProxy ? 1 : 0,
               'informant_first_name' => 0 < strlen( $object->InformantFirstName ) ? $object->InformantFirstName : NULL,
               'informant_last_name' => 0 < strlen( $object->InformantLastName ) ? $object->InformantLastName : NULL,
 
@@ -207,7 +208,7 @@ class post extends \cenozo\service\service
               'informant_address_other' => 0 < strlen( $object->InformantAddress2 ) ? $object->InformantAddress2 : NULL,
               'informant_city' => 0 < strlen( $object->InformantCity ) ? $object->InformantCity : NULL,
               // the form will have a list of files, but CONSENT_GP always has one only
-              'data' => current( $form['file_list'] ) // base64 encoded PDF file
+              'data' => current( $form->file_list ) // base64 encoded PDF file
             );
 
             if( 0 < strlen( $object->ProxyProvince ) )
