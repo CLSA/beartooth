@@ -98,7 +98,7 @@ class appointment_mail extends \cenozo\database\record
 
       // link the mail record to the appointment
       static::db()->execute( sprintf(
-        'INSERT IGNORE INTO appointment_has_mail SET create_timestamp = NULL, appointment_id = %d, mail_id = %d',
+        'INSERT IGNORE INTO appointment_has_mail SET appointment_id = %d, mail_id = %d',
         $db_appointment->id,
         $db_mail->id
       ) );

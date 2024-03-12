@@ -184,11 +184,10 @@ class queue extends \cenozo\database\record
       $queue_sel->add_column( 'effective_qnaire_id', NULL, false );
       $queue_sel->add_column( 'start_qnaire_date', NULL, false );
       $queue_sel->add_column( 'first_address_id', NULL, false );
-      $queue_sel->add_constant( NULL, 'create_timestamp' );
 
       static::db()->execute( sprintf(
         'REPLACE INTO queue_has_participant( '.
-          "participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id, create_timestamp )\n%s %s",
+          "participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id )\n%s %s",
         $queue_sel->get_sql(), $queue_mod->get_sql() ) );
 
       if( static::$debug ) log::debug( sprintf(
@@ -249,13 +248,12 @@ class queue extends \cenozo\database\record
       $select->add_column( 'qnaire_id' );
       $select->add_column( 'start_qnaire_date' );
       $select->add_column( 'address_id' );
-      $select->add_constant( NULL, 'create_timestamp' );
       $select->from( 'queue_has_participant' );
 
       // sql used by all insert statements below
       $base_sql = sprintf(
         'REPLACE INTO queue_has_participant( '.
-          "participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id, create_timestamp )\n%s",
+          "participant_id, queue_id, site_id, qnaire_id, start_qnaire_date, address_id )\n%s",
         $select->get_sql() );
 
       $modifier = lib::create( 'database\modifier' );
