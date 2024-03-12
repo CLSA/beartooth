@@ -10,6 +10,7 @@ SOURCE qnaire_has_study.sql
 SOURCE application_type_has_role.sql
 SOURCE service.sql
 SOURCE role_has_service.sql
+SOURCE timestamps.sql
 
 SOURCE update_version_number.sql
 
