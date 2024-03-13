@@ -40,11 +40,9 @@ class patch extends \cenozo\service\patch
       $db_user = $this->get_leaf_record()->get_user();
       $ldap_manager = lib::create( 'business\ldap_manager' );
       $ldap_manager->set_user_password( $db_user->name, $password );
-      if( $user_class_name::column_exists( 'password' ) )
-      {
-        $db_user->password = util::encrypt( $password );
-        $db_user->save();
-      }
+
+      $db_user->password = $password; // hashed in database\user
+      $db_user->save();
     }
     else if( !is_null( $active ) || !is_null( $username ) )
     {
