@@ -188,6 +188,7 @@ cenozoApp.extendModule({
               this.isWrongType = false;
               this.isScriptListLoading = false;
               this.isAssignmentLoading = false;
+              this.isAssignmentClosing = false;
               this.isPrevAssignmentLoading = false;
             },
 
@@ -687,6 +688,7 @@ cenozoApp.extendModule({
                 }
 
                 if (call) {
+                  this.phoneList = null;
                   await CnHttpFactory.instance({
                     path: "phone_call?operation=open",
                     data: { phone_id: phone.id },
@@ -728,6 +730,7 @@ cenozoApp.extendModule({
             endAssignment: async function () {
               if (null != this.assignment) {
                 var self = this;
+                this.isAssignmentClosing = true;
                 var response = await CnHttpFactory.instance({
                   path: "assignment/0",
                   onError: async function (error) {
@@ -745,6 +748,7 @@ cenozoApp.extendModule({
                   data: {},
                 }).patch();
                 await this.onLoad();
+                this.isAssignmentClosing = false;
               }
             },
           });
