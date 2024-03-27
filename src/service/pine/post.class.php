@@ -195,7 +195,10 @@ class post extends \cenozo\service\service
               'proxy_phone_international' => false,
               'proxy_street_number' => array_key_exists( 0, $paddress ) && 0 < strlen( $paddress[0] ) ? $paddress[0] : NULL,
               'proxy_street_name' => array_key_exists( 1, $paddress ) && 0 < strlen( $paddress[1] ) ? $paddress[1] : NULL,
-              'proxy_address_other' => 0 < strlen( $object->ProxyAddress2 ) ? $object->ProxyAddress2 : NULL,
+              'proxy_address_other' =>
+                property_exists( $object, 'ProxyAddress2' ) && 0 < strlen( $object->ProxyAddress2 ) ?
+                $object->ProxyAddress2 :
+                NULL,
               'proxy_city' => 0 < strlen( $object->ProxyCity ) ? $object->ProxyCity : NULL,
               'already_identified' => $object->DMalready_mandatoryField ? 1 : 0,
               'same_as_proxy' => $object->informantIsProxy ? 1 : 0,
