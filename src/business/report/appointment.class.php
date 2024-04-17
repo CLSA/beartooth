@@ -201,6 +201,15 @@ class appointment extends \cenozo\business\report\base_report
         $modifier->left_join( 'event', 'participant_last_home_event.event_id', 'home_event.id', 'home_event' );
         $modifier->left_join( 'user', 'home_event.user_id', 'user.id' );
 
+        $modifier->join( 'interview', 'participant.id', 'home_interview.participant_id', '', 'home_interview' );
+        $modifier->join( 'qnaire', 'home_interview.qnaire_id', 'home_qnaire.id', '', 'home_qnaire' );
+        $modifier->left_join(
+          'interviewing_instance',
+          'home_interview.interviewing_instance_id',
+          'interviewing_instance.id'
+        );
+        $modifier->where( 'home_qnaire.type', '=', 'home' );
+
         if( !$is_interviewer )
         {
           $select->add_column(
@@ -214,6 +223,13 @@ class appointment extends \cenozo\business\report\base_report
           'Home Appointment Date',
           false
         );
+
+        $select->add_column(
+          'IFNULL( interviewing_instance.type, "onyx" )',
+          'Home Interview Type',
+          false
+        );
+
         $select->add_column(
           'DATEDIFF( appointment.datetime, home_event.datetime )',
           'Days Since Home',
