@@ -97,17 +97,20 @@ cenozoApp.extendModule({
                   " " +
                   (null == item.address_id ? "site" : "home") +
                   " appointment" +
-                  (null == item.address_id
-                    ? ""
-                    : " with " + item.user_first + " " + item.user_last);
+                  (null == item.address_id ? "" : " with " + item.user_first + " " + item.user_last);
                 var description =
                   "A " +
                   (null == item.address_id ? "site" : "home") +
                   " appointment scheduled for this time has ";
-                if ("completed" == item.outcome) description += "been met.";
-                else if ("cancelled" == item.outcome)
+                if ("completed" == item.outcome) {
+                  description += "been met.";
+                } else if ("cancelled" == item.outcome) {
                   description += "been cancelled.";
-                else description += "not been met.";
+                } else if ("rescheduled" == item.outcome) {
+                  description += "been rescheduled.";
+                } else {
+                  description += "not been met.";
+                }
 
                 historyList.push({
                   datetime: item.datetime,

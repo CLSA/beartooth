@@ -2,6 +2,7 @@
 
 SET AUTOCOMMIT=0;
 
+SOURCE appointment.sql
 SOURCE custom_report.sql
 SOURCE role_has_custom_report.sql
 SOURCE interview.sql;

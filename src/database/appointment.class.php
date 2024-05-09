@@ -30,16 +30,9 @@ class appointment extends \cenozo\database\record
       // cancel any missed appointments
       foreach( $this->get_interview()->get_appointment_object_list( $appointment_mod ) as $db_appointment )
       {
-        if( $db_appointment->datetime < util::get_datetime_object() )
-        {
-          $db_appointment->outcome = 'cancelled';
-          $db_appointment->save();
-        }
-        else
-        {
-          throw lib::create( 'exception\notice',
-            'Cannot have more than one incomplete appointment per interview.', __METHOD__ );
-        }
+        $db_appointment->outcome =
+          $db_appointment->datetime < util::get_datetime_object() ? 'cancelled' : 'rescheduled';
+        $db_appointment->save();
       }
     }
 
@@ -168,7 +161,8 @@ class appointment extends \cenozo\database\record
   /**
    * Get the state of the appointment as a string:
    *   completed: the appointment has been completed
-   *   cancelled: the appointment has been cancelled
+   *   rescheduled: the appointment was changed before being reached
+   *   cancelled: the appointment was changed after being reached
    *   upcoming: the appointment's date/time has not yet occurred
    *   passed: the appointment's date/time has passed and the interview is not done
    * @return string

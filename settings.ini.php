@@ -13,7 +13,7 @@ global $SETTINGS;
 $SETTINGS['general']['application_name'] = 'beartooth';
 $SETTINGS['general']['instance_name'] = $SETTINGS['general']['application_name'];
 $SETTINGS['general']['version'] = '2.9';
-$SETTINGS['general']['build'] = 'bcca3859';
+$SETTINGS['general']['build'] = '03333f58';
 
 // the location of beartooth internal path
 $SETTINGS['path']['APPLICATION'] = str_replace( '/settings.ini.php', '', __FILE__ );
