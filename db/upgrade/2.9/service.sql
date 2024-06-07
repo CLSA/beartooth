@@ -27,3 +27,6 @@ AND (
   ( method = 'POST' AND subject IN( 'alternate_consent', 'consent', 'event', 'hin', 'interview', 'note' ) ) OR
   ( method = 'PATCH' AND subject = 'participant' )
 );
+
+-- appointments can no longer be deleted
+DELETE FROM service WHERE subject = "appointment" AND method = "DELETE";

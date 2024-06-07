@@ -99,11 +99,18 @@ class module extends \cenozo\service\base_calendar_module
           if( 'PATCH' == $method )
           {
             $data = $this->get_file_as_array();
+
             $allow =
               'passed' == $db_appointment->get_state() &&
-              1 == count( $data ) &&
-              array_key_exists( 'outcome', $data ) &&
-              'cancelled' == $data['outcome'];
+              1 == count( $data ) && (
+                // We may be cancelling a passed appointment
+                array_key_exists( 'outcome', $data ) &&
+                'cancelled' == $data['outcome']
+              ) || (
+                // Or we may be rescheduling a passed appointment by changing its datetime
+                // (note that in this case the patch service will cancel this appointment and create a new one)
+                array_key_exists( 'datetime', $data )
+              );
           }
 
           if( !$allow )
@@ -782,7 +789,12 @@ class module extends \cenozo\service\base_calendar_module
         $sql =
           'IF( appointment.outcome IS NOT NULL, '.
             'outcome, '.
-            'IF( UTC_TIMESTAMP() < appointment.datetime, "upcoming", "passed" ) '.
+            'IF( '.
+              // make sure the appointment is in the next minute (compare to the next minute of UTC time)
+              'UTC_TIMESTAMP() + INTERVAL 60-SECOND(UTC_TIMESTAMP()) SECOND <= appointment.datetime, '.
+              '"upcoming", '.
+              '"passed" '.
+            ') '.
           ')';
 
         $select->add_column( $sql, 'state', false );

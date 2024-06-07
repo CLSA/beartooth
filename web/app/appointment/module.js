@@ -65,7 +65,7 @@ cenozoApp.defineModule({
       datetime: {
         title: "Date & Time",
         type: "datetime",
-        min: "now",
+        min: "after now",
         help: "Cannot be changed once the appointment has passed.",
       },
       participant: {
@@ -129,6 +129,8 @@ cenozoApp.defineModule({
           "Identified whether this is a special appointment type.  If blank then it is considered " +
           'a "regular" appointment.',
       },
+      qnaire_id: { column: "qnaire.id", type: "hidden" },
+      language_id: { column: "participant.language_id", type: "hidden" },
       type: { column: "qnaire.type", type: "hidden" },
     });
 
@@ -191,7 +193,7 @@ cenozoApp.defineModule({
       },
       operation: async function ($state, model) {
         await model.viewModel.cancelAppointment();
-        await model.viewModel.onView();
+        await model.reloadState(true);
       },
     });
 
@@ -411,9 +413,8 @@ cenozoApp.defineModule({
     /* ############################################################################################## */
     cenozo.providers.directive("cnAppointmentView", [
       "CnAppointmentModelFactory",
-      "CnSession",
-      "CnModalConfirmFactory",
-      function (CnAppointmentModelFactory, CnSession, CnModalConfirmFactory) {
+      "CnModalMessageFactory",
+      function (CnAppointmentModelFactory, CnModalMessageFactory) {
         return {
           templateUrl: module.getFileUrl("view.tpl.html"),
           restrict: "E",
@@ -427,40 +428,14 @@ cenozoApp.defineModule({
               cnRecordViewScope = data;
             });
 
-            // connect the calendar's day click callback to the appointment's datetime
-            if ($scope.model.getEditEnabled()) {
-              $scope.model.calendarModel.settings.dayClick = async function (date) {
-                // make sure we're viewing an appointment and the date is no earlier than today
-                if (
-                  "appointment" == $scope.model.getSubjectFromState() &&
-                  "view" == $scope.model.getActionFromState() &&
-                  !date.isBefore(moment(), "day")
-                ) {
-                  var dateString = date.format("YYYY-MM-DD") + "T12:00:00";
-                  var datetime = moment.tz(dateString, CnSession.user.timezone).tz("UTC");
-
-                  // if we clicked today then make sure it's after the current time
-                  if (!datetime.isAfter(moment())) datetime.hour(moment().hour() + 1);
-
-                  if (!datetime.isSame(moment($scope.model.viewModel.record.datetime))) {
-                    var formattedDatetime = CnSession.formatValue(datetime, "datetime", true);
-                    var response = await CnModalConfirmFactory.instance({
-                      title: "Reschedule Appointment",
-                      message: "Are you sure you wish to reschedule the appointment to " + formattedDatetime + "?",
-                    }).show();
-
-                    if (response) {
-                      $scope.model.viewModel.record.datetime = datetime.format();
-                      $scope.model.viewModel.formattedRecord.datetime = formattedDatetime;
-                      cnRecordViewScope.patch("datetime");
-
-                      // update the calendar
-                      $element.find("div.calendar").fullCalendar("refetchEvents");
-                    }
-                  }
-                }
-              };
-            }
+            $scope.model.calendarModel.settings.dayClick = async function (date) {
+              if ($scope.model.getEditEnabled()) {
+                await CnModalMessageFactory.instance({
+                  title: "Notice",
+                  message: 'Please use the "Date & Time" field above to change the appointment date.',
+                }).show();
+              }
+            };
 
             $scope.model.viewModel.afterView(async function () {
               // show/hide user and address columns based on the type
@@ -582,33 +557,13 @@ cenozoApp.defineModule({
     ]);
 
     /* ############################################################################################## */
-    cenozo.providers.factory("CnAppointmentListFactory", [
-      "CnBaseListFactory",
-      function (CnBaseListFactory) {
-        var object = function (parentModel) {
-          CnBaseListFactory.construct(this, parentModel);
-
-          // override onDelete
-          this.onDelete = async function (record) {
-            await this.$$onDelete(record);
-            parentModel.calendarModel.cache =
-              parentModel.calendarModel.cache.filter((e) => e.getIdentifier() != record.getIdentifier());
-          };
-        };
-        return {
-          instance: function (parentModel) {
-            return new object(parentModel);
-          },
-        };
-      },
-    ]);
-
-    /* ############################################################################################## */
     cenozo.providers.factory("CnAppointmentViewFactory", [
       "CnBaseViewFactory",
+      "CnSession",
       "CnHttpFactory",
       "CnModalMessageFactory",
-      function (CnBaseViewFactory, CnHttpFactory, CnModalMessageFactory) {
+      "CnModalConfirmFactory",
+      function (CnBaseViewFactory, CnSession, CnHttpFactory, CnModalMessageFactory, CnModalConfirmFactory) {
         var object = function (parentModel, root) {
           CnBaseViewFactory.construct(this, parentModel, root);
 
@@ -637,12 +592,14 @@ cenozoApp.defineModule({
               // convert null appointment types to something more user-friendly
               if (null == this.record.appointment_type) this.record.appointment_type = "(none)";
 
-              var upcoming = moment().isBefore(this.record.datetime, "minute");
-              parentModel.getDeleteEnabled = function () {
-                return parentModel.$$getDeleteEnabled() && upcoming;
-              };
               parentModel.getEditEnabled = function () {
-                return parentModel.$$getEditEnabled() && upcoming;
+                const record = parentModel.viewModel.record;
+                return (
+                  parentModel.$$getEditEnabled() && (
+                    (moment().isBefore(record.datetime, "minute") && "upcoming" == record.state) ||
+                    "passed" == record.state
+                  )
+                );
               };
 
               if ("home" == this.record.type) {
@@ -674,6 +631,73 @@ cenozoApp.defineModule({
                     list.push({ value: item.id, name: item.summary });
                     return list;
                   }, []);
+              }
+            },
+
+            onPatch: async function (data) {
+              // changing the datetime must be handled differently than normal
+              if (angular.isDefined(data.datetime)) {
+                var formattedDatetime = CnSession.formatValue(data.datetime, "datetime", true);
+                const message = "passed" == this.record.state ? "Cancel and Reschedule" : "Reschedule";
+                var response = await CnModalConfirmFactory.instance({
+                  title: message + " Appointment",
+                  message:
+                    "Are you sure you wish to " + message.toLowerCase() +
+                    " the appointment to " + formattedDatetime + "?",
+                }).show();
+
+                if (response) {
+                  // check if there are appointment reminders setup for this appointment
+                  const mailCountResponse = await CnHttpFactory.instance({
+                    path: ["site", CnSession.site.id, "appointment_mail"].join("/"),
+                    data: {
+                      modifier: {
+                        where: [{
+                          column: "appointment_mail.qnaire_id",
+                          operator: "=",
+                          value: this.record.qnaire_id,
+                        }, {
+                          column: "appointment_mail.appointment_type_id",
+                          operator: "=",
+                          value: !this.record.appointment_type_id ? null : this.record.appointment_type_id,
+                        }, {
+                          column: "appointment_mail.language_id",
+                          operator: "=",
+                          value: this.record.language_id,
+                        }]
+                      }
+                    }
+                  }).count();
+                  
+                  let addMail = false;
+                  const mailCount = parseInt(mailCountResponse.headers("Total"));
+                  if (0 < mailCount) {
+                    addMail = await CnModalConfirmFactory.instance({
+                      title: "Email Reminders",
+                      message:
+                        "All unsent appointment reminders for the previous appointment will be removed.\n\n" +
+                        "Do you wish to schedule appointment reminders for the new appointment time?"
+                    }).show();
+                  }
+
+                  // rescheduling only requires updating the current record's datetime (server does the rest)
+                  this.record.datetime = data.datetime;
+                  this.formattedRecord.datetime = formattedDatetime;
+                  const response = await this.$$onPatch(data);
+                  const newAppointmentId = response.data;
+
+                  // add mail if requested to
+                  if (addMail) {
+                    await CnHttpFactory.instance({
+                      path: this.parentModel.getServiceResourcePath(newAppointmentId) + "?add_mail=1",
+                      data: {},
+                    }).patch();
+                  }
+
+                  this.parentModel.transitionToViewState({ getIdentifier: () => response.data });
+                }
+              } else {
+                await this.$$onPatch(data);
               }
             },
           });

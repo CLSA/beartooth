@@ -47,6 +47,7 @@ class module extends \cenozo\service\interview\module
       $join_sel->add_column( 'COUNT( * ) > 0', 'future_appointment', false );
 
       $join_mod = lib::create( 'database\modifier' );
+      $join_mod->where( 'outcome', '=', NULL );
       $join_mod->where( 'datetime', '>', 'UTC_TIMESTAMP()', false );
       $join_mod->group( 'interview_id' );
 

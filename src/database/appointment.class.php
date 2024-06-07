@@ -179,10 +179,14 @@ class appointment extends \cenozo\database\record
     // first see if the appointment is complete
     if( !is_null( $this->outcome ) ) return $this->outcome;
 
-    $now = util::get_datetime_object()->getTimestamp();
+    // determine the next minute (at 0 seconds) after "now"
+    $now = util::get_datetime_object();
+    $now->add( new \DateInterval( "PT1M" ) );
+    $now->setTime( $now->format( "H" ), $now->format( "i" ), 0 );
+    $now = $now->getTimestamp();
     $appointment = $this->datetime->getTimestamp();
 
-    return $now < $appointment ? 'upcoming' : 'passed';
+    return $now <= $appointment ? 'upcoming' : 'passed';
   }
 
   /**

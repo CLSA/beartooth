@@ -125,32 +125,6 @@ cenozoApp.extendModule({
           // force the default tab to be "appointment"
           object.defaultTab = "appointment";
 
-          function getAppointmentEnabled(type) {
-            var completed = null !== object.record.end_datetime;
-            var participating =
-              false !== object.record.last_participation_consent;
-            var future = object.record.future_appointment;
-            return "add" == type
-              ? !completed && participating && !future
-              : future;
-          }
-
-          function updateEnableFunctions() {
-            object.appointmentModel.getAddEnabled = function () {
-              return (
-                angular.isDefined(object.appointmentModel.module.actions.add) &&
-                getAppointmentEnabled("add")
-              );
-            };
-            object.appointmentModel.getDeleteEnabled = function () {
-              return (
-                angular.isDefined(
-                  object.appointmentModel.module.actions.delete
-                ) && getAppointmentEnabled("delete")
-              );
-            };
-          }
-
           // override onView
           object.onView = async function (force) {
             await object.$$onView(force);
@@ -162,25 +136,17 @@ cenozoApp.extendModule({
             }
 
             // set the correct type and refresh the list
-            if (angular.isDefined(object.appointmentModel))
-              updateEnableFunctions();
-          };
-
-          async function init() {
-            // override appointment list's onDelete
-            await object.deferred.promise;
-
             if (angular.isDefined(object.appointmentModel)) {
-              object.appointmentModel.listModel.onDelete = async function (
-                record
-              ) {
-                await object.appointmentModel.listModel.$$onDelete(record);
-                await object.onView();
+              object.appointmentModel.getAddEnabled = function () {
+                return (
+                  angular.isDefined(object.appointmentModel.module.actions.add) &&
+                  null === object.record.end_datetime && // not completed
+                  false !== object.record.last_participation_consent && // participating
+                  !object.record.future_appointment // not a future appointment
+                );
               };
             }
-          }
-
-          init();
+          };
 
           return object;
         };
