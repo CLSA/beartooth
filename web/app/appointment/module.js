@@ -649,10 +649,14 @@ cenozoApp.defineModule({
                 if (response) {
                   // check if there are appointment reminders setup for this appointment
                   const mailCountResponse = await CnHttpFactory.instance({
-                    path: ["site", CnSession.site.id, "appointment_mail"].join("/"),
+                    path: "appointment_mail",
                     data: {
                       modifier: {
                         where: [{
+                          column: "appointment_mail.site_id",
+                          operator: "=",
+                          value: CnSession.site.id,
+                        }, {
                           column: "appointment_mail.qnaire_id",
                           operator: "=",
                           value: this.record.qnaire_id,
