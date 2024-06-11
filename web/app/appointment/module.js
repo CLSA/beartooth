@@ -108,7 +108,12 @@ cenozoApp.defineModule({
       appointment_type_id: {
         title: "Special Type",
         type: "enum",
-        isExcluded: "view",
+        isConstant: function($state, model) {
+          if ("view" != model.getActionFromState()) return false;
+
+          // constant if we can't edit or it isn't upcoming
+          return !model.getEditEnabled() || "upcoming" != model.viewModel.record.state;
+        },
         help:
           "Identified whether this is a special appointment type.  If blank then it is considered " +
           'a "regular" appointment.',
@@ -118,16 +123,6 @@ cenozoApp.defineModule({
         type: "boolean",
         isExcluded: "view",
         help: "If selected then no automatic email reminders will be created for this appointment.",
-      },
-      appointment_type: {
-        column: "appointment_type.name",
-        title: "Special Type",
-        type: "string",
-        isExcluded: "add",
-        isConstant: true,
-        help:
-          "Identified whether this is a special appointment type.  If blank then it is considered " +
-          'a "regular" appointment.',
       },
       qnaire_id: { column: "qnaire.id", type: "hidden" },
       language_id: { column: "participant.language_id", type: "hidden" },
@@ -235,6 +230,19 @@ cenozoApp.defineModule({
       }
     }
 
+    // private function used to update the appointment type enum list (for both add and view directive)
+    function updateAppointmentTypeEnumList (directive, input, qnaireList, qnaireId) {
+      // set the appointment type enum list based on the qnaire_id
+      input.enumList = angular.copy(qnaireList[qnaireId]);
+
+      // we must also manually add the empty entry
+      if (angular.isUndefined(input.enumList)) input.enumList = [];
+      var emptyIndex = input.enumList.findIndexByProperty("name", "(empty)");
+      if (null == emptyIndex) {
+        input.enumList.unshift({ value: "add" == directive ? undefined : "", name: "(empty)" });
+      }
+    }
+
     /* ############################################################################################## */
     cenozo.providers.directive("cnAppointmentAdd", [
       "CnAppointmentModelFactory",
@@ -314,24 +322,13 @@ cenozoApp.defineModule({
                   data: { select: { column: ["qnaire_id"] } },
                 }).get();
 
-                var appointmentTypeIndex = inputArray.findIndexByProperty("key", "appointment_type_id");
-
-                // set the appointment type enum list based on the qnaire_id
-                inputArray[appointmentTypeIndex].enumList = angular.copy(
-                  $scope.model.metadata.columnList.appointment_type_id.qnaireList[response.data.qnaire_id]
+                // only show appointment types based on the qnaire
+                updateAppointmentTypeEnumList(
+                  "add",
+                  inputArray.findByProperty("key", "appointment_type_id"),
+                  $scope.model.metadata.columnList.appointment_type_id.qnaireList,
+                  response.data.qnaire_id
                 );
-
-                // we must also manually add the empty entry
-                if (angular.isUndefined(inputArray[appointmentTypeIndex].enumList)) {
-                  inputArray[appointmentTypeIndex].enumList = [];
-                }
-                var emptyIndex = inputArray[appointmentTypeIndex].enumList.findIndexByProperty("name", "(empty)");
-                if (null == emptyIndex) {
-                  inputArray[appointmentTypeIndex].enumList.unshift({
-                    value: "cnRecordAdd" == cnRecordAddScope.directive ? undefined : "",
-                    name: "(empty)",
-                  });
-                }
               }
             });
           },
@@ -448,6 +445,18 @@ cenozoApp.defineModule({
               // make sure the metadata has been created
               await $scope.model.metadata.getPromise();
               $scope.model.viewModel.heading = $scope.model.type.ucWords() + " Appointment Details";
+            });
+
+            $scope.$on("cnRecordView complete", function (event, data) {
+              var inputArray = cnRecordViewScope.dataArray[0].inputArray;
+
+              // only show appointment types based on the qnaire
+              updateAppointmentTypeEnumList(
+                "view",
+                inputArray.findByProperty("key", "appointment_type_id"),
+                $scope.model.metadata.columnList.appointment_type_id.qnaireList,
+                $scope.model.viewModel.record.qnaire_id
+              );
             });
           },
         };
@@ -701,7 +710,9 @@ cenozoApp.defineModule({
                   this.parentModel.transitionToViewState({ getIdentifier: () => response.data });
                 }
               } else {
+                // otherwise just patch the data and reload the page so the calendar is updated
                 await this.$$onPatch(data);
+                await this.parentModel.reloadState(true);
               }
             },
           });
@@ -763,10 +774,7 @@ cenozoApp.defineModule({
                 data.restricted_site_id = this.site.id;
               data.qnaire_type = this.type;
               if ("calendar" == type) {
-                data.select = {
-                  column: ["datetime", "outcome", { table: "appointment_type", column: "color" }],
-                };
-
+                data.select = { column: ["datetime", "outcome", { table: "appointment_type", column: "color" }] };
                 if ("home" == this.type) {
                   data.select.column.push({ table: "address", column: "postcode", });
                 }
