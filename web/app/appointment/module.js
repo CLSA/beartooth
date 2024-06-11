@@ -768,173 +768,159 @@ cenozoApp.defineModule({
             );
 
           CnBaseModelFactory.construct(this, module);
-          this.addModel = CnAppointmentAddFactory.instance(this);
-          this.calendarModel = CnAppointmentCalendarFactory.instance(this);
-          this.listModel = CnAppointmentListFactory.instance(this);
-          this.viewModel = CnAppointmentViewFactory.instance(this, site.id == CnSession.site.id);
-          this.site = site;
-          this.type = $state.params.type;
+
+          angular.extend(this, {
+            addModel: CnAppointmentAddFactory.instance(this),
+            calendarModel: CnAppointmentCalendarFactory.instance(this),
+            listModel: CnAppointmentListFactory.instance(this),
+            viewModel: CnAppointmentViewFactory.instance(this, site.id == CnSession.site.id),
+            site: site,
+            type: $state.params.type,
+
+            // customize service data
+            getServiceData: function (type, columnRestrictLists) {
+              this.type = $state.params.type;
+              var data = this.$$getServiceData(type, columnRestrictLists);
+              if ("calendar" == type || "list" == type) {
+                if ("appointment" == this.getSubjectFromState()) data.restricted_site_id = this.site.id;
+                data.qnaire_type = this.type;
+                if ("calendar" == type) {
+                  data.select = {
+                    column: ["datetime", "outcome", { table: "appointment_type", column: "color" }]
+                  };
+                  if ("home" == this.type) data.select.column.push({ table: "address", column: "postcode", });
+                }
+              }
+              return data;
+            },
+
+            // don't show add button when viewing full appointment list
+            getAddEnabled: function () {
+              return ("appointment" != this.getSubjectFromState() && this.$$getAddEnabled());
+            },
+
+            // pass type/site when transitioning to list state
+            transitionToParentListState: async function (subject) {
+              this.type = $state.params.type;
+              if (angular.isUndefined(subject)) subject = "^";
+              await $state.go(subject + ".list", { type: this.type, identifier: this.site.getIdentifier() });
+            },
+
+            // pass type when transitioning to add state
+            transitionToAddState: async function () {
+              this.type = $state.params.type;
+              var params = { type: this.type, parentIdentifier: $state.params.identifier };
+
+              // get the participant's primary site (assuming the current state is an interview)
+              var response = await CnHttpFactory.instance({
+                path: "interview/" + $state.params.identifier,
+                data: { select: { column: [{ table: "effective_site", column: "name" }] } },
+              }).get();
+
+              if (response.data.name) params.site = "name=" + response.data.name;
+              await $state.go("^.add_" + this.module.subject.snake, params);
+            },
+
+            // pass type/site when transitioning to list state
+            transitionToListState: async function (record) {
+              this.type = $state.params.type;
+              await $state.go(this.module.subject.snake + ".list", {
+                type: this.type,
+                identifier: this.site.getIdentifier(),
+              });
+            },
+
+            // pass type when transitioning to view state
+            transitionToViewState: async function (record) {
+              this.type = $state.params.type;
+              var params = { type: this.type, identifier: record.getIdentifier() };
+
+              // get the participant's primary site (assuming the current state is an interview)
+              var response = await CnHttpFactory.instance({
+                path: "appointment/" + record.getIdentifier(),
+                data: { select: { column: [{ table: "effective_site", column: "name" }] } },
+              }).get();
+
+              if (response.data.name) params.site = "name=" + response.data.name;
+              await $state.go(this.module.subject.snake + ".view", params);
+            },
+
+            // pass type when transitioning to last state
+            transitionToLastState: async function () {
+              this.type = $state.params.type;
+              var parent = this.getParentIdentifier();
+              await $state.go(parent.subject + ".view", { type: this.type, identifier: parent.identifier });
+            },
+
+            transitionToParentViewState: async function (subject, identifier) {
+              this.type = $state.params.type;
+              var params = { identifier: identifier };
+              if ("interview" == subject) params.type = this.type;
+              await $state.go(subject + ".view", params);
+            },
+
+            // extend getBreadcrumbTitle
+            setupBreadcrumbTrail: function () {
+              this.type = $state.params.type;
+              this.$$setupBreadcrumbTrail();
+              // add the type to the "appointment" crumb
+              if (this.type) {
+                var crumb = CnSession.breadcrumbTrail.findByProperty("title", "Appointment");
+                if (!crumb) var crumb = CnSession.breadcrumbTrail.findByProperty("title", "Appointments");
+                if (crumb) crumb.title = this.type[0].toUpperCase() + this.type.substring(1) + " " + crumb.title;
+              }
+            },
+
+            // extend getMetadata
+            getMetadata: async function () {
+              await this.$$getMetadata();
+
+              // Force the user and address columns to be mandatory (this will only affect home appointments)
+              this.metadata.columnList.user_id.required = true;
+              this.metadata.columnList.address_id.required = true;
+
+              var response = await CnHttpFactory.instance({
+                path: "appointment_type",
+                data: {
+                  select: { column: ["id", "name", "qnaire_id"] },
+                  modifier: { order: "name", limit: 1000 },
+                },
+              }).query();
+
+              // store the appointment types in a special array with qnaire_id as indeces:
+              this.metadata.columnList.appointment_type_id.qnaireList =
+                response.data.reduce((list, item) => {
+                  if (angular.isUndefined(list[item.qnaire_id])) list[item.qnaire_id] = [];
+                  list[item.qnaire_id].push({ value: item.id, name: item.name });
+                  return list;
+                }, {});
+
+              // and leave the enum list empty for now, it will be set by the view/add services
+              this.metadata.columnList.appointment_type_id.enumList = [];
+            },
+
+            // extend getTypeaheadData
+            getTypeaheadData: function (input, viewValue) {
+              var data = this.$$getTypeaheadData(input, viewValue);
+
+              // only include active users
+              if ("user" == input.typeahead.table) {
+                data.modifier.where.unshift({ bracket: true, open: true });
+                data.modifier.where.push({ bracket: true, open: false });
+                data.modifier.where.push({ column: "user.active", operator: "=", value: true });
+
+                // restrict to the current site
+                if (this.site) data.restricted_site_id = this.site.id;
+              }
+
+              return data;
+            },
+          });
 
           // set the default value of the user_id to the current user
           module.getInput("user_id").default = {
             id: CnSession.user.id,
             formatted: CnSession.user.firstName + " " + CnSession.user.lastName + " (" + CnSession.user.name + ")"
-          };
-
-          // customize service data
-          this.getServiceData = function (type, columnRestrictLists) {
-            this.type = $state.params.type;
-            var data = this.$$getServiceData(type, columnRestrictLists);
-            if ("calendar" == type || "list" == type) {
-              if ("appointment" == this.getSubjectFromState())
-                data.restricted_site_id = this.site.id;
-              data.qnaire_type = this.type;
-              if ("calendar" == type) {
-                data.select = { column: ["datetime", "outcome", { table: "appointment_type", column: "color" }] };
-                if ("home" == this.type) {
-                  data.select.column.push({ table: "address", column: "postcode", });
-                }
-              }
-            }
-            return data;
-          };
-
-          // don't show add button when viewing full appointment list
-          this.getAddEnabled = function () {
-            return ("appointment" != this.getSubjectFromState() && this.$$getAddEnabled());
-          };
-
-          // pass type/site when transitioning to list state
-          this.transitionToParentListState = async function (subject) {
-            this.type = $state.params.type;
-            if (angular.isUndefined(subject)) subject = "^";
-            await $state.go(subject + ".list", {
-              type: this.type,
-              identifier: this.site.getIdentifier(),
-            });
-          };
-
-          // pass type when transitioning to add state
-          this.transitionToAddState = async function () {
-            this.type = $state.params.type;
-            var params = {
-              type: this.type,
-              parentIdentifier: $state.params.identifier,
-            };
-
-            // get the participant's primary site (assuming the current state is an interview)
-            var response = await CnHttpFactory.instance({
-              path: "interview/" + $state.params.identifier,
-              data: { select: { column: [{ table: "effective_site", column: "name" }] } },
-            }).get();
-
-            if (response.data.name) params.site = "name=" + response.data.name;
-            await $state.go("^.add_" + this.module.subject.snake, params);
-          };
-
-          // pass type/site when transitioning to list state
-          this.transitionToListState = async function (record) {
-            this.type = $state.params.type;
-            await $state.go(this.module.subject.snake + ".list", {
-              type: this.type,
-              identifier: this.site.getIdentifier(),
-            });
-          };
-
-          // pass type when transitioning to view state
-          this.transitionToViewState = async function (record) {
-            this.type = $state.params.type;
-            var params = {
-              type: this.type,
-              identifier: record.getIdentifier(),
-            };
-
-            // get the participant's primary site (assuming the current state is an interview)
-            var response = await CnHttpFactory.instance({
-              path: "appointment/" + record.getIdentifier(),
-              data: { select: { column: [{ table: "effective_site", column: "name" }] } },
-            }).get();
-
-            if (response.data.name) params.site = "name=" + response.data.name;
-            await $state.go(this.module.subject.snake + ".view", params);
-          };
-
-          // pass type when transitioning to last state
-          this.transitionToLastState = async function () {
-            this.type = $state.params.type;
-            var parent = this.getParentIdentifier();
-            await $state.go(parent.subject + ".view", {
-              type: this.type,
-              identifier: parent.identifier,
-            });
-          };
-
-          this.transitionToParentViewState = async function (subject, identifier) {
-            this.type = $state.params.type;
-            var params = { identifier: identifier };
-            if ("interview" == subject) params.type = this.type;
-            await $state.go(subject + ".view", params);
-          };
-
-          // extend getBreadcrumbTitle
-          this.setupBreadcrumbTrail = function () {
-            this.type = $state.params.type;
-            this.$$setupBreadcrumbTrail();
-            // add the type to the "appointment" crumb
-            if (this.type) {
-              var crumb = CnSession.breadcrumbTrail.findByProperty("title", "Appointment");
-              if (!crumb) var crumb = CnSession.breadcrumbTrail.findByProperty("title", "Appointments");
-              if (crumb) crumb.title = this.type[0].toUpperCase() + this.type.substring(1) + " " + crumb.title;
-            }
-          };
-
-          // extend getMetadata
-          this.getMetadata = async function () {
-            await this.$$getMetadata();
-
-            // Force the user and address columns to be mandatory (this will only affect home appointments)
-            this.metadata.columnList.user_id.required = true;
-            this.metadata.columnList.address_id.required = true;
-
-            var response = await CnHttpFactory.instance({
-              path: "appointment_type",
-              data: {
-                select: { column: ["id", "name", "qnaire_id"] },
-                modifier: { order: "name", limit: 1000 },
-              },
-            }).query();
-
-            // store the appointment types in a special array with qnaire_id as indeces:
-            this.metadata.columnList.appointment_type_id.qnaireList =
-              response.data.reduce((list, item) => {
-                if (angular.isUndefined(list[item.qnaire_id])) list[item.qnaire_id] = [];
-                list[item.qnaire_id].push({ value: item.id, name: item.name });
-                return list;
-              }, {});
-
-            // and leave the enum list empty for now, it will be set by the view/add services
-            this.metadata.columnList.appointment_type_id.enumList = [];
-          };
-
-          // extend getTypeaheadData
-          this.getTypeaheadData = function (input, viewValue) {
-            var data = this.$$getTypeaheadData(input, viewValue);
-
-            // only include active users
-            if ("user" == input.typeahead.table) {
-              data.modifier.where.unshift({ bracket: true, open: true });
-              data.modifier.where.push({ bracket: true, open: false });
-              data.modifier.where.push({
-                column: "user.active",
-                operator: "=",
-                value: true,
-              });
-
-              // restrict to the current site
-              if (this.site) data.restricted_site_id = this.site.id;
-            }
-
-            return data;
           };
         };
 
