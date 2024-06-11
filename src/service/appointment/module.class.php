@@ -186,6 +186,9 @@ class module extends \cenozo\service\base_calendar_module
       // always include all appointments
       $modifier->limit( 10000000 );
 
+      // never include appointments with an outcome
+      $modifier->where( 'appointment.outcome', '=', NULL );
+
       $interviewing_instance_class_name = lib::create( 'database\interviewing_instance' );
       $appointment_type_class_name = lib::create( 'database\appointment_type' );
       $form_type_class_name = lib::create( 'database\form_type' );
