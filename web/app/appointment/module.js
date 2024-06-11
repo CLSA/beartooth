@@ -647,7 +647,23 @@ cenozoApp.defineModule({
               // changing the datetime must be handled differently than normal
               if (angular.isDefined(data.datetime)) {
                 var formattedDatetime = CnSession.formatValue(data.datetime, "datetime", true);
-                const message = "passed" == this.record.state ? "Cancel and Reschedule" : "Reschedule";
+                const passed = "passed" == this.record.state;
+
+                if (!passed) {
+                  // no need to reschedule when the change is on the same day
+                  let oldDatetime = moment.tz(this.backupRecord.datetime, CnSession.user.timezone);
+                  let newDatetime = moment.tz(data.datetime, CnSession.user.timezone);
+
+                  if (oldDatetime.isSame(newDatetime, "day")) {
+                    await this.$$onPatch(data);
+                    await this.parentModel.reloadState(true);
+                    return;
+                  }
+                }
+
+                // the appointment must be cancelled or rescheduled
+                const message = passed ? "Cancel and Reschedule" : "Reschedule";
+
                 var response = await CnModalConfirmFactory.instance({
                   title: message + " Appointment",
                   message:
@@ -681,7 +697,7 @@ cenozoApp.defineModule({
                       }
                     }
                   }).count();
-                  
+
                   let addMail = false;
                   const mailCount = parseInt(mailCountResponse.headers("Total"));
                   if (0 < mailCount) {
