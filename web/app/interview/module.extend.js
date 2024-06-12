@@ -135,15 +135,30 @@ cenozoApp.extendModule({
               throw "Interview type does not match state parameters, redirecting to 404.";
             }
 
-            // set the correct type and refresh the list
+            // update the add/delete enabled functions
             if (angular.isDefined(object.appointmentModel)) {
-              object.appointmentModel.getAddEnabled = function () {
+              const aModel = object.appointmentModel;
+              aModel.getAddEnabled = function () {
                 return (
-                  angular.isDefined(object.appointmentModel.module.actions.add) &&
+                  angular.isDefined(aModel.module.actions.add) &&
                   null === object.record.end_datetime && // not completed
                   false !== object.record.last_participation_consent && // participating
                   !object.record.future_appointment // not a future appointment
                 );
+              };
+
+              // this differs from the default because the user doesn't need write access to the interview
+              aModel.getDeleteEnabled = function () {
+                return angular.isDefined(aModel.module.actions.delete);
+              };
+
+              // when deleting an appointment refresh the interview (if it's being viewed)
+              aModel.listModel.onDelete = async function (record) {
+                await aModel.listModel.$$onDelete(record);
+
+                if ("interview" == aModel.getSubjectFromState() && "view" == aModel.getActionFromState()) {
+                  await object.$$onView(force);
+                }
               };
             }
           };
