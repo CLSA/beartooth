@@ -74,23 +74,6 @@ class post extends \cenozo\service\post
       $db_access->site_id = $db_site->id;
       $db_access->role_id = $role_class_name::get_unique_record( 'name', 'machine' )->id;
       $db_access->save();
-
-      // add the user to ldap
-      $ldap_manager = lib::create( 'business\ldap_manager' );
-      try
-      {
-        $ldap_manager->new_user(
-          $db_user->name,
-          $db_user->first_name,
-          $db_user->last_name,
-          $this->get_file_as_object()->password
-        );
-      }
-      catch( \cenozo\exception\ldap $e )
-      {
-        // catch already exists exceptions, no need to report them
-        if( !$e->is_already_exists() ) throw $e;
-      }
     }
   }
 

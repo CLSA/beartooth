@@ -31,18 +31,6 @@ class delete extends \cenozo\service\delete
   {
     parent::finish();
 
-    // remove the user from ldap
-    $ldap_manager = lib::create( 'business\ldap_manager' );
-    try
-    {
-      $ldap_manager->delete_user( $this->db_user->name );
-    }
-    catch( \cenozo\exception\ldap $e )
-    {
-      // only warn if there are problems deleting users
-      log::warning( $e->get_raw_message() );
-    }
-
     try
     {
       $this->db_user->delete();
