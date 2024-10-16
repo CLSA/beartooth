@@ -11,7 +11,6 @@
  */
 define( 'ARGUMENT_BEARTOOTH_BASE_ERRNO',   160000 );
 define( 'DATABASE_BEARTOOTH_BASE_ERRNO',   260000 );
-define( 'LDAP_BEARTOOTH_BASE_ERRNO',       360000 );
 define( 'NOTICE_BEARTOOTH_BASE_ERRNO',     460000 );
 define( 'PERMISSION_BEARTOOTH_BASE_ERRNO', 560000 );
 define( 'RUNTIME_BEARTOOTH_BASE_ERRNO',    660000 );
@@ -30,12 +29,6 @@ define( 'ARGUMENT__BEARTOOTH_DATABASE_QUEUE__PREPARE_QUEUE_QUERY__ERRNO',
  * "database" error codes
  * 
  * Since database errors already have codes this list is likely to stay empty.
- */
-
-/**
- * "ldap" error codes
- * 
- * Since ldap errors already have codes this list is likely to stay empty.
  */
 
 /**
