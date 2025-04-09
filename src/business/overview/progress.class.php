@@ -93,6 +93,7 @@ class progress extends \cenozo\business\overview\base_overview
     {
       $node = $this->add_root_item( $row['site'] );
       $this->add_item( $node, 'All Participants', $row['total'] );
+      $this->add_item( $node, 'Finished all Questionnaires', 0 );
       $this->add_item( $node, 'Not Enrolled', 0 );
       $hold_type_node = $this->add_item( $node, 'Hold Types' );
       foreach( $hold_type_list as $hold_type ) $this->add_item( $hold_type_node, $hold_type, 0 );
@@ -100,7 +101,7 @@ class progress extends \cenozo\business\overview\base_overview
       foreach( $trace_type_list as $trace_type ) $this->add_item( $trace_type_node, $trace_type, 0 );
       $proxy_type_node = $this->add_item( $node, 'Proxy Types' );
       foreach( $proxy_type_list as $proxy_type ) $this->add_item( $proxy_type_node, $proxy_type, 0 );
-      $home_node = $this->add_item( $node, 'Home Interview' );
+      $home_node = $this->add_item( $node, 'Home Interview (excluding hold/trace/proxy)' );
       $this->add_item( $home_node, 'Scheduled callbacks', 0 );
       $this->add_item( $home_node, 'Callbacks this week', 0 );
       $this->add_item( $home_node, 'Upcoming appointments', 0 );
@@ -108,7 +109,7 @@ class progress extends \cenozo\business\overview\base_overview
       $this->add_item( $home_node, 'Participants never assigned', 0 );
       $this->add_item( $home_node, 'Participants previously assigned', 0 );
       $this->add_item( $home_node, 'Completed Interviews', 0 );
-      $site_node = $this->add_item( $node, 'Site Interview' );
+      $site_node = $this->add_item( $node, 'Site Interview (excluding hold/trace/proxy)' );
       $this->add_item( $site_node, 'Scheduled callbacks', 0 );
       $this->add_item( $site_node, 'Callbacks this week', 0 );
       $this->add_item( $site_node, 'Upcoming appointments', 0 );
@@ -117,6 +118,17 @@ class progress extends \cenozo\business\overview\base_overview
       $this->add_item( $site_node, 'Participants previously assigned', 0 );
       $this->add_item( $site_node, 'Completed Interviews', 0 );
       $site_node_lookup[$row['site']] = $node;
+    }
+
+    // finished participants
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    $not_enrolled_mod = clone $modifier;
+    $not_enrolled_mod->where( 'queue.name', '=', 'finished' );
+
+    foreach( $db->get_all( sprintf( '%s %s', $select->get_sql(), $not_enrolled_mod->get_sql() ) ) as $row )
+    {
+      $node = $site_node_lookup[$row['site']]->find_node( 'Finished all Questionnaires' );
+      $node->set_value( $row['total'] );
     }
 
     // not enrolled participants
@@ -216,7 +228,8 @@ class progress extends \cenozo\business\overview\base_overview
 
     foreach( $db->get_all( sprintf( '%s %s', $callback_sel->get_sql(), $callback_mod->get_sql() ) ) as $row )
     {
-      $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
+      $node_title = sprintf( '%s Interview (excluding hold/trace/proxy)', ucWords( $row['type'] ) );
+      $parent_node = $site_node_lookup[$row['site']]->find_node( $node_title );
       $all_node = $parent_node->find_node( 'Scheduled callbacks' );
       $all_node->set_value( $all_node->get_value() + $row['total'] );
       $week_node = $parent_node->find_node( 'Callbacks this week' );
@@ -254,7 +267,8 @@ class progress extends \cenozo\business\overview\base_overview
 
     foreach( $db->get_all( sprintf( '%s %s', $appointment_sel->get_sql(), $appointment_mod->get_sql() ) ) as $row )
     {
-      $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
+      $node_title = sprintf( '%s Interview (excluding hold/trace/proxy)', ucWords( $row['type'] ) );
+      $parent_node = $site_node_lookup[$row['site']]->find_node( $node_title );
       $all_node = $parent_node->find_node( 'Upcoming appointments' );
       $all_node->set_value( $all_node->get_value() + $row['total'] );
       $week_node = $parent_node->find_node( 'Appointments this week' );
@@ -272,7 +286,8 @@ class progress extends \cenozo\business\overview\base_overview
 
     foreach( $db->get_all( sprintf( '%s %s', $new_sel->get_sql(), $new_mod->get_sql() ) ) as $row )
     {
-      $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
+      $node_title = sprintf( '%s Interview (excluding hold/trace/proxy)', ucWords( $row['type'] ) );
+      $parent_node = $site_node_lookup[$row['site']]->find_node( $node_title );
       $node = $parent_node->find_node( 'Participants never assigned' );
       $node->set_value( $row['total'] );
     }
@@ -288,7 +303,8 @@ class progress extends \cenozo\business\overview\base_overview
 
     foreach( $db->get_all( sprintf( '%s %s', $old_sel->get_sql(), $old_mod->get_sql() ) ) as $row )
     {
-      $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
+      $node_title = sprintf( '%s Interview (excluding hold/trace/proxy)', ucWords( $row['type'] ) );
+      $parent_node = $site_node_lookup[$row['site']]->find_node( $node_title );
       $node = $parent_node->find_node( 'Participants previously assigned' );
       $node->set_value( $row['total'] );
     }
@@ -308,7 +324,8 @@ class progress extends \cenozo\business\overview\base_overview
 
     foreach( $db->get_all( sprintf( '%s %s', $completed_sel->get_sql(), $completed_mod->get_sql() ) ) as $row )
     {
-      $parent_node = $site_node_lookup[$row['site']]->find_node( ucWords( $row['type'] ).' Interview' );
+      $node_title = sprintf( '%s Interview (excluding hold/trace/proxy)', ucWords( $row['type'] ) );
+      $parent_node = $site_node_lookup[$row['site']]->find_node( $node_title );
       $node = $parent_node->find_node( 'Completed Interviews' );
       $node->set_value( $row['total'] );
     }
