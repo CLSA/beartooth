@@ -118,6 +118,34 @@ cenozoApp.defineModule({
           "Identified whether this is a special appointment type.  If blank then it is considered " +
           'a "regular" appointment.',
       },
+      appointment_type_reason_id: {
+        title: "Reason for Special Type",
+        type: "enum",
+        isExcluded: function($state, model) {
+          // temporary until add scope is loaded
+          return !model.viewModel.record.appointment_type_id ? true : "add";
+        },
+        isConstant: function($state, model) {
+          if ("view" != model.getActionFromState()) return false;
+
+          // constant if we can't edit or it isn't upcoming
+          return !model.getEditEnabled() || "upcoming" != model.viewModel.record.state;
+        },
+      },
+      reason_extra: {
+        title: "Additional Details",
+        type: "string",
+        isExcluded: function($state, model) {
+          // temporary until add scope is loaded
+          return !model.viewModel.record.appointment_type_id ? true : "add";
+        },
+        isConstant: function($state, model) {
+          if ("view" != model.getActionFromState()) return false;
+
+          // constant if we can't edit or it isn't upcoming
+          return !model.getEditEnabled() || "upcoming" != model.viewModel.record.state;
+        },
+      },
       disable_mail: {
         title: "Disable Email Reminder(s)",
         type: "boolean",
@@ -243,16 +271,33 @@ cenozoApp.defineModule({
       }
     }
 
+    // private function used to update the appointment type reason enum list (for both add and view directive)
+    function updateAppointmentTypeReasonEnumList (directive, input, appointmentTypeList, appointmentTypeId) {
+      // set the appointment type enum list based on the appointmentType_id
+      input.enumList = angular.copy(appointmentTypeList[appointmentTypeId]);
+
+      if ("add" == directive && input.enumList) {
+        // we must also manually add the empty entry
+        if (angular.isUndefined(input.enumList)) input.enumList = [];
+        var emptyIndex = input.enumList.findIndexByProperty("name", "(empty)");
+        if (null == emptyIndex) {
+          input.enumList.unshift({ value: undefined, name: "(Select Reason)" });
+        }
+      }
+    }
+
     /* ############################################################################################## */
     cenozo.providers.directive("cnAppointmentAdd", [
       "CnAppointmentModelFactory",
       "CnSession",
       "CnHttpFactory",
+      "CnModalMessageFactory",
       "CnModalConfirmFactory",
       function (
         CnAppointmentModelFactory,
         CnSession,
         CnHttpFactory,
+        CnModalMessageFactory,
         CnModalConfirmFactory
       ) {
         return {
@@ -267,6 +312,68 @@ cenozoApp.defineModule({
             var cnRecordAddScope = null;
             $scope.$on("cnRecordAdd ready", function (event, data) {
               cnRecordAddScope = data;
+
+              const checkFunction = cnRecordAddScope.check;
+
+              angular.extend(cnRecordAddScope, {
+                // Only show appointment type reason details when a special appointment type is selected
+                updateReasonInputVisibility: function() {
+                  const group = $scope.model.module.inputGroupList.findByProperty( "title", "" );
+                  group.inputList.appointment_type_reason_id.isExcluded = function($state, model) {
+                    if (
+                      !$scope.model.metadata.columnList ||
+                      !$scope.model.metadata.columnList.appointment_type_reason_id
+                    ) return true;
+
+                    const typeId = cnRecordAddScope.record.appointment_type_id;
+                    const list = $scope.model.metadata.columnList.appointment_type_reason_id.appointmentTypeList;
+                    const exclude = !typeId || !list || !list[typeId];
+
+                    // if visible, then mandatory
+                    $scope.model.metadata.columnList.appointment_type_reason_id.required = !exclude;
+
+                    return exclude;
+                  };
+                  group.inputList.reason_extra.isExcluded = function($state, model) {
+                    const reasonId = cnRecordAddScope.record.appointment_type_reason_id;
+                    if (!reasonId) return true;
+
+                    const reasonList = (
+                      cnRecordAddScope.dataArray[0].inputArray.findByProperty(
+                        "key",
+                        "appointment_type_reason_id"
+                      ).enumList
+                    );
+                    if (!reasonList) return true;
+
+                    // don't exclude if the selected reason requires extra details
+                    const reason = reasonList.findByProperty("value", reasonId);
+                    const exclude = null == reason || !reason.extra;
+
+                    // if visible, then mandatory
+                    $scope.model.metadata.columnList.reason_extra.required = !exclude;
+
+                    return exclude;
+                  };
+                },
+
+                // update the reason list when the appointment type changes
+                check: function (property) {
+                  checkFunction(property);
+
+                  if ("appointment_type_id" == property) {
+                    const inputArray = cnRecordAddScope.dataArray[0].inputArray;
+                    updateAppointmentTypeReasonEnumList(
+                      "add",
+                      inputArray.findByProperty("key", "appointment_type_reason_id"),
+                      $scope.model.metadata.columnList.appointment_type_reason_id.appointmentTypeList,
+                      cnRecordAddScope.record.appointment_type_id
+                    );
+
+                    this.updateReasonInputVisibility();
+                  }
+                },
+              });
             });
 
             // connect the calendar's day click callback to the appointment's datetime
@@ -282,17 +389,37 @@ cenozoApp.defineModule({
             };
 
             $scope.model.addModel.afterNew(async function () {
-              // warn if old appointment will be cancelled
+              // validate data and warn if old appointment will be cancelled
               cnRecordAddScope.baseSaveFn = cnRecordAddScope.save;
               cnRecordAddScope.save = async function () {
-                var response = await CnHttpFactory.instance({
+                // make sure the reason details are valid
+                const reasonList = (
+                  cnRecordAddScope.dataArray[0].inputArray.findByProperty(
+                    "key",
+                    "appointment_type_reason_id"
+                  ).enumList
+                );
+
+                // do not include unneeded data
+                if (!cnRecordAddScope.record.appointment_type_id) {
+                  delete cnRecordAddScope.record.appointment_type_reason_id;
+                  delete cnRecordAddScope.record.reason_extra;
+                } else if (
+                  cnRecordAddScope.record.appointment_type_reason_id &&
+                  reasonList && 
+                  !reasonList[cnRecordAddScope.record.appointment_type_reason_id].extra
+                ) {
+                  delete cnRecordAddScope.record.reason_extra;
+                }
+
+                let response = await CnHttpFactory.instance({
                   path: "interview/" + $scope.model.getParentIdentifier().identifier,
                   data: { select: { column: ["missed_appointment"] } },
                 }).get();
 
-                var proceed = true;
+                let proceed = true;
                 if (response.data.missed_appointment) {
-                  var proceed = await CnModalConfirmFactory.instance({
+                  proceed = await CnModalConfirmFactory.instance({
                     title: "Cancel Missed Appointment?",
                     message:
                       "There already exists a passed appointment for this interview, " +
@@ -329,6 +456,17 @@ cenozoApp.defineModule({
                   $scope.model.metadata.columnList.appointment_type_id.qnaireList,
                   response.data.qnaire_id
                 );
+
+                // only show appointment type reasons based on the appointment type
+                updateAppointmentTypeReasonEnumList(
+                  "add",
+                  inputArray.findByProperty("key", "appointment_type_reason_id"),
+                  $scope.model.metadata.columnList.appointment_type_reason_id.appointmentTypeList,
+                  response.data.appointment_type_id
+                );
+
+                // make sure to define whether or not to show the reason inputs
+                cnRecordAddScope.updateReasonInputVisibility();
               }
             });
           },
@@ -423,6 +561,56 @@ cenozoApp.defineModule({
             var cnRecordViewScope = null;
             $scope.$on("cnRecordView ready", function (event, data) {
               cnRecordViewScope = data;
+
+              angular.extend(cnRecordViewScope, {
+                // Only show appointment type reason details when a special appointment type is selected
+                updateReasonInputVisibility: function() {
+                  const group = this.model.module.inputGroupList.findByProperty( "title", "" );
+                  group.inputList.appointment_type_reason_id.isExcluded = function($state, model) {
+                    if (
+                      !$scope.model.metadata.columnList ||
+                      !$scope.model.metadata.columnList.appointment_type_reason_id
+                    ) return true;
+
+                    const typeId = model.viewModel.record.appointment_type_id;
+                    const list = $scope.model.metadata.columnList.appointment_type_reason_id.appointmentTypeList;
+                    return !typeId || !list || !list[typeId];
+                  };
+                  group.inputList.reason_extra.isExcluded = function($state, model) {
+                    const reasonId = model.viewModel.record.appointment_type_reason_id;
+                    if (!reasonId) return true;
+
+                    const reasonList = (
+                      cnRecordViewScope.dataArray[0].inputArray.findByProperty(
+                        "key",
+                        "appointment_type_reason_id"
+                      ).enumList
+                    );
+                    if (!reasonList) return true;
+
+                    // don't exclude if the selected reason requires extra details
+                    const reason = reasonList.findByProperty("value", reasonId);
+                    return null == reason || !reason.extra;
+                  };
+                },
+
+                // update the reason list when the appointment type changes
+                check: function (property) {
+                  checkFunction(property);
+
+                  if ("appointment_type_id" == property) {
+                    const inputArray = cnRecordViewScope.dataArray[0].inputArray;
+                    updateAppointmentTypeReasonEnumList(
+                      "view",
+                      inputArray.findByProperty("key", "appointment_type_reason_id"),
+                      $scope.model.metadata.columnList.appointment_type_reason_id.appointmentTypeList,
+                      cnRecordViewScope.record.appointment_type_id
+                    );
+
+                    this.updateReasonInputVisibility();
+                  }
+                },
+              });
             });
 
             $scope.model.calendarModel.settings.dayClick = async function (date) {
@@ -457,6 +645,17 @@ cenozoApp.defineModule({
                 $scope.model.metadata.columnList.appointment_type_id.qnaireList,
                 $scope.model.viewModel.record.qnaire_id
               );
+
+              // only show appointment types based on the qnaire
+              updateAppointmentTypeReasonEnumList(
+                "view",
+                inputArray.findByProperty("key", "appointment_type_reason_id"),
+                $scope.model.metadata.columnList.appointment_type_reason_id.appointmentTypeList,
+                $scope.model.viewModel.record.appointment_type_id
+              );
+
+              // make sure to define whether or not to show the reason inputs
+              cnRecordViewScope.updateReasonInputVisibility();
             });
           },
         };
@@ -897,6 +1096,25 @@ cenozoApp.defineModule({
 
               // and leave the enum list empty for now, it will be set by the view/add services
               this.metadata.columnList.appointment_type_id.enumList = [];
+
+              var response = await CnHttpFactory.instance({
+                path: "appointment_type_reason",
+                data: {
+                  select: { column: ["id", "title", "extra", "appointment_type_id"] },
+                  modifier: { order: "rank", limit: 1000 },
+                },
+              }).query();
+
+              // store the appointment types in a special array with appointment_type_id as indeces:
+              this.metadata.columnList.appointment_type_reason_id.appointmentTypeList =
+                response.data.reduce((list, item) => {
+                  if (angular.isUndefined(list[item.appointment_type_id])) list[item.appointment_type_id] = [];
+                  list[item.appointment_type_id].push({ value: item.id, name: item.title, extra: item.extra });
+                  return list;
+                }, {});
+
+              // and leave the enum list empty for now, it will be set by the view/add services
+              this.metadata.columnList.appointment_type_reason_id.enumList = [];
             },
 
             // extend getTypeaheadData

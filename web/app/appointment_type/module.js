@@ -77,7 +77,7 @@ cenozoApp.defineModule({
           CnBaseModelFactory.construct(this, module);
           this.addModel = CnAppointmentTypeAddFactory.instance(this);
           this.listModel = CnAppointmentTypeListFactory.instance(this);
-          this.viewModel = CnAppointmentTypeViewFactory.instance(this);
+          this.viewModel = CnAppointmentTypeViewFactory.instance(this, root);
 
           // extend getMetadata
           this.getMetadata = async function () {

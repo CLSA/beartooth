@@ -80,6 +80,9 @@ class ui extends \cenozo\ui\ui
       $module->add_choose( 'stratum' );
     }
 
+    $module = $this->get_module( 'appointment_type' );
+    if( !is_null( $module ) ) $module->add_child( 'appointment_type_reason' );
+
     $module = $this->get_module( 'queue' );
     if( !is_null( $module ) )
     {
