@@ -131,6 +131,7 @@ cenozoApp.defineModule({
           // constant if we can't edit or it isn't upcoming
           return !model.getEditEnabled() || "upcoming" != model.viewModel.record.state;
         },
+        help: "Please indicate the main reason the participant requires the selected special appointment type.",
       },
       reason_extra: {
         title: "Additional Details",
