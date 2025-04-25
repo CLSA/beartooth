@@ -357,17 +357,18 @@ class cantab_manager extends \cenozo\base_object
   {
     if( false === $response )
     {
-      throw lib::create( 'exception\notice',
-        sprintf(
-          '%s%s%s',
-          $message,
-          false === strpos( $this->last_error_message, "\n" ) ?
-            sprintf( "\nServer responded with: \"%s\"", $this->last_error_message ) : '',
-          $this->last_api_code ?
-            sprintf( "\nResponse code: %s", $this->last_api_code ) : ''
-        ),
-        __METHOD__
+      $error = sprintf(
+        '%s%s%s',
+        $message,
+        false === strpos( $this->last_error_message, "\n" ) ?
+          sprintf( "\nServer responded with: \"%s\"", $this->last_error_message ) :
+          '',
+        $this->last_api_code ?
+          sprintf( "\nResponse code: %s", $this->last_api_code ) :
+          ''
       );
+      log::warning( $error );
+      throw lib::create( 'exception\notice', $error, __METHOD__ );
     }
   }
 
