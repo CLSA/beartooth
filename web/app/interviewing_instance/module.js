@@ -60,7 +60,8 @@ cenozoApp.defineModule({
       },
       username: {
         title: "Username",
-        type: "string",
+        type: "alpha_num",
+        help: "May only contain numbers, letters and underscores.",
         isConstant: function($state, model) { return !model.isRole("administrator"); },
       },
       interviewer_user_id: {
