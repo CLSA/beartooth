@@ -408,7 +408,7 @@ cenozoApp.defineModule({
                 } else if (
                   cnRecordAddScope.record.appointment_type_reason_id &&
                   reasonList && 
-                  !reasonList[cnRecordAddScope.record.appointment_type_reason_id].extra
+                  !reasonList.findByProperty("value", cnRecordAddScope.record.appointment_type_reason_id).extra
                 ) {
                   delete cnRecordAddScope.record.reason_extra;
                 }
