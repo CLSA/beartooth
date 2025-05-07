@@ -23,14 +23,30 @@ class appointment_type extends \cenozo\business\overview\base_overview
     $db_role = $session->get_role();
     $db_site = $session->get_site();
     $atype_class_name = lib::get_class_name( 'database\appointment_type' );
+    $rtype_class_name = lib::get_class_name( 'database\appointment_type_reason' );
     $appointment_class_name = lib::get_class_name( 'database\appointment' );
 
     $atype_mod = lib::create( 'database\modifier' );
-    $atype_mod->order( 'name' );
+    $atype_mod->left_join(
+      'appointment_type_reason',
+      'appointment_type.id',
+      'appointment_type_reason.appointment_type_id'
+    );
+    $atype_mod->order( 'appointment_type.name' );
+    $atype_mod->order( 'appointment_type_reason.rank' );
     $atype_sel = lib::create( 'database\select' );
-    $atype_sel->add_column( 'name' );
+    $atype_sel->add_table_column( 'appointment_type', 'id' );
+    $atype_sel->add_table_column( 'appointment_type', 'name' );
+    $atype_sel->add_table_column( 'appointment_type_reason', 'title' );
+
     $atype_list = array();
-    foreach( $atype_class_name::select( $atype_sel, $atype_mod ) as $atype ) $atype_list[] = $atype['name'];
+    foreach( $atype_class_name::select( $atype_sel, $atype_mod ) as $row )
+    {
+      if( !array_key_exists( $row['id'], $atype_list ) )
+        $atype_list[$row['id']] = ['name' => $row['name'], 'reason_list' => ['(none)']];
+
+      if( !is_null( $row['title'] ) ) $atype_list[$row['id']]['reason_list'][] = $row["title"];
+    }
 
     // create an entry for each site
     $site_mod = lib::create( 'database\modifier' );
@@ -42,13 +58,21 @@ class appointment_type extends \cenozo\business\overview\base_overview
     foreach( $db_application->get_site_list( $site_sel, $site_mod ) as $site )
     {
       $node = $this->add_root_item( $site['name'] );
-      foreach( $atype_list as $atype ) $this->add_item( $node, $atype, 0 );
+      foreach( $atype_list as $atype )
+      {
+        $sub_node = $this->add_item( $node, $atype['name'] );
+        foreach( $atype['reason_list'] as $reason ) $this->add_item( $sub_node, $reason, 0 );
+      }
       $site_node_list[$site['name']] = $node;
     }
 
     // add the not-site entry
     $node = $this->add_root_item( 'No Site' );
-    foreach( $atype_list as $atype ) $this->add_item( $node, $atype, 0 );
+    foreach( $atype_list as $atype )
+    {
+      $sub_node = $this->add_item( $node, $atype['name'] );
+      foreach( $atype['reason_list'] as $reason ) $this->add_item( $sub_node, $reason, 0 );
+    }
     $site_node_list['No Site'] = $node;
 
     // now fill in the count values
@@ -61,23 +85,32 @@ class appointment_type extends \cenozo\business\overview\base_overview
     $join_mod->where( 'participant_site.application_id', '=', $db_application->id );
     $appointment_mod->join_modifier( 'participant_site', $join_mod );
     $appointment_mod->left_join( 'site', 'participant_site.site_id', 'site.id' );
+
+    $appointment_mod->left_join(
+      'appointment_type_reason',
+      'appointment.appointment_type_reason_id',
+      'appointment_type_reason.id'
+    );
+
     $appointment_mod->where( 'appointment.outcome', '=', 'completed' );
     if( !$db_role->all_sites ) $appointment_mod->where( 'site.id', '=', $db_site->id );
     $appointment_mod->group( 'participant_site.site_id' );
     $appointment_mod->group( 'appointment_type.id' );
+    $appointment_mod->group( 'appointment.appointment_type_reason_id' );
     $appointment_mod->order( 'site.name' );
 
     $appointment_sel = lib::create( 'database\select' );
     $appointment_sel->from( 'appointment' );
     $appointment_sel->add_table_column( 'site', 'name', 'site' );
     $appointment_sel->add_table_column( 'appointment_type', 'name', 'atype' );
+    $appointment_sel->add_table_column( 'appointment_type_reason', 'title', 'rtype' );
     $appointment_sel->add_column( 'COUNT(*)', 'total', false );
 
     foreach( $appointment_class_name::select( $appointment_sel, $appointment_mod ) as $row )
     {
       $site = is_null( $row['site'] ) ? 'No Site' : $row['site'];
-      $node = $site_node_list[$site]->find_node( $row['atype'] );
-      $node->set_value( $row['total'] );
+      $reason = is_null( $row['rtype'] ) ? '(none)' : $row['rtype'];
+      $site_node_list[$site]->find_node( $row['atype'] )->find_node( $reason )->set_value( $row['total'] );
     }
 
     // create a summary node
