@@ -43,7 +43,12 @@ class appointment_type extends \cenozo\business\overview\base_overview
     foreach( $atype_class_name::select( $atype_sel, $atype_mod ) as $row )
     {
       if( !array_key_exists( $row['id'], $atype_list ) )
-        $atype_list[$row['id']] = ['name' => $row['name'], 'reason_list' => ['(none)']];
+      {
+        $atype_list[$row['id']] = [
+          'name' => $row['name'],
+          'reason_list' => ['Total', '(none)']
+        ];
+      }
 
       if( !is_null( $row['title'] ) ) $atype_list[$row['id']]['reason_list'][] = $row["title"];
     }
@@ -110,7 +115,11 @@ class appointment_type extends \cenozo\business\overview\base_overview
     {
       $site = is_null( $row['site'] ) ? 'No Site' : $row['site'];
       $reason = is_null( $row['rtype'] ) ? '(none)' : $row['rtype'];
-      $site_node_list[$site]->find_node( $row['atype'] )->find_node( $reason )->set_value( $row['total'] );
+      $anode = $site_node_list[$site]->find_node( $row['atype'] );
+      $anode->find_node( $reason )->set_value( $row['total'] );
+
+      $total_node = $anode->find_node( 'Total' );
+      $total_node->set_value( $total_node->get_value() + $row['total'] );
     }
 
     // create a summary node
