@@ -307,6 +307,8 @@ cenozoApp.extendModule({
                             "first_name",
                             "other_name",
                             "last_name",
+                            "gender_identity",
+                            "pronouns",
                             "global_note",
                             {
                               table: "language",
@@ -323,6 +325,7 @@ cenozoApp.extendModule({
                       },
                     }).get();
                     this.participant = response.data;
+                    if (!this.participant.pronouns) this.participant.pronouns = "(empty)";
 
                     var self = this;
                     this.participant.getIdentifier = function () {

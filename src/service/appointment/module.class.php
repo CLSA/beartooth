@@ -223,13 +223,30 @@ class module extends \cenozo\service\base_calendar_module
         'onyx' == $db_interviewing_instance->type ? 'dob' : 'date_of_birth',
         false
       );
-      $select->add_table_column( 'participant', 'sex', 'onyx' == $db_interviewing_instance->type ? 'gender' : 'sex' );
-      if( 'onyx' != $db_interviewing_instance->type ) $select->add_table_column( 'participant', 'current_sex' );
+      $select->add_table_column(
+        'participant',
+        'sex',
+        'onyx' == $db_interviewing_instance->type ? 'gender' : 'sex'
+      );
+      if( 'onyx' != $db_interviewing_instance->type )
+      {
+        $select->add_table_column( 'participant', 'gender_identity' );
+        $select->add_table_column( 'participant', 'pronouns' );
+      }
       $select->add_column( 'datetime' );
-      $select->add_table_column( 'address', 'address1', 'onyx' == $db_interviewing_instance->type ? 'street' : 'address1' );
-      if( 'onyx' != $db_interviewing_instance->type ) $select->add_table_column( 'address', 'address2' );
+      $select->add_table_column(
+        'address',
+        'address1',
+        'onyx' == $db_interviewing_instance->type ? 'street' : 'address1'
+      );
+      if( 'onyx' != $db_interviewing_instance->type )
+        $select->add_table_column( 'address', 'address2' );
       $select->add_table_column( 'address', 'city' );
-      $select->add_table_column( 'region', 'name', 'onyx' == $db_interviewing_instance->type ? 'province' : 'region' );
+      $select->add_table_column(
+        'region',
+        'name',
+        'onyx' == $db_interviewing_instance->type ? 'province' : 'region'
+      );
       $select->add_table_column( 'address', 'postcode' );
       if( 'onyx' != $db_interviewing_instance->type )
       {
