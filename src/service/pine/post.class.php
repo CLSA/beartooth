@@ -295,7 +295,7 @@ class post extends \cenozo\service\service
             $code = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
             if( 306 == $code )
             {
-              log::warning( sprintf( 'Responding to onyx post request with 306 message: "%s"', $response ) );
+              log::warning( sprintf( 'Responding to Pine post request with 306 message: "%s"', $response ) );
             }
             else if( 409 == $code )
             {

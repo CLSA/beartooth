@@ -212,82 +212,43 @@ class module extends \cenozo\service\base_calendar_module
       $select->add_table_column( 'language', 'code', 'language' );
       $select->add_table_column( 'participant', 'honorific' );
       $select->add_table_column( 'participant', 'first_name' );
-      $select->add_column(
-        'IFNULL( participant.other_name, "" )',
-        'onyx' == $db_interviewing_instance->type ? 'otherName' : 'other_name',
-        false
-      );
+      $select->add_column( 'IFNULL( participant.other_name, "" )', 'other_name', false );
       $select->add_table_column( 'participant', 'last_name' );
-      $select->add_column(
-        'IFNULL( participant.date_of_birth, "" )',
-        'onyx' == $db_interviewing_instance->type ? 'dob' : 'date_of_birth',
-        false
-      );
-      $select->add_table_column(
-        'participant',
-        'sex',
-        'onyx' == $db_interviewing_instance->type ? 'gender' : 'sex'
-      );
-      if( 'onyx' != $db_interviewing_instance->type )
-      {
-        $select->add_table_column( 'participant', 'gender_identity' );
-        $select->add_table_column( 'participant', 'pronouns' );
-      }
+      $select->add_column( 'IFNULL( participant.date_of_birth, "" )', 'date_of_birth', false );
+      $select->add_table_column( 'participant', 'sex' );
+      $select->add_table_column( 'participant', 'gender_identity' );
+      $select->add_table_column( 'participant', 'pronouns' );
       $select->add_column( 'datetime' );
-      $select->add_table_column(
-        'address',
-        'address1',
-        'onyx' == $db_interviewing_instance->type ? 'street' : 'address1'
-      );
-      if( 'onyx' != $db_interviewing_instance->type )
-        $select->add_table_column( 'address', 'address2' );
+      $select->add_table_column( 'address', 'address1' );
+      $select->add_table_column( 'address', 'address2' );
       $select->add_table_column( 'address', 'city' );
-      $select->add_table_column(
-        'region',
-        'name',
-        'onyx' == $db_interviewing_instance->type ? 'province' : 'region'
-      );
+      $select->add_table_column( 'region', 'name', 'region' );
       $select->add_table_column( 'address', 'postcode' );
-      if( 'onyx' != $db_interviewing_instance->type )
-      {
-        $select->add_table_column( 'address', 'international' );
-        $select->add_table_column( 'address', 'international_region' );
-        $select->add_table_column( 'address', 'international_country_id' );
-        $select->add_table_column( 'address', 'timezone_offset' );
-        $select->add_table_column( 'address', 'daylight_savings' );
-        $select->add_table_column( 'address', 'january' );
-        $select->add_table_column( 'address', 'february' );
-        $select->add_table_column( 'address', 'march' );
-        $select->add_table_column( 'address', 'april' );
-        $select->add_table_column( 'address', 'may' );
-        $select->add_table_column( 'address', 'june' );
-        $select->add_table_column( 'address', 'july' );
-        $select->add_table_column( 'address', 'august' );
-        $select->add_table_column( 'address', 'september' );
-        $select->add_table_column( 'address', 'october' );
-        $select->add_table_column( 'address', 'november' );
-        $select->add_table_column( 'address', 'december' );
-        $select->add_table_column( 'address', 'note', 'address_note' );
-      }
-
+      $select->add_table_column( 'address', 'international' );
+      $select->add_table_column( 'address', 'international_region' );
+      $select->add_table_column( 'address', 'international_country_id' );
+      $select->add_table_column( 'address', 'timezone_offset' );
+      $select->add_table_column( 'address', 'daylight_savings' );
+      $select->add_table_column( 'address', 'january' );
+      $select->add_table_column( 'address', 'february' );
+      $select->add_table_column( 'address', 'march' );
+      $select->add_table_column( 'address', 'april' );
+      $select->add_table_column( 'address', 'may' );
+      $select->add_table_column( 'address', 'june' );
+      $select->add_table_column( 'address', 'july' );
+      $select->add_table_column( 'address', 'august' );
+      $select->add_table_column( 'address', 'september' );
+      $select->add_table_column( 'address', 'october' );
+      $select->add_table_column( 'address', 'november' );
+      $select->add_table_column( 'address', 'december' );
+      $select->add_table_column( 'address', 'note', 'address_note' );
       $select->add_table_column( 'participant', 'IFNULL( email, "" )', 'email', false );
-      if( 'onyx' == $db_interviewing_instance->type )
-      {
-        $select->add_column(
-          'IF( 70 <= TIMESTAMPDIFF( YEAR, date_of_birth, CURDATE() ) AND proxy_form.total = 0, 1, 0 )',
-          'ask_proxy',
-          false
-        );
-      }
-      else
-      {
-        $select->add_table_column( 'participant', 'override_stratum' );
-        $select->add_table_column( 'participant', 'mass_email' );
-        $select->add_table_column( 'participant', 'delink' );
-        $select->add_table_column( 'participant', 'withdraw_third_party' );
-        $select->add_table_column( 'participant', 'out_of_area' );
-        $select->add_table_column( 'participant', 'low_education' );
-      }
+      $select->add_table_column( 'participant', 'override_stratum' );
+      $select->add_table_column( 'participant', 'mass_email' );
+      $select->add_table_column( 'participant', 'delink' );
+      $select->add_table_column( 'participant', 'withdraw_third_party' );
+      $select->add_table_column( 'participant', 'out_of_area' );
+      $select->add_table_column( 'participant', 'low_education' );
 
       $modifier->join( 'cohort', 'participant.cohort_id', 'cohort.id' );
       $modifier->join( 'language', 'participant.language_id', 'language.id' );
@@ -344,7 +305,7 @@ class module extends \cenozo\service\base_calendar_module
         $modifier->where( 'appointment.user_id', '=', NULL );
         $modifier->where( 'qnaire.type', '=', 'site' );
 
-        // restrict by home instance type (if NULL then send to onyx)
+        // restrict by home instance type
         $modifier->join( 'interview', 'participant.id', 'home_interview.participant_id', '', 'home_interview' );
         $modifier->join( 'qnaire', 'home_interview.qnaire_id', 'home_qnaire.id', '', 'home_qnaire' );
         $modifier->left_join(
@@ -353,96 +314,7 @@ class module extends \cenozo\service\base_calendar_module
           'interviewing_instance.id'
         );
         $modifier->where( 'home_qnaire.type', '=', 'home' );
-        $modifier->where( 'IFNULL( interviewing_instance.type, "onyx" )', '=', $db_interviewing_instance->type );
-
-        // consent status is passed to onyx in a customized way (pine consent is done below)
-        if( 'onyx' == $db_interviewing_instance->type )
-        {
-          $select->add_column(
-            'IF( IFNULL( hin_consent.accept, false ), "YES", "NO" )',
-            'consentToHIN',
-            false
-          );
-          $select->add_column(
-            'IF( IFNULL( blood_consent.accept, true ), "YES", "NO" )',
-            'consentToDrawBlood',
-            false
-          );
-          $select->add_column(
-            'IF( IFNULL( urine_consent.accept, true ), "YES", "NO" )',
-            'consentToTakeUrine',
-            false
-          );
-
-          // provide HIN access consent
-          $modifier->join(
-            'participant_last_consent',
-            'participant.id',
-            'participant_last_hin_consent.participant_id',
-            '', // regular join type
-            'participant_last_hin_consent'
-          );
-          $modifier->join(
-            'consent_type',
-            'participant_last_hin_consent.consent_type_id',
-            'hin_consent_type.id',
-            '', // regular join type
-            'hin_consent_type'
-          );
-          $modifier->left_join(
-            'consent',
-            'participant_last_hin_consent.consent_id',
-            'hin_consent.id',
-            'hin_consent'
-          );
-          $modifier->where( 'hin_consent_type.name', '=', 'HIN access' );
-
-          // provide blood consent
-          $modifier->join(
-            'participant_last_consent',
-            'participant.id',
-            'participant_last_blood_consent.participant_id',
-            '', // regular join type
-            'participant_last_blood_consent'
-          );
-          $modifier->join(
-            'consent_type',
-            'participant_last_blood_consent.consent_type_id',
-            'blood_consent_type.id',
-            '', // regular join type
-            'blood_consent_type'
-          );
-          $modifier->left_join(
-            'consent',
-            'participant_last_blood_consent.consent_id',
-            'blood_consent.id',
-            'blood_consent'
-          );
-          $modifier->where( 'blood_consent_type.name', '=', 'draw blood' );
-
-          // provide urine consent
-          $modifier->join(
-            'participant_last_consent',
-            'participant.id',
-            'participant_last_urine_consent.participant_id',
-            '', // regular join type
-            'participant_last_urine_consent'
-          );
-          $modifier->join(
-            'consent_type',
-            'participant_last_urine_consent.consent_type_id',
-            'urine_consent_type.id',
-            '', // regular join type
-            'urine_consent_type'
-          );
-          $modifier->left_join(
-            'consent',
-            'participant_last_urine_consent.consent_id',
-            'urine_consent.id',
-            'urine_consent'
-          );
-          $modifier->where( 'urine_consent_type.name', '=', 'take urine' );
-        }
+        $modifier->where( 'interviewing_instance.type', '=', $db_interviewing_instance->type );
       }
 
       // send a list of all eligible studies
@@ -450,10 +322,7 @@ class module extends \cenozo\service\base_calendar_module
       $study_sel->from( 'participant' );
       $study_sel->add_column( 'id', 'participant_id' );
       $study_sel->add_column(
-        sprintf(
-          'GROUP_CONCAT( study.name ORDER BY study.name SEPARATOR "%s" )',
-          'onyx' == $db_interviewing_instance->type ? ',' : ';'
-        ),
+        'GROUP_CONCAT( study.name ORDER BY study.name SEPARATOR ";" )',
         'list',
         false
       );
@@ -474,24 +343,6 @@ class module extends \cenozo\service\base_calendar_module
 
       $modifier->join( 'study_list', 'participant.id', 'study_list.participant_id' );
       $select->add_table_column( 'study_list', 'list', 'study_list' );
-
-      if( 'onyx' == $db_interviewing_instance->type )
-      {
-        // send a list of all participant identifiers
-        foreach( $identifier_class_name::select_objects() as $db_identifier )
-        {
-          $join_mod = lib::create( 'database\modifier' );
-          $join_mod->where( 'participant.id', '=', 'participant_identifier.participant_id', false );
-          $join_mod->where( 'participant_identifier.identifier_id', '=', $db_identifier->id );
-          $modifier->join_modifier( 'participant_identifier', $join_mod, 'left' );
-          $modifier->left_join( 'identifier', 'participant_identifier.identifier_id', 'identifier.id' );
-          $select->add_table_column(
-            'participant_identifier',
-            'value',
-            sprintf( 'identifier %s', $db_identifier->name )
-          );
-        }
-      }
 
       // send pine a list of all participant identifier and consent records
       if( 'pine' == $db_interviewing_instance->type )
@@ -661,7 +512,7 @@ class module extends \cenozo\service\base_calendar_module
         $select->add_table_column( 'event_list', 'list', 'event_list' );
       }
 
-      // restrict appointment for onyx by appointment type
+      // restrict appointment by appointment type
       $appointment_type = $this->get_argument( 'type', false );
       if( !$appointment_type )
       {
