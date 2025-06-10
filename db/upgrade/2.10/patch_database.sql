@@ -5,6 +5,7 @@ SET AUTOCOMMIT=0;
 SOURCE appointment_type.sql
 SOURCE appointment_type_reason.sql
 SOURCE appointment.sql
+SOURCE role_has_overview.sql
 
 SOURCE service.sql
 SOURCE role_has_service.sql
