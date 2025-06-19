@@ -177,93 +177,195 @@ class post extends \cenozo\service\service
           {
             $json_data = util::json_decode( $form->data );
             $object = current( $json_data->results );
-            $paddress = explode( ' ', trim( $object->ProxyAddress ), 2 );
-            $iaddress = explode( ' ', trim( $object->InformantAddress ), 2 );
+
+            // process object values
+            $p_first_name = (
+              is_null( $object->ProxyFirstName ) || 0 == strlen( $object->ProxyFirstName ) ?
+              NULL :
+              $object->ProxyFirstName
+            );
+            $p_last_name = (
+              is_null( $object->ProxyLastName ) || 0 == strlen( $object->ProxyLastName ) ?
+              NULL :
+              $object->ProxyLastName
+            );
+            $p_address = (
+              is_null( $object->ProxyAddress ) ?
+              [] :
+              explode( ' ', trim( $object->ProxyAddress ), 2 )
+            );
+            $p_address2 = (
+              !property_exists( $object->ProxyAddress2 ) || is_null( $object->ProxyAddress2 ) ?
+              NULL :
+              $object->ProxyAddress2
+            );
+            $p_city = (
+              is_null( $object->ProxyCity ) || 0 == strlen( $object->ProxyCity ) ?
+              NULL :
+              $object->ProxyCity
+            );
+            $p_region = (
+              is_null( $object->ProxyProvince ) || 0 == strlen( $object->ProxyProvince ) ?
+              NULL :
+              $object->ProxyProvince
+            );
+            $p_postal_code = (
+              is_null( $object->ProxyPostalCode ) || 0 == strlen( $object->ProxyPostalCode ) ?
+              NULL :
+              trim( $object->ProxyPostalCode )
+            );
+            $p_phone = (
+              is_null( $object->ProxyTelephone ) || 0 == strlen( $object->ProxyTelephone ) ?
+              NULL :
+              preg_replace( '/[^0-9]/', '', $object->ProxyTelephone )
+            );
+
+            $i_first_name = (
+              is_null( $object->InformantFirstName ) || 0 == strlen( $object->InformantFirstName ) ?
+              NULL :
+              $object->InformantFirstName
+            );
+            $i_last_name = (
+              is_null( $object->InformantLastName ) || 0 == strlen( $object->InformantLastName ) ?
+              NULL :
+              $object->InformantLastName
+            );
+            $i_address = (
+              is_null( $object->InformantAddress ) ?
+              [] :
+              explode( ' ', trim( $object->InformantAddress ), 2 )
+            );
+            $i_address2 = (
+              !property_exists( $object->InformantAddress2 ) || is_null( $object->InformantAddress2 ) ?
+              NULL :
+              $object->InformantAddress2
+            );
+            $i_city = (
+              is_null( $object->InformantCity ) || 0 == strlen( $object->ProxyCity ) ?
+              NULL :
+              $object->InformantCity
+            );
+            $i_region = (
+              is_null( $object->InformantProvince ) || 0 == strlen( $object->InformantProvince ) ?
+              NULL :
+              $object->InformantProvince
+            );
+            $i_postal_code = (
+              is_null( $object->InformantPostalCode ) || 0 == strlen( $object->InformantPostalCode ) ?
+              NULL :
+              trim( $object->InformantPostalCode )
+            );
+            $i_phone = (
+              is_null( $object->InformantTelephone ) || 0 == strlen( $object->InformantTelephone ) ?
+              NULL :
+              preg_replace( '/[^0-9]/', '', $object->InformantTelephone )
+            );
+
+            $continue_questionnaires = $object->DCScontinue_mandatoryField ? 1 : 0;
+            $hin_future_access = $object->AgreeGiveNumber_mandatoryField ? 1 : 0;
+            $continue_dcs_visits = $object->DCScontinue_mandatoryField ? 1 : 0; 
+            $already_identified = $object->DMalready_mandatoryField ? 1 : 0;
+            $same_as_proxy = $object->informantIsProxy ? 1 : 0;
 
             $form_data = array(
               'from_instance' => 'pine',
               'date' => $json_data->session->end_time,
               'user_id' => $session->get_user()->id,
               'uid' => $db_participant->uid,
-              'continue_questionnaires' => $object->DCScontinue_mandatoryField ? 1 : 0,
-              'hin_future_access' => $object->AgreeGiveNumber_mandatoryField ? 1 : 0,
-              'continue_dcs_visits' => $object->DCScontinue_mandatoryField ? 1 : 0, 
-              'proxy_first_name' => 0 < strlen( $object->ProxyFirstName ) ? $object->ProxyFirstName : NULL,
-              'proxy_last_name' => 0 < strlen( $object->ProxyLastName ) ? $object->ProxyLastName : NULL,
+              'continue_questionnaires' => $continue_questionnaires,
+              'hin_future_access' => $hin_future_access,
+              'continue_dcs_visits' => $continue_dcs_visits,
+              'proxy_first_name' => $p_first_name,
+              'proxy_last_name' => $p_last_name,
               // pine never sends international contact information
               'proxy_address_international' => false,
               'proxy_phone_international' => false,
-              'proxy_street_number' => array_key_exists( 0, $paddress ) && 0 < strlen( $paddress[0] ) ? $paddress[0] : NULL,
-              'proxy_street_name' => array_key_exists( 1, $paddress ) && 0 < strlen( $paddress[1] ) ? $paddress[1] : NULL,
-              'proxy_address_other' =>
-                property_exists( $object, 'ProxyAddress2' ) && 0 < strlen( $object->ProxyAddress2 ) ?
-                $object->ProxyAddress2 :
-                NULL,
-              'proxy_city' => 0 < strlen( $object->ProxyCity ) ? $object->ProxyCity : NULL,
-              'already_identified' => $object->DMalready_mandatoryField ? 1 : 0,
-              'same_as_proxy' => $object->informantIsProxy ? 1 : 0,
-              'informant_first_name' => 0 < strlen( $object->InformantFirstName ) ? $object->InformantFirstName : NULL,
-              'informant_last_name' => 0 < strlen( $object->InformantLastName ) ? $object->InformantLastName : NULL,
+              'proxy_street_number' => (
+                array_key_exists( 0, $p_address ) && 0 < strlen( $p_address[0] ) ?
+                $p_address[0] :
+                NULL
+              ),
+              'proxy_street_name' => (
+                array_key_exists( 1, $p_address ) && 0 < strlen( $p_address[1] ) ?
+                $p_address[1] :
+                NULL
+              ),
+              'proxy_address_other' => $p_address2,
+              'proxy_city' => $p_city,
+              'already_identified' => $already_identified,
+              'same_as_proxy' => $same_as_proxy,
+              'informant_first_name' => $i_first_name,
+              'informant_last_name' => $i_last_name,
 
-              'informant_street_number' => array_key_exists( 0, $iaddress ) && 0 < strlen( $iaddress[0] ) ? $iaddress[0] : NULL,
-              'informant_street_name' => array_key_exists( 1, $iaddress ) && 0 < strlen( $iaddress[1] ) ? $iaddress[1] : NULL,
-
-              'informant_address_other' => 0 < strlen( $object->InformantAddress2 ) ? $object->InformantAddress2 : NULL,
-              'informant_city' => 0 < strlen( $object->InformantCity ) ? $object->InformantCity : NULL,
+              'informant_street_number' => (
+                array_key_exists( 0, $i_address ) && 0 < strlen( $i_address[0] ) ?
+                $i_address[0] :
+                NULL
+              ),
+              'informant_street_name' => (
+                array_key_exists( 1, $i_address ) && 0 < strlen( $i_address[1] ) ?
+                $i_address[1] :
+                NULL
+              ),
+              'informant_address_other' => $i_address2,
+              'informant_city' => $i_city,
               // the form will have a list of files, but CONSENT_GP always has one only
-              'data' => current( $form->file_list ) // base64 encoded PDF file
+              'data' => current( (array)$form->file_list ) // base64 encoded PDF file
             );
 
-            if( 0 < strlen( $object->ProxyProvince ) )
+            if( !is_null( $p_region ) )
             {
-              $db_region = $region_class_name::get_unique_record( 'abbreviation', $object->ProxyProvince );
-              if( is_null( $db_region ) ) $db_region = $region_class_name::get_unique_record( 'name', $object->ProxyProvince );
+              $db_region = $region_class_name::get_unique_record( 'abbreviation', $p_region );
+              if( is_null( $db_region ) ) $db_region = $region_class_name::get_unique_record( 'name', $p_region );
               if( !is_null( $db_region ) ) $form_data['proxy_region_id'] = $db_region->id;
             }
 
-            if( 0 < strlen( $object->ProxyPostalCode ) )
+            if( !is_null( $p_postal_code ) )
             {
-              $postcode = trim( $object->ProxyPostalCode );
-              if( 6 == strlen( $postcode ) )
-                $postcode = sprintf( '%s %s', substr( $postcode, 0, 3 ), substr( $postcode, 3 ) );
-              $form_data['proxy_postcode'] = $postcode;
+              if( 6 == strlen( $p_postal_code ) )
+                $p_postal_code = sprintf( '%s %s', substr( $p_postal_code, 0, 3 ), substr( $p_postal_code, 3 ) );
+              $form_data['proxy_postcode'] = $p_postal_code;
             }
 
-            if( 0 < strlen( $object->ProxyTelephone ) )
+            if( !is_null( $p_phone ) )
             {
-              $phone = preg_replace( '/[^0-9]/', '', $object->ProxyTelephone );
-              $phone = sprintf( '%s-%s-%s', substr( $phone, 0, 3 ), substr( $phone, 3, 3 ), substr( $phone, 6 ) );
-              $form_data['proxy_phone'] = $phone;
+              $form_data['proxy_phone'] = sprintf(
+                '%s-%s-%s',
+                substr( $p_phone, 0, 3 ),
+                substr( $p_phone, 3, 3 ),
+                substr( $p_phone, 6 )
+              );
             }
-
 
             if( !$form_data['same_as_proxy'] )
             {
-              // pine never sends international contact information (only include this if informant isn't the same as proxy)
+              // pine never sends international contact information
               $form_data['informant_address_international'] = false;
               $form_data['informant_phone_international'] = false;
             }
 
-            if( 0 < strlen( $object->InformantProvince ) )
+            if( !is_null( $i_region ) )
             {
-              $db_region = $region_class_name::get_unique_record( 'abbreviation', $object->InformantProvince );
-              if( is_null( $db_region ) ) $db_region = $region_class_name::get_unique_record( 'name', $object->InformantProvince );
+              $db_region = $region_class_name::get_unique_record( 'abbreviation', $i_region );
+              if( is_null( $db_region ) ) $db_region = $region_class_name::get_unique_record( 'name', $i_region );
               if( !is_null( $db_region ) ) $form_data['informant_region_id'] = $db_region->id;
             }
 
-            if( 0 < strlen( $object->InformantPostalCode ) )
+            if( !is_null( $i_postal_code ) )
             {
-              $postcode = trim( $object->InformantPostalCode );
-              if( 6 == strlen( $postcode ) )
-                $postcode = sprintf( '%s %s', substr( $postcode, 0, 3 ), substr( $postcode, 3 ) );
-              $form_data['informant_postcode'] = $postcode;
+              if( 6 == strlen( $i_postal_code ) )
+                $i_postal_code = sprintf( '%s %s', substr( $i_postal_code, 0, 3 ), substr( $i_postal_code, 3 ) );
+              $form_data['informant_postcode'] = $i_postal_code;
             }
 
-            if( 0 < strlen( $object->InformantTelephone ) )
+            if( !is_null( $i_phone ) )
             {
-              $phone = preg_replace( '/[^0-9]/', '', $object->InformantTelephone );
-              $phone = sprintf( '%s-%s-%s', substr( $phone, 0, 3 ), substr( $phone, 3, 3 ), substr( $phone, 6 ) );
-              $form_data['informant_phone'] = $phone;
+              $form_data['informant_phone'] = sprintf(
+                '%s-%s-%s',
+                substr( $i_phone, 0, 3 ),
+                substr( $i_phone, 3, 3 ),
+                substr( $i_phone, 6 )
+              );
             }
 
             // we need to repopulate the queue and complete any transactions before continuing
