@@ -195,7 +195,7 @@ class post extends \cenozo\service\service
               explode( ' ', trim( $object->ProxyAddress ), 2 )
             );
             $p_address2 = (
-              !property_exists( $data, $object->ProxyAddress2 ) || is_null( $object->ProxyAddress2 ) ?
+              !property_exists( $data, 'ProxyAddress2' ) || is_null( $object->ProxyAddress2 ) ?
               NULL :
               $object->ProxyAddress2
             );
@@ -236,7 +236,7 @@ class post extends \cenozo\service\service
               explode( ' ', trim( $object->InformantAddress ), 2 )
             );
             $i_address2 = (
-              !property_exists( $data, $object->InformantAddress2 ) || is_null( $object->InformantAddress2 ) ?
+              !property_exists( $data, 'InformantAddress2' ) || is_null( $object->InformantAddress2 ) ?
               NULL :
               $object->InformantAddress2
             );
