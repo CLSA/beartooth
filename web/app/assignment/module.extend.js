@@ -479,7 +479,7 @@ cenozoApp.extendModule({
                       path: "phone_call",
                     }).head();
                     this.phoneCallStatusList = cenozo.parseEnumList(
-                      angular.fromJson(response.headers("Columns")).status
+                      angular.fromJson(response.headers("X-Columns")).status
                     );
                   } catch (error) {
                     console.error("Failed to get database metadata");
@@ -853,7 +853,7 @@ cenozoApp.extendModule({
             } ).count();
 
             // only include the COI if the qnaire has at least one
-            if(0 < parseInt(response.headers('Total'))) {
+            if(0 < parseInt(response.headers('X-Total'))) {
               object.participantModel.addColumn("coi_list", {
                 title: 'Consent of Interest',
               });
@@ -874,7 +874,7 @@ cenozoApp.extendModule({
             } ).count();
 
             // only include the EOI if the qnaire has at least one
-            if(0 < parseInt(response.headers('Total'))) {
+            if(0 < parseInt(response.headers('X-Total'))) {
               object.participantModel.addColumn("eoi_list", {
                 title: 'Event of Interest',
               });
@@ -895,7 +895,7 @@ cenozoApp.extendModule({
             } ).count();
 
             // only include the SOI if the qnaire has at least one
-            if(0 < parseInt(response.headers('Total'))) {
+            if(0 < parseInt(response.headers('X-Total'))) {
               object.participantModel.addColumn("soi_list", {
                 title: 'Study of Interest',
               });

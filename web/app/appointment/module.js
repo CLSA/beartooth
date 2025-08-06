@@ -899,7 +899,7 @@ cenozoApp.defineModule({
                   }).count();
 
                   let addMail = false;
-                  const mailCount = parseInt(mailCountResponse.headers("Total"));
+                  const mailCount = parseInt(mailCountResponse.headers("X-Total"));
                   if (0 < mailCount) {
                     addMail = await CnModalConfirmFactory.instance({
                       title: "Email Reminders",
