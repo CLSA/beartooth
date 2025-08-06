@@ -170,7 +170,7 @@ class ui extends \cenozo\ui\ui
         $list[ucwords( $type ).' Appointment Calendar'] = array(
           'subject' => 'appointment',
           'action' => 'calendar',
-          'query' => '/{type}/{identifier}',
+          'query' => '/{type}/{identifier}?{user}',
           'values' => sprintf( '{type:"%s",identifier:"name=%s"}', $type, $db_site->name ) );
       }
     }

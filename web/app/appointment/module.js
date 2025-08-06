@@ -172,33 +172,41 @@ cenozoApp.defineModule({
     // add an extra operation for home and site appointment types
     if (angular.isDefined(module.actions.calendar)) {
       module.addExtraOperation("calendar", {
-        id: "home-appointment-button",
-        title: "Home Appointment",
+        title: "Show Home Appointments",
         operation: async function ($state, model) {
           await $state.go("appointment.calendar", {
             type: "home",
             identifier: model.site.getIdentifier(),
           });
         },
-        classes: "home-appointment-button",
+        isIncluded: function ($state, model) {
+          return "home" != model.type;
+        },
       });
-    }
 
-    if (angular.isDefined(module.actions.calendar)) {
       module.addExtraOperation("calendar", {
-        id: "site-appointment-button",
-        title: "Site Appointment",
+        title: "Show Site Appointments",
         operation: async function ($state, model) {
           await $state.go("appointment.calendar", {
             type: "site",
             identifier: model.site.getIdentifier(),
           });
         },
-        classes: "site-appointment-button",
+        isIncluded: function ($state, model) {
+          return "site" != model.type;
+        },
       });
-    }
 
-    if (angular.isDefined(module.actions.calendar)) {
+      module.addExtraOperation("calendar", {
+        title: "Restrict by Interviewer",
+        operation: async function ($state, model) {
+          await model.calendarModel.restrictByUser();
+        },
+        isIncluded: function ($state, model) {
+          return "home" == model.type;
+        },
+      });
+
       module.addExtraOperation("view", {
         title: "Appointment Calendar",
         operation: async function ($state, model) {
@@ -407,7 +415,7 @@ cenozoApp.defineModule({
                   delete cnRecordAddScope.record.reason_extra;
                 } else if (
                   cnRecordAddScope.record.appointment_type_reason_id &&
-                  reasonList && 
+                  reasonList &&
                   !reasonList.findByProperty("value", cnRecordAddScope.record.appointment_type_reason_id).extra
                 ) {
                   delete cnRecordAddScope.record.reason_extra;
@@ -489,42 +497,22 @@ cenozoApp.defineModule({
           },
           controller: function ($scope) {
             if (angular.isUndefined($scope.model)) $scope.model = CnAppointmentModelFactory.instance();
-            $scope.model.calendarModel.heading =
-              $scope.model.site.name.ucWords() +
-              " - " +
-              ("home" == $scope.model.type && "interviewer" == CnSession.role.name ? "Personal " : "") +
-              $scope.model.type.ucWords() +
-              " Appointment Calendar";
-          },
-          link: function (scope, element) {
-            // highlight the calendar button that we're currently viewing
-            var homeListener = scope.$watch(
-              function () {
-                return element.find("#home-appointment-button").length;
-              },
-              function (length) {
-                if (0 < length) {
-                  var homeButton = element.find("#home-appointment-button");
-                  homeButton.addClass("home" == scope.model.type ? "btn-warning" : "btn-default");
-                  homeButton.removeClass("home" == scope.model.type ? "btn-default" : "btn-warning");
-                  homeListener(); // your watch has ended
-                }
+            let heading = $scope.model.site.name.ucWords() + " - ";
+            if ("home" == $scope.model.type) {
+              if ("interviewer" == CnSession.role.name) {
+                heading += "Personal Home Appointment Calendar";
+              } else { // not a personal calendar
+                const restrictUser = $scope.model.getQueryParameter("user");
+                heading += (
+                  "Home Appointment Calendar" +
+                  (restrictUser ? " (" + restrictUser + " only)" : "")
+                );
               }
-            );
+            } else { // site calendar
+              heading += "Site Appointment Calendar";
+            }
 
-            var siteListener = scope.$watch(
-              function () {
-                return element.find("#site-appointment-button").length;
-              },
-              function (length) {
-                if (0 < length) {
-                  var siteButton = element.find("#site-appointment-button");
-                  siteButton.addClass("site" == scope.model.type ? "btn-warning" : "btn-default");
-                  siteButton.removeClass("site" == scope.model.type ? "btn-default" : "btn-warning");
-                  siteListener(); // your watch has ended
-                }
-              }
-            );
+            $scope.model.calendarModel.heading = heading;
           },
         };
       },
@@ -731,7 +719,9 @@ cenozoApp.defineModule({
     cenozo.providers.factory("CnAppointmentCalendarFactory", [
       "CnBaseCalendarFactory",
       "CnSession",
-      function (CnBaseCalendarFactory, CnSession) {
+      "CnHttpFactory",
+      "CnModalInputFactory",
+      function (CnBaseCalendarFactory, CnSession, CnHttpFactory, CnModalInputFactory) {
         var object = function (parentModel) {
           CnBaseCalendarFactory.construct(this, parentModel);
 
@@ -741,20 +731,85 @@ cenozoApp.defineModule({
           // remove day click callback
           delete this.settings.dayClick;
 
-          // extend onCalendar to transform templates into events
-          this.onCalendar = async function (replace, minDate, maxDate, ignoreParent) {
-            // due to a design flaw (home vs site instances which cannot be determined in the base model's instance
-            // method) we have to always replace events
-            replace = true;
+          angular.extend(this, {
+            restrictByUser: async function () {
+              const restrictUser = (
+                angular.isDefined(this.parentModel.getQueryParameter("user")) ?
+                this.parentModel.getQueryParameter("user") :
+                null
+              );
 
-            // we must get the load dates before calling $$onCalendar
-            var loadMinDate = this.getLoadMinDate(replace, minDate);
-            var loadMaxDate = this.getLoadMaxDate(replace, maxDate);
-            await this.$$onCalendar(replace, minDate, maxDate, true);
-            this.cache.forEach((item, index, array) => {
-              array[index] = getEventFromAppointment(item, CnSession.user.timezone);
-            });
-          };
+              // get a list of all coordinators and interviewers for this site
+              const userResponse = await CnHttpFactory.instance({
+                path: "user",
+                data: {
+                  select: {
+                    distinct: true,
+                    column: ["id", "first_name", "last_name", "name"],
+                  },
+                  modifier: {
+                    join: [
+                      { table: "access", onleft: "user.id", onright: "access.user_id" },
+                      { table: "role", onleft: "access.role_id", onright: "role.id" },
+                    ],
+                    where: [{
+                      column: "user.active",
+                      operator: "=",
+                      value: true,
+                    }, {
+                      column: "access.site_id",
+                      operator: "=",
+                      value: this.parentModel.site.id,
+                    }, {
+                      column: "role.name",
+                      operator: "IN",
+                      value: ["coordinator", "interviewer", "interviewer+"],
+                    }],
+                    order: ["first_name", "last_name"],
+                  },
+                }
+              }).query();
+
+              const userList = userResponse.data.map(user => ({
+                value: user.name,
+                name: user.first_name + " " + user.last_name + " (" + user.name + ")",
+              }));
+              userList.unshift({ value: null, name: "No restriction" });
+
+              const response = await CnModalInputFactory.instance({
+                title: "Restrict by Interviewer",
+                message:
+                  'Select which interviewer you would like to restrict the calendar to, or select ' +
+                  '"No restriction" to show all appointments:',
+                format: "enum",
+                enumList: userList,
+                value: restrictUser,
+              }).show();
+
+              if (false !== response && response != restrictUser) {
+                this.parentModel.setQueryParameter("user", response);
+                await this.parentModel.reloadState(true);
+              }
+            },
+
+            removeUserRestriction: async function () {
+            },
+
+            // extend onCalendar to transform templates into events
+            onCalendar: async function (replace, minDate, maxDate, ignoreParent) {
+              // due to a design flaw (home vs site instances which cannot be determined in the base model's
+              // instance method) we have to always replace events
+              replace = true;
+
+              // we must get the load dates before calling $$onCalendar
+              var loadMinDate = this.getLoadMinDate(replace, minDate);
+              var loadMaxDate = this.getLoadMaxDate(replace, maxDate);
+              await this.$$onCalendar(replace, minDate, maxDate, true);
+              this.cache.forEach((item, index, array) => {
+                array[index] = getEventFromAppointment(item, CnSession.user.timezone);
+              });
+            },
+          });
         };
 
         return {
@@ -988,9 +1043,21 @@ cenozoApp.defineModule({
                   data.select = {
                     column: ["datetime", "outcome", { table: "appointment_type", column: "color" }]
                   };
-                  if ("home" == this.type) data.select.column.push({ table: "address", column: "postcode", });
+                  if ("home" == this.type) {
+                    data.select.column.push({ table: "address", column: "postcode", });
+
+                    // restrict by user if needed
+                    if ($state.params.user) {
+                      data.modifier = { where: {
+                        column: "user.name",
+                        operator: "=",
+                        value: $state.params.user
+                      } };
+                    }
+                  }
                 }
               }
+
               return data;
             },
 
