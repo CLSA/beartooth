@@ -69,6 +69,11 @@ class appointment extends \cenozo\business\report\base_report
       'Appointment Type',
       false
     );
+    $select->add_column(
+      'CONCAT_WS( " ", appointment_type_reason.title, appointment.reason_extra )',
+      'Reason',
+      false
+    );
 
     $modifier->join( 'language', 'participant.language_id', 'language.id' );
     $join_mod = lib::create( 'database\modifier' );
@@ -244,6 +249,12 @@ class appointment extends \cenozo\business\report\base_report
 
     if( !$modifier->has_join( 'appointment_type' ) )
       $modifier->left_join( 'appointment_type', 'appointment.appointment_type_id', 'appointment_type.id' );
+
+    $modifier->left_join(
+      'appointment_type_reason',
+      'appointment.appointment_type_reason_id',
+      'appointment_type_reason.id'
+    );
 
     if( !$modifier->has_join( 'participant_site' ) )
     {
