@@ -7,6 +7,11 @@ SOURCE appointment_type_reason.sql
 SOURCE appointment.sql
 SOURCE role_has_overview.sql
 
+SOURCE report_type.sql
+SOURCE application_type_has_report_type.sql
+SOURCE role_has_report_type.sql
+SOURCE report_restriction.sql
+
 SOURCE service.sql
 SOURCE role_has_service.sql
 
