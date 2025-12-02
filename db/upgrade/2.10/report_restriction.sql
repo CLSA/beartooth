@@ -15,7 +15,7 @@ DROP PROCEDURE IF EXISTS patch_report_restriction;
       "INSERT IGNORE INTO ", @cenozo, ".report_restriction ( ",
         "report_type_id, rank, name, title, mandatory, restriction_type, custom, subject, description ",
       ") ",
-      'SELECT report_type.id, 1, "site", "Site", 1, "table", 1, "site", ',
+      'SELECT report_type.id, 1, "site", "Site", 0, "table", 1, "site", ',
         '"Restrict to a particular site." ',
       "FROM ", @cenozo, ".report_type ",
       "WHERE report_type.name = 'address'" );
