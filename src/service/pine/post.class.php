@@ -88,37 +88,34 @@ class post extends \cenozo\service\service
    */
   protected function execute()
   {
+    $interviewing_instance_class_name = lib::get_class_name( 'database\interviewing_instance' );
+    $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
+    $region_class_name = lib::get_class_name( 'database\region' );
+    $application_class_name = lib::get_class_name( 'database\application' );
+    $queue_class_name = lib::get_class_name( 'database\queue' );
+
+    $setting_manager = lib::create( 'business\setting_manager' );
+    $session = lib::create( 'business\session' );
+    $db_application = $session->get_application();
+    $db_user = $session->get_user();
+
+    // get the pine instance to tell whether this is a home or site instance
+    $db_interviewing_instance = $interviewing_instance_class_name::get_unique_record( 'user_id', $db_user->id );
+    if( is_null( $db_interviewing_instance ) )
+    {
+      throw lib::create( 'exception\runtime',
+        sprintf( 'Pine user "%s" is not linked to any pine instance.', $db_user->name ),
+        __METHOD__
+      );
+    }
+    $interview_type = is_null( $db_interviewing_instance->interviewer_user_id ) ? 'site' : 'home';
+
     foreach( $this->object_list as $object )
     {
       $db_participant = $object['participant'];
       $data = $object['data'];
 
-      $interviewing_instance_class_name = lib::get_class_name( 'database\interviewing_instance' );
-      $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
-      $region_class_name = lib::get_class_name( 'database\region' );
-      $application_class_name = lib::get_class_name( 'database\application' );
-      $queue_class_name = lib::get_class_name( 'database\queue' );
-
-      $setting_manager = lib::create( 'business\setting_manager' );
-      $session = lib::create( 'business\session' );
-      $db_application = $session->get_application();
-      $db_user = $session->get_user();
-
-      // get the pine instance to tell whether this is a home or site instance
-      $db_interviewing_instance = $interviewing_instance_class_name::get_unique_record( 'user_id', $db_user->id );
-      if( is_null( $db_interviewing_instance ) )
-      {
-        throw lib::create( 'exception\runtime',
-          sprintf( 'Pine user "%s" is not linked to any pine instance.', $db_user->name ),
-          __METHOD__
-        );
-      }
-
       // get the interview corresponding with this export
-      $interview_type = is_null( $db_interviewing_instance->interviewer_user_id ) ? 'site' : 'home';
-      $interview_sel = lib::create( 'database\select' );
-      $interview_sel->from( 'interview' );
-      $interview_sel->add_column( 'id' );
       $interview_mod = lib::create( 'database\modifier' );
       $interview_mod->join( 'qnaire', 'interview.qnaire_id', 'qnaire.id' );
       $interview_mod->where( 'qnaire.type', '=', $interview_type );
@@ -159,7 +156,6 @@ class post extends \cenozo\service\service
         {
           // interview and appointment status
           $db_interview->complete( NULL, $datetime_obj ); // this will save the interview record
-          $db_participant->repopulate_queue( false );
         }
         else
         {
@@ -263,7 +259,7 @@ class post extends \cenozo\service\service
 
             $continue_questionnaires = $object->DCScontinue_mandatoryField ? 1 : 0;
             $hin_future_access = $object->AgreeGiveNumber_mandatoryField ? 1 : 0;
-            $continue_dcs_visits = $object->DCScontinue_mandatoryField ? 1 : 0; 
+            $continue_dcs_visits = $object->DCScontinue_mandatoryField ? 1 : 0;
             $already_identified = $object->DMalready_mandatoryField ? 1 : 0;
             $same_as_proxy = $object->informantIsProxy ? 1 : 0;
 
@@ -412,6 +408,8 @@ class post extends \cenozo\service\service
         }
       }
     }
+
+    $queue_class_name::repopulate();
 
     if( is_null( $this->status->get_code() ) ) $this->status->set_code( 201 );
   }
