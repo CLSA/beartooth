@@ -88,6 +88,18 @@ class post extends \cenozo\service\service
    */
   protected function execute()
   {
+    // private function to help simplify the following code
+    function get_property( $object, $property )
+    {
+      return (
+        !property_exists( $object, $property ) ||
+        is_null( $object->$property ) ||
+        0 == strlen( $object->$property ) ||
+        0 == strlen( trim( $object->$property ) ) ?
+        NULL : trim( $object->$property )
+      );
+    }
+
     $interviewing_instance_class_name = lib::get_class_name( 'database\interviewing_instance' );
     $consent_type_class_name = lib::get_class_name( 'database\consent_type' );
     $region_class_name = lib::get_class_name( 'database\region' );
@@ -176,87 +188,26 @@ class post extends \cenozo\service\service
             $object = current( $json_data->results );
 
             // process object values
-            $p_first_name = (
-              is_null( $object->ProxyFirstName ) || 0 == strlen( $object->ProxyFirstName ) ?
-              NULL :
-              $object->ProxyFirstName
-            );
-            $p_last_name = (
-              is_null( $object->ProxyLastName ) || 0 == strlen( $object->ProxyLastName ) ?
-              NULL :
-              $object->ProxyLastName
-            );
-            $p_address = (
-              is_null( $object->ProxyAddress ) ?
-              [] :
-              explode( ' ', trim( $object->ProxyAddress ), 2 )
-            );
-            $p_address2 = (
-              !property_exists( $data, 'ProxyAddress2' ) || is_null( $object->ProxyAddress2 ) ?
-              NULL :
-              $object->ProxyAddress2
-            );
-            $p_city = (
-              is_null( $object->ProxyCity ) || 0 == strlen( $object->ProxyCity ) ?
-              NULL :
-              $object->ProxyCity
-            );
-            $p_region = (
-              is_null( $object->ProxyProvince ) || 0 == strlen( $object->ProxyProvince ) ?
-              NULL :
-              $object->ProxyProvince
-            );
-            $p_postal_code = (
-              is_null( $object->ProxyPostalCode ) || 0 == strlen( $object->ProxyPostalCode ) ?
-              NULL :
-              trim( $object->ProxyPostalCode )
-            );
-            $p_phone = (
-              is_null( $object->ProxyTelephone ) || 0 == strlen( $object->ProxyTelephone ) ?
-              NULL :
-              preg_replace( '/[^0-9]/', '', $object->ProxyTelephone )
-            );
-
-            $i_first_name = (
-              is_null( $object->InformantFirstName ) || 0 == strlen( $object->InformantFirstName ) ?
-              NULL :
-              $object->InformantFirstName
-            );
-            $i_last_name = (
-              is_null( $object->InformantLastName ) || 0 == strlen( $object->InformantLastName ) ?
-              NULL :
-              $object->InformantLastName
-            );
-            $i_address = (
-              is_null( $object->InformantAddress ) ?
-              [] :
-              explode( ' ', trim( $object->InformantAddress ), 2 )
-            );
-            $i_address2 = (
-              !property_exists( $data, 'InformantAddress2' ) || is_null( $object->InformantAddress2 ) ?
-              NULL :
-              $object->InformantAddress2
-            );
-            $i_city = (
-              is_null( $object->InformantCity ) || 0 == strlen( $object->ProxyCity ) ?
-              NULL :
-              $object->InformantCity
-            );
-            $i_region = (
-              is_null( $object->InformantProvince ) || 0 == strlen( $object->InformantProvince ) ?
-              NULL :
-              $object->InformantProvince
-            );
-            $i_postal_code = (
-              is_null( $object->InformantPostalCode ) || 0 == strlen( $object->InformantPostalCode ) ?
-              NULL :
-              trim( $object->InformantPostalCode )
-            );
-            $i_phone = (
-              is_null( $object->InformantTelephone ) || 0 == strlen( $object->InformantTelephone ) ?
-              NULL :
-              preg_replace( '/[^0-9]/', '', $object->InformantTelephone )
-            );
+            $p_first_name = get_property( $object, 'ProxyFirstName' );
+            $p_last_name = get_property( $object, 'ProxyLastName' );
+            $p_address = get_property( $object, 'ProxyAddress' );
+            $p_address = is_null( $p_address ) ? [] : explode( ' ', $p_address, 2 );
+            $p_address2 = get_property( $object, 'ProxyAddress2' );
+            $p_city = get_property( $object, 'ProxyCity' );
+            $p_region = get_property( $object, 'ProxyProvince' );
+            $p_postal_code = get_property( $object, 'ProxyPostalCode' );
+            $p_phone = get_property( $object, 'ProxyTelephone' );
+            if( !is_null( $p_phone ) ) $p_phone = preg_replace( '/[^0-9]/', '', $p_phone );
+            $i_first_name = get_property( $object, 'InformantFirstName' );
+            $i_last_name = get_property( $object, 'InformantLastName' );
+            $i_address = get_property( $object, 'InformantAddress' );
+            $i_address = is_null( $i_address ) ? [] : explode( ' ', $i_address, 2 );
+            $i_address2 = get_property( $object, 'InformantAddress2' );
+            $i_city = get_property( $object, 'InformantCity' );
+            $i_region = get_property( $object, 'InformantProvince' );
+            $i_postal_code = get_property( $object, 'InformantPostalCode' );
+            $i_phone = get_property( $object, 'InformantTelephone' );
+            if( !is_null( $i_phone ) ) $i_phone = preg_replace( '/[^0-9]/', '', $i_phone );
 
             $continue_questionnaires = $object->DCScontinue_mandatoryField ? 1 : 0;
             $hin_future_access = $object->AgreeGiveNumber_mandatoryField ? 1 : 0;
