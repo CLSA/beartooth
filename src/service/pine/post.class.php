@@ -156,6 +156,7 @@ class post extends \cenozo\service\service
         {
           // interview and appointment status
           $db_interview->complete( NULL, $datetime_obj ); // this will save the interview record
+          $db_participant->repopulate_queue( true );
         }
         else
         {
@@ -408,9 +409,6 @@ class post extends \cenozo\service\service
         }
       }
     }
-
-    $queue_class_name::repopulate();
-    $queue_class_name::repopulate_time();
 
     if( is_null( $this->status->get_code() ) ) $this->status->set_code( 201 );
   }
