@@ -96,7 +96,7 @@ class post extends \cenozo\service\service
         is_null( $object->$property ) ||
         0 == strlen( $object->$property ) ||
         0 == strlen( trim( $object->$property ) ) ?
-        NULL : trim( $object->$property )
+        NULL : trim( html_entity_decode( $object->$property ) )
       );
     }
 
