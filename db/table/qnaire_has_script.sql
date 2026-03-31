@@ -18,4 +18,4 @@ CREATE TABLE qnaire_has_script (
     ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
-COMMENT = 'aka: mandatory script';
+COLLATE = utf8mb4_general_ci;

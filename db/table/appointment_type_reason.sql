@@ -15,4 +15,6 @@ CREATE TABLE appointment_type_reason (
     REFERENCES beartooth.appointment_type (id)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_general_ci;
