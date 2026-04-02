@@ -31,7 +31,7 @@ class appointment_mail extends \cenozo\database\record
     }
     catch( \cenozo\exception\argument $e )
     {
-      preg_match( '/"key" with value "[^"]+"([^"]+)"/', $e->get_raw_message(), $matches );
+      preg_match( '/"key" with value [^"]*"([^"]+)"/', $e->get_raw_message(), $matches );
       $errors['subject'] = $matches[1];
     }
 
@@ -41,7 +41,7 @@ class appointment_mail extends \cenozo\database\record
     }
     catch( \cenozo\exception\argument $e )
     {
-      preg_match( '/"key" with value "[^"]+"([^"]+)"/', $e->get_raw_message(), $matches );
+      preg_match( '/"key" with value [^"]*"([^"]+)"/', $e->get_raw_message(), $matches );
       $errors['body'] = $matches[1];
     }
 
@@ -209,6 +209,7 @@ class appointment_mail extends \cenozo\database\record
                  : $data_manager->get_value( $value );
       }
 
+      if( is_null( $replace ) ) throw lib::create( 'exception\argument', 'key', $value, __METHOD__ );
       $text = str_replace( $match, $replace, $text );
     }
 
