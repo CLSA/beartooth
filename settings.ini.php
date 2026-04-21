@@ -12,7 +12,7 @@ global $SETTINGS;
 // tagged version
 $SETTINGS['general']['application_name'] = 'beartooth';
 $SETTINGS['general']['instance_name'] = $SETTINGS['general']['application_name'];
-$SETTINGS['general']['version'] = '2.10';
+$SETTINGS['general']['version'] = '3.0';
 $SETTINGS['general']['build'] = '14a355a0';
 
 // the location of beartooth internal path
