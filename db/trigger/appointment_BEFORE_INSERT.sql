@@ -1,5 +1,4 @@
-CREATE TRIGGER appointment_BEFORE_INSERT
-BEFORE INSERT ON appointment FOR EACH ROW
+CREATE TRIGGER appointment_BEFORE_INSERT BEFORE INSERT ON appointment FOR EACH ROW
 BEGIN
   IF (NEW.appointment_type_id IS NULL) THEN
     SET NEW.appointment_type_reason_id = NULL;
@@ -24,4 +23,4 @@ BEGIN
       SET NEW.reason_extra = NULL;
     END IF;
   END IF;
-END$$
+END ;;

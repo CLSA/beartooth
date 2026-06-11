@@ -1,16 +1,17 @@
 CREATE TABLE interviewing_instance (
-  id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  update_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
-  create_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-  site_id INT(10) UNSIGNED NOT NULL,
-  user_id INT(10) UNSIGNED NOT NULL,
-  interviewer_user_id INT(10) UNSIGNED NULL DEFAULT NULL,
-  type ENUM('onyx', 'pine') NOT NULL,
+  id int(10) unsigned NOT NULL AUTO_INCREMENT,
+  update_timestamp timestamp NOT NULL DEFAULT current_timestamp()
+    ON UPDATE current_timestamp(),
+  create_timestamp timestamp NOT NULL DEFAULT current_timestamp(),
+  site_id int(10) unsigned NOT NULL,
+  user_id int(10) unsigned NOT NULL,
+  interviewer_user_id int(10) unsigned DEFAULT NULL,
+  type enum('onyx','pine') NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE INDEX uq_user_id (user_id ASC),
-  INDEX fk_site_id (site_id ASC),
-  INDEX fk_user_id (user_id ASC),
-  INDEX fk_interviewer_user_id (interviewer_user_id ASC),
+  UNIQUE KEY uq_user_id (user_id),
+  KEY fk_site_id (site_id),
+  KEY fk_user_id (user_id),
+  KEY fk_interviewer_user_id (interviewer_user_id),
   CONSTRAINT fk_interviewing_instance_interviewer_user_id
     FOREIGN KEY (interviewer_user_id)
     REFERENCES cenozo.user (id)
@@ -25,7 +26,5 @@ CREATE TABLE interviewing_instance (
     FOREIGN KEY (user_id)
     REFERENCES cenozo.user (id)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_general_ci;
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

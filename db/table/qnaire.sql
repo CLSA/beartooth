@@ -1,20 +1,21 @@
 CREATE TABLE qnaire (
-  id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  update_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
-  create_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-  name VARCHAR(255) NOT NULL,
-  rank INT(11) NOT NULL,
-  completed_event_type_id INT(10) UNSIGNED NOT NULL,
-  prev_event_type_id INT(10) UNSIGNED NULL DEFAULT NULL,
-  allow_missing_consent TINYINT(1) NOT NULL DEFAULT 1,
-  delay_offset INT(11) NOT NULL DEFAULT 0,
-  delay_unit ENUM('day', 'week', 'month') NOT NULL DEFAULT 'week',
-  type ENUM('home', 'site') NOT NULL,
+  id int(10) unsigned NOT NULL AUTO_INCREMENT,
+  update_timestamp timestamp NOT NULL DEFAULT current_timestamp()
+    ON UPDATE current_timestamp(),
+  create_timestamp timestamp NOT NULL DEFAULT current_timestamp(),
+  name varchar(255) NOT NULL,
+  rank int(11) NOT NULL,
+  completed_event_type_id int(10) unsigned NOT NULL,
+  prev_event_type_id int(10) unsigned DEFAULT NULL,
+  allow_missing_consent tinyint(1) NOT NULL DEFAULT 1,
+  delay_offset int(11) NOT NULL DEFAULT 0,
+  delay_unit enum('day','week','month') NOT NULL DEFAULT 'week',
+  type enum('home','site') NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE INDEX uq_name (name ASC),
-  UNIQUE INDEX uq_rank (rank ASC),
-  INDEX fk_completed_event_type_id (completed_event_type_id ASC),
-  INDEX fk_prev_event_type_id (prev_event_type_id ASC),
+  UNIQUE KEY uq_name (name),
+  UNIQUE KEY uq_rank (rank),
+  KEY fk_completed_event_type_id (completed_event_type_id),
+  KEY fk_prev_event_type_id (prev_event_type_id),
   CONSTRAINT fk_qnaire_completed_event_type_id
     FOREIGN KEY (completed_event_type_id)
     REFERENCES cenozo.event_type (id)
@@ -24,7 +25,5 @@ CREATE TABLE qnaire (
     FOREIGN KEY (prev_event_type_id)
     REFERENCES cenozo.event_type (id)
     ON DELETE SET NULL
-    ON UPDATE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_general_ci;
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

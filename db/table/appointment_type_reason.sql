@@ -1,20 +1,19 @@
 CREATE TABLE appointment_type_reason (
-  id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  update_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
-  create_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-  appointment_type_id INT(10) UNSIGNED NOT NULL,
-  rank INT(10) UNSIGNED NOT NULL,
-  title VARCHAR(255) NOT NULL,
-  extra TINYINT(1) NOT NULL DEFAULT 0,
+  id int(10) unsigned NOT NULL AUTO_INCREMENT,
+  update_timestamp timestamp NOT NULL DEFAULT current_timestamp()
+    ON UPDATE current_timestamp(),
+  create_timestamp timestamp NOT NULL DEFAULT current_timestamp(),
+  appointment_type_id int(10) unsigned NOT NULL,
+  rank int(10) unsigned NOT NULL,
+  title varchar(255) NOT NULL,
+  extra tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
-  INDEX fk_appointment_type_reason_appointment_type_id (appointment_type_id ASC),
-  UNIQUE INDEX uq_appointment_type_id_title (appointment_type_id ASC, title ASC),
-  UNIQUE INDEX uq_appointment_type_id_rank (appointment_type_id ASC, rank ASC),
+  UNIQUE KEY uq_appointment_type_id_title (appointment_type_id,title),
+  UNIQUE KEY uq_appointment_type_id_rank (appointment_type_id,rank),
+  KEY fk_appointment_type_reason_appointment_type_id (appointment_type_id),
   CONSTRAINT fk_appointment_type_reason_appointment_type_id
     FOREIGN KEY (appointment_type_id)
-    REFERENCES beartooth.appointment_type (id)
+    REFERENCES appointment_type (id)
     ON DELETE CASCADE
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_general_ci;
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
