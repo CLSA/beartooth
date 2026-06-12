@@ -28,3 +28,4 @@ BEGIN
       AND application_has_cohort.grouping = "region"
       AND region_site.id = proc_region_site_id;
   END ;;
+
