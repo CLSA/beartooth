@@ -185,7 +185,9 @@ class post extends \cenozo\service\service
           if( 'CONSENT_GP' == $form->name )
           {
             $json_data = util::json_decode( $form->data );
-            $object = current( $json_data->results );
+
+            // consent form data has moved from results (old format) to metadata (new format)
+            $object = is_null( $json_data->metadata ) ? current( $json_data->results ) : $json_data->metadata;
 
             // process object values
             $p_first_name = get_property( $object, 'ProxyFirstName' );
