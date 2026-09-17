@@ -25,13 +25,13 @@ class ui3 extends \cenozo\ui\ui3
     $db_user = $session->get_user();
 
     $module = $this->get_module( 'appointment' );
-    if( !is_null( $module ) ) $module->add_action( 'calendar', '/{identifier}?{calendar}' );
+    if( !is_null( $module ) ) $module->add_action( 'calendar', '/{identifier}?{qnaire_type}&{calendar}' );
 
     $module = $this->get_module( 'assignment' );
     if( !is_null( $module ) )
     {
-      if( in_array( $db_role->name, [ 'helpline', 'operator', 'operator+', 'supervisor' ] ) )
-        $module->add_action( 'control', '?{tables}' );
+      if( in_array( $db_role->name, [ 'helpline', 'interviewer', 'interviewer+', 'coordinator' ] ) )
+        $module->add_action( 'control', '?{qnaire_type}{tables}' );
     }
 
     $module = $this->get_module( 'interview' );
@@ -79,17 +79,17 @@ class ui3 extends \cenozo\ui\ui3
       $module->add_choose( 'qnaire' );
     }
 
-    // remove the hold_type list from the operator+ role
-    if( 'operator+' == $db_role->name )
+    // remove the hold_type list from the interviewer+ role
+    if( 'interviewer+' == $db_role->name )
     {
       $module = $this->get_module( 'hold_type' );
       if( !is_null( $module ) ) $module->set_list_menu( false );
 
-      // remove the trace_type list from the operator+ role
+      // remove the trace_type list from the interviewer+ role
       $module = $this->get_module( 'trace_type' );
       if( !is_null( $module ) ) $module->set_list_menu( false );
 
-      // remove the proxy_type list from the operator+ role
+      // remove the proxy_type list from the interviewer+ role
       $module = $this->get_module( 'proxy_type' );
       if( !is_null( $module ) ) $module->set_list_menu( false );
     }
@@ -97,21 +97,8 @@ class ui3 extends \cenozo\ui\ui3
     $module = $this->get_module( 'user' );
     if( !is_null( $module ) )
     {
-      // remove the user list from the operator+ role
-      if( 'operator+' == $db_role->name ) $module->set_list_menu( false );
-
-      // remove the user view action from operator roles (it is for viewing personal calendar only)
-      if( 'operator' == $db_role->name || 'operator+' == $db_role->name )
-      {
-        $module->remove_action( 'list' );
-
-        // also remove the view action unless this is a trainee
-        if( !$db_user->get_trainee_user() ) $module->remove_action( 'view' );
-      }
-
-      // add calendar to user actions
-      if( in_array( $db_role->name, [ 'helpline', 'operator', 'operator+', 'supervisor' ] ) )
-        $module->add_action( 'calendar', '/{identifier}?{calendar}' );
+      // remove the user list from the interviewer+ role
+      if( 'interviewer+' == $db_role->name ) $module->set_list_menu( false );
     }
   }
 
@@ -127,23 +114,16 @@ class ui3 extends \cenozo\ui\ui3
     $db_role = $session->get_role();
     $db_user = $session->get_user();
 
-    if( 'operator' == $db_role->name ) $this->remove_all_menu_items( 'list' );
+    if( 'interviewer' == $db_role->name ) $this->remove_all_menu_items( 'list' );
 
     $this->add_menu_item( 'list', 'Questionnaires', 'qnaire' );
     $this->add_menu_item( 'list', 'Queues', 'queue' );
-    if( 'operator' == $db_role->name ) $this->remove_menu_item( 'utility', 'Participant Search' );
-    if( in_array( $db_role->name, [ 'operator', 'operator+' ] ) )
+    if( 'interviewer' == $db_role->name ) $this->remove_menu_item( 'utility', 'Participant Search' );
+    if( in_array( $db_role->name, [ 'helpline', 'interviewer', 'interviewer+', 'coordinator' ] ) )
     {
-      $this->add_menu_item(
-        'utility',
-        'Personal Calendar',
-        'appointment',
-        'calendar',
-        sprintf( '/user_id=%d', $db_user->id )
-      );
+      $this->add_menu_item( 'utility', 'Home Assignment Control', 'assignment', 'control', '?qnaire_type=home' );
+      $this->add_menu_item( 'utility', 'Site Assignment Control', 'assignment', 'control', '?qnaire_type=site' );
     }
-    if( in_array( $db_role->name, [ 'helpline', 'operator', 'operator+', 'supervisor' ] ) )
-      $this->add_menu_item( 'utility', 'Assignment Control', 'assignment', 'control' );
     if( 2 <= $db_role->tier ) $this->add_menu_item( 'utility', 'Queue Tree', 'queue', 'tree' );
     if( !$db_role->all_sites && 1 < $db_role->tier )
       $this->add_menu_item( 'utility', 'Site Details', 'site', 'view', sprintf( '/%d', $db_site->id ) );
@@ -152,10 +132,17 @@ class ui3 extends \cenozo\ui\ui3
     {
       $this->add_menu_item(
         'utility',
-        'Appointment Calendar',
+        'Home Appointment Calendar',
         'appointment',
         'calendar',
-        sprintf( '/site_id=%d', $db_site->id )
+        sprintf( '/site_id=%d?qnaire_type=home', $db_site->id )
+      );
+      $this->add_menu_item(
+        'utility',
+        'Site Appointment Calendar',
+        'appointment',
+        'calendar',
+        sprintf( '/site_id=%d?qnaire_type=site', $db_site->id )
       );
     }
   }

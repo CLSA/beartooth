@@ -42,7 +42,7 @@ export class CN_model_interview extends classes.CN_model_interview {
 
     // hidden properties used by the appointment model
     properties.qnaire_id = { is_hidden: () => true };
-    properties.interview_type = { meta: { table: "qnaire", column: "type" }, is_hidden: () => true };
+    properties.qnaire_type = { meta: { table: "qnaire", column: "type" }, is_hidden: () => true };
 
     // properties needed by the appointment model
     properties.last_participation_consent = { meta: {}, type: "boolean", is_hidden: () => true };
