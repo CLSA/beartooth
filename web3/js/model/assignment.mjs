@@ -21,7 +21,7 @@ export class CN_model_assignment extends classes.CN_model_assignment {
       const columns = {
         rank: { title: "Rank", column: "queue.rank", type: "rank", max_rank: 11 },
         queue: { title: "Queue", column: "queue.name" },
-        qnaire: { title: "Questionnaire", column: "script.name" },
+        qnaire: { title: "Questionnaire", column: "qnaire.name" },
         page_progress: { title: "Page Progress", table_prefix: false },
         language: { title: "Language", column: "language.name" },
         uid: { title: "UID", column: "participant.uid" },
@@ -77,7 +77,7 @@ export class CN_model_assignment extends classes.CN_model_assignment {
     const properties = await super.clone_properties();
 
     CN_common.insert_property(properties, "after", "participant", "qnaire", {
-      meta: { table: "script", column: "name" },
+      meta: { table: "qnaire", column: "name" },
       title: "Questionnaire",
       is_constant: () => true,
     });
@@ -107,7 +107,6 @@ export class CN_model_assignment extends classes.CN_model_assignment {
 class CN_element_script_control extends CN_element_card {
   #assignment = null;
   #withdrawn = false;
-  #proxy = false;
   #qnaire_list = [];
   #script_list = [];
   #active_script_id = null;
@@ -150,7 +149,6 @@ class CN_element_script_control extends CN_element_card {
   set_assignment(assignment) {
     this.#assignment = assignment;
     this.#withdrawn = false;
-    this.#proxy = false;
     this.#script_list = [];
   }
   get_script_launcher() { return this.#script_launcher; }
@@ -181,14 +179,11 @@ class CN_element_script_control extends CN_element_card {
     const footer_el = this.get_element().querySelector(".card-footer");
     footer_el.innerHTML = "";
 
-    const proxy_interview = CN_session.get("setting", "proxy");
-    if (this.#withdrawn || (this.#proxy != proxy_interview)) {
+    if (this.#withdrawn) {
       body_el.querySelector("div[name=interface]").classList.add("d-none");
       body_el.querySelector("span[name=reason]").innerHTML = (
         this.#withdrawn ?
         "they have withdrawn from the study" :
-        proxy_interview ?
-        "they are not ready for the proxy system" :
         "a proxy is required for the interview"
       );
       body_el.querySelector("div[name=blocked]").classList.remove("d-none");
@@ -251,11 +246,6 @@ class CN_element_script_control extends CN_element_card {
 
         const disabled = null == this.get_active_qnaire().script.finished_datetime;
         this.constructor.set_disabled(this.#advance_btn_el, disabled);
-        if (disabled) {
-          this.#advance_btn_el.classList.remove("btn-outline-primary");
-        } else {
-          this.#advance_btn_el.classList.add("btn-outline-primary");
-        }
       } else {
         // the active script cannot be advanced
         btn_group_el = this.constructor.html('<div class="d-flex flex-row-reverse w-100"></div>');
@@ -300,7 +290,6 @@ class CN_element_script_control extends CN_element_card {
     ]);
 
     this.#withdrawn = "Withdrawn" == participant_response.hold;
-    this.#proxy = null != participant_response.proxy;
     this.#qnaire_list = qnaire_response;
     this.#script_list = [];
     script_response.forEach(script => {
@@ -599,7 +588,6 @@ export class CN_control_assignment extends CN_action_list {
         { table: "interview", column: "method", alias: "interview_method" },
       ];
       if (CN_session.get("application", "check_for_missing_hin")) assignment_column.push("missing_hin");
-      if (CN_session.get("setting", "proxy")) assignment_column.push("use_decision_maker");
       this.#assignment = await CN_api.get("assignment/0", { select: { column: assignment_column } });
       this.#assignment.participant = null;
       this.#assignment.active_phone_call = null;
@@ -696,7 +684,6 @@ export class CN_control_assignment extends CN_action_list {
         }),
 
         CN_api.get(`participant/${this.#assignment.participant_id}/phone`, {
-          include_alternates: CN_session.get("setting", "proxy") || this.#assignment.has_alternate_types,
           select: { column: ["id", "rank", "type", "number", "international", "note"] },
           modifier: {
             where: { column: "phone.active", operator: "=", value: true },
@@ -779,8 +766,6 @@ export class CN_control_assignment extends CN_action_list {
       this.#script_control_el.get_element().classList.add("d-none");
       super.update_element();
     } else {
-      const proxy = CN_session.get("setting", "proxy");
-
       // fill in the details properties
       const details_el = this.#assignment_body_el.querySelector("div[name=details]");
       details_el.querySelector("div[name=uid]").innerHTML = this.#assignment.participant.uid;
@@ -793,9 +778,6 @@ export class CN_control_assignment extends CN_action_list {
         this.#assignment.participant.other_name ? "(" + this.#assignment.participant.other_name + ")" : null,
         this.#assignment.participant.last_name
       ].join(" ");
-      if (proxy) {
-        details_el.querySelector("div[name=dm]").innerHTML = this.#assignment.use_decision_maker ? "Yes" : "No";
-      }
       details_el.querySelector("div[name=language]").innerHTML = this.#assignment.participant.language;
       details_el.querySelector("div[name=gender]").innerHTML = this.#assignment.participant.gender_identity;
       details_el.querySelector("div[name=pronouns]").innerHTML = (
@@ -873,37 +855,9 @@ export class CN_control_assignment extends CN_action_list {
       call_el.innerHTML = this.#assignment.active_phone_call ? "End Call" : "Call";
       this.constructor.set_disabled(end_assignment_el, null != this.#assignment.active_phone_call);
       if (0 == this.#phone_list.length) {
-        if (proxy) {
-          use_tz_el.classList.remove("btn-outline-primary");
-          this.constructor.set_disabled(use_tz_el, true);
-        }
         if (null == this.#assignment.active_phone_call) this.constructor.set_disabled(call_el, true);
       } else {
-        if (proxy) {
-          use_tz_el.classList.add("btn-outline-primary");
-          this.constructor.set_disabled(use_tz_el, false);
-        }
         this.constructor.set_disabled(call_el, false);
-
-        // when in proxy mode populate the use timezone dropdown with each alternate and the participant
-        if (proxy) {
-          use_tz_list_el.innerHTML = "";
-          this.#phone_list.filter(phone => phone.new_person).forEach(phone => {
-            const li_el = this.constructor.html(`
-              <li><button type="button" class="dropdown-item">${phone.person_name}</button></li>
-            `);
-            li_el.querySelector("button").addEventListener("click", () => {
-              const data = {};
-              if (phone.alternate_id) {
-                data.alternate_id = phone.alternate_id;
-              } else {
-                data.participant_id = this.#assignment.participant_id;
-              }
-              CN_session.set_timezone(data, CN_session.get("user", "am_pm"));
-            });
-            use_tz_list_el.append(li_el);
-          });
-        }
 
         // populate the call dropdown with phone-call statuses if in an active call, or list of numbers if not
         call_list_el.innerHTML = "";
@@ -1079,13 +1033,6 @@ export class CN_control_assignment extends CN_action_list {
     if (CN_session.get("application", "identifier")) {
       details_props.splice(1, 0, { name: "study", title: "Study ID" });
     }
-    if (CN_session.get("setting", "proxy")) {
-      details_props.splice(
-        details_props.findIndex(o => "language" == o.name),
-        0,
-        { name: "dm", title: "Use Decision Maker" }
-      );
-    }
 
     details_props.forEach(prop => {
       const row_el = this.constructor.html('<div class="row"></div>');
@@ -1197,32 +1144,16 @@ export class CN_control_assignment extends CN_action_list {
     );
 
     const navigation_el = this.#assignment_footer_el.querySelector("div[name=navigation]");
-    if (CN_session.get("setting", "proxy")) {
-      navigation_el.append(this.constructor.html(`
-        <div class="btn-group flex-fill" role="group">
-          <button
-            type="button"
-            name="use-tz"
-            class="btn btn-light btn-outline-primary dropdown-toggle"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >Use Timezone</button>
-          <ul name="use-tz-list" class="dropdown-menu w-100">
-          </ul>
-        </div>
-      `));
-    } else {
-      const use_tz_btn_el = this.constructor.html(`
-        <button type="button" class="btn btn-light btn-outline-primary" name="use-tz">Use Timezone</button>
-      `);
-      use_tz_btn_el.addEventListener("click", () => {
-        CN_session.set_timezone(
-          { participant_id: this.#assignment.participant_id },
-          CN_session.get("user", "am_pm")
-        );
-      });
-      navigation_el.append(use_tz_btn_el);
-    }
+    const use_tz_btn_el = this.constructor.html(`
+      <button type="button" class="btn btn-light btn-outline-primary" name="use-tz">Use Timezone</button>
+    `);
+    use_tz_btn_el.addEventListener("click", () => {
+      CN_session.set_timezone(
+        { participant_id: this.#assignment.participant_id },
+        CN_session.get("user", "am_pm")
+      );
+    });
+    navigation_el.append(use_tz_btn_el);
 
     return this.#no_assignment_footer_el;
   }

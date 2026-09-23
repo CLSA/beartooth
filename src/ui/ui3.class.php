@@ -47,12 +47,14 @@ class ui3 extends \cenozo\ui\ui3
     $module = $this->get_module( 'qnaire' );
     if( !is_null( $module ) )
     {
+      $module->add_child( 'appointment_type' );
       $module->add_choose( 'collection' );
+      $module->add_choose( 'consent_type' );
+      $module->add_choose( 'event_type' );
       $module->add_choose( 'hold_type' );
-      $module->add_choose( 'site' );
+      $module->add_choose( 'script' );
+      $module->add_choose( 'study' );
       $module->add_choose( 'stratum' );
-      $module->add_choose( 'alternate_type' );
-      $module->add_action( 'mass_method', '/{identifier}' );
     }
 
     $module = $this->get_module( 'queue' );

@@ -585,6 +585,9 @@ export class CN_view_appointment extends CN_action_view {
   update_element() {
     super.update_element();
 
+    const cancel_btn_el = this.get_footer_element().querySelector("button[name=cancel]");
+    this.constructor.set_disabled(cancel_btn_el, "passed" != this.get_property_value("state"));
+
     const notes_btn_el = this.get_footer_element().querySelector("button[name=notes]");
     const note_count = this.get_model().get_parent_model().get_action().get_property_value("note_count");
     notes_btn_el.innerHTML = `Notes (${note_count})`;
@@ -645,8 +648,12 @@ export class CN_view_appointment extends CN_action_view {
     const cancel_btn_el = this.constructor.html(
       '<button name="cancel" type="button" class="btn btn-light btn-outline-primary">Cancel Appointment</button>'
     );
-    cancel_btn_el.addEventListener("click", () => {
-      // TODO: cancel appointment
+    cancel_btn_el.addEventListener("click", async () => {
+      await this.constructor.wait_for(
+        CN_api.patch(this.get_model().get_view_url(null, "api"), { outcome: "cancelled" }),
+        0
+      );
+      await this.get_model().run();
     });
     left_btn_group_el.append(cancel_btn_el);
 
