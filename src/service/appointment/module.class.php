@@ -618,7 +618,10 @@ class module extends \cenozo\service\base_calendar_module
       {
         $modifier->left_join( 'region', 'address.region_id', 'region.id' );
         $select->add_column(
-          'CONCAT_WS( ", ", address1, address2, city, region.name )', 'address_summary', false );
+          'CONCAT_WS( ", ", address.address1, address.address2, address.city, region.name )',
+          'address_summary',
+          false
+        );
       }
 
       // add help text (for calendar events)

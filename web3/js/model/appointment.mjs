@@ -5,6 +5,7 @@ const { CN_action_view } = await import(`${CENOZO_URL}/js/action/view.mjs`);
 const { CN_api } = await import(`${CENOZO_URL}/js/api.mjs`);
 const { CN_common } = await import(`${CENOZO_URL}/js/common.mjs`);
 const { CN_base_model } = await import(`${CENOZO_URL}/js/model/base_model.mjs`);
+const { CN_modal_input } = await import(`${CENOZO_URL}/js/modal/input.mjs`);
 const { CN_model_user } = await import(`${CENOZO_URL}/js/model/user.mjs`);
 const { CN_session } = await import(`${CENOZO_URL}/js/session.mjs`);
 
@@ -19,17 +20,26 @@ export class CN_model_appointment extends CN_base_model {
         posessive: "appointment's",
       },
       columns: {
+        site: {
+          column: "effective_site.name",
+          title: "Site",
+          is_hidden: () => !CN_session.get("role", "all_sites") || this.get_parent_model(),
+        },
         uid: { column: "participant.uid", title: "UID", is_hidden: () => null != this.get_parent_model() },
         datetime: { type: "datetime", title: "Date & Time" },
         formatted_user_id: {
           title: "Interviewer",
           table_prefix: false,
-          is_hidden: () => "home" != this.get_parent_model().get_action().get_property_value("qnaire_type"),
+          is_hidden: () => "home" != this.get_action().get_qnaire_type(),
+            //null == this.get_parent_model() ||
+            //"home" != this.get_parent_model().get_action().get_property_value("qnaire_type"),
         },
         address_summary: {
           title: "Address",
           table_prefix: false,
-          is_hidden: () => "home" != this.get_parent_model().get_action().get_property_value("qnaire_type"),
+          is_hidden: () => "home" != this.get_action().get_qnaire_type(),
+            //null == this.get_parent_model() ||
+            //"home" != this.get_parent_model().get_action().get_property_value("qnaire_type"),
         },
         appointment_type_id: {
           title: "Special Type",
@@ -67,17 +77,12 @@ export class CN_model_appointment extends CN_base_model {
         },
         user_id: {
           title: "Interviewer",
-          type: "typeahead",
-          typeahead: CN_model_user.get_typeahead({
-            modifier: {
-              where: [
-                { bracket: true, open: true },
-                { column: "role_list", operator: "LIKE", value: "%interviewer%" },
-                { column: "role_list", operator: "LIKE", value: "%coodinator%", or: true },
-                { bracket: true, open: false },
-              ],
-            }
-          }),
+          type: "enum",
+          enum: {
+            get_enums: async () => await this.get_user_enums(
+              this.get_parent_model().get_action().get_property_value_for_record("effective_site_id")
+            ),
+          },
           is_hidden: () => "site" == this.get_action().get_qnaire_type(),
           help: "The interviewer the appointment is to be scheduled with.",
         },
@@ -322,6 +327,33 @@ export class CN_model_appointment extends CN_base_model {
     for (const name in config) calendar_action.set_config(name, config[name]);
     parent_element.append(this.#calendar_model.get_element());
   }
+
+  /**
+   * ADD DOCS
+   */
+  async get_user_enums(site_id = null) {
+    const where = [
+      { column: "role.name", operator: "IN", value: ["interviewer", "interviewer+"] },
+      { column: "user.active", operator: "=", value: true },
+    ];
+    if (site_id) where.push({ column: "access.site_id", operator: "=", value: site_id });
+
+    const user_list = await CN_api.get( "user", {
+      select: {
+        distinct: true,
+        column: ["id", "name", "first_name", "last_name"],
+      },
+      modifier: {
+        join: [
+          { table: "access", onleft: "user.id", onright: "access.user_id" },
+          { table: "role", onleft: "access.role_id", onright: "role.id" },
+        ],
+        where: where,
+        order: "user.first_name",
+      },
+    });
+    return user_list.map(u => ({ key: u.id, value: `${u.first_name} ${u.last_name} (${u.name})` }));
+  }
 }
 
 export class CN_add_appointment extends CN_action_add {
@@ -394,10 +426,11 @@ export class CN_add_appointment extends CN_action_add {
 }
 
 export class CN_calendar_appointment extends CN_action_calendar {
+  #user_calendar = false;
   #qnaire_type = null;
   #participant_id;
   #identifier = null;
-  #change_type_allowed = false;
+  #allow_change_identifier = false;
   #item_list = [];
 
   constructor(parent_el, model) {
@@ -406,11 +439,12 @@ export class CN_calendar_appointment extends CN_action_calendar {
     const identifier = this.get_model().get_identifier();
     const matches = identifier.match(/^(site_id|user_id)=([0-9]+)/);
     if (null != matches) {
+      if ("user_id" == matches[1]) this.#user_calendar = true;
       this.#identifier = matches[2];
-      this.#change_type_allowed = (
-        "site_id" == matches[1] ?
-        CN_session.get("role", "all_sites") :
-        1 < CN_session.get("role", "tier")
+      this.#allow_change_identifier = (
+        this.#user_calendar ?
+        !CN_session.get("role", "name").match(/interviewer/) :
+        CN_session.get("role", "all_sites")
       );
     }
 
@@ -424,14 +458,60 @@ export class CN_calendar_appointment extends CN_action_calendar {
    */
   async get_text(type) {
     if ("header" == type) {
-      const [title, site] = await Promise.all([
-        super.get_text(type),
-        CN_api.get(`site/${this.#identifier}`),
-      ]);
-      return `${CN_common.uc_words(this.#qnaire_type)} ${title} for ${site.name}`;
+      if (this.#identifier) {
+        const [title, record] = await Promise.all([
+          super.get_text(type),
+          CN_api.get([this.#user_calendar ? "user" : "site", this.#identifier].join("/")),
+        ]);
+        const postfix = (
+          this.#user_calendar ?
+          `${record.first_name} ${record.last_name} (${record.name})` :
+          record.name
+        );
+        return `${CN_common.uc_words(this.#qnaire_type)} ${title} for ${postfix}`;
+      }
+    }
+
+    if ("view_parent" == type) {
+      return `View ${CN_common.uc_words(this.#qnaire_type)} Appointment List`;
     }
 
     return await super.get_text(type);
+  }
+
+  /**
+   * Replace parent method
+   */
+  async on_navigate_to_list() {
+    const params = { qnaire_type: this.#qnaire_type };
+
+    // restrict by user if looking at a user's calendar
+    if (this.#user_calendar) {
+      const response = await CN_api.get(`user/${this.#identifier}`);
+      params.tables = JSON.stringify({
+        appointment: {
+          columns: {
+            formatted_user_id: [{
+              operator: "=",
+              value: `${response.first_name} ${response.last_name} (${response.name})`,
+              or: false
+            }],
+          },
+        },
+      });
+    } else if (CN_session.get("role", "all_sites")) {
+      // restrict by site if we have access to all sites
+      const response = await CN_api.get(`site/${this.#identifier}`);
+      params.tables = JSON.stringify({
+        appointment: {
+          columns: {
+            site: [{ operator: "=", value: response.name, or: false }],
+          },
+        },
+      });
+    }
+
+    await CN_session.navigate_to(this.get_model().get_list_url(), params);
   }
 
   /**
@@ -445,14 +525,27 @@ export class CN_calendar_appointment extends CN_action_calendar {
   /**
    * Extend parent method
    */
-  async on_load() {
-    // When embedding the calendar in the add/view actions we need to set the qnaire_type member
-    // since it won't be in the query parameters
-    if (null == this.#qnaire_type) {
-      this.#qnaire_type = this.get_model().get_parent_model().get_action().get_property_value("qnaire_type");
+  get_on_load_parameters() {
+    const params = super.get_on_load_parameters();
+    params.restricted_site_id = this.#identifier;
+    params.qnaire_type = this.#qnaire_type;
+    if (this.#user_calendar) {
+      if (!CN_common.is_object(params.modifier)) params.modifier = {};
+      if (!CN_common.is_array(params.modifier.where)) params.modifier.where = [];
+      params.modifier.where.push({ column: "appointment.user_id", operator: "=", value: this.#identifier });
     }
+    return params;
+  }
 
-    if (this.#change_type_allowed) {
+  /**
+   * Extend parent method
+   */
+  async on_load() {
+    // When embedding the calendar in the add/view actions we need to get the qnaire_type from the parent model
+    const parent_model = this.get_model().get_parent_model();
+    if (parent_model) this.#qnaire_type = parent_model.get_action().get_property_value("qnaire_type");
+
+    if (this.#allow_change_identifier) {
       this.#item_list = await CN_api.get("site", { modifier: { order: "name" } });
     } else {
       // check permissions
@@ -470,20 +563,10 @@ export class CN_calendar_appointment extends CN_action_calendar {
   /**
    * Extend parent method
    */
-  get_on_load_parameters() {
-    const parameters = super.get_on_load_parameters();
-    parameters.restricted_site_id = this.#identifier;
-    parameters.qnaire_type = this.#qnaire_type;
-    return parameters;
-  }
-
-  /**
-   * Extend parent method
-   */
   update_element() {
     super.update_element();
 
-    if (this.#change_type_allowed) {
+    if (this.#allow_change_identifier) {
       const ul_el = this.get_header_element().querySelector("div[name=calendar-type] ul");
       ul_el.replaceChildren(this.constructor.html(
         '<li><div class="dropdown-header text-bg-secondary">Site Calendars</div></li>'
@@ -494,11 +577,10 @@ export class CN_calendar_appointment extends CN_action_calendar {
           <button type="button" class="dropdown-item">${item.name}</button>
         `);
         item_btn_el.addEventListener("click", () => {
+          const params = { qnaire_type: this.#qnaire_type };
           const calendar_params = this.get_query_parameter("calendar");
-          CN_session.navigate_to(
-            `appointment/calendar/site_id=${item.id}`,
-            calendar_params ? { calendar: calendar_params } : null,
-          );
+          if (calendar_params) params.calendar = calendar_params;
+          CN_session.navigate_to(`appointment/calendar/site_id=${item.id}`, params);
         });
         const item_li_el = this.constructor.html(
           `<li class="bg-${item.id == this.#identifier ? "warning" : "body"}"></li>`
@@ -515,7 +597,7 @@ export class CN_calendar_appointment extends CN_action_calendar {
   _create_header_element() {
     const header_el = super._create_header_element();
 
-    if (this.#change_type_allowed) {
+    if (this.#allow_change_identifier) {
       const calendar_type_div_el = this.constructor.html(`
         <div class="dropdown" name="calendar-type">
           <button name="calendar-type" type="button" class="btn btn-primary px-2 py-0" data-bs-toggle="dropdown">
@@ -531,9 +613,118 @@ export class CN_calendar_appointment extends CN_action_calendar {
 
     return header_el;
   }
+
+  /**
+   * Extend parent method
+   */
+  _create_footer_element() {
+    const footer_el = super._create_footer_element();
+
+    const type = "home" == this.#qnaire_type ? "site" : "home";
+    const interviewer = CN_session.get("role", "name").match(/interviewer/);
+    const left_btn_group_el = footer_el.querySelector("div[name=left-btn-group]");
+
+    // add a button to show the other calendar type
+    const other_calendar_btn_el = this.constructor.html(`
+      <button type="button" name="${type}-calendar" class="btn btn-light btn-outline-primary">
+        ${CN_common.uc_words(type)} Calendar
+      </button>
+    `);
+    left_btn_group_el.append(other_calendar_btn_el);
+    other_calendar_btn_el.addEventListener("click", async () => {
+      const calendar_params = this.get_query_parameter("calendar");
+      const params = { qnaire_type: type };
+      if (calendar_params) params.calendar = calendar_params;
+      const site_id = this.#user_calendar ? CN_session.get("site", "id") : this.#identifier;
+      CN_session.navigate_to(`appointment/calendar/site_id=${site_id}`, params);
+    });
+
+    // add the user calendar button
+    if ("home" == this.#qnaire_type) {
+      const calendar_btn_el = this.constructor.html(`
+        <button type="button" name="user-calendar" class="btn btn-light btn-outline-primary">
+          ${this.#user_calendar ? "" : interviewer ? "Personal" : "Interviewer"} Home Calendar
+        </button>
+      `);
+      left_btn_group_el.append(calendar_btn_el);
+      calendar_btn_el.addEventListener("click", async () => {
+        const calendar_params = this.get_query_parameter("calendar");
+        const params = { qnaire_type: "home" };
+        if (calendar_params) params.calendar = calendar_params;
+        let identifier = null;
+
+        if (this.#user_calendar) {
+          identifier = `site_id=${CN_session.get("site", "id")}`;
+        } else {
+          let user_id = CN_session.get("user", "id");
+          if (!interviewer) {
+            user_id = await CN_modal_input.create_and_open({
+              title: "Select Interviewer",
+              message: "Please select which user's calendar you wish to see.",
+              input: {
+                type: "enum",
+                enum: {
+                  get_enums: async () => await this.get_model().get_user_enums(this.#identifier),
+                },
+              }
+            });
+
+            if (undefined === user_id) return;
+          }
+
+          identifier = `user_id=${user_id}`;
+        }
+
+        CN_session.navigate_to(`appointment/calendar/${identifier}`, params);
+      });
+    }
+
+    return footer_el;
+  }
 }
 
 export class CN_list_appointment extends CN_action_list {
+  #qnaire_type;
+
+  get_qnaire_type() { return this.#qnaire_type; }
+
+  constructor(parent_el, model) {
+    super(parent_el, model);
+    this.#qnaire_type = this.get_query_parameter("qnaire_type");
+  }
+
+  /**
+   * Extend parent method
+   */
+  async get_text(type) {
+    if ("header" == type) {
+      return `${CN_common.uc_words(this.#qnaire_type)} ${await super.get_text(type)}`;
+    }
+
+    return await super.get_text(type);
+  }
+
+  /**
+   * Extend parent method
+   */
+  get_on_load_parameters() {
+    const parameters = super.get_on_load_parameters();
+    //parameters.restricted_site_id = this.#identifier;
+    parameters.qnaire_type = this.#qnaire_type;
+    return parameters;
+  }
+
+  /**
+   * Extend parent method
+   */
+  async on_load() {
+    // When the appointment list has an interview parent we need to get the qnaire_type from the parent model
+    const parent_model = this.get_model().get_parent_model();
+    if (parent_model) this.#qnaire_type = parent_model.get_action().get_property_value("qnaire_type");
+
+    await super.on_load();
+  }
+
   /**
    * Extend parent method
    */
@@ -543,12 +734,17 @@ export class CN_list_appointment extends CN_action_list {
     // add the appointment calendar button when viewing the base appointment list
     const btn_group_el = this.get_footer_element().querySelector("div.btn-group");
     if (null == this.get_model().get_parent_model() && !btn_group_el.querySelector("button[name=calendar]")) {
-      const calendar_btn_el = this.constructor.html(
-        '<button type="button" name="calendar" class="btn btn-primary">Appointment Calendar</button>'
-      );
+      const calendar_btn_el = this.constructor.html(`
+        <button type="button" name="calendar" class="btn btn-primary">
+          ${CN_common.uc_words(this.#qnaire_type)} Appointment Calendar
+        </button>
+      `);
       btn_group_el.append(calendar_btn_el);
       calendar_btn_el.addEventListener("click", () => {
-        CN_session.navigate_to(`appointment/calendar/${this.get_model().get_identifier()}`)
+        CN_session.navigate_to(
+          `appointment/calendar/site_id=${CN_session.get("site", "id")}`,
+          { qnaire_type: this.#qnaire_type }
+        );
       });
     }
   }
@@ -582,6 +778,15 @@ export class CN_view_appointment extends CN_action_view {
   /**
    * Extend parent method
    */
+  async on_load() {
+    await super.on_load();
+    this.#participant_id = this.get_model().get_parent_model().get_action().get_property_value("participant_id");
+    this.#qnaire_type = this.get_model().get_parent_model().get_action().get_property_value("qnaire_type");
+  }
+
+  /**
+   * Extend parent method
+   */
   update_element() {
     super.update_element();
 
@@ -607,15 +812,6 @@ export class CN_view_appointment extends CN_action_view {
       },
     });
     return super._create_element();
-  }
-
-  /**
-   * Extend parent method
-   */
-  async on_load() {
-    await super.on_load();
-    this.#participant_id = this.get_model().get_parent_model().get_action().get_property_value("participant_id");
-    this.#qnaire_type = this.get_model().get_parent_model().get_action().get_property_value("qnaire_type");
   }
 
   /**

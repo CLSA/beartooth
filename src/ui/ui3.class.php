@@ -25,7 +25,11 @@ class ui3 extends \cenozo\ui\ui3
     $db_user = $session->get_user();
 
     $module = $this->get_module( 'appointment' );
-    if( !is_null( $module ) ) $module->add_action( 'calendar', '/{identifier}?{qnaire_type}&{calendar}' );
+    if( !is_null( $module ) )
+    {
+      $module->add_action( 'calendar', '/{identifier}?{qnaire_type}&{calendar}' );
+      $module->add_action( 'list', '?{qnaire_type}&{tables}' );
+    }
 
     $module = $this->get_module( 'assignment' );
     if( !is_null( $module ) )
