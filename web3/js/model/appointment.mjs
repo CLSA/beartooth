@@ -397,7 +397,8 @@ export class CN_add_appointment extends CN_action_add {
    * Extend parent method
    */
   _create_element() {
-    this.get_model().embed_calendar(this.get_parent_element(), {
+    // embed the calendar into the action
+    this.get_model().embed_calendar(this.get_parent_element().querySelector("div.container-fluid"), {
       on_click_cell: async (element) => {
         await this.set_property_value("datetime", element.date);
       },
@@ -802,7 +803,8 @@ export class CN_view_appointment extends CN_action_view {
    * Extend parent method
    */
   _create_element() {
-    this.get_model().embed_calendar(this.get_parent_element(), {
+    // embed the calendar into the action
+    this.get_model().embed_calendar(this.get_parent_element().querySelector("div.container-fluid"), {
       on_click_cell: async (element) => {
         await this.constructor.wait_for(async () => {
           await this.set_property_value("datetime", element.date);
