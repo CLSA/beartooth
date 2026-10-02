@@ -60,7 +60,11 @@ class module extends \cenozo\service\participant\module
         $coi_sel = lib::create( 'database\select' );
         $coi_sel->FROM( 'queue' );
         $coi_sel->add_table_column( 'queue_has_participant', 'participant_id' );
-        $coi_sel->add_column( 'GROUP_CONCAT( consent_type.name ORDER BY consent_type.name )', 'coi_list', false );
+        $coi_sel->add_column(
+          'GROUP_CONCAT( consent_type.name ORDER BY consent_type.name SEPARATOR "\n" )',
+          'coi_list',
+          false
+         );
 
         $coi_mod = lib::create( 'database\modifier' );
         $coi_mod->join( 'queue_has_participant', 'queue.id', 'queue_has_participant.queue_id' );
@@ -110,7 +114,11 @@ class module extends \cenozo\service\participant\module
         $eoi_sel = lib::create( 'database\select' );
         $eoi_sel->FROM( 'queue' );
         $eoi_sel->add_table_column( 'queue_has_participant', 'participant_id' );
-        $eoi_sel->add_column( 'GROUP_CONCAT( event_type.name ORDER BY event_type.name )', 'eoi_list', false );
+        $eoi_sel->add_column(
+          'GROUP_CONCAT( event_type.name ORDER BY event_type.name SEPARATOR "\n" )',
+          'eoi_list',
+          false
+        );
 
         $eoi_mod = lib::create( 'database\modifier' );
         $eoi_mod->join( 'queue_has_participant', 'queue.id', 'queue_has_participant.queue_id' );
@@ -159,7 +167,11 @@ class module extends \cenozo\service\participant\module
         $soi_sel = lib::create( 'database\select' );
         $soi_sel->FROM( 'queue' );
         $soi_sel->add_table_column( 'queue_has_participant', 'participant_id' );
-        $soi_sel->add_column( 'GROUP_CONCAT( study.name ORDER BY study.name )', 'soi_list', false );
+        $soi_sel->add_column(
+          'GROUP_CONCAT( study.name ORDER BY study.name SEPARATOR "\n" )',
+          'soi_list',
+          false
+        );
 
         $soi_mod = lib::create( 'database\modifier' );
         $soi_mod->join( 'queue_has_participant', 'queue.id', 'queue_has_participant.queue_id' );

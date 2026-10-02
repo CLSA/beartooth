@@ -17,7 +17,7 @@ export class CN_model_participant extends classes.CN_model_participant {
         "before",
         "uid",
         "qnaire",
-        { title: "Questionnaire", column: "script.name" }
+        { title: "Questionnaire", column: "qnaire.name" }
       );
       CN_common.insert_property(
         columns,

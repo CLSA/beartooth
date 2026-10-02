@@ -35,7 +35,7 @@ class ui3 extends \cenozo\ui\ui3
     if( !is_null( $module ) )
     {
       if( in_array( $db_role->name, [ 'helpline', 'interviewer', 'interviewer+', 'coordinator' ] ) )
-        $module->add_action( 'control', '?{qnaire_type}{tables}' );
+        $module->add_action( 'control', '?{qnaire_type}&{tables}' );
     }
 
     $module = $this->get_module( 'interview' );

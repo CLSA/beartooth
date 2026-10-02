@@ -18,51 +18,82 @@ export class CN_model_assignment extends classes.CN_model_assignment {
    */
   async clone_columns() {
     if ("control" == CN_session.get_leaf_model().get_action_name()) {
+      const qnaire_type = this.get_action().get_qnaire_type();
       const columns = {
         rank: { title: "Rank", column: "queue.rank", type: "rank", max_rank: 11 },
-        queue: { title: "Queue", column: "queue.name" },
-        qnaire: { title: "Questionnaire", column: "qnaire.name" },
-        page_progress: { title: "Page Progress", table_prefix: false },
         language: { title: "Language", column: "language.name" },
         uid: { title: "UID", column: "participant.uid" },
+        first_name: { title: "First", column: "participant.first_name" },
+        last_name: { title: "Last", column: "participant.last_name" },
         global_note: { title: "Special Note", column: "participant.global_note", type: "text", limit: 20 },
         availability: { title: "Availability", column: "availability_type.name" },
         participant_id: { column: "participant.id", is_hidden: () => true },
       };
 
-      if (CN_session.get("setting", "last_contacted")) {
-        CN_common.insert_property(columns, "after", "availability", "last_contacted", {
-          title: "Last Contacted",
-          column: "interview_last_contacted.datetime",
-          type: "datetime",
-          help: "The last time an assignment for the current questionnaire ended with a contacted call status.",
-        });
-      }
-
-      // add qnaire alternate type consent columns
-      const response = await CN_api.get("alternate_type", {
-        select: { distinct: true, column: ["id", "name", "title"] },
+      // only include the COI if the qnaire has at least one consent type
+      const consent_type_count = await CN_api.count("qnaire", {
         modifier: {
           join: {
-            table: "qnaire_has_alternate_type",
-            onleft: "alternate_type.id",
-            onright: "qnaire_has_alternate_type.alternate_type_id",
+            table: 'qnaire_has_consent_type',
+            onleft: 'qnaire.id',
+            onright: 'qnaire_has_consent_type.qnaire_id',
           },
           where: {
-            column: "alternate_type.alternate_consent_type_id",
-            operator: "!=",
-            value: null,
+            column: 'qnaire.type',
+            operator: '=',
+            value: qnaire_type,
           },
-        }
+        },
       });
+      if (0 < consent_type_count) {
+        columns.coi_list = { title: "Consent of Interest", type: "text", table_prefix: false };
+      }
 
-      response.forEach(column => {
-        columns[`${column.name}_consent`] = {
-          title: `${column.title} Consent`,
-          table_prefix: false,
-          type: "boolean",
-        };
+      // only include the COI if the qnaire has at least one event type
+      const event_type_count = await CN_api.count("qnaire", {
+        modifier: {
+          join: {
+            table: 'qnaire_has_event_type',
+            onleft: 'qnaire.id',
+            onright: 'qnaire_has_event_type.qnaire_id',
+          },
+          where: {
+            column: 'qnaire.type',
+            operator: '=',
+            value: qnaire_type,
+          },
+        },
       });
+      if (0 < event_type_count) {
+        columns.eoi_list = { title: "Event of Interest", type: "text", table_prefix: false };
+      }
+
+      // only include the COI if the qnaire has at least one study type
+      const study_count = await CN_api.count("qnaire", {
+        modifier: {
+          join: {
+            table: 'qnaire_has_study',
+            onleft: 'qnaire.id',
+            onright: 'qnaire_has_study.qnaire_id',
+          },
+          where: {
+            column: 'qnaire.type',
+            operator: '=',
+            value: qnaire_type,
+          },
+        },
+      });
+      if (0 < study_count) {
+        columns.soi_list = { title: "Study of Interest", type: "text", table_prefix: false };
+      }
+
+      if ("home" == qnaire_type) {
+        columns.prev_event_user = { title: "Previous Interviewer", table_prefix: false };
+        columns.address_summary = { title: "Address", table_prefix: false };
+      } else { // "site" == qnaire_type
+        columns.prev_event_site = { title: "Previous Site", table_prefix: false };
+        columns.last_completed_datetime = { title: "Home Completed", type: "datetime", table_prefix: false };
+      }
 
       return columns;
     }
@@ -101,6 +132,13 @@ export class CN_model_assignment extends classes.CN_model_assignment {
       super.get_default_order()
     );
   }
+
+  /**
+   * Extend parent method
+   */
+  allow_add() {
+    return false;
+  }
 }
 
 // A private class used by the control assignment action
@@ -112,7 +150,6 @@ class CN_element_script_control extends CN_element_card {
   #active_script_id = null;
 
   #active_script_form_input = {};
-  #advance_btn_el;
   #launch_btn_el;
   #script_launcher;
 
@@ -126,20 +163,11 @@ class CN_element_script_control extends CN_element_card {
       ...config,
     });
 
-    this.#advance_btn_el = this.constructor.html(`
-      <button
-        type="button"
-        name="advance"
-        class="btn btn-light btn-outline-primary w-50"
-      >Advance Questionnaire</button>
-    `);
-    this.#advance_btn_el.addEventListener("click", this.#advance.bind(this));
-
     this.#launch_btn_el = this.constructor.html(`
       <button
         type="button"
         name="launch"
-        class="btn btn-primary w-50"
+        class="btn btn-primary"
       >Launch Script</button>
     `);
     this.#launch_btn_el.addEventListener("click", this.#launch.bind(this));
@@ -157,16 +185,6 @@ class CN_element_script_control extends CN_element_card {
   get_previous_qnaire() {
     const previous_rank = this.get_active_qnaire().rank - 1;
     return this.#qnaire_list.find(qnaire => qnaire.rank == previous_rank);
-  }
-
-  /**
-   * ADD DOCS
-   */
-  can_advance() {
-    if (!this.#assignment) return false;
-    const active_qnaire_id = this.#qnaire_list.findIndex(qnaire => qnaire.script_id == this.#active_script_id);
-    const last_qnaire_id = this.#qnaire_list.length - 1;
-    return this.#active_script_id == this.#assignment.script_id && active_qnaire_id < last_qnaire_id;
   }
 
   /**
@@ -235,23 +253,12 @@ class CN_element_script_control extends CN_element_card {
           "(empty)" :
           CN_common.nl_to_br(active_script.description)
         );
-      }
 
-      // show the launch button, or both the advance and launch buttons (if the interview can be advanced only)
-      let btn_group_el = null;
-      if (this.can_advance()) {
-        // the active script can be advanced
-        btn_group_el = this.constructor.html('<div class="btn-group w-100" role="group"></div>');
-        btn_group_el.append(this.#advance_btn_el);
-
-        const disabled = null == this.get_active_qnaire().script.finished_datetime;
-        this.constructor.set_disabled(this.#advance_btn_el, disabled);
-      } else {
-        // the active script cannot be advanced
-        btn_group_el = this.constructor.html('<div class="d-flex flex-row-reverse w-100"></div>');
+        this.constructor.set_disabled(this.#launch_btn_el, active_script.finished_datetime);
+        const footer_div_el = this.constructor.html('<div class="d-flex flex-row-reverse"></div>');
+        footer_div_el.append(this.#launch_btn_el);
+        footer_el.append(footer_div_el);
       }
-      btn_group_el.append(this.#launch_btn_el);
-      footer_el.append(btn_group_el);
     }
   }
 
@@ -272,7 +279,7 @@ class CN_element_script_control extends CN_element_card {
       }),
 
       CN_api.get("qnaire", {
-        select: { column: ["id", "rank", "script_id", "delay_offset", "delay_unit", "allow_missing_consent"] },
+        select: { column: ["id", "rank", "delay_offset", "delay_unit"] },
         modifier: { order: "rank" },
       }),
 
@@ -398,44 +405,12 @@ class CN_element_script_control extends CN_element_card {
   /**
    * ADD DOCS
    */
-  async #advance() {
-    await this.constructor.wait_for(CN_api.patch("assignment/0?operation=advance", {}));
-    CN_session.reload()
-  }
-
-  /**
-   * ADD DOCS
-   */
   async #launch() {
     const active_script = this.get_active_script();
     const active_qnaire = this.get_active_qnaire();
 
     let do_not_proceed_reason = null;
     if (active_qnaire) {
-      // if the application has a consent type then check if the script can proceed without consent
-      const consent_type_id = CN_session.get("application", "consent_type_id");
-      if (null != consent_type_id && !active_script.allow_missing_consent) {
-        try {
-          const response = await CN_api.get(
-            `participant/${this.#assignment.participant_id}/consent/type=last;consent_type_id=${consent_type_id}`
-          );
-
-          if (!response.accept) {
-            do_not_proceed_reason = `
-              The participant cannot continue the interview as they
-              have not consented to participate in the study.
-            `;
-          }
-        } catch (error) {
-          if (CN_common.is_uri_error(error, 404)) {
-            do_not_proceed_reason =
-              "The participant cannot continue the interview as they have declined to participate in the study.";
-          } else {
-            throw error;
-          }
-        }
-      }
-
       // check that the qnaire isn't delayed
       if (null == do_not_proceed_reason && 0 < active_qnaire.delay_offset && 1 < active_qnaire.rank) {
         // test the delay until date with today (both at midnight) to see if the delay until date has been reached
@@ -486,15 +461,13 @@ class CN_element_script_control extends CN_element_card {
         site: CN_session.get("site", "name"),
         username: CN_session.get("user", "name"),
       };
-      if (this.#assignment.active_phone_call.alternate_id) {
-        url_params.alternate_id = this.#assignment.active_phone_call.alternate_id;
-      }
       await this.#script_launcher.open(url_params);
     }
   }
 }
 
 export class CN_control_assignment extends CN_action_list {
+  #qnaire_type;
   #assignment = null;
   #phone_call_list = [];
   #active_phone_call = null;
@@ -509,17 +482,17 @@ export class CN_control_assignment extends CN_action_list {
   #assignment_footer_el;
   #script_control_el;
 
+  get_qnaire_type() { return this.#qnaire_type; }
+
   constructor(parent_el, model) {
     super(parent_el, model, "control");
 
     this.#regained_focus_fn = async () => {
       await CN_common.sleep(100); // this helps to prevent an error when re-focus is gained by reloading the page
-      await Promise.all([
-        this.#script_control_el.on_load(),
-        this.#update_page_progress(),
-      ]);
+      await this.#script_control_el.on_load();
       this.update_element();
     };
+    this.#qnaire_type = this.get_query_parameter("qnaire_type");
   }
 
   /**
@@ -537,8 +510,8 @@ export class CN_control_assignment extends CN_action_list {
     if ("header" == type) {
       return (
         null == this.#assignment || null == this.#assignment.participant ?
-        "Participant Selection List" :
-        "Current Assignment"
+        `${CN_common.uc_words(this.#qnaire_type)} Assignment Selection List` :
+        `Current ${CN_common.uc_words(this.#qnaire_type)} Assignment`
       );
     }
 
@@ -557,7 +530,7 @@ export class CN_control_assignment extends CN_action_list {
    */
   get_on_load_parameters() {
     const params = super.get_on_load_parameters();
-    params.assignment = true;
+    params.assignment = this.#qnaire_type;
     return params;
   }
 
@@ -578,14 +551,11 @@ export class CN_control_assignment extends CN_action_list {
         "id",
         "interview_id",
         "start_datetime",
-        "has_alternate_types",
         { table: "participant", column: "id", alias: "participant_id" },
         { table: "qnaire", column: "id", alias: "qnaire_id" },
-        { table: "qnaire", column: "web_version", type: "boolean" },
-        { table: "script", column: "id", alias: "script_id" },
-        { table: "script", column: "name", alias: "qnaire" },
+        { table: "qnaire", column: "name", alias: "qnaire" },
+        { table: "qnaire", column: "type", alias: "type" },
         { table: "queue", column: "title", alias: "queue" },
-        { table: "interview", column: "method", alias: "interview_method" },
       ];
       if (CN_session.get("application", "check_for_missing_hin")) assignment_column.push("missing_hin");
       this.#assignment = await CN_api.get("assignment/0", { select: { column: assignment_column } });
@@ -638,7 +608,7 @@ export class CN_control_assignment extends CN_action_list {
 
       const [
         participant_response,
-        progress_response,
+        interview_response,
         phone_call_response,
         previous_assignment_response,
         phone_response,
@@ -647,7 +617,7 @@ export class CN_control_assignment extends CN_action_list {
           select: { column: participant_column },
         }),
 
-        this.#update_page_progress(),
+        CN_api.get(`interview/${this.#assignment.interview_id}`, { last_interview_note: 1 }),
 
         CN_api.get("assignment/0/phone_call", {
           select: {
@@ -693,6 +663,7 @@ export class CN_control_assignment extends CN_action_list {
       ]);
 
       this.#assignment.participant = participant_response;
+      this.#assignment.participant.last_interview_note = interview_response;
       this.#phone_call_list = phone_call_response;
       const len = this.#phone_call_list.length
       this.#assignment.active_phone_call = (
@@ -742,7 +713,7 @@ export class CN_control_assignment extends CN_action_list {
     const response = await CN_modal_confirm.create_and_open({
       title: "Begin Assignment",
       message: `
-        Are you sure you wish to start a new assignment with participant
+        Are you sure you wish to start a new ${this.#qnaire_type} assignment with participant
         <span class="fw-bold">${record.uid}</span>?
       `,
     });
@@ -765,6 +736,29 @@ export class CN_control_assignment extends CN_action_list {
       this.#assignment_footer_el.classList.add("d-none");
       this.#script_control_el.get_element().classList.add("d-none");
       super.update_element();
+    } else if (this.#assignment.type != this.#qnaire_type) {
+      this.#script_control_el.get_element().classList.add("d-none");
+
+      this.#assignment_footer_el.innerHTML = "";
+      this.#assignment_footer_el.append(this.constructor.html(`
+        <div class="d-flex w-100">
+          <div class="me-auto"></div>
+          <button type="button" class="btn btn-primary">
+            View Active ${CN_common.uc_words(this.#assignment.type)} Assignment
+          </button>
+        </div>
+      `));
+      this.#assignment_footer_el.querySelector("button").addEventListener("click", () => {
+        CN_session.navigate_to("assignment/control", { qnaire_type: this.#assignment.type });
+      });
+      this.#assignment_body_el.innerHTML = "";
+      this.#assignment_body_el.append(this.constructor.html(`
+        <div class="container-fluid m-3">
+          You are currently in a <span class="fw-bold">${this.#assignment.type}</span> assignment.<br/>
+          Before you can start a ${this.#qnaire_type} assignment you must first complete your active
+          assignment.
+        </div>
+      `));
     } else {
       // fill in the details properties
       const details_el = this.#assignment_body_el.querySelector("div[name=details]");
@@ -788,22 +782,16 @@ export class CN_control_assignment extends CN_action_list {
         this.#assignment.participant.pronouns;
       details_el.querySelector("div[name=queue]").innerHTML = this.#assignment.queue;
       details_el.querySelector("div[name=qnaire]").innerHTML = this.#assignment.qnaire;
-      details_el.querySelector("div[name=page]").innerHTML = this.#assignment.page_progress;
       details_el.querySelector("div[name=note]").innerHTML = (
-        null == this.#assignment.participant.global_note ?
+        ["", null].includes(this.#assignment.participant.global_note) ?
         "(empty)" :
         CN_common.nl_to_br(this.#assignment.participant.global_note)
       );
-
-      // We don't know whether to use the method property until after the assignment has been loaded,
-      // so it has to be shown or hidden here.
-      const method_el = details_el.querySelector("div[name=method]");
-      if (this.#assignment.web_version) {
-        method_el.parentElement.classList.remove("d-none");
-        details_el.querySelector("div[name=method]").innerHTML = this.#assignment.interview_method;
-      } else {
-        method_el.parentElement.classList.add("d-none");
-      }
+      details_el.querySelector("div[name=last_interview_note]").innerHTML = (
+        ["", null].includes(this.#assignment.participant.last_interview_note) ?
+        "(empty)" :
+        CN_common.nl_to_br(this.#assignment.participant.last_interview_note)
+      );
 
       // fill in the active assignment properties
       const active_el = this.#assignment_body_el.querySelector("div[name=active-assignment]");
@@ -822,7 +810,8 @@ export class CN_control_assignment extends CN_action_list {
       } else {
         active_el.querySelector("div[name=call]").innerHTML = `
           ${this.#assignment.active_phone_call.person}<br/>
-          ${this.#assignment.active_phone_call.rank}. ${this.#assignment.active_phone_call.type} (${this.#assignment.active_phone_call.number})
+          ${this.#assignment.active_phone_call.rank}.
+          ${this.#assignment.active_phone_call.type} (${this.#assignment.active_phone_call.number})
         `;
       }
 
@@ -1024,9 +1013,8 @@ export class CN_control_assignment extends CN_action_list {
       { name: "pronouns", title: "Pronouns" },
       { name: "queue", title: "Referring Queue" },
       { name: "qnaire", title: "Questionnaire" },
-      { name: "page", title: "Page Progress" },
       { name: "note", title: "Special Notes" },
-      { name: "method", title: "Interviewing Method" },
+      { name: "last_interview_note", title: "Previous Interview Notes" },
     ];
 
     // add optional props
@@ -1177,28 +1165,6 @@ export class CN_control_assignment extends CN_action_list {
     if (record.reserved) el.style.background = "rgb(255, 242, 174)";
 
     return el;
-  }
-
-  /**
-   * ADD DOCS
-   */
-  async #update_page_progress() {
-    if (!this.#assignment) return;
-
-    try {
-      const response = await CN_api.get("assignment/0", {
-        update_data: 1,
-        select: { column: "page_progress" },
-      });
-      this.#assignment.page_progress = response.page_progress;
-    } catch (error) {
-      if (CN_common.is_uri_error(error, 307)) {
-        // 307 means the user has no active assignment, so just refresh the page data
-        await this.run();
-      } else {
-        throw error;
-      }
-    }
   }
 
   /**

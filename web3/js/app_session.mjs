@@ -29,19 +29,21 @@ class app_session extends CN_base_app_session {
     // we must force the participant module's root status in case the participant list isn't in the menu
     CN_session.get_module("participant").set_root(true);
 
+    const assignment = CN_session.get("user", "assignment");
+
+    if (null == assignment) return;
+
     this.#menu_btn_el = document
       .getElementById("main-menu-header")
       .querySelector("button[name=menu-button]");
     this.#control_btn_el = document
       .getElementById("main-menu-offcanvas")
-      .querySelector('button[name="assignment.control"]');
+      .querySelector(`button[name="assignment.control?qnaire_type=${assignment.type}"]`);
 
     // Need to re-define the event handler for the assignment-control menu button when not logged in
     // as an assignment-taking role
-    const assignment = CN_session.get("user", "assignment");
     if (
-      this.#control_btn_el &&
-      null != assignment && (
+      this.#control_btn_el && (
         !["helpline", "interviewer", "interviewer+", "coordinator"].includes(CN_session.get("role", "name")) ||
         CN_session.get("site", "id") != assignment.site_id
       )
@@ -68,7 +70,7 @@ class app_session extends CN_base_app_session {
         if (response) {
           CN_session.close_menu();
           await CN_api.patch("self/0", { site: { id: assignment.site_id }, role: { id: assignment.role_id } });
-          CN_session.reload("assignment/control");
+          CN_session.reload(`assignment/control`, { qnaire_type: assignment.type });
         }
       });
     }
