@@ -248,7 +248,7 @@ cenozoApp.defineModule({
         */
         date.tz(timezone);
         const parts = date.format("Z").match(/(.*):(.*)/);
-        const offset = -(Number(parts[1]) * 60 + Number(parts[2]));
+        const offset = Number(parts[1]) * 60 + Number(parts[2]) * (0 > Number(parts[1]) ? -1 : 1);
 
         // get the identifier now and not in the getIdentifier() function below
         var identifier = appointment.getIdentifier();
@@ -260,8 +260,8 @@ cenozoApp.defineModule({
             (appointment.uid ? appointment.uid : "new appointment") +
             (appointment.postcode ? " [" + appointment.postcode.substr(0, 3) + "]" : "") +
             (appointment.username ? " (" + appointment.username + ")" : ""),
-          start: moment(appointment.datetime).subtract(offset, "minutes"),
-          end: moment(appointment.datetime).subtract(offset, "minutes").add(appointment.duration, "minute"),
+          start: moment(appointment.datetime).add(offset, "minutes"),
+          end: moment(appointment.datetime).add(offset, "minutes").add(appointment.duration, "minute"),
           color: appointment.color,
           help: appointment.help,
         };
