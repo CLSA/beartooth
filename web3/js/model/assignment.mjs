@@ -198,18 +198,15 @@ class CN_element_script_control extends CN_element_card {
     const footer_el = this.get_element().querySelector(".card-footer");
     footer_el.innerHTML = "";
 
+    this.constructor.set_hidden(body_el.querySelector("div[name=interface]"), this.#withdrawn);
+    this.constructor.set_hidden(body_el.querySelector("div[name=blocked]"), !this.#withdrawn);
     if (this.#withdrawn) {
-      body_el.querySelector("div[name=interface]").classList.add("d-none");
       body_el.querySelector("span[name=reason]").innerHTML = (
         this.#withdrawn ?
         "they have withdrawn from the study" :
         "a proxy is required for the interview"
       );
-      body_el.querySelector("div[name=blocked]").classList.remove("d-none");
     } else {
-      body_el.querySelector("div[name=blocked]").classList.add("d-none");
-      body_el.querySelector("div[name=interface]").classList.remove("d-none");
-
       this.#active_script_form_input.update();
       this.#active_script_form_input.set_value(this.#active_script_id);
       const active_script = this.get_active_script();
@@ -225,15 +222,9 @@ class CN_element_script_control extends CN_element_card {
       repeated_el.innerHTML = "Loading...";
       description_el.innerHTML = "Loading...";
 
-      if (active_script && active_script.supporting) {
-        started_datetime_el.parentElement.classList.add("d-none");
-        finished_datetime_el.parentElement.classList.add("d-none");
-        repeated_el.parentElement.classList.add("d-none");
-      } else {
-        started_datetime_el.parentElement.classList.remove("d-none");
-        finished_datetime_el.parentElement.classList.remove("d-none");
-        repeated_el.parentElement.classList.remove("d-none");
-      }
+      this.constructor.set_hidden(started_datetime_el.parentElement, active_script && active_script.supporting);
+      this.constructor.set_hidden(finished_datetime_el.parentElement, active_script && active_script.supporting);
+      this.constructor.set_hidden(repeated_el.parentElement, active_script && active_script.supporting);
 
       if (active_script) {
         if (!active_script.supporting) {
@@ -779,14 +770,14 @@ export class CN_control_assignment extends CN_action_list {
     if (!this.#no_assignment_body_el) return;
 
     if (null == this.#assignment) {
-      this.#no_assignment_body_el.classList.remove("d-none");
-      this.#assignment_body_el.classList.add("d-none");
-      this.#no_assignment_footer_el.classList.remove("d-none");
-      this.#assignment_footer_el.classList.add("d-none");
-      this.#script_control_el.get_element().classList.add("d-none");
+      this.constructor.show(this.#no_assignment_body_el);
+      this.constructor.hide(this.#assignment_body_el);
+      this.constructor.show(this.#no_assignment_footer_el);
+      this.constructor.hide(this.#assignment_footer_el);
+      this.constructor.hide(this.#script_control_el.get_element());
       super.update_element();
     } else if (this.#assignment.type != this.#qnaire_type) {
-      this.#script_control_el.get_element().classList.add("d-none");
+      this.constructor.hide(this.#script_control_el.get_element());
 
       this.#assignment_footer_el.innerHTML = "";
       this.#assignment_footer_el.append(this.constructor.html(`
@@ -893,9 +884,9 @@ export class CN_control_assignment extends CN_action_list {
       call_el.innerHTML = this.#assignment.active_phone_call ? "End Call" : "Call";
       this.constructor.set_disabled(end_assignment_el, null != this.#assignment.active_phone_call);
       if (0 == this.#phone_list.length) {
-        if (null == this.#assignment.active_phone_call) this.constructor.set_disabled(call_el, true);
+        if (null == this.#assignment.active_phone_call) this.constructor.disable(call_el);
       } else {
-        this.constructor.set_disabled(call_el, false);
+        this.constructor.enable(call_el);
 
         // populate the call dropdown with phone-call statuses if in an active call, or list of numbers if not
         call_list_el.innerHTML = "";
@@ -938,16 +929,16 @@ export class CN_control_assignment extends CN_action_list {
         }
       }
 
-      this.#assignment_body_el.classList.remove("d-none");
-      this.#no_assignment_body_el.classList.add("d-none");
-      this.#assignment_footer_el.classList.remove("d-none");
-      this.#no_assignment_footer_el.classList.add("d-none");
+      this.constructor.show(this.#assignment_body_el);
+      this.constructor.hide(this.#no_assignment_body_el);
+      this.constructor.show(this.#assignment_footer_el);
+      this.constructor.hide(this.#no_assignment_footer_el);
 
       if (this.#assignment.active_phone_call) {
         this.#script_control_el.update_element();
-        this.#script_control_el.get_element().classList.remove("d-none");
+        this.constructor.show(this.#script_control_el.get_element());
       } else {
-        this.#script_control_el.get_element().classList.add("d-none");
+        this.constructor.hide(this.#script_control_el.get_element());
       }
     }
   }
@@ -976,7 +967,7 @@ export class CN_control_assignment extends CN_action_list {
     super.show_placeholder();
 
     // hide the script launcher while loading
-    this.#script_control_el.get_element().classList.add("d-none");
+    this.constructor.hide(this.#script_control_el.get_element());
   }
 
   /**
@@ -1001,7 +992,7 @@ export class CN_control_assignment extends CN_action_list {
    */
   _create_body_element() {
     this.#no_assignment_body_el = super._create_body_element();
-    this.#no_assignment_body_el.classList.add("d-none");
+    this.constructor.hide(this.#no_assignment_body_el);
 
     this.#assignment_body_el = this.constructor.html(`
       <div>
@@ -1094,7 +1085,7 @@ export class CN_control_assignment extends CN_action_list {
    */
   _create_footer_element() {
     this.#no_assignment_footer_el = super._create_footer_element();
-    this.#no_assignment_footer_el.classList.add("d-none");
+    this.constructor.hide(this.#no_assignment_footer_el);
 
     this.#assignment_footer_el = this.constructor.html(`
       <div>
