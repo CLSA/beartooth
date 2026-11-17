@@ -18,7 +18,7 @@ export class CN_model_qnaire extends CN_base_model {
       },
       properties: {
         rank: { meta: { table: "qnaire", column: "rank" }, title: "Rank", type: "rank" },
-        name: { title: "Name", format: "identifier" },
+        name: { title: "Name" },
         type: { title: "Type", type: "enum", is_constant: () => "view" == this.get_action_name() },
         allow_missing_consent: {
           title: "Allow Missing Consent",

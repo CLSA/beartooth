@@ -15,7 +15,7 @@ export class CN_model_appointment_type extends CN_base_model {
         qnaire: { column: "qnaire.name", title: "Questionnaire" },
       },
       properties: {
-        name: { title: "Name", format: "identifier" },
+        name: { title: "Name" },
         use_participant_timezone: {
           title: "Use Participant's Timezone",
           type: "boolean",
